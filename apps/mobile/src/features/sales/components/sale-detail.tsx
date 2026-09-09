@@ -212,14 +212,14 @@ export function SaleDetail({
                 {item.quantity}x {formatCurrency(item.unitPrice)}
               </Typography>
             </View>
-            <Typography variant="h3" color={theme.colors.success}>
+            <Typography variant="h3" color={theme.colors.text}>
               {formatCurrency(item.subtotal)}
             </Typography>
           </View>
         </Card>
       ))}
 
-      <Card style={{ backgroundColor: theme.colors.successBg }}>
+      <Card style={{ backgroundColor: theme.colors.surface }}>
         {sale.discount > 0 ? (
           <>
             <View
@@ -240,7 +240,7 @@ export function SaleDetail({
               }}
             >
               <Typography variant="body">Desconto</Typography>
-              <Typography variant="bodyBold" color={theme.colors.success}>
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 − {formatCurrency(sale.discount)}
               </Typography>
             </View>
@@ -254,7 +254,7 @@ export function SaleDetail({
           }}
         >
           <Typography variant="h3">Total</Typography>
-          <Typography variant="moneyLg" color={theme.colors.success}>
+          <Typography variant="moneyLg" color={theme.colors.text}>
             {formatCurrency(sale.total)}
           </Typography>
         </View>
@@ -301,7 +301,7 @@ export function SaleDetail({
         {sale.status !== "cancelled" && (
           <Button
             title="Cancelar venda"
-            variant="outline"
+            variant="alertOutline"
             size="lg"
             onPress={handleCancel}
             loading={updateStatus.isPending}

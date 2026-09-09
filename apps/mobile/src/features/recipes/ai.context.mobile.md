@@ -188,3 +188,7 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 RecipeMaterialsEditor cadastra material no contexto da ficha e retoma a linha com unidade correspondente, sem perder quantidades das demais linhas. Erro/carregamento de rede não são tratados como lista vazia. Títulos respeitam o vocabulário de negócio. Criar receita emite conclusão após sucesso.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Atalho para precificar — 2026-09-09
+
+O detalhe oferece “Precificar com esta receita”. Abre `/pricing` com o custo por unidade da escala exibida (`soma dos ingredientes ÷ rendimento`), nome visível e categoria; esses dados podem pré-preencher o produto criado depois do cálculo.

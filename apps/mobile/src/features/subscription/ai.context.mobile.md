@@ -149,6 +149,13 @@ do Catálogo abrem checkout Essencial somente para contas Gratuitas.
 
 ## Orientação contextual — 2026-09-07
 
-Ajuda básica e envio de dúvidas disponíveis em qualquer plano em support.tsx. prioritySupport continua derivado do contrato de plano. FAQ distingue recibo Google Play de Stripe sem prometer prazo de atendimento.
+Ajuda e envio de dúvidas disponíveis em qualquer plano em support.tsx. Desde 09/09/2026, o cartão “Suporte” em Configurações aparece em qualquer plano e a tela de contato é a mesma, sem chamada de upgrade ou promessa de prioridade. FAQ distingue recibo Google Play de Stripe sem prometer prazo de atendimento.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Auditoria UX/UI — 2026-09-09
+
+- `SubscriptionCheckout` projeta o recurso de origem de `usePaywall` com `getPaywallCopy(resource, businessCopyFor(profile.businessType))` no cabeçalho visível. `Paywall` respeita `title`, `message` e `currentUsage` fornecidos; sem texto explícito, usa a copy genérica centralizada.
+- Benefícios do checkout usam exclusivamente `TIER_BENEFITS` / `tierBenefitsFor`, como a tela Planos, incluindo o PDF mensal e o teto de fornecedores do Essencial. Nenhuma regra comercial foi alterada.
+- Planos mostra skeleton durante o carregamento inicial do perfil e, para contas gratuitas, do uso. Contas pagas não aguardam uma consulta de uso gratuito. O Profissional mantém badge e contorno; o fundo é neutro e só seu CTA recebe preenchimento principal.
+- Banner de limite usa `premiumBg` e borda sem sombra. Os tokens atendem ambos os temas.

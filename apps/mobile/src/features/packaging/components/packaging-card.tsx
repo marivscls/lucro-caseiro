@@ -136,10 +136,10 @@ export function PackagingCard({
                 paddingVertical: 2,
               }}
             >
-              <AppIcon name="alert-circle-outline" size={12} color={palette.ink} />
+              <AppIcon name="alert-circle-outline" size={12} color={palette.onLime} />
               <Typography
                 variant="caption"
-                color={palette.ink}
+                color={palette.onLime}
                 style={{ fontFamily: fonts.bold, fontSize: 11, lineHeight: 14 }}
               >
                 estoque baixo

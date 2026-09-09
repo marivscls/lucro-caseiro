@@ -1,5 +1,11 @@
 /** Cálculos compartilhados por app, API e calculadora pública do site. */
 export {
+  pricingQuote,
+  evaluateSalePrice,
+  pricingReviews,
+  currentProductCost,
+} from "./pricing-model";
+export {
   finalPriceWithFees,
   fixedCostShare,
   laborCost,

@@ -38,7 +38,7 @@ export function PricingHistoryButton({ onPress }: Readonly<{ onPress: () => void
       <Typography
         variant="bodyBold"
         color={theme.colors.primaryStrong}
-        style={{ fontSize: fontSizes.md }}
+        style={{ fontSize: fontSizes.sm }}
       >
         Histórico
       </Typography>

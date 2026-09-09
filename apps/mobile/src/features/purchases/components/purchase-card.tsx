@@ -140,13 +140,13 @@ export function PurchaseCard({
           {!isPaid ? (
             <Button
               title="Marcar como paga"
+              variant="outline"
               size="md"
               onPress={onPay}
               loading={isPaying}
               disabled={payDisabled}
               style={{
                 alignSelf: "flex-start",
-                backgroundColor: pal.rose,
                 minHeight: 44,
                 paddingHorizontal: spacing.lg,
               }}

@@ -8,7 +8,10 @@ const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
 }));
 
-vi.mock("@lucro-caseiro/ui", () => ({
+vi.mock("@lucro-caseiro/ui", async () => ({
+  ValidationField: (
+    await import("../../../../../../packages/ui/src/components/validation-field")
+  ).ValidationField,
   Input: ({
     label,
     value,
@@ -63,6 +66,7 @@ vi.mock("@lucro-caseiro/ui", () => ({
 }));
 
 vi.mock("react-native", () => ({
+  Text: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
   Platform: { OS: "web" },
   View: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   ScrollView: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
@@ -239,11 +243,7 @@ describe("SupplierForm", () => {
       await ref.current?.submit();
     });
     expect(mocks.upload).toHaveBeenCalledOnce();
-    expect(mocks.upload).toHaveBeenCalledWith(
-      "blob:foto",
-      selectedFile,
-      "image/webp",
-    );
+    expect(mocks.upload).toHaveBeenCalledWith("blob:foto", selectedFile, "image/webp");
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
         avatarType: "upload",

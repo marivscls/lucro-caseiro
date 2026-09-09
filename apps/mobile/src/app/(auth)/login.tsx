@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import {
   Button,
   Input,
@@ -67,7 +69,13 @@ export default function LoginScreen() {
     return valid;
   }
 
+  const formValidation = useFormValidation({
+    email: !email.trim() && "Informe seu e-mail.",
+    password: !password.trim() && "Informe sua senha.",
+  });
+
   async function handleLogin() {
+    if (!formValidation.validate()) return;
     if (!validateForm()) return;
 
     setEmailLoading(true);
@@ -204,21 +212,23 @@ export default function LoginScreen() {
             <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
           </View>
 
-          <Input
-            label="E-mail"
-            placeholder="seu@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              if (emailError) setEmailError(undefined);
-              if (emailSuggestion) setEmailSuggestion(undefined);
-            }}
-            onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-            error={emailError}
-          />
+          <ValidationField {...formValidation.field("email")}>
+            <Input
+              label="E-mail"
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (emailError) setEmailError(undefined);
+                if (emailSuggestion) setEmailSuggestion(undefined);
+              }}
+              onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
+              error={emailError}
+            />
+          </ValidationField>
           <EmailTypoHint
             suggestion={emailSuggestion}
             onAccept={() => {
@@ -229,18 +239,20 @@ export default function LoginScreen() {
             }}
           />
           <View>
-            <Input
-              label="Senha"
-              placeholder="Sua senha"
-              secureTextEntry={!showPassword}
-              autoComplete="password"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (passwordError) setPasswordError(undefined);
-              }}
-              error={passwordError}
-            />
+            <ValidationField {...formValidation.field("password")}>
+              <Input
+                label="Senha"
+                placeholder="Sua senha"
+                secureTextEntry={!showPassword}
+                autoComplete="password"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (passwordError) setPasswordError(undefined);
+                }}
+                error={passwordError}
+              />
+            </ValidationField>
             <Pressable
               onPress={() => setShowPassword(!showPassword)}
               accessibilityRole="button"

@@ -1,5 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Chip,
   FilterChipRow,
   fonts,
@@ -18,7 +19,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -215,11 +215,11 @@ function CardAction({
       <AppIcon
         name={icon}
         size={iconSizes.sm}
-        color={filled ? colors.onWine : colors.wine}
+        color={filled ? colors.onRose : colors.wine}
       />
       <Typography
         variant="caption"
-        color={filled ? colors.onWine : colors.wine}
+        color={filled ? colors.onRose : colors.wine}
         style={styles.cardActionText}
       >
         {label}
@@ -277,12 +277,7 @@ function OpenSaleRow({
           flex={1.55}
           onPress={() => onMarkPaid(sale.id)}
         />
-        <CardAction
-          icon="logo-whatsapp"
-          label={COPY.charge}
-          filled={timing.kind === "overdue"}
-          onPress={onCharge}
-        />
+        <CardAction icon="logo-whatsapp" label={COPY.charge} onPress={onCharge} />
       </View>
     </View>
   );
@@ -886,7 +881,7 @@ export default function FiadoScreen() {
         >
           <View style={styles.searchField}>
             <AppIcon name="search-outline" size={iconSizes.sm} color={colors.muted} />
-            <TextInput
+            <CenteredTextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Buscar cliente ou valor"
@@ -986,7 +981,7 @@ function createStyles(theme: Theme) {
     summaryCopy: { width: "61%", gap: spacing.sm, zIndex: 1 },
     summaryCopyCompact: { width: "68%", gap: spacing.xs },
     summaryCopyNarrow: { width: "75%" },
-    summaryLabel: { fontFamily: fonts.semiBold, fontSize: 20, lineHeight: 28 },
+    summaryLabel: { fontFamily: fonts.semiBold, fontSize: 16, lineHeight: 22 },
     summaryMeta: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
     summaryArt: {
       position: "absolute",
@@ -1044,7 +1039,7 @@ function createStyles(theme: Theme) {
     },
     avatarText: { fontSize: 18, lineHeight: 24 },
     clientInfo: { flex: 1, minWidth: 0, gap: 2 },
-    clientName: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 23 },
+    clientName: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
     groupTotal: {
       flexShrink: 1,
       textAlign: "right",

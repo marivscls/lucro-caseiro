@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { CreateQuote, Product, Quote, QuoteItem } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -165,7 +167,34 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
     setShowProductPicker(false);
   }
 
+  const formValidation = useFormValidation<string>(
+    {
+      title: !title.trim() && "Dê um título ao orçamento.",
+
+      ...Object.fromEntries(
+        items.flatMap((item, index) => [
+          [
+            `item-${index}-description`,
+            !item.description.trim() && "Descreva este item.",
+          ],
+          [
+            `item-${index}-quantity`,
+            (!Number.isFinite(parseNumber(item.quantity)) ||
+              parseNumber(item.quantity) <= 0) &&
+              "Informe uma quantidade maior que zero.",
+          ],
+          [
+            `item-${index}-price`,
+            !item.unitPrice.trim() && "Informe o preço deste item.",
+          ],
+        ]),
+      ),
+    },
+    visible,
+  );
+
   function buildQuoteData(): CreateQuote | null {
+    if (!formValidation.validate()) return null;
     if (!title.trim()) {
       alertValidation("Dê um título ao orçamento. Ex.: Kit festa Safari");
       return null;
@@ -267,12 +296,14 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
       >
         <View style={isDesktop ? split.row : { flexShrink: 1, gap: spacing.xl }}>
           <View style={isDesktop ? split.main : { flexShrink: 1, gap: spacing.lg }}>
-            <Input
-              label="Título"
-              placeholder="Ex.: Kit festa Safari"
-              value={title}
-              onChangeText={setTitle}
-            />
+            <ValidationField {...formValidation.field("title")}>
+              <Input
+                label="Título"
+                placeholder="Ex.: Kit festa Safari"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </ValidationField>
             <Input
               label="Cliente (opcional)"
               placeholder="Nome de quem pediu o orçamento"
@@ -321,21 +352,25 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   padding: spacing.md,
                 }}
               >
-                <Input
-                  placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
-                  value={item.description}
-                  onChangeText={(v) => setItem(index, { description: v })}
-                />
+                <ValidationField {...formValidation.field(`item-${index}-description`)}>
+                  <Input
+                    placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
+                    value={item.description}
+                    onChangeText={(v) => setItem(index, { description: v })}
+                  />
+                </ValidationField>
                 <View
                   style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}
                 >
                   <View style={compactField}>
-                    <Input
-                      placeholder="Qtd."
-                      value={item.quantity}
-                      onChangeText={(v) => setItem(index, { quantity: v })}
-                      keyboardType="decimal-pad"
-                    />
+                    <ValidationField {...formValidation.field(`item-${index}-quantity`)}>
+                      <Input
+                        placeholder="Qtd."
+                        value={item.quantity}
+                        onChangeText={(v) => setItem(index, { quantity: v })}
+                        keyboardType="decimal-pad"
+                      />
+                    </ValidationField>
                   </View>
                   <View
                     style={[
@@ -343,14 +378,16 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                       isDesktop ? { flex: 1, maxWidth: undefined } : { flex: 1.4 },
                     ]}
                   >
-                    <Input
-                      placeholder="Preço un."
-                      value={item.unitPrice}
-                      onChangeText={(v) =>
-                        setItem(index, { unitPrice: maskCurrencyInput(v) })
-                      }
-                      keyboardType="numeric"
-                    />
+                    <ValidationField {...formValidation.field(`item-${index}-price`)}>
+                      <Input
+                        placeholder="Preço un."
+                        value={item.unitPrice}
+                        onChangeText={(v) =>
+                          setItem(index, { unitPrice: maskCurrencyInput(v) })
+                        }
+                        keyboardType="numeric"
+                      />
+                    </ValidationField>
                   </View>
                   <Pressable
                     onPress={() => removeItem(index)}
@@ -508,7 +545,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               onChangeText={setNotes}
               multiline
               numberOfLines={3}
-              style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+              style={{ height: 80, textAlignVertical: "center" }}
             />
           </View>
           {isDesktop ? (

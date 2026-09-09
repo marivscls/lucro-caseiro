@@ -21,15 +21,18 @@ import { averagePositiveRevenue, previousCompletedMonths } from "./calc";
 
 const PRICING_KEY = ["pricing"];
 
-export function useCalculatePricing() {
+export function useCalculatePricing(unified = false) {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreatePricing) => calculatePricing(token!, data),
+    mutationFn: (data: CreatePricing) => calculatePricing(token!, data, unified),
+    // A calculation creates a history row; retrying a lost response can duplicate it.
+    retry: false,
     // Salvar um cálculo persiste no histórico; revalida a lista para o
     // "Histórico" mostrar o cálculo novo na hora (sem isso ficava stale 5min).
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PRICING_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["pricing-sources"] });
       void trackAnalyticsAction("pricing_completed", token);
     },
   });
@@ -63,12 +66,12 @@ export function usePricing(id: string) {
   });
 }
 
-export function usePricingPreferences() {
+export function usePricingPreferences(enabled = true) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...PRICING_KEY, "preferences"],
     queryFn: () => fetchPricingPreferences(token!),
-    enabled: !!token,
+    enabled: !!token && enabled,
   });
 }
 

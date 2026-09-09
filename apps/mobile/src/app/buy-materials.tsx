@@ -208,7 +208,7 @@ function BuyMaterialsContent() {
             flex: 1,
             paddingVertical: spacing.xl,
             ...pageGutter(isDesktop),
-            ...desktopStretch(isDesktop, desktopWidths.wide),
+            ...desktopStretch(isDesktop, desktopWidths.data),
           }}
         >
           <SkeletonList rows={5} variant="material" />
@@ -265,7 +265,7 @@ function BuyMaterialsContent() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.wide),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingTop: spacing.md,
           paddingBottom: spacing.xl + insets.bottom,
           gap: spacing.xl,

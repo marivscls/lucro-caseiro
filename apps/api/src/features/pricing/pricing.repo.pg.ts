@@ -16,6 +16,7 @@ export class PricingRepoPg implements IPricingRepo {
       .insert(pricingCalculations)
       .values({
         userId,
+        sourceSnapshot: data.sourceSnapshot ?? null,
         productId: data.productId ?? null,
         ingredientCost: String(data.ingredientCost),
         packagingCost: String(data.packagingCost),
@@ -119,6 +120,7 @@ export class PricingRepoPg implements IPricingRepo {
   private toPricing(row: typeof pricingCalculations.$inferSelect): Pricing {
     return {
       id: row.id,
+      sourceSnapshot: row.sourceSnapshot,
       userId: row.userId,
       productId: row.productId,
       ingredientCost: Number(row.ingredientCost),

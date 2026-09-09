@@ -131,9 +131,9 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
       "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Profissional.",
   },
   advancedPricing: {
-    title: "Precificação completa",
+    title: "Recursos profissionais de precificação",
     message:
-      "Revise mão de obra, rateios, taxas e cada premissa do preço no plano Profissional.",
+      "Use rateio por faturamento e salve perfis de taxas por canal no plano Profissional. Custos, mão de obra e rateio por produção estão na precificação de todos os planos.",
   },
   export: {
     title: "📄 Exportar PDF e Excel",

@@ -20,6 +20,7 @@ type ButtonVariant =
   | "text"
   | "success"
   | "successOutline"
+  | "alertOutline"
   | "premium";
 type ButtonSize = "sm" | "md" | "lg";
 
@@ -45,7 +46,7 @@ const sizeStyles: Record<
 > = {
   sm: { minHeight: 40, fontSize: fontSizes.xs, px: spacing.md },
   md: { minHeight: 44, fontSize: fontSizes.sm, px: spacing.lg },
-  lg: { minHeight: 48, fontSize: fontSizes.md, px: spacing.xl },
+  lg: { minHeight: 48, fontSize: fontSizes.sm, px: spacing.xl },
 };
 
 export function Button({
@@ -95,6 +96,13 @@ export function Button({
       bg: "transparent",
       text: theme.colors.success,
       border: theme.colors.success,
+    },
+    // Para acoes destrutivas (cancelar, excluir) que nao devem usar a cor de
+    // marca (rosa) nem ficar preenchidas — reserva o vermelho/coral semantico.
+    alertOutline: {
+      bg: "transparent",
+      text: theme.colors.alert,
+      border: theme.colors.alert,
     },
     // O dourado fica em badges e pequenos detalhes; o CTA usa a assinatura da marca.
     premium: { bg: theme.colors.primaryInteractive, text: theme.colors.textOnPrimary },

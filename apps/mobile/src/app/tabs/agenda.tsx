@@ -3,7 +3,6 @@ import { formatCurrency as formatMoney } from "../../shared/utils/format";
 import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
 import {
   Button,
-  Card,
   Chip,
   EmptyState,
   fontSizes,
@@ -28,6 +27,8 @@ import { useClient } from "../../features/clients/hooks";
 import { OrderCard } from "../../features/orders/components/order-card";
 import { CompleteServiceModal } from "../../features/orders/components/complete-service-modal";
 import { OrderForm } from "../../features/orders/components/order-form";
+import { useAgendaTip } from "../../features/orders/use-agenda-tip";
+import { useAuth } from "../../shared/hooks/use-auth";
 import {
   STATUS_LABEL,
   formatDateBR,
@@ -77,168 +78,6 @@ const GROUP_META: Record<string, { icon: AppIconName; tone: GroupTone }> = {
   later: { icon: "time-outline", tone: "default" },
   finished: { icon: "checkmark-done-circle", tone: "success" },
 };
-
-function _OrderDetail({
-  order,
-  onClose,
-  onEdit,
-}: Readonly<{ order: Order; onClose: () => void; onEdit: () => void }>) {
-  const { theme } = useTheme();
-  const updateOrder = useUpdateOrder();
-  const deliverOrder = useDeliverOrder();
-  const deleteOrder = useDeleteOrder();
-  const { data: client } = useClient(order.clientId ?? "");
-
-  function setStatus(status: OrderStatus) {
-    updateOrder.mutate({ id: order.id, data: { status } });
-  }
-
-  function handleDeliver() {
-    showAlert({
-      title: "Marcar como entregue?",
-      message: "Deseja registrar essa encomenda como receita no financeiro?",
-      buttons: [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Sem receita",
-          onPress: () => {
-            deliverOrder.mutate(
-              { id: order.id, data: { registerIncome: false } },
-              { onSuccess: onClose },
-            );
-          },
-        },
-        {
-          text: "Registrar receita",
-          onPress: () => {
-            deliverOrder.mutate(
-              { id: order.id, data: { registerIncome: true } },
-              { onSuccess: onClose },
-            );
-          },
-        },
-      ],
-    });
-  }
-
-  function handleDelete() {
-    showAlert({
-      title: "Excluir encomenda",
-      message: "Tem certeza?",
-      buttons: [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: () => {
-            deleteOrder.mutate(order.id, { onSuccess: onClose });
-          },
-        },
-      ],
-    });
-  }
-
-  return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-      <Typography variant="h3">{order.title}</Typography>
-      {order.clientName ? (
-        <Typography variant="body">{order.clientName}</Typography>
-      ) : null}
-
-      <Card>
-        <View style={{ gap: spacing.sm }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="caption">Entrega</Typography>
-            <Typography variant="bodyBold">
-              {formatDateBR(order.deliveryDate)}
-              {order.deliveryTime ? ` · ${order.deliveryTime}` : ""}
-            </Typography>
-          </View>
-          {order.amount != null ? (
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <Typography variant="caption">Valor</Typography>
-              <Typography variant="bodyBold" color={theme.colors.success}>
-                {formatMoney(order.amount)}
-              </Typography>
-            </View>
-          ) : null}
-          {order.notes ? (
-            <View style={{ gap: spacing.xs }}>
-              <Typography variant="caption">Observações</Typography>
-              <Typography variant="body">{order.notes}</Typography>
-            </View>
-          ) : null}
-        </View>
-      </Card>
-
-      {client?.phone ? (
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="caption">WhatsApp</Typography>
-          <Button
-            title="Confirmar pedido"
-            variant="secondary"
-            onPress={() => {
-              void openWhatsApp(
-                client.phone!,
-                waMessages.orderConfirm(
-                  order.clientName,
-                  order.title,
-                  order.deliveryDate,
-                ),
-              );
-            }}
-          />
-          <Button
-            title="Avisar que está pronto"
-            variant="secondary"
-            onPress={() => {
-              void openWhatsApp(
-                client.phone!,
-                waMessages.orderReady(order.clientName, order.title),
-              );
-            }}
-          />
-        </View>
-      ) : null}
-
-      {order.status !== "done" && order.status !== "cancelled" ? (
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="caption">Status</Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PIPELINE.map((s) => (
-              <Chip
-                key={s}
-                label={STATUS_LABEL[s]}
-                selected={order.status === s}
-                onPress={() => setStatus(s)}
-              />
-            ))}
-          </View>
-        </View>
-      ) : (
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Encomenda {STATUS_LABEL[order.status].toLowerCase()}.
-        </Typography>
-      )}
-
-      {order.status !== "done" && order.status !== "cancelled" ? (
-        <Button
-          title="Marcar como entregue"
-          size="lg"
-          onPress={handleDeliver}
-          loading={deliverOrder.isPending}
-        />
-      ) : null}
-      <Button title="Editar" variant="secondary" onPress={onEdit} />
-      <Button
-        title="Excluir"
-        variant="secondary"
-        onPress={handleDelete}
-        loading={deleteOrder.isPending}
-      />
-    </ScrollView>
-  );
-}
 
 function ModernOrderDetail({
   order,
@@ -296,7 +135,6 @@ function ModernOrderDetail({
     updateOrder.mutate({ id: order.id, data: { status } });
   }
 
-  // eslint-disable-next-line sonarjs/no-identical-functions
   function handleDeliver() {
     showAlert({
       title: "Marcar como entregue?",
@@ -325,7 +163,6 @@ function ModernOrderDetail({
     });
   }
 
-  // eslint-disable-next-line sonarjs/no-identical-functions
   function handleDelete() {
     showAlert({
       title: "Excluir encomenda",
@@ -974,7 +811,8 @@ function OrdersList({
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const agColors = agendaPalette(theme);
-  const [showTip, setShowTip] = useState(true);
+  const userId = useAuth((state) => state.userId);
+  const { visible: showTip, dismiss: dismissTip } = useAgendaTip(userId);
   const toneColor = (tone: GroupTone) => {
     if (tone === "alert") return theme.colors.alert;
     if (tone === "success") return theme.colors.success;
@@ -1086,7 +924,8 @@ function OrdersList({
             </Typography>
           </View>
           <Pressable
-            onPress={() => setShowTip(false)}
+            onPress={dismissTip}
+            accessibilityRole="button"
             accessibilityLabel="Fechar dica"
             hitSlop={10}
           >
@@ -1421,6 +1260,10 @@ function AgendaContent() {
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error, refetch } = useOrders();
   const guidanceCopy = useBusinessCopy();
+  const createOrderLabel =
+    guidanceCopy.orderNoun === "encomenda"
+      ? "Nova encomenda"
+      : `Novo ${guidanceCopy.orderNoun}`;
   const [showCreate, setShowCreate] = useState(false);
   const [showDayFilter, setShowDayFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -1468,12 +1311,7 @@ function AgendaContent() {
         <EmptyState
           title="Sua agenda está vazia"
           description="Cadastre uma encomenda com data de entrega para começar a se organizar."
-          action={
-            <Button
-              title={`Novo cadastro: ${guidanceCopy.orderNoun}`}
-              onPress={() => setShowCreate(true)}
-            />
-          }
+          action={<Button title={createOrderLabel} onPress={() => setShowCreate(true)} />}
           style={
             nativeMobile
               ? { paddingBottom: floatingTabBarContentPadding(insets.bottom) }
@@ -1520,7 +1358,7 @@ function AgendaContent() {
           <FAB
             icon="add"
             header
-            accessibilityLabel={`Novo cadastro: ${guidanceCopy.orderNoun}`}
+            accessibilityLabel={createOrderLabel}
             onPress={() => setShowCreate(true)}
           />
         }
@@ -1529,10 +1367,7 @@ function AgendaContent() {
       <View style={{ flex: 1 }}>{renderContent()}</View>
 
       {!isLoading && !error && (orders?.length ?? 0) > 0 ? (
-        <ScreenCreateBar
-          title={`+ ${guidanceCopy.orderNoun}`}
-          onPress={() => setShowCreate(true)}
-        />
+        <ScreenCreateBar title={createOrderLabel} onPress={() => setShowCreate(true)} />
       ) : null}
 
       {/* Criar */}

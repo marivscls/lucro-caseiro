@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { cartTotal, formatWeight, itemSubtotal, salePricing } from "./cart";
+import {
+  canUseQuickSale,
+  cartTotal,
+  formatWeight,
+  itemSubtotal,
+  salePricing,
+} from "./cart";
 
 describe("itemSubtotal", () => {
   it("multiplica preco por quantidade", () => {
@@ -44,6 +50,21 @@ describe("formatWeight", () => {
     expect(formatWeight(1.5)).toBe("1,5 kg");
     expect(formatWeight(1.567)).toBe("1,567 kg");
     expect(formatWeight(2.5001)).toBe("2,5 kg");
+  });
+});
+
+describe("canUseQuickSale", () => {
+  it("permite venda rapida com exatamente 1 item e sem cliente selecionado", () => {
+    expect(canUseQuickSale(1, false)).toBe(true);
+  });
+
+  it("nao permite com carrinho vazio ou mais de 1 item", () => {
+    expect(canUseQuickSale(0, false)).toBe(false);
+    expect(canUseQuickSale(2, false)).toBe(false);
+  });
+
+  it("nao permite quando ha cliente selecionado", () => {
+    expect(canUseQuickSale(1, true)).toBe(false);
   });
 });
 

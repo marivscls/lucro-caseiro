@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import {
   Badge,
   Button,
@@ -200,20 +202,24 @@ function SettingsRow({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={title}
-      style={{
-        minHeight: 56,
+      style={({ pressed }) => ({
+        minHeight: 60,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.xs,
+        borderRadius: radii.md,
+        backgroundColor: pressed ? theme.colors.surface : "transparent",
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.md,
         opacity: disabled ? 0.6 : 1,
-      }}
+      })}
     >
       <IconSurface
         name={icon}
         color={iconColor}
         backgroundColor={iconBackground}
-        size={34}
-        iconSize={18}
+        size={38}
+        iconSize={20}
       />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography variant="bodyBold" color={titleColor ?? theme.colors.text}>
@@ -280,8 +286,6 @@ export default function SettingsScreen() {
   const canUsePremiumNotifications =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
-  const hasPrioritySupport =
-    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
   const appVersion = "v1.0.0";
   const configuredWebAppUrl = process.env.EXPO_PUBLIC_WEB_APP_URL?.trim();
   const webAppUrl =
@@ -322,7 +326,12 @@ export default function SettingsScreen() {
     setShowEditProfile(true);
   }
 
+  const formValidation = useFormValidation({
+    editName: !editName.trim() && "Informe seu nome.",
+  });
+
   async function handleSaveProfile() {
+    if (!formValidation.validate()) return;
     if (!editName.trim()) {
       alertValidation("O nome é obrigatório");
       return;
@@ -599,6 +608,7 @@ export default function SettingsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScreenHeader
         title="Configurações"
+        subtitle="Seu negócio e o app, do seu jeito"
         fallbackRoute="/tabs/more"
         hideBack={isDesktop}
         backButtonStyle={{
@@ -617,21 +627,20 @@ export default function SettingsScreen() {
         contentContainerStyle={[
           {
             ...pageGutter(isDesktop, 18),
-            gap: spacing.md,
-            paddingBottom: spacing.xl,
+            gap: spacing.lg,
+            paddingTop: spacing.sm,
+            paddingBottom: isDesktop ? spacing.xl : 112,
           },
-          desktopStretch(isDesktop, desktopWidths.data),
+          desktopStretch(isDesktop, desktopWidths.wide),
         ]}
       >
-        {brand.id === "lucro-caseiro" ? <BusinessProfileCard settings /> : null}
-
-        <Card variant="elevated" shadow="sm" padding="lg">
+        <Card variant="elevated" padding="xl" style={{ gap: spacing.xl }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
             <View
               style={{
-                width: 50,
-                height: 50,
-                borderRadius: radii.full,
+                width: 58,
+                height: 58,
+                borderRadius: radii.lg,
                 backgroundColor: theme.colors.primaryBg,
                 alignItems: "center",
                 justifyContent: "center",
@@ -639,7 +648,7 @@ export default function SettingsScreen() {
               }}
             >
               {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={{ width: 50, height: 50 }} />
+                <Image source={{ uri: avatarUrl }} style={{ width: 58, height: 58 }} />
               ) : (
                 <Typography variant="h2" color={theme.colors.primaryStrong}>
                   {userName.charAt(0).toUpperCase()}
@@ -659,12 +668,9 @@ export default function SettingsScreen() {
                   flexWrap: "wrap",
                 }}
               >
-                <Badge
-                  label={businessName}
-                  variant="neutral"
-                  numberOfLines={1}
-                  style={{ maxWidth: "100%" }}
-                />
+                <Typography variant="caption" numberOfLines={1}>
+                  {businessName}
+                </Typography>
                 {businessType ? (
                   <Badge label={businessTypeLabel(businessType)} variant="primary" />
                 ) : null}
@@ -675,19 +681,17 @@ export default function SettingsScreen() {
               onPress={openEditProfile}
               accessibilityRole="button"
               accessibilityLabel="Editar perfil"
-              style={{
+              style={({ pressed }) => ({
                 minHeight: 44,
                 width: isDesktop ? undefined : 44,
                 paddingHorizontal: isDesktop ? spacing.md : 0,
                 borderRadius: radii.md,
-                borderWidth: 1,
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.surfaceElevated,
+                backgroundColor: pressed ? theme.colors.primaryBg : theme.colors.surface,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: spacing.sm,
-              }}
+              })}
             >
               <AppIcon
                 name="pencil-outline"
@@ -701,9 +705,10 @@ export default function SettingsScreen() {
               ) : null}
             </Pressable>
           </View>
+          {brand.id === "lucro-caseiro" ? <BusinessProfileCard settings /> : null}
         </Card>
 
-        <Card variant="elevated" shadow="sm" padding="lg">
+        <Card variant="elevated" padding="xl" style={{ gap: spacing.lg }}>
           <View
             style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.lg }}
           >
@@ -714,36 +719,29 @@ export default function SettingsScreen() {
               color={theme.colors.premium}
               backgroundColor={theme.colors.premiumBg}
             />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Typography variant="h3">Plano {brandName}</Typography>
-              <Typography variant="caption" color={theme.colors.primaryStrong}>
-                {hasPaidPlan ? `Plano ${PLAN_LABELS[currentPlan]}` : "Plano Gratuito"}
+            <View style={{ flex: 1, gap: spacing.xs }}>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Seu plano
+              </Typography>
+              <Typography variant="h2">
+                {hasPaidPlan ? PLAN_LABELS[currentPlan] : "Gratuito"}
               </Typography>
               <Typography
                 variant="caption"
                 color={theme.colors.textSecondary}
-                style={{ marginTop: spacing.sm, maxWidth: 285 }}
+                style={{ maxWidth: 440 }}
               >
                 {hasPaidPlan
-                  ? "Continue aproveitando os recursos do seu plano."
-                  : "Tenha acesso a recursos exclusivos e leve seu negócio para o próximo nível."}
+                  ? `Seus recursos ${brandName} em um só lugar.`
+                  : "Conheça os recursos para facilitar sua rotina."}
               </Typography>
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: theme.colors.border,
-                  marginTop: spacing.md,
-                  marginBottom: spacing.md,
-                }}
-              />
-              {renderPlanActions()}
             </View>
           </View>
+          {renderPlanActions()}
         </Card>
 
         <Card
           variant="elevated"
-          shadow="sm"
           padding="lg"
           onPress={() => setShowGoal(true)}
           style={{ paddingVertical: spacing.md }}
@@ -759,7 +757,7 @@ export default function SettingsScreen() {
               <Typography variant="caption">
                 {prolabore?.config
                   ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mês`
-                  : "Não definida"}
+                  : "Defina quanto quer receber por mês"}
               </Typography>
             </View>
             <AppIcon
@@ -770,22 +768,21 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        <Card variant="elevated" shadow="sm" padding="lg">
-          <Typography variant="h3" style={{ marginBottom: spacing.md }}>
+        <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
+          <Typography variant="label" style={{ marginLeft: spacing.xs }}>
             Preferências
           </Typography>
-          <View
+          <Card
+            variant="elevated"
+            padding="lg"
             style={{
-              borderWidth: 1,
-              borderColor: theme.colors.border,
-              borderRadius: radii.md,
               overflow: "hidden",
-              paddingHorizontal: spacing.xs,
+              paddingVertical: spacing.xs,
             }}
           >
             <View
               style={{
-                minHeight: 58,
+                minHeight: 70,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: spacing.md,
@@ -794,9 +791,9 @@ export default function SettingsScreen() {
             >
               <IconSurface
                 name="sunny-outline"
-                color={theme.colors.alert}
-                backgroundColor={theme.colors.alertBg}
-                size={34}
+                color={theme.colors.textSecondary}
+                backgroundColor={theme.colors.surface}
+                size={38}
                 iconSize={19}
               />
               <Typography variant="bodyBold" style={{ flex: 1 }}>
@@ -804,9 +801,9 @@ export default function SettingsScreen() {
               </Typography>
               <View
                 style={{
-                  width: 116,
-                  height: 38,
-                  padding: 2,
+                  width: 132,
+                  height: 44,
+                  padding: 3,
                   flexDirection: "row",
                   borderRadius: radii.sm,
                   backgroundColor: theme.colors.surface,
@@ -821,6 +818,8 @@ export default function SettingsScreen() {
                         if (!selected) toggleTheme();
                       }}
                       accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      aria-pressed={selected}
                       accessibilityLabel={
                         option === "light" ? "Tema claro" : "Tema escuro"
                       }
@@ -832,7 +831,7 @@ export default function SettingsScreen() {
                         borderWidth: selected ? 1 : 0,
                         borderColor: theme.colors.border,
                         backgroundColor: selected
-                          ? theme.colors.primaryBg
+                          ? theme.colors.surfaceElevated
                           : "transparent",
                       }}
                     >
@@ -855,7 +854,8 @@ export default function SettingsScreen() {
             {Platform.OS === "web" ? (
               <View
                 style={{
-                  minHeight: 64,
+                  minHeight: 82,
+                  paddingVertical: spacing.md,
                   flexDirection: "row",
                   alignItems: "center",
                   gap: spacing.md,
@@ -866,27 +866,17 @@ export default function SettingsScreen() {
               >
                 <IconSurface
                   name="notifications-outline"
-                  color={theme.colors.alert}
-                  backgroundColor={theme.colors.alertBg}
-                  size={34}
+                  color={theme.colors.textSecondary}
+                  backgroundColor={theme.colors.surface}
+                  size={38}
                   iconSize={19}
                 />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="bodyBold">Notificações no navegador</Typography>
                   <Typography variant="caption">
-                    Os lembretes com o aplicativo fechado estarão disponíveis quando o
-                    push for ativado.
+                    Lembretes com o app fechado estarão disponíveis em breve.
                   </Typography>
                 </View>
-                <Switch
-                  accessibilityLabel="Notificações no navegador"
-                  trackColor={{
-                    false: theme.colors.surface,
-                    true: theme.colors.primaryInteractive,
-                  }}
-                  thumbColor={theme.colors.textOnPrimary}
-                  value
-                />
               </View>
             ) : (
               NOTIFICATIONS.filter((item) => {
@@ -910,9 +900,9 @@ export default function SettingsScreen() {
                   >
                     <IconSurface
                       name={item.icon}
-                      color={theme.colors.alert}
-                      backgroundColor={theme.colors.alertBg}
-                      size={34}
+                      color={theme.colors.textSecondary}
+                      backgroundColor={theme.colors.surface}
+                      size={38}
                       iconSize={18}
                     />
                     <View style={{ flex: 1 }}>
@@ -957,25 +947,23 @@ export default function SettingsScreen() {
                 );
               })
             )}
-          </View>
+          </Card>
+        </View>
+
+        <Card variant="elevated" padding="lg">
+          <SettingsRow
+            icon="chatbubble-ellipses-outline"
+            iconColor={theme.colors.textSecondary}
+            iconBackground={theme.colors.surface}
+            title="Suporte"
+            subtitle="Tire suas dúvidas e fale com a gente"
+            onPress={() => router.push("/support")}
+            showChevron
+          />
         </Card>
 
-        {hasPrioritySupport ? (
-          <Card variant="elevated" shadow="sm" padding="lg">
-            <SettingsRow
-              icon="chatbubble-ellipses-outline"
-              iconColor={theme.colors.premium}
-              iconBackground={theme.colors.premiumBg}
-              title="Suporte prioritário"
-              subtitle="Fale direto com a gente e tenha prioridade"
-              onPress={() => router.push("/support")}
-              showChevron
-            />
-          </Card>
-        ) : null}
-
         {Platform.OS !== "web" && webAppUrl ? (
-          <Card variant="elevated" shadow="sm" padding="lg">
+          <Card variant="elevated" padding="lg">
             <SettingsRow
               icon="globe-outline"
               iconColor={theme.colors.primary}
@@ -990,77 +978,72 @@ export default function SettingsScreen() {
 
         <View
           style={{
-            gap: spacing.md,
+            gap: spacing.xl,
             ...(isDesktop
               ? { flexDirection: "row" as const, alignItems: "stretch" as const }
               : undefined),
           }}
         >
-          <Card
-            variant="elevated"
-            shadow="sm"
-            padding="lg"
-            style={isDesktop ? { flex: 1 } : undefined}
-          >
-            <Typography variant="h3" style={{ marginBottom: spacing.xs }}>
+          <View style={{ gap: spacing.sm, ...(isDesktop ? { flex: 1 } : {}) }}>
+            <Typography variant="label" style={{ marginLeft: spacing.xs }}>
               Privacidade
             </Typography>
-            <SettingsRow
-              icon="shield-checkmark-outline"
-              iconColor={theme.colors.textSecondary}
-              iconBackground={theme.colors.surface}
-              title="Política de privacidade"
-              onPress={() => void openPrivacyPolicy()}
-              showChevron
-            />
-            <SettingsRow
-              icon="document-text-outline"
-              iconColor={theme.colors.textSecondary}
-              iconBackground={theme.colors.surface}
-              title="Termos de uso"
-              onPress={() =>
-                showAlert({
-                  title: "Termos de uso",
-                  message: "Consulte os termos de uso no site oficial do Lucro Caseiro.",
-                })
-              }
-              showChevron
-            />
-          </Card>
+            <Card variant="elevated" padding="lg" style={{ paddingVertical: spacing.xs }}>
+              <SettingsRow
+                icon="shield-checkmark-outline"
+                iconColor={theme.colors.textSecondary}
+                iconBackground={theme.colors.surface}
+                title="Política de privacidade"
+                onPress={() => void openPrivacyPolicy()}
+                showChevron
+              />
+              <SettingsRow
+                icon="document-text-outline"
+                iconColor={theme.colors.textSecondary}
+                iconBackground={theme.colors.surface}
+                title="Termos de uso"
+                onPress={() =>
+                  showAlert({
+                    title: "Termos de uso",
+                    message:
+                      "Consulte os termos de uso no site oficial do Lucro Caseiro.",
+                  })
+                }
+                showChevron
+              />
+            </Card>
+          </View>
 
-          <Card
-            variant="elevated"
-            shadow="sm"
-            padding="lg"
-            style={isDesktop ? { flex: 1 } : undefined}
-          >
-            <Typography variant="h3" style={{ marginBottom: spacing.xs }}>
+          <View style={{ gap: spacing.sm, ...(isDesktop ? { flex: 1 } : {}) }}>
+            <Typography variant="label" style={{ marginLeft: spacing.xs }}>
               Conta
             </Typography>
-            <SettingsRow
-              icon="log-out-outline"
-              iconColor={theme.colors.alert}
-              iconBackground={theme.colors.alertBg}
-              title="Sair da conta"
-              onPress={handleLogout}
-              showChevron
-            />
-            <SettingsRow
-              icon="trash-outline"
-              iconColor={theme.colors.alert}
-              iconBackground={theme.colors.alertBg}
-              title={deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
-              titleColor={theme.colors.alert}
-              onPress={handleDeleteAccount}
-              disabled={deleteAccount.isPending}
-              trailing={
-                deleteAccount.isPending ? (
-                  <ActivityIndicator size="small" color={theme.colors.alert} />
-                ) : null
-              }
-              showChevron={!deleteAccount.isPending}
-            />
-          </Card>
+            <Card variant="elevated" padding="lg" style={{ paddingVertical: spacing.xs }}>
+              <SettingsRow
+                icon="log-out-outline"
+                iconColor={theme.colors.textSecondary}
+                iconBackground={theme.colors.surface}
+                title="Sair da conta"
+                onPress={handleLogout}
+                showChevron
+              />
+              <SettingsRow
+                icon="trash-outline"
+                iconColor={theme.colors.alert}
+                iconBackground={theme.colors.alertBg}
+                title={deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
+                titleColor={theme.colors.alert}
+                onPress={handleDeleteAccount}
+                disabled={deleteAccount.isPending}
+                trailing={
+                  deleteAccount.isPending ? (
+                    <ActivityIndicator size="small" color={theme.colors.alert} />
+                  ) : null
+                }
+                showChevron={!deleteAccount.isPending}
+              />
+            </Card>
+          </View>
         </View>
 
         <Typography
@@ -1211,12 +1194,14 @@ export default function SettingsScreen() {
 
           <View>
             <FieldLabel label="Nome" required />
-            <TextFieldCard
-              icon="person-outline"
-              placeholder="Seu nome"
-              value={editName}
-              onChangeText={setEditName}
-            />
+            <ValidationField {...formValidation.field("editName")}>
+              <TextFieldCard
+                icon="person-outline"
+                placeholder="Seu nome"
+                value={editName}
+                onChangeText={setEditName}
+              />
+            </ValidationField>
           </View>
           <View>
             <FieldLabel label="Nome do negócio" />

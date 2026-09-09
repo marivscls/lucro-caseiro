@@ -7,6 +7,7 @@ import { Pressable, View, type TextStyle, type ViewStyle } from "react-native";
 import { iconSizes, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
 
 import { useDesktopLayout } from "../layout/use-desktop-layout";
+import { desktopHeaderStyle } from "../layout/desktop-density";
 
 export type ScreenHeaderProps = Readonly<{
   title: string;
@@ -69,6 +70,7 @@ export function ScreenHeader({
   return (
     <>
       <View
+        testID="screen-header"
         style={[
           {
             flexDirection: "row",
@@ -81,9 +83,10 @@ export function ScreenHeader({
             zIndex: 10,
           },
           style,
+          isDesktop ? desktopHeaderStyle : undefined,
         ]}
       >
-        {!hideBack ? (
+        {!hideBack && !isDesktop ? (
           <Pressable
             onPress={handleBack}
             accessibilityRole="button"
@@ -110,7 +113,12 @@ export function ScreenHeader({
             color={theme.colors.text}
             numberOfLines={2}
             ellipsizeMode="tail"
-            style={titleStyle}
+            style={[
+              titleStyle,
+              isDesktop
+                ? { fontSize: 20, lineHeight: 26, letterSpacing: -0.2 }
+                : undefined,
+            ]}
           >
             {title}
           </Typography>
@@ -119,7 +127,7 @@ export function ScreenHeader({
               variant="caption"
               numberOfLines={subtitleNumberOfLines}
               ellipsizeMode="tail"
-              style={subtitleStyle}
+              style={[subtitleStyle, { fontSize: 13, lineHeight: 18, marginTop: 2 }]}
             >
               {subtitle}
             </Typography>

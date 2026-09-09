@@ -1,6 +1,6 @@
 # ADR-0008 — Tipografia oficial: Manrope em todo o aplicativo
 
-**Status:** atualizado pela dona do produto (2026-08-11)
+**Status:** atualizado pela dona do produto (2026-09-08)
 
 ## Contexto
 
@@ -15,13 +15,13 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
    - **Manrope** (400/600/700/800) — interface, títulos, displays, etiquetas e PDFs.
 2. **Escala tipográfica única** no `Typography` do `@lucro-caseiro/ui`, com família + tamanho +
    entrelinha por variante:
-   - `display` 36/42 Bold · `h1` 28/34 Bold · `h2` 22/28 Bold · `h3` 18/24 Bold
-   - `screenTitle` 20/26 Bold — único tamanho de título de tela (`ScreenHeader` e abas)
-   - `body` e `bodyBold` 15/22 · `caption` e `captionBold` 13/18
+   - `display` 28/34 Bold · `h1` 24/30 Bold · `h2` 20/26 Bold · `h3` 16/22 Bold
+   - `screenTitle` 18/24 Bold no mobile; `ScreenHeader` usa 20/26 no desktop
+   - `body` e `bodyBold` 14/20 · `caption` e `captionBold` 13/18
    - `label` 13/18 Bold uppercase
    - `money` 16/22 ExtraBold — preço em card/lista
-   - `moneyLg` 22/28 ExtraBold — resumo da tela
-   - `moneyHero` 28/34 ExtraBold — um destaque por tela (Home, Financeiro, precificação)
+   - `moneyLg` 20/26 Bold — resumo da tela
+   - `moneyHero` 24/30 Bold — um destaque por tela (Home, Financeiro, precificação)
 3. **Token `fonts`** no theme; componentes base usam as famílias registradas para cada peso.
 4. HTML gerado para recibos, orçamentos, receitas e etiquetas carrega Manrope e não define
    famílias serifadas locais.
@@ -32,9 +32,9 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
   `fontFamily` inline quando uma variante resolve.
 - Título de tela = `screenTitle`. Título de seção/lista/modal = `h3`. Nome em card = `bodyBold`.
 - Número de dinheiro = `money` / `moneyLg` / `moneyHero`. Não sobrescrever `fontSize` nessas
-  variantes. Contagem em métrica (não dinheiro) = `h3`, nunca `h1`/`h2`.
+  variantes. Contagem em métrica (não dinheiro) = `h3`; um resumo principal pode usar `h1` (24/30).
 - O peso vem da família (`fonts.bold`), nunca de `fontWeight` sobre a fonte customizada.
-- ExtraBold 800 fica reservado a números de destaque (`money`, `moneyLg`, `moneyHero`).
+- ExtraBold 800 fica reservado a preços compactos (`money`); resumos maiores usam Bold 700.
 - Não oferecer nem renderizar exceções serifadas, inclusive em conteúdo configurável.
 - O cache offline do PWA deve incluir os quatro arquivos Manrope realmente usados.
 
@@ -43,3 +43,7 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
 - Uma família em todo o aplicativo e hierarquia previsível entre telas e documentos.
 - Quatro pesos de Manrope fazem parte do bundle e do cache offline essencial.
 - O app segura o primeiro render até `useFonts` resolver, coberto pelo BrandIntro.
+
+## Refinamento de densidade — 2026-09-08
+
+A dona do produto solicitou textos menores e consistentes entre telas. A escala acima substitui os valores anteriores, inclusive nos estados vazios e nas orientações. Botões usam 14 px sem reduzir seus alvos de toque; subtítulos usam 13/18; campos de digitação mantêm 16 px. Zoom do navegador e preferências de tamanho de fonte continuam disponíveis. Tamanhos próprios de impressão/prévia de etiquetas e marcas em ilustrações não são uma escala de interface.

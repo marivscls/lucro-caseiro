@@ -43,14 +43,16 @@ export function SupplierAvatar({
         alignItems: "center",
         justifyContent: "center",
         backgroundColor:
-          preset?.backgroundColor ?? supplierInitialsBackground(supplier.name),
+          theme.mode === "dark"
+            ? theme.colors.primaryBg
+            : (preset?.backgroundColor ?? supplierInitialsBackground(supplier.name)),
       }}
     >
       {preset ? (
         <SupplierIllustration
           name={preset.illustration}
           size={Math.round(size * 0.46)}
-          color="#7A3641"
+          color={theme.colors.primaryStrong}
         />
       ) : (
         <Text

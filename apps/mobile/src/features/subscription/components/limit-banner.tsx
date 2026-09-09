@@ -50,10 +50,8 @@ export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBanner
     <View style={containerStyle}>
       <Card
         padding="2xl"
-        shadow="sm"
         style={{
-          backgroundColor:
-            theme.mode === "light" ? "#FFF9F1" : theme.colors.surfaceElevated,
+          backgroundColor: theme.colors.premiumBg,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: theme.colors.border,
           borderRadius: radii.xl,
@@ -63,10 +61,7 @@ export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBanner
       >
         <View style={styles.header}>
           <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: theme.colors.primaryBg },
-            ]}
+            style={[styles.iconContainer, { backgroundColor: theme.colors.primaryBg }]}
           >
             <AppIcon
               name="diamond-outline"
@@ -99,10 +94,7 @@ export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBanner
             max: state.max ?? undefined,
             now: Math.min(state.current, state.max ?? state.current),
           }}
-          style={[
-            styles.progressTrack,
-            { backgroundColor: theme.colors.primaryBg },
-          ]}
+          style={[styles.progressTrack, { backgroundColor: theme.colors.primaryBg }]}
         >
           <View
             style={[
@@ -130,10 +122,7 @@ export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBanner
               accessibilityRole="button"
               accessibilityLabel={`Conhecer o plano ${upgradePlan}`}
               hitSlop={8}
-              style={({ pressed }) => [
-                styles.cta,
-                { opacity: pressed ? 0.6 : 1 },
-              ]}
+              style={({ pressed }) => [styles.cta, { opacity: pressed ? 0.6 : 1 }]}
             >
               <Typography
                 variant="bodyBold"

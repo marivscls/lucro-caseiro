@@ -16,6 +16,7 @@ import { activePlan, useProfile, useLimits } from "../features/subscription/hook
 import { tierBenefitsFor } from "../features/subscription/plan-benefits";
 import { businessCopyFor } from "../features/subscription/business-copy";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import {
@@ -77,13 +78,13 @@ function annualLabel(plan: PaidPlan): string {
 export default function PlansScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
-  const { data: profile } = useProfile();
+  const { data: profile, isLoading: profileLoading } = useProfile();
   const experienceCopy = businessCopyFor(profile?.businessType);
   const planFeatures: Record<PaidPlan, readonly string[]> = {
     essential: tierBenefitsFor("essential", experienceCopy),
     professional: tierBenefitsFor("professional", experienceCopy),
   };
-  const { data: limits } = useLimits();
+  const { data: limits, isLoading: limitsLoading } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
   const current = activePlan(profile);
   const rawPlan = profile ? normalizePlan(profile.plan) : "free";
@@ -94,6 +95,38 @@ export default function PlansScreen() {
   let visiblePlans: readonly PaidPlan[] = ["professional", "essential"];
   if (current === "essential") visiblePlans = ["essential", "professional"];
   if (current === "professional") visiblePlans = ["professional"];
+
+  if (profileLoading || (current === "free" && limitsLoading)) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        edges={["top", "bottom"]}
+      >
+        <Stack.Screen options={{ headerShown: false }} />
+        <ScreenHeader title="Planos" hideBack={isDesktop} />
+        <ScrollView
+          accessibilityLabel="Carregando planos"
+          accessibilityState={{ busy: true }}
+          contentContainerStyle={[
+            { ...pageGutter(isDesktop), paddingVertical: spacing.xl, gap: spacing.xl },
+            desktopStretch(isDesktop, desktopWidths.data),
+          ]}
+        >
+          <SkeletonCard lines={2} />
+          <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.xl }}>
+            {["professional", "essential"].map((plan) => (
+              <Card key={plan} style={{ flex: 1, gap: spacing.lg }}>
+                <Skeleton width="50%" height={24} />
+                <Skeleton width="60%" height={40} />
+                <SkeletonCard lines={5} />
+                <Skeleton height={48} />
+              </Card>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -250,14 +283,12 @@ export default function PlansScreen() {
                 style={isDesktop ? { flex: 1, minWidth: 320 } : { width: "100%" }}
               >
                 <Card
-                  padding={highlight ? "2xl" : "xl"}
+                  padding="xl"
                   style={{
                     gap: spacing.md,
                     borderWidth: highlight ? 2 : 1,
-                    borderColor: highlight ? theme.colors.premium : theme.colors.surface,
-                    backgroundColor: highlight
-                      ? theme.colors.premiumBg
-                      : theme.colors.surfaceElevated,
+                    borderColor: highlight ? theme.colors.premium : theme.colors.border,
+                    backgroundColor: theme.colors.surfaceElevated,
                   }}
                 >
                   <View
@@ -267,10 +298,7 @@ export default function PlansScreen() {
                       justifyContent: "space-between",
                     }}
                   >
-                    <Typography
-                      variant="h3"
-                      color={highlight ? theme.colors.premium : theme.colors.text}
-                    >
+                    <Typography variant="h3" color={theme.colors.text}>
                       {PLAN_LABELS[plan]}
                     </Typography>
                     {isCurrent && (
@@ -290,7 +318,7 @@ export default function PlansScreen() {
                     {highlight && !isCurrent && (
                       <View
                         style={{
-                          backgroundColor: theme.colors.surfaceElevated,
+                          backgroundColor: theme.colors.premiumBg,
                           paddingHorizontal: spacing.sm,
                           paddingVertical: 2,
                           borderRadius: radii.full,
@@ -352,7 +380,7 @@ export default function PlansScreen() {
                           ? `Assinar ${PLAN_LABELS[plan]}`
                           : `Fazer upgrade para o ${PLAN_LABELS[plan]}`
                       }
-                      variant={highlight ? "premium" : "primary"}
+                      variant={highlight ? "primary" : "outline"}
                       size="lg"
                       onPress={() => showPaywall("plans", plan)}
                       style={desktopAction(isDesktop, 240)}

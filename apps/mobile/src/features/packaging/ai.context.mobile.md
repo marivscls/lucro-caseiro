@@ -127,6 +127,8 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
+
 - Limite freemium: 3 embalagens no Free, ilimitado no Premium (enforcement no backend).
 - Link entre embalagem e produto via endpoint dedicado (POST /packaging/:id/products/:productId).
 - 2026-06-15: **redesign completo das 3 telas** (lista, detalhe, editar) para baterem com os mockups.

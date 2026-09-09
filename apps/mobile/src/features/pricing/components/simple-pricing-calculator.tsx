@@ -9,10 +9,12 @@ import {
   fontSizes,
   radii,
   spacing,
+  useReducedMotion,
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Image,
   type ImageSourcePropType,
   KeyboardAvoidingView,
@@ -57,7 +59,20 @@ import { useCalculatePricing } from "../hooks";
 
 interface SimplePricingCalculatorProps {
   readonly onSave?: () => void;
-  readonly onCreateProduct?: (salePrice: number) => void;
+  /**
+   * Chamado ao tocar "Salvar e criar produto". Recebe o preço de venda E o
+   * custo total calculado (materiais + embalagem), para o formulário de
+   * produto não pedir de novo algo que a pessoa acabou de calcular aqui
+   * (promessa de "um fluxo, sem recadastro" do produto).
+   */
+  readonly onCreateProduct?: (
+    salePrice: number,
+    costPrice: number,
+    product?: { name?: string; category?: string },
+  ) => void;
+  readonly initialProduct?: { name?: string; category?: string };
+  /** Pré-preenche o custo de materiais vindo de uma receita (fluxo receita → precificação). */
+  readonly initialIngredientCost?: number;
 }
 
 interface CostSourceItem {
@@ -315,8 +330,6 @@ function CostRow({
 const ESTIMATE_LIME = "#DCE86A";
 const ESTIMATE_LIME_SOFT = "#F1F4C3";
 const ESTIMATE_INK = "#24181E";
-const ESTIMATE_BURNT_PINK = "#B65F72";
-const ESTIMATE_SOFT_PINK = "#F5E5E8";
 const ESTIMATE_POSITIVE = "#2F855A";
 
 function PricingResultRow({
@@ -329,7 +342,7 @@ function PricingResultRow({
   valueColor,
 }: Readonly<{
   highlight?: boolean;
-  icon: AppIconName;
+  icon?: AppIconName;
   info?: boolean;
   label: string;
   onDark?: boolean;
@@ -375,22 +388,7 @@ function PricingResultRow({
           minWidth: 0,
         }}
       >
-        {highlight ? (
-          <View
-            style={{
-              alignItems: "center",
-              backgroundColor: ESTIMATE_SOFT_PINK,
-              borderRadius: radii.full,
-              height: 24,
-              justifyContent: "center",
-              width: 24,
-            }}
-          >
-            <AppIcon name={icon} size={16} color={ESTIMATE_BURNT_PINK} />
-          </View>
-        ) : (
-          <AppIcon name={icon} size={16} color={iconColor} />
-        )}
+        {icon ? <AppIcon name={icon} size={16} color={iconColor} /> : null}
         <Typography
           variant={highlight ? "captionBold" : "caption"}
           color={labelColor}
@@ -484,6 +482,8 @@ function PricingFieldLabel({
 export function SimplePricingCalculator({
   onSave,
   onCreateProduct,
+  initialIngredientCost,
+  initialProduct,
 }: SimplePricingCalculatorProps) {
   const { theme } = useTheme();
   const pal = useBrandScreenPalette();
@@ -509,7 +509,9 @@ export function SimplePricingCalculator({
 
   const [productId, setProductId] = useState<string | null>(null);
   const [packagingId, setPackagingId] = useState<string | null>(null);
-  const [ingredientInput, setIngredientInput] = useState("");
+  const [ingredientInput, setIngredientInput] = useState(
+    initialIngredientCost === undefined ? "" : currencyInput(initialIngredientCost),
+  );
   const [packagingInput, setPackagingInput] = useState("");
   const [profitInput, setProfitInput] = useState("");
   const [feesInput, setFeesInput] = useState("");
@@ -519,9 +521,21 @@ export function SimplePricingCalculator({
   const [showFees, setShowFees] = useState(false);
   const [productPickerVisible, setProductPickerVisible] = useState(false);
   const [packagingPickerVisible, setPackagingPickerVisible] = useState(false);
-  const [importedIngredients, setImportedIngredients] = useState(false);
+  const [importedIngredients, setImportedIngredients] = useState(
+    initialIngredientCost !== undefined,
+  );
+  const [importedFromRecipe, setImportedFromRecipe] = useState(
+    initialIngredientCost !== undefined,
+  );
 
   const selectedProduct = products.find((product) => product.id === productId) ?? null;
+  let ingredientSourceHint =
+    "Sem ficha técnica cadastrada, informe o valor de materiais.";
+  if (importedIngredients && selectedProduct) {
+    ingredientSourceHint = `Custo importado de ${selectedProduct.name}.`;
+  } else if (importedFromRecipe) {
+    ingredientSourceHint = "Custo importado da receita.";
+  }
   const selectedPackaging = packaging.find((item) => item.id === packagingId) ?? null;
   const ingredientCost = money(ingredientInput);
   const packagingCost = money(packagingInput);
@@ -607,13 +621,25 @@ export function SimplePricingCalculator({
     const payload = pricingPayload();
     if (!payload) return;
 
-    onCreateProduct?.(finalPrice);
+    onCreateProduct?.(
+      finalPrice,
+      totalCost,
+      importedFromRecipe ? initialProduct : undefined,
+    );
     try {
       await calculatePricing.mutateAsync(payload);
     } catch (error) {
       alertError(error);
     }
-  }, [calculatePricing, finalPrice, onCreateProduct, pricingPayload]);
+  }, [
+    calculatePricing,
+    finalPrice,
+    onCreateProduct,
+    pricingPayload,
+    totalCost,
+    importedFromRecipe,
+    initialProduct,
+  ]);
 
   function selectProduct(item: CostSourceItem) {
     const product = products.find((candidate) => candidate.id === item.id);
@@ -621,6 +647,7 @@ export function SimplePricingCalculator({
     setProductId(product.id);
     setIngredientInput(currencyInput(product.costPrice ?? 0));
     setImportedIngredients(true);
+    setImportedFromRecipe(false);
     setProductPickerVisible(false);
     trackStarted();
   }
@@ -638,6 +665,26 @@ export function SimplePricingCalculator({
   const compactField = desktopCompactField(isDesktop);
   const formattedFinalPrice = formatCurrency(canCalculate ? finalPrice : 0);
   const estimatePriceVariant = formattedFinalPrice.length > 9 ? "moneyLg" : "moneyHero";
+
+  // Microinteração leve: o valor estimado pisca suavemente (fade) a cada
+  // mudança, reforçando que "o resultado atualiza sozinho" em vez de trocar
+  // abruptamente a cada tecla. Ignorado com preferência de menos movimento.
+  const reducedMotion = useReducedMotion();
+  const priceOpacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (reducedMotion) {
+      priceOpacity.setValue(1);
+      return;
+    }
+    priceOpacity.setValue(0.4);
+    const animation = Animated.timing(priceOpacity, {
+      toValue: 1,
+      duration: 150,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [formattedFinalPrice, reducedMotion, priceOpacity]);
 
   const estimatePanel = (
     <View style={{ gap: spacing.md, width: "100%" }}>
@@ -670,15 +717,17 @@ export function SimplePricingCalculator({
                 <Typography variant="label" color={pal.onWine}>
                   ESTIMATIVA DE PREÇO
                 </Typography>
-                <Typography
-                  variant={estimatePriceVariant}
-                  color={pal.onWine}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.55}
-                >
-                  {formattedFinalPrice}
-                </Typography>
+                <Animated.View style={{ opacity: priceOpacity }}>
+                  <Typography
+                    variant={estimatePriceVariant}
+                    color={pal.onWine}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.55}
+                  >
+                    {formattedFinalPrice}
+                  </Typography>
+                </Animated.View>
               </View>
               <Image
                 source={pricingResultHero}
@@ -695,7 +744,7 @@ export function SimplePricingCalculator({
             <View
               style={{
                 alignSelf: "flex-start",
-                backgroundColor: ESTIMATE_LIME,
+                backgroundColor: pal.lime,
                 borderRadius: radii.full,
                 paddingHorizontal: spacing.md,
                 paddingVertical: spacing.xs,
@@ -704,7 +753,7 @@ export function SimplePricingCalculator({
               <Text
                 numberOfLines={1}
                 style={{
-                  color: ESTIMATE_INK,
+                  color: pal.onLime,
                   fontFamily: fonts.bold,
                   fontSize: fontSizes.xs,
                 }}
@@ -758,7 +807,6 @@ export function SimplePricingCalculator({
           />
           <PricingResultRow
             highlight
-            icon="star"
             label="Você ganha por unidade"
             onDark
             value={desiredProfit}
@@ -903,17 +951,16 @@ export function SimplePricingCalculator({
                     onChangeText={(text) => {
                       setIngredientInput(maskCurrencyInput(text));
                       setImportedIngredients(false);
+                      setImportedFromRecipe(false);
                       trackStarted();
                     }}
                     keyboardType="numeric"
                     placeholder="Ex: 12,50"
-                    inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+                    inputStyle={{ fontFamily: fonts.bold, fontSize: 16 }}
                   />
                 </View>
                 <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {importedIngredients && selectedProduct
-                    ? `Custo importado de ${selectedProduct.name}.`
-                    : "Sem ficha técnica cadastrada, informe o valor de materiais."}
+                  {ingredientSourceHint}
                 </Typography>
               </View>
 
@@ -977,7 +1024,7 @@ export function SimplePricingCalculator({
                   }}
                   keyboardType="numeric"
                   placeholder="Ex: 8,00"
-                  inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+                  inputStyle={{ fontFamily: fonts.bold, fontSize: 16 }}
                 />
               </View>
               <Typography variant="caption" color={theme.colors.textSecondary}>

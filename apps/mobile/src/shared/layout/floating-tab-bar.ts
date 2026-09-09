@@ -25,9 +25,8 @@ export function mobileTabBarSafeInset(bottomSafeArea: number): number {
 }
 
 /**
- * Gap between the sticky list CTA and the floating tab bar. The raised
- * "Nova venda" control sits ~12px above the pill; without this the CTA
- * sits flush against the navbar.
+ * Gap between the sticky list CTA and the floating tab bar, keeping
+ * the two action surfaces visually separated.
  */
 export const SCREEN_CREATE_BAR_NAV_GAP = spacing.lg;
 

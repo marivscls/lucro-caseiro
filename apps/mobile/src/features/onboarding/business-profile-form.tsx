@@ -1,4 +1,6 @@
-import { fonts, useReducedMotion, useTheme } from "@lucro-caseiro/ui";
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../shared/hooks/use-form-validation";
+import { CenteredTextInput, fonts, useReducedMotion, useTheme } from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -12,9 +14,9 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   useWindowDimensions,
   View,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -165,7 +167,18 @@ export function BusinessProfileForm({
   ) {
     setProfile((previous) => ({ ...previous, [key]: value }));
   }
+  const formValidation = useFormValidation(
+    {
+      name: step === 0 && !profile.name.trim() && "Informe seu nome para continuar.",
+      segment: step === 1 && !profile.segment && "Selecione seu tipo de trabalho.",
+      stage: step === 2 && !profile.stage && "Selecione seu momento atual.",
+      goal: step === 4 && !profile.goal && "Selecione sua prioridade.",
+    },
+    step,
+  );
+
   function advance() {
+    if (!formValidation.validate()) return;
     if (!valid || saving) return;
     Keyboard.dismiss();
     if (completed) {
@@ -273,44 +286,46 @@ export function BusinessProfileForm({
                 </Text>
                 {step === 0 && (
                   <View style={styles.fields}>
-                    <View style={styles.field}>
-                      <Text
-                        style={[styles.choiceTitle, { color: colors.wine }]}
-                        nativeID="preview-name-label"
-                      >
-                        Seu nome
-                      </Text>
-                      <TextInput
-                        editable={!saving}
-                        accessibilityLabel="Seu nome"
-                        accessibilityLabelledBy="preview-name-label"
-                        placeholder="Ex.: Mariana"
-                        placeholderTextColor={colors.muted}
-                        value={profile.name}
-                        onChangeText={(value) => update("name", value)}
-                        onFocus={() => setFocusedField("name")}
-                        onBlur={() => setFocusedField(null)}
-                        maxLength={200}
-                        autoComplete="given-name"
-                        autoCapitalize="words"
-                        returnKeyType="next"
-                        onSubmitEditing={() => businessInput.current?.focus()}
-                        style={[
-                          styles.input,
-                          {
-                            backgroundColor: colors.white,
-                            color: colors.wine,
-                            borderColor:
-                              focusedField === "name" ? colors.wine : colors.muted,
-                          },
-                        ]}
-                      />
-                    </View>
+                    <ValidationField {...formValidation.field("name")}>
+                      <View style={styles.field}>
+                        <Text
+                          style={[styles.choiceTitle, { color: colors.wine }]}
+                          nativeID="preview-name-label"
+                        >
+                          Seu nome
+                        </Text>
+                        <CenteredTextInput
+                          editable={!saving}
+                          accessibilityLabel="Seu nome"
+                          accessibilityLabelledBy="preview-name-label"
+                          placeholder="Ex.: Mariana"
+                          placeholderTextColor={colors.muted}
+                          value={profile.name}
+                          onChangeText={(value) => update("name", value)}
+                          onFocus={() => setFocusedField("name")}
+                          onBlur={() => setFocusedField(null)}
+                          maxLength={200}
+                          autoComplete="given-name"
+                          autoCapitalize="words"
+                          returnKeyType="next"
+                          onSubmitEditing={() => businessInput.current?.focus()}
+                          style={[
+                            styles.input,
+                            {
+                              backgroundColor: colors.white,
+                              color: colors.wine,
+                              borderColor:
+                                focusedField === "name" ? colors.wine : colors.muted,
+                            },
+                          ]}
+                        />
+                      </View>
+                    </ValidationField>
                     <View style={styles.field}>
                       <Text style={[styles.choiceTitle, { color: colors.wine }]}>
                         Nome do negócio <Text style={styles.optional}>(opcional)</Text>
                       </Text>
-                      <TextInput
+                      <CenteredTextInput
                         editable={!saving}
                         ref={businessInput}
                         accessibilityLabel="Nome do negócio, opcional"
@@ -341,19 +356,23 @@ export function BusinessProfileForm({
                   </View>
                 )}
                 {step === 1 && (
-                  <ProfileChoices
-                    illustrated
-                    choices={profileSegments}
-                    value={profile.segment}
-                    onChange={(value) => update("segment", value)}
-                  />
+                  <ValidationField {...formValidation.field("segment")}>
+                    <ProfileChoices
+                      illustrated
+                      choices={profileSegments}
+                      value={profile.segment}
+                      onChange={(value) => update("segment", value)}
+                    />
+                  </ValidationField>
                 )}
                 {step === 2 && (
-                  <ProfileChoices
-                    choices={stagesForProfile(profile.segment)}
-                    value={profile.stage}
-                    onChange={(value) => update("stage", value)}
-                  />
+                  <ValidationField {...formValidation.field("stage")}>
+                    <ProfileChoices
+                      choices={stagesForProfile(profile.segment)}
+                      value={profile.stage}
+                      onChange={(value) => update("stage", value)}
+                    />
+                  </ValidationField>
                 )}
                 {step === 3 && (
                   <ProfileChoices
@@ -366,11 +385,13 @@ export function BusinessProfileForm({
                   />
                 )}
                 {step === 4 && (
-                  <ProfileChoices
-                    choices={goalsForProfile(profile.segment)}
-                    value={profile.goal}
-                    onChange={(value) => update("goal", value)}
-                  />
+                  <ValidationField {...formValidation.field("goal")}>
+                    <ProfileChoices
+                      choices={goalsForProfile(profile.segment)}
+                      value={profile.goal}
+                      onChange={(value) => update("goal", value)}
+                    />
+                  </ValidationField>
                 )}
                 {completed && (
                   <View style={styles.fields}>
@@ -475,31 +496,24 @@ export function BusinessProfileForm({
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityState={{ disabled: !valid || saving, busy: saving }}
-                disabled={!valid || saving}
+                accessibilityState={{ disabled: saving, busy: saving }}
+                disabled={saving}
                 onPress={advance}
                 style={({ pressed }) => [
                   styles.next,
                   {
-                    backgroundColor: valid
-                      ? theme.colors.primaryInteractive
-                      : colors.surface,
+                    backgroundColor: theme.colors.primaryInteractive,
                     opacity: pressed ? 0.8 : 1,
                   },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.choiceTitle,
-                    { color: valid ? theme.colors.textOnPrimary : colors.muted },
-                  ]}
-                >
+                <Text style={[styles.choiceTitle, { color: theme.colors.textOnPrimary }]}>
                   {buttonTitle}
                 </Text>
                 <AppIcon
                   name="arrow-forward"
                   size={20}
-                  color={valid ? theme.colors.textOnPrimary : colors.muted}
+                  color={theme.colors.textOnPrimary}
                 />
               </Pressable>
             </View>
@@ -512,7 +526,7 @@ export function BusinessProfileForm({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  titleWide: { fontSize: 32, lineHeight: 38, letterSpacing: -1 },
+  titleWide: { fontSize: 20, lineHeight: 26, letterSpacing: -0.2 },
   asideContent: { padding: 30, paddingTop: 34, gap: 22 },
   asideNote: { flexDirection: "row", gap: 12, marginTop: 12, alignItems: "flex-start" },
   columns: { flex: 1, flexDirection: "row" },
@@ -546,9 +560,9 @@ const styles = StyleSheet.create({
   previewNote: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 18 },
   title: {
     fontFamily: fonts.semiBold,
-    fontSize: 26,
-    lineHeight: 32,
-    letterSpacing: -0.8,
+    fontSize: 18,
+    lineHeight: 24,
+    letterSpacing: -0.2,
   },
   description: {
     fontFamily: fonts.regular,
@@ -601,8 +615,8 @@ const styles = StyleSheet.create({
   profile: { borderRadius: 22, borderWidth: 1, padding: 18, gap: 16 },
   profileTitle: {
     fontFamily: fonts.semiBold,
-    fontSize: 21,
-    lineHeight: 27,
+    fontSize: 16,
+    lineHeight: 22,
     letterSpacing: -0.5,
   },
   profileRow: { borderTopWidth: 1, paddingTop: 14, gap: 4 },
@@ -611,9 +625,9 @@ const styles = StyleSheet.create({
   aside: { width: 360, flexGrow: 0 },
   asideTitle: {
     fontFamily: fonts.semiBold,
-    fontSize: 32,
-    lineHeight: 38,
-    letterSpacing: -1.5,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.3,
   },
   entry: {
     borderRadius: 24,
@@ -625,8 +639,8 @@ const styles = StyleSheet.create({
   entryCopy: { flex: 1, gap: 8 },
   entryTitle: {
     fontFamily: fonts.semiBold,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 24,
     letterSpacing: -0.6,
   },
   entryLink: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 24, marginTop: 6 },

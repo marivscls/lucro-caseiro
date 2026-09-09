@@ -495,7 +495,7 @@ function RecipeFilterChip({
     >
       <Typography
         variant="bodyBold"
-        color={selected ? pal.onWine : pal.wine}
+        color={selected ? pal.onRose : pal.wine}
         numberOfLines={1}
         style={{ flexShrink: 0 }}
       >

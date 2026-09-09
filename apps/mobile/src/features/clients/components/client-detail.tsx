@@ -173,17 +173,15 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
 
       {/* Contact actions */}
       <View style={{ flexDirection: "row", gap: spacing.md }}>
-        {client.phone && (
-          <View style={{ flex: 1 }}>
-            <Button
-              title="Editar cliente"
-              variant="secondary"
-              size="sm"
-              onPress={onEditPress ?? (() => {})}
-              style={{ borderRadius: radii.md }}
-            />
-          </View>
-        )}
+        <View style={{ flex: 1 }}>
+          <Button
+            title="Editar cliente"
+            variant="secondary"
+            size="sm"
+            onPress={onEditPress ?? (() => {})}
+            style={{ borderRadius: radii.md }}
+          />
+        </View>
         {client.phone && (
           <View style={{ flex: 1 }}>
             <Button

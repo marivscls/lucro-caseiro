@@ -283,7 +283,7 @@ function ServiceCard({
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Abrir opções de ${service.name}`}
+        accessibilityLabel={`Ver detalhes de ${service.name}`}
         onPress={onPress}
         style={({ pressed }) => ({ opacity: pressed ? 0.72 : 1 })}
       >
@@ -499,7 +499,9 @@ export default function ServicesScreen() {
   }
 
   function renderListHeader() {
-    if (!servicesQuery.isLoading && services.length === 0) return null;
+    if (!servicesQuery.isLoading && services.length === 0) {
+      return <HeroCard count={0} compact={compact} />;
+    }
     return (
       <View style={{ gap: spacing.lg, paddingBottom: spacing.sm }}>
         <HeroCard count={overview.activeCount} compact={compact} />
@@ -663,8 +665,8 @@ export default function ServicesScreen() {
         style={{
           flex: 1,
           width: "100%",
-          maxWidth: desktopWidths.wide,
-          alignSelf: "center",
+          maxWidth: isDesktop ? desktopWidths.data : desktopWidths.wide,
+          alignSelf: isDesktop ? "stretch" : "center",
         }}
       >
         <ScreenHeader

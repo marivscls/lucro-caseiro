@@ -22,6 +22,10 @@ apps/mobile/.env
 apps/promo-video
 imagens
 .aerofortress
+.agents
+.github/skills
+docs
+tmp
 
 # Pastas nativas: o EAS regenera via prebuild (CNG). Nunca subir o android/ios
 # local (gerado por expo prebuild/run) — o EAS usa ESTE .easignore da raiz.

@@ -40,3 +40,13 @@ export function formatWeight(kg: number): string {
   const str = Number.parseFloat(kg.toFixed(3)).toString().replace(".", ",");
   return `${str} kg`;
 }
+
+/**
+ * "Venda rápida": permite pular direto para a confirmação (com forma de
+ * pagamento padrão) quando há exatamente 1 item no carrinho e nenhum
+ * cliente foi selecionado — evita os 4 passos completos para o caso mais
+ * comum (1 produto, pagamento à vista, sem cliente).
+ */
+export function canUseQuickSale(cartLength: number, hasSelectedClient: boolean): boolean {
+  return cartLength === 1 && !hasSelectedClient;
+}

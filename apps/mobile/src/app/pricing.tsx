@@ -1,5 +1,5 @@
 import { useTheme } from "@lucro-caseiro/ui";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -7,8 +7,7 @@ import {
   PricingHistoryButton,
   PricingHistoryModal,
 } from "../features/pricing/components/pricing-history-modal";
-import { PricingModeSwitch } from "../features/pricing/components/pricing-mode-switch";
-import { SimplePricingCalculator } from "../features/pricing/components/simple-pricing-calculator";
+import { UnifiedPricingCalculator } from "../features/pricing/components/unified-pricing-calculator";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
@@ -17,6 +16,17 @@ export default function SimplePricingScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
+  const { recipeCost, name, category, productId } = useLocalSearchParams<{
+    productId?: string;
+    recipeCost?: string;
+    name?: string;
+    category?: string;
+  }>();
+  const parsedRecipeCost = Number(recipeCost);
+  const initialIngredientCost =
+    recipeCost?.trim() && Number.isFinite(parsedRecipeCost) && parsedRecipeCost >= 0
+      ? parsedRecipeCost
+      : undefined;
   const [showHistory, setShowHistory] = useState(false);
 
   function leavePricing() {
@@ -37,13 +47,21 @@ export default function SimplePricingScreen() {
         right={<PricingHistoryButton onPress={() => setShowHistory(true)} />}
       />
 
-      <PricingModeSwitch mode="simple" />
-
-      <SimplePricingCalculator
-        onCreateProduct={(salePrice) => {
+      <UnifiedPricingCalculator
+        initialProductId={productId}
+        key={JSON.stringify([recipeCost, name, category])}
+        initialIngredientCost={initialIngredientCost}
+        initialProduct={{ name, category }}
+        onCreateProduct={(salePrice, costPrice, product) => {
           router.push({
             pathname: "/products",
-            params: { create: "from-pricing", salePrice: String(salePrice) },
+            params: {
+              create: "from-pricing",
+              salePrice: String(salePrice),
+              costPrice: String(costPrice),
+              ...(product?.name ? { name: product.name } : {}),
+              ...(product?.category ? { category: product.category } : {}),
+            },
           });
         }}
         onSave={() => {

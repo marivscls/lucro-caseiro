@@ -93,6 +93,11 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 
 ## Orientação contextual — 2026-09-07
 
+- 2026-09-09: ordenação e ações de fornecedores usam listas no `StandardModal`,
+  seguindo Clientes. A opção ativa de ordenação recebe indicador visual e acessível;
+  escolher uma ação fecha o menu antes de iniciar o fluxo existente. Excluir continua
+  abrindo a confirmação da rota. Os cards usam borda sem sombra.
+
 Orientação usa dados do overview para suprimir convite em conta com registros, preserva modais e emite supplier_created após sucesso.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

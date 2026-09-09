@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import type {
   CreateVerticalDocument,
   PublishedVerticalDomain,
@@ -467,7 +469,17 @@ export default function OperationsScreen() {
     setLines([freshLine()]);
   }
 
+  const formValidation = useFormValidation({
+    title: !title.trim() && "Informe o título da operação.",
+    detail: !detail.trim() && "Preencha os detalhes da operação.",
+    referenceId:
+      !!kindDefinition.reference &&
+      !referenceId &&
+      "Selecione o registro que será vinculado.",
+  });
+
   async function submitDocument() {
+    if (!formValidation.validate()) return;
     if (!title.trim() || !detail.trim())
       return alertValidation("Preencha o título e os detalhes da operação.");
     if (kindDefinition.reference && !referenceId)
@@ -520,7 +532,12 @@ export default function OperationsScreen() {
     }
   }
 
+  const assetValidation = useFormValidation({
+    assetName: !assetName.trim() && "Informe o nome do equipamento ou veículo.",
+  });
+
   async function submitAsset() {
+    if (!assetValidation.validate()) return;
     if (!assetName.trim())
       return alertValidation("Informe o nome do equipamento ou veículo.");
     try {
@@ -540,7 +557,15 @@ export default function OperationsScreen() {
     }
   }
 
+  const serialValidation = useFormValidation({
+    serialProductId: !serialProductId && "Selecione o produto.",
+    serial:
+      serial.trim().length < 3 &&
+      "Informe um número de série com pelo menos 3 caracteres.",
+  });
+
   async function submitSerial() {
+    if (!serialValidation.validate()) return;
     if (!serialProductId || serial.trim().length < 3)
       return alertValidation("Selecione o produto e informe um serial válido.");
     try {
@@ -857,37 +882,43 @@ export default function OperationsScreen() {
             </>
           }
         >
-          <Input
-            label="Título"
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Identifique esta operação"
-          />
-          <Input
-            label={kindDefinition.detailLabel}
-            value={detail}
-            onChangeText={setDetail}
-            multiline
-          />
+          <ValidationField {...formValidation.field("title")}>
+            <Input
+              label="Título"
+              value={title}
+              onChangeText={setTitle}
+              placeholder="Identifique esta operação"
+            />
+          </ValidationField>
+          <ValidationField {...formValidation.field("detail")}>
+            <Input
+              label={kindDefinition.detailLabel}
+              value={detail}
+              onChangeText={setDetail}
+              multiline
+            />
+          </ValidationField>
           {kindDefinition.reference ? (
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="bodyBold">Vincular a</Typography>
-              <ScrollView horizontal contentContainerStyle={{ gap: spacing.sm }}>
-                {references.map((item) => (
-                  <Chip
-                    key={item.id}
-                    label={item.label}
-                    selected={referenceId === item.id}
-                    onPress={() => setReferenceId(item.id)}
-                  />
-                ))}
-              </ScrollView>
-              {!references.length ? (
-                <Typography variant="caption" color={theme.colors.alert}>
-                  Cadastre primeiro o registro necessário para este vínculo.
-                </Typography>
-              ) : null}
-            </View>
+            <ValidationField {...formValidation.field("referenceId")}>
+              <View style={{ gap: spacing.sm }}>
+                <Typography variant="bodyBold">Vincular a</Typography>
+                <ScrollView horizontal contentContainerStyle={{ gap: spacing.sm }}>
+                  {references.map((item) => (
+                    <Chip
+                      key={item.id}
+                      label={item.label}
+                      selected={referenceId === item.id}
+                      onPress={() => setReferenceId(item.id)}
+                    />
+                  ))}
+                </ScrollView>
+                {!references.length ? (
+                  <Typography variant="caption" color={theme.colors.alert}>
+                    Cadastre primeiro o registro necessário para este vínculo.
+                  </Typography>
+                ) : null}
+              </View>
+            </ValidationField>
           ) : null}
           <View style={{ flexDirection: "row", gap: spacing.md }}>
             {kindDefinition.numberOneLabel ? (
@@ -964,12 +995,14 @@ export default function OperationsScreen() {
             />
           }
         >
-          <Input
-            label="Nome"
-            value={assetName}
-            onChangeText={setAssetName}
-            placeholder="Ex.: Honda Civic 2019"
-          />
+          <ValidationField {...assetValidation.field("assetName")}>
+            <Input
+              label="Nome"
+              value={assetName}
+              onChangeText={setAssetName}
+              placeholder="Ex.: Honda Civic 2019"
+            />
+          </ValidationField>
           <Input
             label="Placa, série ou IMEI"
             value={assetIdentifier}
@@ -990,22 +1023,26 @@ export default function OperationsScreen() {
           }
         >
           <Typography variant="bodyBold">Produto</Typography>
-          <ScrollView horizontal contentContainerStyle={{ gap: spacing.sm }}>
-            {(products.data ?? []).map((product) => (
-              <Chip
-                key={product.id}
-                label={product.name}
-                selected={serialProductId === product.id}
-                onPress={() => setSerialProductId(product.id)}
-              />
-            ))}
-          </ScrollView>
-          <Input
-            label="Número de série"
-            value={serial}
-            onChangeText={setSerial}
-            autoCapitalize="characters"
-          />
+          <ValidationField {...serialValidation.field("serialProductId")}>
+            <ScrollView horizontal contentContainerStyle={{ gap: spacing.sm }}>
+              {(products.data ?? []).map((product) => (
+                <Chip
+                  key={product.id}
+                  label={product.name}
+                  selected={serialProductId === product.id}
+                  onPress={() => setSerialProductId(product.id)}
+                />
+              ))}
+            </ScrollView>
+          </ValidationField>
+          <ValidationField {...serialValidation.field("serial")}>
+            <Input
+              label="Número de série"
+              value={serial}
+              onChangeText={setSerial}
+              autoCapitalize="characters"
+            />
+          </ValidationField>
         </StandardModal>
       </SafeAreaView>
     </FeatureRouteGuard>

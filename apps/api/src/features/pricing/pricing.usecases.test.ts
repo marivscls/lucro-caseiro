@@ -76,6 +76,29 @@ function makeSut(repoOverrides: Partial<IPricingRepo> = {}) {
 
 describe("PricingUseCases", () => {
   describe("calculate", () => {
+    it("preserves cost origins for future price reviews", async () => {
+      let saved: CreatePricingData | undefined;
+      const { sut } = makeSut({
+        create: (_userId, data) => {
+          saved = data;
+          return Promise.resolve(makePricing());
+        },
+      });
+      await sut.calculate(USER_ID, {
+        ingredientCost: 10,
+        packagingCost: 2,
+        laborCost: 0,
+        fixedCostShare: 0,
+        marginPercent: 50,
+        sourceSnapshot: {
+          ingredientSource: "product",
+          packaging: [{ id: "box", unitCost: 2 }],
+          monthlyProduction: 100,
+        },
+      });
+      expect(saved?.sourceSnapshot?.packaging).toEqual([{ id: "box", unitCost: 2 }]);
+      expect(saved?.sourceSnapshot?.ingredientSource).toBe("product");
+    });
     it("creates a pricing record with computed values", async () => {
       const { sut } = makeSut();
       const result = await sut.calculate(USER_ID, {
@@ -166,11 +189,12 @@ describe("PricingUseCases", () => {
 
       expect(result.allocationMode).toBe("revenue");
       expect(result.overheadPercent).toBe(20);
-      expect(result.fixedCostShare).toBe(37.5);
-      expect(result.totalCost).toBe(137.5);
-      expect(result.suggestedPrice).toBe(187.5);
-      expect(result.suggestedPrice - result.totalCost).toBe(50);
-      expect(result.finalPrice).toBeCloseTo(208.33, 2);
+      // 150 / (1 - 20% - 10%): ambos incidem sobre a mesma venda.
+      expect(result.fixedCostShare).toBeCloseTo(42.857143, 5);
+      expect(result.totalCost).toBeCloseTo(142.857143, 5);
+      expect(result.suggestedPrice).toBeCloseTo(192.857143, 5);
+      expect(result.suggestedPrice - result.totalCost).toBeCloseTo(50, 5);
+      expect(result.finalPrice).toBeCloseTo(214.285714, 5);
       expect(result.channelName).toBe("iFood");
     });
 
@@ -204,6 +228,23 @@ describe("PricingUseCases", () => {
   });
 
   describe("getById", () => {
+    it("rejects combined overhead and fees that consume the whole sale", async () => {
+      const { sut } = makeSut();
+      await expect(
+        sut.calculate(USER_ID, {
+          ingredientCost: 10,
+          packagingCost: 0,
+          laborCost: 0,
+          fixedCostShare: 0,
+          marginPercent: 50,
+          allocationMode: "revenue",
+          monthlyFixedCosts: 80,
+          revenueBasis: 100,
+          feesPercent: 20,
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
     it("returns pricing when found", async () => {
       const { sut } = makeSut();
       const result = await sut.getById(USER_ID, "price-1");

@@ -2,6 +2,7 @@
 
 import {
   desktopAction,
+  desktopLayout,
   desktopCompactField,
   desktopContained,
   desktopSplitLayout,
@@ -64,9 +65,11 @@ describe("desktop density", () => {
     expect(split.row?.flexDirection).toBe("row");
     expect(split.main?.flex).toBe(1);
     expect(split.aside).toMatchObject({
-      width: 400,
+      width: "30%",
+      minWidth: desktopLayout.asideMinWidth,
+      maxWidth: desktopLayout.asideMaxWidth,
       position: "sticky",
-      top: 0,
+      top: desktopLayout.sectionGap,
     });
   });
 

@@ -1,3 +1,6 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
@@ -70,14 +73,14 @@ const CATEGORIES: {
   { key: "other", label: "Outro", icon: "ellipsis-horizontal-circle-outline" },
 ];
 
-const CATEGORY_SURFACES: Record<ExpenseCategory, string> = {
-  sale: "#F5EEE8",
-  utility: "#FBE6EA",
-  material: "#F4ECE8",
-  packaging: "#F5EEE8",
-  transport: "#EDF0F2",
-  fee: "#F7EEE8",
-  other: "#F1ECF4",
+const CATEGORY_SURFACES: Record<ExpenseCategory, keyof Theme["colors"]> = {
+  sale: "surface",
+  utility: "yellowBg",
+  material: "surface",
+  packaging: "surface",
+  transport: "blueBg",
+  fee: "surface",
+  other: "lavenderBg",
 };
 
 function useRecurringTheme() {
@@ -340,6 +343,20 @@ function RecurringHeader({
 }>) {
   const { styles, palette } = useRecurringTheme();
 
+  if (isDesktop)
+    return (
+      <ScreenHeader
+        title={title}
+        subtitle={subtitle}
+        hideBack
+        right={
+          onAdd ? (
+            <FAB icon="add" header accessibilityLabel="Novo gasto fixo" onPress={onAdd} />
+          ) : undefined
+        }
+      />
+    );
+
   return (
     <View
       style={[
@@ -482,8 +499,7 @@ function ExpenseRow({
   onPress: () => void;
 }>) {
   const { theme, styles, palette } = useRecurringTheme();
-  const iconSurface =
-    theme.mode === "light" ? CATEGORY_SURFACES[item.category] : theme.colors.surface;
+  const iconSurface = theme.colors[CATEGORY_SURFACES[item.category]];
 
   return (
     <Pressable
@@ -566,7 +582,16 @@ function RecurringFormModal({
     return categoryOption;
   });
 
+  const formValidation = useFormValidation({
+    description: !description.trim() && "Descreva o gasto fixo.",
+    amount:
+      (!Number.isFinite(parseCurrencyInput(amount)) || parseCurrencyInput(amount) <= 0) &&
+      "Informe um valor maior que zero.",
+    day: !validDay && "Informe um dia entre 1 e 28.",
+  });
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     if (isSaving) return;
 
     const parsedAmount = parseCurrencyInput(amount);
@@ -649,35 +674,41 @@ function RecurringFormModal({
         </>
       }
     >
-      <Input
-        accessibilityLabel="Descrição"
-        autoCapitalize="sentences"
-        icon={
-          <AppIcon
-            name="document-text-outline"
-            size={iconSizes.sm}
-            color={palette.wine}
-          />
-        }
-        label="Descrição"
-        maxLength={120}
-        onChangeText={setDescription}
-        placeholder="Ex.: Aluguel da cozinha"
-        returnKeyType="next"
-        style={styles.formInput}
-        value={description}
-      />
+      <ValidationField {...formValidation.field("description")}>
+        <Input
+          accessibilityLabel="Descrição"
+          autoCapitalize="sentences"
+          icon={
+            <AppIcon
+              name="document-text-outline"
+              size={iconSizes.sm}
+              color={palette.wine}
+            />
+          }
+          label="Descrição"
+          maxLength={120}
+          onChangeText={setDescription}
+          placeholder="Ex.: Aluguel da cozinha"
+          returnKeyType="next"
+          style={styles.formInput}
+          value={description}
+        />
+      </ValidationField>
 
-      <Input
-        accessibilityLabel="Valor em reais"
-        icon={<AppIcon name="wallet-outline" size={iconSizes.sm} color={palette.wine} />}
-        keyboardType="decimal-pad"
-        label="Valor (R$)"
-        onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-        placeholder="Ex.: 800,00"
-        style={styles.formInput}
-        value={amount}
-      />
+      <ValidationField {...formValidation.field("amount")}>
+        <Input
+          accessibilityLabel="Valor em reais"
+          icon={
+            <AppIcon name="wallet-outline" size={iconSizes.sm} color={palette.wine} />
+          }
+          keyboardType="decimal-pad"
+          label="Valor (R$)"
+          onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+          placeholder="Ex.: 800,00"
+          style={styles.formInput}
+          value={amount}
+        />
+      </ValidationField>
 
       <View style={styles.fieldBlock}>
         <Typography variant="captionBold" color={palette.ink}>
@@ -724,18 +755,20 @@ function RecurringFormModal({
           </Typography>
           <Typography variant="caption">De 1 a 28</Typography>
         </View>
-        <Input
-          accessibilityLabel="Dia do mês, de 1 a 28"
-          icon={
-            <AppIcon name="calendar-outline" size={iconSizes.sm} color={palette.wine} />
-          }
-          keyboardType="number-pad"
-          maxLength={2}
-          onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
-          placeholder="Ex.: 8"
-          style={styles.formInput}
-          value={day}
-        />
+        <ValidationField {...formValidation.field("day")}>
+          <Input
+            accessibilityLabel="Dia do mês, de 1 a 28"
+            icon={
+              <AppIcon name="calendar-outline" size={iconSizes.sm} color={palette.wine} />
+            }
+            keyboardType="number-pad"
+            maxLength={2}
+            onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
+            placeholder="Ex.: 8"
+            style={styles.formInput}
+            value={day}
+          />
+        </ValidationField>
       </View>
 
       <View style={styles.recurrenceNotice}>
@@ -763,7 +796,7 @@ function RecurringDetails({
   onDelete: () => void;
   onEdit: () => void;
 }>) {
-  const { theme, styles, palette } = useRecurringTheme();
+  const { theme, styles } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
 
@@ -814,15 +847,24 @@ function RecurringDetails({
       <View style={[styles.detailActions, isDesktop && { justifyContent: "flex-end" }]}>
         <Button
           icon={
-            <AppIcon name="trash-outline" size={iconSizes.xs} color={palette.onWine} />
+            <AppIcon
+              name="trash-outline"
+              size={iconSizes.xs}
+              color={theme.colors.alert}
+            />
           }
           onPress={onDelete}
           style={styles.deleteAction}
           title="Remover"
+          variant="alertOutline"
         />
         <Button
           icon={
-            <AppIcon name="create-outline" size={iconSizes.xs} color={palette.onWine} />
+            <AppIcon
+              name="create-outline"
+              size={iconSizes.xs}
+              color={theme.colors.textOnPrimary}
+            />
           }
           onPress={onEdit}
           style={styles.saveAction}
@@ -959,7 +1001,7 @@ function createStyles(theme: Theme) {
       borderWidth: 1.5,
     },
     commitmentBlob: {
-      backgroundColor: "#F1C7CF",
+      backgroundColor: theme.colors.primaryBg,
       borderRadius: radii.full,
       height: "82%",
       position: "absolute",
@@ -1024,7 +1066,6 @@ function createStyles(theme: Theme) {
       justifyContent: "space-between",
     },
     deleteAction: {
-      backgroundColor: theme.colors.alert,
       flex: 1,
     },
     detailActions: {
@@ -1217,7 +1258,6 @@ function createStyles(theme: Theme) {
       flex: 1,
     },
     saveAction: {
-      backgroundColor: palette.rose,
       flex: 1,
     },
     screen: {

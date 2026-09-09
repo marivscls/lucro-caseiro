@@ -1,6 +1,9 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Typography,
   useBrand,
   useFeature,
@@ -20,9 +23,9 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
   type TextInputProps,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -72,9 +75,17 @@ interface CreateProductFormProps {
   /** A tarefa de origem apresenta o sucesso ao retomar um cadastro dependente. */
   readonly successFeedback?: "alert" | "parent";
   readonly initialSalePrice?: number;
+  /**
+   * Custo total já calculado na precificação (materiais + embalagem), para
+   * não pedir de novo o que a pessoa acabou de calcular (fluxo "sem
+   * recadastro": precificação → produto).
+   */
+  readonly initialCostPrice?: number;
   readonly initialValues?: {
     name?: string;
     category?: string;
+    salePrice?: number;
+    costPrice?: number;
     code?: string;
     photoUrl?: string;
   };
@@ -147,7 +158,7 @@ function TextFieldCard({
       }}
     >
       <AppIcon name={icon} size={22} color={theme.colors.textSecondary} />
-      <TextInput
+      <CenteredTextInput
         ref={inputRef}
         accessibilityLabel={inputProps.accessibilityLabel ?? inputProps.placeholder}
         placeholderTextColor={pal.placeholder}
@@ -196,7 +207,15 @@ function CategoryField({
     setOpen(true);
   }
 
+  const categoryValidation = useFormValidation({
+    draft: !draft.trim() && "Digite uma categoria ou escolha uma das opções.",
+  });
+
   function confirm(category: string) {
+    if (!category.trim()) {
+      categoryValidation.validate();
+      return;
+    }
     onChange(category.trim());
     setOpen(false);
   }
@@ -270,38 +289,40 @@ function CategoryField({
                 Categoria
               </Typography>
 
-              <View
-                style={{
-                  minHeight: isDesktop ? 48 : 56,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: pal.border,
-                  backgroundColor: pal.fieldBg,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: spacing.md,
-                  gap: spacing.md,
-                }}
-              >
-                <AppIcon
-                  name="create-outline"
-                  size={22}
-                  color={theme.colors.textSecondary}
-                />
-                <TextInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  placeholder="Digite uma categoria nova"
-                  placeholderTextColor={pal.placeholder}
-                  autoFocus
+              <ValidationField {...categoryValidation.field("draft")}>
+                <View
                   style={{
-                    flex: 1,
-                    color: theme.colors.text,
-                    fontSize: 16,
-                    paddingVertical: spacing.md,
+                    minHeight: isDesktop ? 48 : 56,
+                    borderRadius: radii.lg,
+                    borderWidth: 1,
+                    borderColor: pal.border,
+                    backgroundColor: pal.fieldBg,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: spacing.md,
+                    gap: spacing.md,
                   }}
-                />
-              </View>
+                >
+                  <AppIcon
+                    name="create-outline"
+                    size={22}
+                    color={theme.colors.textSecondary}
+                  />
+                  <CenteredTextInput
+                    value={draft}
+                    onChangeText={setDraft}
+                    placeholder="Digite uma categoria nova"
+                    placeholderTextColor={pal.placeholder}
+                    autoFocus
+                    style={{
+                      flex: 1,
+                      color: theme.colors.text,
+                      fontSize: 16,
+                      paddingVertical: spacing.md,
+                    }}
+                  />
+                </View>
+              </ValidationField>
 
               {categories.length > 0 ? (
                 <ScrollView
@@ -337,12 +358,10 @@ function CategoryField({
 
               <Pressable
                 onPress={() => confirm(draft)}
-                disabled={!draft.trim()}
                 accessibilityRole="button"
                 style={({ pressed }) => {
                   let opacity = 1;
-                  if (!draft.trim()) opacity = 0.5;
-                  else if (pressed) opacity = 0.85;
+                  if (pressed) opacity = 0.85;
                   return {
                     alignSelf: isDesktop ? "flex-end" : undefined,
                     width: isDesktop ? 180 : undefined,
@@ -474,6 +493,7 @@ function DescriptionField({
           borderColor: pal.border,
           backgroundColor: pal.fieldBg,
           flexDirection: "row",
+          alignItems: "center",
           padding: spacing.md,
           gap: spacing.md,
         }}
@@ -484,7 +504,7 @@ function DescriptionField({
           color={theme.colors.textSecondary}
         />
         <View style={{ flex: 1 }}>
-          <TextInput
+          <CenteredTextInput
             value={value}
             onChangeText={(t) => onChange(t.slice(0, MAX))}
             placeholder="Descreva o que você vende, seus diferenciais e detalhes importantes..."
@@ -495,7 +515,7 @@ function DescriptionField({
               flex: 1,
               color: theme.colors.text,
               fontSize: 16,
-              textAlignVertical: "top",
+              textAlignVertical: "center",
               padding: 0,
               minHeight: 72,
             }}
@@ -602,6 +622,7 @@ export function CreateProductForm({
   onPriceInvite,
   successFeedback = "alert",
   initialSalePrice,
+  initialCostPrice,
   initialValues,
   analyticsSource,
   simpleOnly = false,
@@ -624,9 +645,15 @@ export function CreateProductForm({
   const [name, setName] = useState(initialValues?.name ?? "");
   const [category, setCategory] = useState(initialValues?.category ?? "");
   const [salePrice, setSalePrice] = useState(
-    initialSalePrice === undefined ? "" : currencyInput(initialSalePrice),
+    initialValues?.salePrice === undefined && initialSalePrice === undefined
+      ? ""
+      : currencyInput(initialValues?.salePrice ?? initialSalePrice ?? 0),
   );
-  const [costPrice, setCostPrice] = useState("");
+  const [costPrice, setCostPrice] = useState(
+    initialValues?.costPrice === undefined && initialCostPrice === undefined
+      ? ""
+      : currencyInput(initialValues?.costPrice ?? initialCostPrice ?? 0),
+  );
   const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState(initialValues?.code ?? "");
@@ -689,7 +716,42 @@ export function CreateProductForm({
 
   const isKg = saleUnit === "kg" && !isComposite;
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome do produto.",
+      category: !category.trim() && "Selecione ou informe uma categoria.",
+      salePrice:
+        (!Number.isFinite(parseCurrencyInput(salePrice)) ||
+          parseCurrencyInput(salePrice) <= 0 ||
+          !Number.isFinite(parseCurrencyInput(salePrice))) &&
+        "Informe um preço maior que zero.",
+      components:
+        isComposite &&
+        (components.length === 0 ||
+          components.some(
+            (item) =>
+              !Number.isFinite(Number(item.quantity.replace(",", "."))) ||
+              Number(item.quantity.replace(",", ".")) <= 0,
+          )) &&
+        "Adicione produtos ao kit e informe uma quantidade maior que zero para cada um.",
+    },
+    modal?.visible,
+  );
+
   async function handleSubmit() {
+    if (
+      !formValidation.validate((field) => {
+        const events = {
+          name: "name_required",
+          category: "category_required",
+          salePrice: "price_invalid",
+          components: "components_required",
+        } as const;
+        const event = events[field];
+        void trackAnalyticsAction(`product_${event}`, useAuth.getState().token);
+      })
+    )
+      return;
     if (checkProductLimit()) return;
 
     const price = parseCurrencyInput(salePrice);
@@ -896,16 +958,18 @@ export function CreateProductForm({
               </Typography>
             ) : null}
             <FieldLabel label={`Nome do ${experienceCopy.productNoun}`} required />
-            <TextFieldCard
-              icon="pricetag-outline"
-              placeholder={`Ex: ${experienceCopy.productExample}`}
-              inputRef={nameInput}
-              accessibilityLabel={`Nome do ${experienceCopy.productNoun}, obrigatório`}
-              value={name}
-              onChangeText={setName}
-              autoFocus
-              isDesktop={isDesktop}
-            />
+            <ValidationField {...formValidation.field("name")}>
+              <TextFieldCard
+                icon="pricetag-outline"
+                placeholder={`Ex: ${experienceCopy.productExample}`}
+                inputRef={nameInput}
+                accessibilityLabel={`Nome do ${experienceCopy.productNoun}, obrigatório`}
+                value={name}
+                onChangeText={setName}
+                autoFocus
+                isDesktop={isDesktop}
+              />
+            </ValidationField>
           </View>
 
           <View style={wideLayout ? { flex: 1 } : undefined}>
@@ -915,14 +979,16 @@ export function CreateProductForm({
               </Typography>
             ) : null}
             <FieldLabel label="Categoria" required />
-            <CategoryField
-              focusRequest={categoryFocus}
-              value={category}
-              onChange={setCategory}
-              categories={categories}
-              placeholder={`Ex: ${experienceCopy.categoryExample}...`}
-              isDesktop={isDesktop}
-            />
+            <ValidationField {...formValidation.field("category")}>
+              <CategoryField
+                focusRequest={categoryFocus}
+                value={category}
+                onChange={setCategory}
+                categories={categories}
+                placeholder={`Ex: ${experienceCopy.categoryExample}...`}
+                isDesktop={isDesktop}
+              />
+            </ValidationField>
           </View>
         </View>
       </FormSection>
@@ -953,16 +1019,18 @@ export function CreateProductForm({
               label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
               required
             />
-            <TextFieldCard
-              icon="cash-outline"
-              placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
-              inputRef={priceInput}
-              accessibilityLabel="Preço de venda em reais, obrigatório"
-              value={salePrice}
-              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-              keyboardType="numeric"
-              isDesktop={isDesktop}
-            />
+            <ValidationField {...formValidation.field("salePrice")}>
+              <TextFieldCard
+                icon="cash-outline"
+                placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+                inputRef={priceInput}
+                accessibilityLabel="Preço de venda em reais, obrigatório"
+                value={salePrice}
+                onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+                keyboardType="numeric"
+                isDesktop={isDesktop}
+              />
+            </ValidationField>
           </View>
 
           {directCostEnabled && !isComposite ? (
@@ -1031,11 +1099,13 @@ export function CreateProductForm({
         ) : null}
 
         {isComposite ? (
-          <ComponentPicker
-            value={components}
-            onChange={setComponents}
-            onCreateSimpleProduct={() => setCreatingComponent(true)}
-          />
+          <ValidationField {...formValidation.field("components")}>
+            <ComponentPicker
+              value={components}
+              onChange={setComponents}
+              onCreateSimpleProduct={() => setCreatingComponent(true)}
+            />
+          </ValidationField>
         ) : null}
 
         {variationsEnabled && !isComposite ? (
@@ -1404,6 +1474,7 @@ export function CreateProductForm({
               style={{
                 flex: 1,
                 flexDirection: isDesktop ? "row" : "column",
+                justifyContent: isDesktop ? "flex-end" : undefined,
                 gap: spacing.md,
               }}
             >

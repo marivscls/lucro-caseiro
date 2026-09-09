@@ -66,7 +66,7 @@ export function Sidebar() {
         </div>
         <div>
           <strong>{brand.appName}</strong>
-          <span>Central de marketing</span>
+          <span>Central de Marketing — equipe</span>
         </div>
       </div>
       <nav>

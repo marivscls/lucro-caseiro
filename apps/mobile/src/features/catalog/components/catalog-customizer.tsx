@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { useAuth } from "../../../shared/hooks/use-auth";
 /* eslint-disable sonarjs/no-nested-conditional, sonarjs/no-nested-functions */
@@ -1107,13 +1109,34 @@ export function CatalogCustomizer({
     return logo ? uploadCatalogLogo(uri, file) : uploadCatalogCover(uri, file);
   }
 
+  const formValidation = useFormValidation({
+    displayName:
+      !draft.identity.displayName.trim() && "Informe o nome exibido no catálogo.",
+    whatsapp: errors.whatsapp,
+    slug: !draft.publication.slug.trim() && "Informe o endereço do catálogo.",
+  });
+
   async function persist(publishing: boolean) {
+    if (
+      !formValidation.validate((key) =>
+        navigate(key === "displayName" ? "identity" : "organization"),
+      )
+    )
+      return;
     if (update.isPending) return;
     if (publishing && !publishingReady) {
       setRequestStatus("error");
       showAlert({
         title: "Revise antes de publicar",
         message: "Abra os itens pendentes da revisão final e complete as configurações.",
+      });
+      return;
+    }
+    if (hasStorefrontErrors(errors) || !slugAvailable || slugAvailability.isFetching) {
+      showAlert({
+        title: "Confira o catálogo",
+        message:
+          "Revise os campos indicados e aguarde a confirmação do endereço antes de salvar.",
       });
       return;
     }
@@ -1220,12 +1243,6 @@ export function CatalogCustomizer({
     );
   if (isPublication) contextualPreview = <StorefrontFinalPreview {...previewProps} />;
 
-  const canSave =
-    dirty &&
-    !hasStorefrontErrors(errors) &&
-    slugAvailable &&
-    !slugAvailability.isFetching &&
-    !update.isPending;
   const selectedIds = new Set(draft.hero.featuredItems.map((item) => item.id));
   const catalogUrl = publicCatalogUrl(normalizedSlug);
 
@@ -1268,8 +1285,9 @@ export function CatalogCustomizer({
             <Typography
               style={{
                 color: colors.wine,
-                fontFamily: fonts.extraBold,
-                fontSize: isDesktop ? 28 : wide ? 26 : 20,
+                fontFamily: fonts.bold,
+                fontSize: isDesktop ? 20 : 18,
+                lineHeight: isDesktop ? 26 : 24,
                 textAlign: isDesktop ? "left" : "center",
               }}
             >
@@ -1348,19 +1366,23 @@ export function CatalogCustomizer({
                       }
                     />
                   </View>
-                  <Input
-                    label="Nome exibido"
-                    value={draft.identity.displayName}
-                    maxLength={STOREFRONT_DISPLAY_NAME_LIMIT}
-                    error={errors.displayName}
-                    onChangeText={(displayName) =>
-                      setDraft((current) => ({
-                        ...current,
-                        identity: { ...current.identity, displayName },
-                      }))
-                    }
-                    containerStyle={{ flex: 1, minWidth: 240 }}
-                  />
+                  <ValidationField
+                    {...formValidation.field("displayName")}
+                    style={{ flex: 1, minWidth: 240 }}
+                  >
+                    <Input
+                      label="Nome exibido"
+                      value={draft.identity.displayName}
+                      maxLength={STOREFRONT_DISPLAY_NAME_LIMIT}
+                      error={errors.displayName}
+                      onChangeText={(displayName) =>
+                        setDraft((current) => ({
+                          ...current,
+                          identity: { ...current.identity, displayName },
+                        }))
+                      }
+                    />
+                  </ValidationField>
                 </View>
                 {imageError ? (
                   <Typography
@@ -2116,24 +2138,26 @@ export function CatalogCustomizer({
                 description="Defina como seus clientes entram em contato."
               />
               <EditorCard>
-                <Input
-                  label="Número do WhatsApp"
-                  value={draft.organization.contact.destination}
-                  keyboardType="phone-pad"
-                  error={errors.whatsapp}
-                  onChangeText={(destination) =>
-                    setDraft((current) => ({
-                      ...current,
-                      organization: {
-                        ...current.organization,
-                        contact: {
-                          ...current.organization.contact,
-                          destination: formatCatalogWhatsapp(destination),
+                <ValidationField {...formValidation.field("whatsapp")}>
+                  <Input
+                    label="Número do WhatsApp"
+                    value={draft.organization.contact.destination}
+                    keyboardType="phone-pad"
+                    error={errors.whatsapp}
+                    onChangeText={(destination) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          contact: {
+                            ...current.organization.contact,
+                            destination: formatCatalogWhatsapp(destination),
+                          },
                         },
-                      },
-                    }))
-                  }
-                />
+                      }))
+                    }
+                  />
+                </ValidationField>
                 <Input
                   label="Texto do botão flutuante"
                   value={draft.organization.contact.defaultActionLabel}
@@ -2175,21 +2199,23 @@ export function CatalogCustomizer({
                 description="Compartilhe sua vitrine com seus clientes."
               />
               <EditorCard>
-                <Input
-                  label="Endereço"
-                  value={draft.publication.slug}
-                  autoCapitalize="none"
-                  error={errors.slug ?? slugAvailability.data?.reason ?? undefined}
-                  onChangeText={(slug) =>
-                    setDraft((current) => ({
-                      ...current,
-                      publication: {
-                        ...current.publication,
-                        slug: slug.toLowerCase().replace(/\s+/g, "-"),
-                      },
-                    }))
-                  }
-                />
+                <ValidationField {...formValidation.field("slug")}>
+                  <Input
+                    label="Endereço"
+                    value={draft.publication.slug}
+                    autoCapitalize="none"
+                    error={errors.slug ?? slugAvailability.data?.reason ?? undefined}
+                    onChangeText={(slug) =>
+                      setDraft((current) => ({
+                        ...current,
+                        publication: {
+                          ...current.publication,
+                          slug: slug.toLowerCase().replace(/\s+/g, "-"),
+                        },
+                      }))
+                    }
+                  />
+                </ValidationField>
                 <View
                   style={{
                     minHeight: 48,
@@ -2380,7 +2406,7 @@ export function CatalogCustomizer({
                       : "Salvar alterações"
                 }
                 loading={requestStatus === "saving" || requestStatus === "publishing"}
-                disabled={isPublication ? !publishingReady || update.isPending : !canSave}
+                disabled={update.isPending || (!isPublication && !dirty)}
                 onPress={() => void persist(isPublication)}
               />
             </View>
@@ -2427,7 +2453,7 @@ export function CatalogCustomizer({
                     : "Salvar alterações"
               }
               loading={requestStatus === "saving" || requestStatus === "publishing"}
-              disabled={isPublication ? !publishingReady || update.isPending : !canSave}
+              disabled={update.isPending || (!isPublication && !dirty)}
               onPress={() => void persist(isPublication)}
               style={isDesktop ? desktopAction(true, 240) : { flex: 1.08 }}
             />

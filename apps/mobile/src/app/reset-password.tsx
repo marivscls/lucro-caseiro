@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "../shared/components/app-icon";
 import { Redirect, Stack, useRouter } from "expo-router";
@@ -33,7 +35,13 @@ export default function ResetPasswordScreen() {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const formValidation = useFormValidation({
+    password: !password.trim() && "Informe a nova senha.",
+    confirm: !confirm.trim() && "Confirme a nova senha.",
+  });
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     const passwordResult = validatePassword(password);
     if (!passwordResult.valid) {
       alertValidation(passwordResult.errors.join(". "));
@@ -115,25 +123,29 @@ export default function ResetPasswordScreen() {
         </View>
 
         <View style={{ gap: spacing.md }}>
-          <Input
-            label="Nova senha"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Pelo menos 8 caracteres"
-            secureTextEntry={!show}
-            autoCapitalize="none"
-          />
+          <ValidationField {...formValidation.field("password")}>
+            <Input
+              label="Nova senha"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Pelo menos 8 caracteres"
+              secureTextEntry={!show}
+              autoCapitalize="none"
+            />
+          </ValidationField>
           <Typography variant="caption" color={theme.colors.textSecondary}>
             {CREDENTIAL_RULES}
           </Typography>
-          <Input
-            label="Confirmar nova senha"
-            value={confirm}
-            onChangeText={setConfirm}
-            placeholder="Repita a senha"
-            secureTextEntry={!show}
-            autoCapitalize="none"
-          />
+          <ValidationField {...formValidation.field("confirm")}>
+            <Input
+              label="Confirmar nova senha"
+              value={confirm}
+              onChangeText={setConfirm}
+              placeholder="Repita a senha"
+              secureTextEntry={!show}
+              autoCapitalize="none"
+            />
+          </ValidationField>
           <Pressable
             onPress={() => setShow((v) => !v)}
             accessibilityRole="button"
@@ -148,9 +160,9 @@ export default function ResetPasswordScreen() {
             <AppIcon
               name={show ? "eye-off-outline" : "eye-outline"}
               size={18}
-              color={theme.colors.primary}
+              color={theme.colors.primaryStrong}
             />
-            <Typography variant="caption" color={theme.colors.primary}>
+            <Typography variant="caption" color={theme.colors.primaryStrong}>
               {show ? "Ocultar senha" : "Mostrar senha"}
             </Typography>
           </Pressable>

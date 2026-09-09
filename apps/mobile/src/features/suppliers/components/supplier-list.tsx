@@ -1,5 +1,6 @@
 import type { SupplierOverviewItem } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Button,
   Chip,
   EmptyState,
@@ -17,7 +18,6 @@ import {
   Image,
   Pressable,
   RefreshControl,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -25,7 +25,6 @@ import {
 import suppliersHero from "../../../assets/fornecedores-caixas.png";
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
-import { showAlert } from "../../../shared/components/alert-store";
 import { SkeletonList } from "../../../shared/components/skeleton";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { formatCurrency } from "../../../shared/utils/format";
@@ -40,6 +39,13 @@ import {
 import { useSuppliersOverview } from "../hooks";
 import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SupplierCard } from "./supplier-card";
+import { SupplierOptionsModal } from "./supplier-options-modal";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import {
+  desktopContentWidth,
+  desktopWidths,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
 
 interface SupplierListProps {
   onSupplierPress: (supplier: SupplierOverviewItem) => void;
@@ -133,15 +139,11 @@ function MonthlyPanel({
           Compras do mês
         </Typography>
         <Typography
+          variant="moneyHero"
           color={colors.onWine}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.78}
-          style={{
-            fontFamily: fonts.extraBold,
-            fontSize: compact ? 24 : 34,
-            lineHeight: compact ? 32 : 43,
-          }}
         >
           {formatCurrency(totalAmount)}
         </Typography>
@@ -198,13 +200,15 @@ function MonthlyPanel({
 export function SupplierList(props: Readonly<SupplierListProps>) {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
-  const pageWidth = Math.min(760, width);
+  const isDesktop = useDesktopLayout();
+  const pageWidth = isDesktop ? desktopContentWidth(width) : Math.min(760, width);
   const query = useSuppliersOverview();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<SupplierCategoryFilter>("all");
   const [advanced, setAdvanced] = useState<Set<SupplierAdvancedFilter>>(() => new Set());
   const [sort, setSort] = useState<SupplierSort>("recent");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const allItems = query.data?.items ?? [];
   const counts = useMemo(() => supplierCategoryCounts(allItems), [allItems]);
   const items = useMemo(
@@ -228,28 +232,15 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
     setAdvanced(new Set());
   }
 
-  function openSort() {
-    showAlert({
-      title: "Ordenar fornecedores",
-      buttons: [
-        ...Object.entries(SORT_LABELS).map(([key, label]) => ({
-          text: label,
-          onPress: () => setSort(key as SupplierSort),
-        })),
-        { text: "Cancelar", style: "cancel" as const },
-      ],
-    });
-  }
-
   if (query.isLoading) {
     return (
       <View
         style={{
           flex: 1,
-          alignSelf: "center",
+          alignSelf: isDesktop ? "stretch" : "center",
           width: "100%",
-          maxWidth: 760,
-          paddingHorizontal: spacing.lg,
+          maxWidth: isDesktop ? desktopWidths.data : 760,
+          ...pageGutter(isDesktop, spacing.lg),
           paddingTop: spacing.md,
           gap: spacing.lg,
         }}
@@ -300,7 +291,13 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
         supplierCount={query.data?.month.supplierCount ?? 0}
       />
 
-      <View style={{ flexDirection: "row", gap: spacing.sm }}>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: spacing.sm,
+          maxWidth: isDesktop ? 480 : undefined,
+        }}
+      >
         <View
           style={{
             flex: 1,
@@ -316,7 +313,7 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
           }}
         >
           <AppIcon name="search-outline" size={22} color={theme.colors.textSecondary} />
-          <TextInput
+          <CenteredTextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Buscar fornecedor, produto ou categoria..."
@@ -394,11 +391,12 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
           Seus fornecedores
         </Typography>
         <Pressable
-          onPress={openSort}
+          onPress={() => setSortOpen(true)}
           accessibilityRole="button"
+          accessibilityState={{ expanded: sortOpen }}
           accessibilityLabel={`Ordenação: ${SORT_LABELS[sort]}`}
           style={({ pressed }) => ({
-            minHeight: 44,
+            minHeight: 48,
             alignSelf: width <= 350 ? "flex-start" : undefined,
             flexDirection: "row",
             alignItems: "center",
@@ -425,8 +423,8 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
           contentContainerStyle={{
             width: "100%",
             maxWidth: pageWidth,
-            alignSelf: "center",
-            paddingHorizontal: spacing.lg,
+            alignSelf: isDesktop ? "stretch" : "center",
+            ...pageGutter(isDesktop, spacing.lg),
             paddingTop: spacing.md,
             paddingBottom: spacing.lg,
             gap: spacing.md,
@@ -485,6 +483,17 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
         ) : null}
       </View>
 
+      <SupplierOptionsModal
+        visible={sortOpen}
+        onClose={() => setSortOpen(false)}
+        title="Ordenar fornecedores"
+        options={Object.entries(SORT_LABELS).map(([key, label]) => ({
+          key,
+          label,
+          selected: sort === key,
+          onPress: () => setSort(key as SupplierSort),
+        }))}
+      />
       <StandardModal
         visible={filtersOpen}
         onClose={() => setFiltersOpen(false)}

@@ -21,7 +21,7 @@ import { StandardModal } from "../shared/components/standard-modal";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { displayIngredientName } from "../shared/ingredient-image/resolve";
 import {
-  desktopContained,
+  desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
@@ -54,7 +54,7 @@ function RecipesContent() {
 
   const pageFrame = {
     ...pageGutter(isDesktop),
-    ...desktopContained(isDesktop, desktopWidths.standard),
+    ...desktopStretch(isDesktop, desktopWidths.data),
   };
 
   return (

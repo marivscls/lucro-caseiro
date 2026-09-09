@@ -2,6 +2,7 @@ import { ScreenGuidance } from "../../../shared/guidance/screen-guidance";
 import type { PricingChannelFee } from "@lucro-caseiro/contracts";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
+  CenteredTextInput,
   Button,
   Typography,
   fonts,
@@ -13,7 +14,7 @@ import {
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { Pressable, ScrollView, View, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CalculatorModal } from "../../../shared/components/calculator-modal";
@@ -61,7 +62,7 @@ function capitalize(value: string): string {
 
 interface PricingCalculatorProps {
   readonly onSave?: () => void;
-  readonly onCreateProduct?: (salePrice: number) => void;
+  readonly onCreateProduct?: (salePrice: number, costPrice: number) => void;
 }
 
 // ---- Componentes visuais ----
@@ -208,14 +209,10 @@ function MoneyField({
         gap: spacing.sm,
       }}
     >
-      <Typography
-        variant="bodyBold"
-        color={theme.colors.text}
-        style={{ fontSize: isDesktop ? 18 : 22 }}
-      >
+      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 16 }}>
         R$
       </Typography>
-      <TextInput
+      <CenteredTextInput
         ref={inputRef}
         accessibilityLabel={placeholder ?? "Valor em reais"}
         value={value}
@@ -227,7 +224,7 @@ function MoneyField({
         style={{
           flex: 1,
           color: theme.colors.text,
-          fontSize: isDesktop ? 20 : 26,
+          fontSize: 16,
           fontFamily: fonts.bold,
         }}
       />
@@ -737,7 +734,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   ]);
 
   const handleCreateProduct = useCallback(async () => {
-    onCreateProduct?.(finalPrice);
+    onCreateProduct?.(finalPrice, totalCost);
     try {
       await calculatePricing.mutateAsync({
         productId: productId ?? undefined,
@@ -769,6 +766,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
     revenueBasis,
     selectedChannel,
     finalPrice,
+    totalCost,
     onCreateProduct,
   ]);
 
@@ -1412,7 +1410,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                     paddingHorizontal: spacing.md,
                   }}
                 >
-                  <TextInput
+                  <CenteredTextInput
                     value={String(marginPercent)}
                     onChangeText={(t) => {
                       const num = parseInt(t, 10);
@@ -1500,7 +1498,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                     gap: spacing.sm,
                   }}
                 >
-                  <TextInput
+                  <CenteredTextInput
                     value={item.name}
                     onChangeText={(name) => updateChannel(item.id, { name })}
                     placeholder="Nome do canal"
@@ -1529,7 +1527,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                       paddingHorizontal: spacing.md,
                     }}
                   >
-                    <TextInput
+                    <CenteredTextInput
                       value={String(item.percent).replace(".", ",")}
                       onChangeText={(text) =>
                         updateChannel(item.id, {

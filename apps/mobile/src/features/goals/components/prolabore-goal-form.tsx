@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { ProlaboreGoal } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
@@ -43,7 +45,17 @@ export function ProlaboreGoalForm({
   const upsert = useUpsertProlaboreGoal();
   const remove = useDeleteProlaboreGoal();
 
+  const formValidation = useFormValidation(
+    {
+      goal:
+        (!Number.isFinite(parseMoney(goal)) || parseMoney(goal) <= 0) &&
+        "Informe quanto você quer ganhar por mês, com um valor maior que zero.",
+    },
+    visible,
+  );
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     const g = parseMoney(goal);
     if (isNaN(g) || g <= 0) {
       alertValidation("Coloque quanto você quer ganhar por mês (maior que zero).");
@@ -123,14 +135,16 @@ export function ProlaboreGoalForm({
           chegar la.
         </Typography>
 
-        <Input
-          label="Quanto você quer ganhar por mês? (R$)"
-          placeholder="Ex: 2.000,00"
-          value={goal}
-          onChangeText={(value) => setGoal(maskCurrencyInput(value))}
-          keyboardType="numeric"
-          autoFocus
-        />
+        <ValidationField {...formValidation.field("goal")}>
+          <Input
+            label="Quanto você quer ganhar por mês? (R$)"
+            placeholder="Ex: 2.000,00"
+            value={goal}
+            onChangeText={(value) => setGoal(maskCurrencyInput(value))}
+            keyboardType="numeric"
+            autoFocus
+          />
+        </ValidationField>
         <Input
           label="Custos fixos do mês (opcional)"
           placeholder="Aluguel, gas, energia..."

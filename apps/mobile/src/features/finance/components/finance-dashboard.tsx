@@ -5,6 +5,7 @@ import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
+  CenteredTextInput,
   Button,
   Chip,
   FilterChipRow,
@@ -27,7 +28,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   useWindowDimensions,
   View,
   type DimensionValue,
@@ -35,10 +35,7 @@ import {
 } from "react-native";
 
 import financeSummaryIllustration from "../../../assets/finance-summary-illustration.png";
-import {
-  brandScreenPalette,
-  type BrandScreenPalette,
-} from "../../../shared/brand-palette";
+import { brandScreenPalette } from "../../../shared/brand-palette";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useProfile } from "../../subscription/hooks";
@@ -502,7 +499,6 @@ export function FinanceDashboard({
               label={option.label}
               selected={period === option.value}
               onPress={() => setPeriod(option.value)}
-              filled
               compact
               styles={styles}
             />
@@ -657,11 +653,35 @@ export function FinanceDashboard({
           />
         </View>
 
-        <Typography variant="body">
-          {hasNoMovements
-            ? "Ainda não há movimentos neste período. Registre uma entrada ou despesa para começar."
-            : "Resultado calculado com as entradas e saídas registradas no período. Custos que você não informou ainda não estão incluídos."}
-        </Typography>
+        {hasNoMovements ? (
+          <Typography variant="body">
+            Ainda não há movimentos neste período. Registre uma entrada ou despesa para
+            começar.
+          </Typography>
+        ) : (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              gap: spacing.sm,
+              backgroundColor: theme.colors.yellowBg,
+              borderRadius: radii.lg,
+              padding: spacing.md,
+            }}
+          >
+            <AppIcon
+              name="information-circle"
+              size={iconSizes.sm}
+              color={theme.colors.yellow}
+            />
+            <Typography variant="caption" color={theme.colors.text} style={{ flex: 1 }}>
+              Resultado calculado com as entradas e saídas registradas no período.{" "}
+              <Typography variant="captionBold" color={theme.colors.text}>
+                Custos que você não informou ainda não estão incluídos.
+              </Typography>
+            </Typography>
+          </View>
+        )}
         <View style={styles.summaryRow}>
           <SummaryCard
             label="Entradas"
@@ -710,7 +730,7 @@ export function FinanceDashboard({
             <View style={styles.flowStatus}>
               <Typography
                 variant="bodyBold"
-                color={profit >= 0 ? colors.wine : colors.rose}
+                color={profit >= 0 ? theme.colors.success : theme.colors.alert}
                 style={compactLayout && styles.flowStatusTextCompact}
               >
                 {balanceLabel}
@@ -718,7 +738,7 @@ export function FinanceDashboard({
               <AppIcon
                 name={profit >= 0 ? "trending-up-outline" : "trending-down-outline"}
                 size={iconSizes.sm}
-                color={profit >= 0 ? colors.wine : colors.rose}
+                color={profit >= 0 ? theme.colors.success : theme.colors.alert}
               />
             </View>
           </View>
@@ -727,14 +747,14 @@ export function FinanceDashboard({
             label="Entradas"
             value={formatCurrency(income)}
             width={incomeBarWidth}
-            color={colors.wineFill}
+            color={theme.colors.success}
             styles={styles}
           />
           <FlowBar
             label="Saídas"
             value={formatCurrency(expenses)}
             width={expenseBarWidth}
-            color={colors.rose}
+            color={theme.colors.alert}
             styles={styles}
           />
         </View>
@@ -750,11 +770,11 @@ export function FinanceDashboard({
               <AppIcon
                 name="alert-circle-outline"
                 size={iconSizes.md}
-                color={colors.rose}
+                color={theme.colors.alert}
               />
             </View>
             <View style={styles.balanceAlertCopy}>
-              <Typography variant="bodyBold" color={colors.rose}>
+              <Typography variant="bodyBold" color={theme.colors.alert}>
                 As saídas superam as entradas
               </Typography>
               <Typography variant="caption" color={colors.warmGray}>
@@ -762,10 +782,14 @@ export function FinanceDashboard({
               </Typography>
             </View>
             <View style={styles.balanceAlertAction}>
-              <Typography variant="captionBold" color={colors.rose}>
+              <Typography variant="captionBold" color={theme.colors.alert}>
                 Ver saídas
               </Typography>
-              <AppIcon name="chevron-forward" size={iconSizes.sm} color={colors.rose} />
+              <AppIcon
+                name="chevron-forward"
+                size={iconSizes.sm}
+                color={theme.colors.alert}
+              />
             </View>
           </Pressable>
         ) : null}
@@ -1044,8 +1068,8 @@ export function FinanceDashboard({
               onPress={openCreateEntry}
               style={({ pressed }) => [styles.newEntryButton, pressed && styles.pressed]}
             >
-              <AppIcon name="add" size={iconSizes.sm} color={colors.onWine} />
-              <Typography variant="captionBold" color={colors.onWine} style={WEB_NOWRAP}>
+              <AppIcon name="add" size={iconSizes.sm} color={colors.onRose} />
+              <Typography variant="captionBold" color={colors.onRose} style={WEB_NOWRAP}>
                 Novo
               </Typography>
             </Pressable>
@@ -1053,7 +1077,7 @@ export function FinanceDashboard({
 
           <View style={styles.searchField}>
             <AppIcon name="search-outline" size={iconSizes.md} color={colors.warmGray} />
-            <TextInput
+            <CenteredTextInput
               value={searchTerm}
               onChangeText={setSearchTerm}
               placeholder="Buscar lançamento"
@@ -1121,7 +1145,11 @@ export function FinanceDashboard({
                     </Typography>
                     <Typography
                       variant="captionBold"
-                      color={entryBalance(group.entries) >= 0 ? colors.wine : colors.rose}
+                      color={
+                        entryBalance(group.entries) >= 0
+                          ? theme.colors.success
+                          : theme.colors.alert
+                      }
                       style={[styles.entryGroupBalance, WEB_NOWRAP]}
                     >
                       {formatSignedCurrency(entryBalance(group.entries))}
@@ -1252,7 +1280,7 @@ export function FinanceDashboard({
                   alignSelf: "center",
                   backgroundColor: toneColors(
                     selectedEntry.type === "income" ? "green" : "red",
-                    colors,
+                    theme,
                   ).iconBg,
                 },
               ]}
@@ -1261,7 +1289,7 @@ export function FinanceDashboard({
                 name={selectedEntry.type === "income" ? "add" : "remove"}
                 size={iconSizes.lg}
                 color={
-                  toneColors(selectedEntry.type === "income" ? "green" : "red", colors).fg
+                  toneColors(selectedEntry.type === "income" ? "green" : "red", theme).fg
                 }
               />
             </View>
@@ -1272,7 +1300,7 @@ export function FinanceDashboard({
               <Typography
                 variant="moneyLg"
                 color={
-                  toneColors(selectedEntry.type === "income" ? "green" : "red", colors).fg
+                  toneColors(selectedEntry.type === "income" ? "green" : "red", theme).fg
                 }
               >
                 {selectedEntry.type === "income" ? "+ " : "- "}
@@ -1418,7 +1446,7 @@ function SummaryCard({
 }>) {
   const { theme } = useTheme();
   const colors = brandScreenPalette(theme);
-  const tc = toneColors(tone, colors);
+  const tc = toneColors(tone, theme);
 
   return (
     <Pressable
@@ -1581,7 +1609,7 @@ function FilterPill({
   const colors = brandScreenPalette(theme);
   let textColor: string | undefined;
   if (selected) {
-    textColor = filled ? colors.onWine : colors.wine;
+    textColor = filled ? colors.onRose : colors.wine;
   }
 
   return (
@@ -1624,7 +1652,7 @@ function EntryRow({
   const colors = brandScreenPalette(theme);
   const experienceCopy = useBusinessCopy();
   const isIncome = entry.type === "income";
-  const tc = toneColors(isIncome ? "green" : "red", colors);
+  const tc = toneColors(isIncome ? "green" : "red", theme);
   const sign = isIncome ? "+" : "-";
 
   return (
@@ -1750,21 +1778,26 @@ function formatSignedCurrency(value: number): string {
 
 type FinanceStyles = ReturnType<typeof createStyles>;
 
-/** Tons financeiros da referência: vinho para entradas, rosa queimado para saídas. */
-function toneColors(tone: "green" | "red", colors: BrandScreenPalette) {
+/**
+ * Tons financeiros: verde = entrada (dinheiro que entrou), vermelho/alerta =
+ * saída (dinheiro que saiu). Mesma convenção do modal de lançamento
+ * (create-finance-entry.tsx) — o rosa de marca fica fora desse vocabulário
+ * semântico para não competir com "lucro"/"sucesso".
+ */
+function toneColors(tone: "green" | "red", theme: Theme) {
   if (tone === "green") {
     return {
-      fg: colors.wine,
-      iconBg: `${colors.lime}73`,
-      cardBg: colors.softRose,
-      cardBorder: colors.border,
+      fg: theme.colors.success,
+      iconBg: theme.colors.successBg,
+      cardBg: theme.colors.successBg,
+      cardBorder: theme.colors.border,
     };
   }
   return {
-    fg: colors.rose,
-    iconBg: colors.softRose,
-    cardBg: colors.softRose,
-    cardBorder: colors.border,
+    fg: theme.colors.alert,
+    iconBg: theme.colors.alertBg,
+    cardBg: theme.colors.alertBg,
+    cardBorder: theme.colors.border,
   };
 }
 
@@ -1806,8 +1839,8 @@ function createStyles(theme: Theme) {
     },
     balanceAlert: {
       alignItems: "center",
-      backgroundColor: colors.softRose,
-      borderColor: `${colors.rose}66`,
+      backgroundColor: c.alertBg,
+      borderColor: c.alert,
       borderRadius: radii.xl,
       borderWidth: 1,
       flexDirection: "row",
@@ -1828,7 +1861,7 @@ function createStyles(theme: Theme) {
     },
     balanceAlertIcon: {
       alignItems: "center",
-      backgroundColor: colors.softRose,
+      backgroundColor: c.alertBg,
       borderRadius: radii.full,
       height: 44,
       justifyContent: "center",
@@ -1946,8 +1979,8 @@ function createStyles(theme: Theme) {
       minWidth: 200,
     },
     emptyTitle: {
-      fontSize: 22,
-      lineHeight: 28,
+      fontSize: 16,
+      lineHeight: 22,
     },
     emptyText: {
       textAlign: "center",
@@ -2175,8 +2208,8 @@ function createStyles(theme: Theme) {
     },
     flowTitle: {
       fontFamily: fonts.bold,
-      fontSize: 22,
-      lineHeight: 28,
+      fontSize: 16,
+      lineHeight: 22,
     },
     flowTitleCompact: {
       fontSize: 16,
@@ -2439,8 +2472,8 @@ function createStyles(theme: Theme) {
       fontVariant: ["tabular-nums"],
     },
     receivablesValueCompact: {
-      fontSize: 21,
-      lineHeight: 28,
+      fontSize: 20,
+      lineHeight: 26,
     },
     pressed: {
       opacity: 0.82,

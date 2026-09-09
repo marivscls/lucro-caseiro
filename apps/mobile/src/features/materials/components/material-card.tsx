@@ -6,6 +6,7 @@ import {
   spacing,
   Typography,
   useTheme,
+  type Theme,
 } from "@lucro-caseiro/ui";
 import React from "react";
 import { ActivityIndicator, Pressable, View, useWindowDimensions } from "react-native";
@@ -34,14 +35,22 @@ interface MaterialCardProps {
   readonly showDivider?: boolean;
 }
 
-function statusPresentation(status: StockStatus, palette: BrandScreenPalette) {
+function statusPresentation(
+  status: StockStatus,
+  palette: BrandScreenPalette,
+  theme: Theme,
+) {
   if (status === "low") {
     return { label: "Estoque baixo", background: palette.softRose, color: palette.rose };
   }
   if (status === "attention") {
     return { label: "Atenção", background: palette.softRose, color: palette.rose };
   }
-  return { label: "Em dia", background: `${palette.lime}59`, color: palette.onLime };
+  return {
+    label: "Em dia",
+    background: theme.colors.successBg,
+    color: theme.colors.success,
+  };
 }
 
 function QuantityControl({
@@ -86,12 +95,15 @@ function QuantityControl({
       }}
     >
       {pending ? (
-        <ActivityIndicator size="small" color={primary ? palette.onWine : palette.wine} />
+        <ActivityIndicator
+          size="small"
+          color={primary ? theme.colors.textOnPrimary : palette.wine}
+        />
       ) : (
         <AppIcon
           name={primary ? "add" : "remove"}
           size={24}
-          color={primary ? palette.onWine : palette.ink}
+          color={primary ? theme.colors.textOnPrimary : palette.ink}
           strokeWidth={2.2}
         />
       )}
@@ -106,7 +118,7 @@ function StockStatusBlock({
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const status = getStockStatus(material);
-  const presentation = statusPresentation(status, palette);
+  const presentation = statusPresentation(status, palette, theme);
   const progress = `${Math.round(stockLevelRatio(material) * 100)}%` as const;
 
   return (

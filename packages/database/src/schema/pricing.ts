@@ -16,7 +16,7 @@ export const pricingCalculations = pgTable("pricing_calculations", {
   laborCost: decimal("labor_cost", { precision: 10, scale: 2 }).notNull(),
   fixedCostShare: decimal("fixed_cost_share", { precision: 10, scale: 2 }).notNull(),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
-  marginPercent: decimal("margin_percent", { precision: 5, scale: 2 }).notNull(),
+  marginPercent: decimal("margin_percent", { precision: 6, scale: 2 }).notNull(),
   suggestedPrice: decimal("suggested_price", { precision: 10, scale: 2 }).notNull(),
   // Taxas percentuais (iFood, cartão...) sobre o preço de venda.
   feesPercent: decimal("fees_percent", { precision: 5, scale: 2 }).notNull().default("0"),
@@ -29,6 +29,14 @@ export const pricingCalculations = pgTable("pricing_calculations", {
     .notNull()
     .default("0"),
   channelName: varchar("channel_name", { length: 60 }),
+  sourceSnapshot: jsonb("source_snapshot").$type<{
+    confirmed?: { packaging: boolean; labor: boolean; fixed: boolean; fees: boolean };
+    ingredientSource: "manual" | "product" | "recipe";
+    recipeId?: string;
+    packaging: Array<{ id: string; unitCost: number }>;
+    monthlyProduction?: number;
+    monthlyFixed?: number;
+  }>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

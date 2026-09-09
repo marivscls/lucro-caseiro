@@ -89,7 +89,7 @@ export function GettingStartedOverlay({
     Math.round(frameWidth * (shortScreen ? 0.44 : 0.5)),
     shortScreen ? 188 : 216,
   );
-  const titleSize = 20;
+  const titleSize = 18;
   const heroMinHeight = heroWidth / (heroAspect ?? 1);
   const ctaGap = width < 360 ? spacing.sm : spacing.md;
   const ctaPaddingHorizontal = width < 360 ? 0 : spacing.md;
@@ -148,7 +148,7 @@ export function GettingStartedOverlay({
             style={{
               flex: 1,
               fontFamily: fonts.bold,
-              fontSize: 16,
+              fontSize: 14,
               lineHeight: 22,
               letterSpacing: 0.8,
               color: colors.wine,
@@ -175,7 +175,7 @@ export function GettingStartedOverlay({
               maxFontSizeMultiplier={1.3}
               style={{
                 fontFamily: fonts.semiBold,
-                fontSize: 17,
+                fontSize: 16,
                 lineHeight: 22,
                 color: colors.wine,
               }}
@@ -295,7 +295,7 @@ export function GettingStartedOverlay({
             alignSelf: "center",
             maxWidth: 320,
             fontFamily: fonts.regular,
-            fontSize: 16,
+            fontSize: 14,
             lineHeight: 22,
             color: colors.muted,
             textAlign: "center",
@@ -334,7 +334,7 @@ export function GettingStartedOverlay({
             style={{
               flex: 1,
               fontFamily: fonts.regular,
-              fontSize: 16,
+              fontSize: 14,
               lineHeight: 22,
               color: colors.ink,
             }}
@@ -404,7 +404,7 @@ export function GettingStartedOverlay({
                     maxFontSizeMultiplier={1.4}
                     style={{
                       fontFamily: fonts.extraBold,
-                      fontSize: 16,
+                      fontSize: 14,
                       lineHeight: 22,
                       color: colors.onWine,
                     }}

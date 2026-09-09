@@ -1,5 +1,6 @@
 import { formatCurrency } from "../shared/utils/format";
 import {
+  CenteredTextInput,
   Button,
   EmptyState,
   fonts,
@@ -12,14 +13,7 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  TextInput,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PackagingCard } from "../features/packaging/components/packaging-card";
@@ -73,6 +67,7 @@ function PackagingSummary({
   const panelWidth = Math.min(720, Math.max(280, viewportWidth - gutter * 2));
   const panelHeight = packagingHeroPanelHeight(viewportWidth);
   const illustrationWidth = packagingHeroIllustrationWidth(panelWidth);
+  const wrapSummaryTitle = !isDesktop && panelWidth < 560;
   const illustrationHeight = Math.min(
     panelHeight,
     Math.round(illustrationWidth * (900 / 1024)),
@@ -102,12 +97,18 @@ function PackagingSummary({
       >
         <View style={{ gap: spacing.xs }}>
           <Typography
+            testID="packaging-summary-title"
             variant="label"
             color={palette.softRose}
-            numberOfLines={1}
-            style={{ fontFamily: fonts.bold, letterSpacing: 0.8 }}
+            accessibilityLabel="Estoque de embalagens"
+            numberOfLines={wrapSummaryTitle ? 2 : 1}
+            style={{
+              fontFamily: fonts.bold,
+              letterSpacing: wrapSummaryTitle ? 0.6 : 0.8,
+              lineHeight: wrapSummaryTitle ? 16 : 18,
+            }}
           >
-            ESTOQUE DE EMBALAGENS
+            {wrapSummaryTitle ? "ESTOQUE DE\nEMBALAGENS" : "ESTOQUE DE EMBALAGENS"}
           </Typography>
           <View
             style={{
@@ -128,15 +129,11 @@ function PackagingSummary({
           }}
         >
           <Typography
+            variant="h1"
             color={palette.onWine}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
-            style={{
-              fontFamily: fonts.extraBold,
-              fontSize: compact ? 32 : 40,
-              lineHeight: compact ? 38 : 46,
-            }}
           >
             {totalCount}
           </Typography>
@@ -189,9 +186,9 @@ function PackagingSummary({
             minHeight: 28,
           }}
         >
-          <AppIcon name="alert-circle-outline" size={14} color={palette.ink} />
+          <AppIcon name="alert-circle-outline" size={14} color={palette.onLime} />
           <Typography
-            color={palette.ink}
+            color={palette.onLime}
             style={{ fontFamily: fonts.bold, fontSize: 13, lineHeight: 16 }}
           >
             {toRestock} para repor
@@ -249,7 +246,7 @@ function CategoryChip({
     >
       <Typography
         variant="bodyBold"
-        color={selected ? palette.onWine : palette.ink}
+        color={selected ? palette.onRose : palette.ink}
         style={{ fontFamily: selected ? fonts.bold : fonts.semiBold, fontSize: 14 }}
       >
         {label}
@@ -378,7 +375,7 @@ function PackagingScreenContent() {
             }}
           >
             <AppIcon name="search-outline" size={20} color={palette.muted} />
-            <TextInput
+            <CenteredTextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Buscar embalagem..."
@@ -519,13 +516,26 @@ function PackagingScreenContent() {
     }
     if (items.length === 0) {
       return (
-        <EmptyState
-          title="Nenhuma embalagem ainda"
-          description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos"
-          action={
-            <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
-          }
-        />
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            ...contentStyle,
+            flexGrow: 1,
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.lg,
+            gap: spacing.md,
+          }}
+        >
+          <PackagingSummary totalCount={0} invested={0} toRestock={0} />
+          <EmptyState
+            title="Nenhuma embalagem ainda"
+            description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos"
+            action={
+              <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
+            }
+          />
+        </ScrollView>
       );
     }
 

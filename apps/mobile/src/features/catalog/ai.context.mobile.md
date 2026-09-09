@@ -88,6 +88,8 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG. No Catálogo, a arte também aparece no celular, abaixo do texto e sem sobreposição.
+
 - 2026-08-31: o sheet Mais opções reserva a área segura de baixo
   (`insets.bottom`) para “Desativar catálogo” não colar na barra do sistema.
 

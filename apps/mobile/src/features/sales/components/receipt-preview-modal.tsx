@@ -65,7 +65,7 @@ export function ReceiptPreviewModal({
           <View>
             <View
               style={{
-                backgroundColor: "#ffffff",
+                backgroundColor: theme.colors.surfaceElevated,
                 borderRadius: radii.lg,
                 padding: spacing.lg,
                 gap: spacing.sm,
@@ -77,14 +77,14 @@ export function ReceiptPreviewModal({
                   flexDirection: "row",
                   justifyContent: "space-between",
                   borderBottomWidth: 2,
-                  borderBottomColor: "#8c5a45",
+                  borderBottomColor: theme.colors.border,
                   paddingBottom: spacing.sm,
                 }}
               >
-                <Typography variant="bodyBold" color="#6e4534">
+                <Typography variant="bodyBold" color={theme.colors.text}>
                   {businessName}
                 </Typography>
-                <Typography variant="caption" color="#9b8275">
+                <Typography variant="caption" color={theme.colors.textSecondary}>
                   Nº {receiptNumber(sale.id)}
                 </Typography>
               </View>
@@ -93,27 +93,31 @@ export function ReceiptPreviewModal({
                   key={item.id}
                   style={{ flexDirection: "row", justifyContent: "space-between" }}
                 >
-                  <Typography variant="caption" color="#3d2b22" numberOfLines={1}>
+                  <Typography
+                    variant="caption"
+                    color={theme.colors.text}
+                    numberOfLines={1}
+                  >
                     {displayProductName(item.productName)}
                   </Typography>
-                  <Typography variant="caption" color="#3d2b22">
+                  <Typography variant="caption" color={theme.colors.text}>
                     {formatCurrency(item.subtotal)}
                   </Typography>
                 </View>
               ))}
               <View
                 style={{
-                  backgroundColor: "#f7efe9",
+                  backgroundColor: theme.colors.surface,
                   borderRadius: radii.md,
                   padding: spacing.sm,
                   flexDirection: "row",
                   justifyContent: "space-between",
                 }}
               >
-                <Typography variant="caption" color="#7d6354">
+                <Typography variant="caption" color={theme.colors.textSecondary}>
                   Total
                 </Typography>
-                <Typography variant="bodyBold" color="#2e7d32">
+                <Typography variant="bodyBold" color={theme.colors.text}>
                   {formatCurrency(sale.total)}
                 </Typography>
               </View>

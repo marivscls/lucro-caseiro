@@ -132,6 +132,9 @@ import { VerticalsUseCases } from "./features/verticals/verticals.usecases";
 import { createResendEmailSender } from "./features/email/resend-email";
 import { buildProfessionalTrialEmail } from "./features/email/professional-trial-email";
 import { createSubscriptionEmailNotifier } from "./features/email/subscription-lifecycle-email";
+import { WelcomeEmailRepoPg } from "./features/email/welcome-email.repo.pg";
+import { WelcomeEmailUseCases } from "./features/email/welcome-email.usecases";
+import { startWelcomeEmailWorker } from "./features/email/welcome-email.worker";
 
 // Database
 const db = createClient(config.databaseUrl);
@@ -541,6 +544,26 @@ app.use(errorHandler);
 
 app.listen(config.port, () => {
   console.warn(`Lucro Caseiro API running on port ${config.port}`);
+  if (config.welcomeEmailEnabled) {
+    if (config.resendApiKey && config.emailReplyTo) {
+      startWelcomeEmailWorker(
+        new WelcomeEmailUseCases(
+          new WelcomeEmailRepoPg(db),
+          ({ from, message }) =>
+            createResendEmailSender(config.resendApiKey, from, (input, init) =>
+              fetch(input, { ...init, signal: AbortSignal.timeout(20_000) }),
+            )(message),
+          config.emailFrom,
+          config.emailReplyTo,
+        ),
+      );
+      console.warn("[welcome-email] signup automation enabled");
+    } else {
+      console.error(
+        "[welcome-email] disabled: RESEND_API_KEY and EMAIL_REPLY_TO are required",
+      );
+    }
+  }
 });
 
 export { app };

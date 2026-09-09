@@ -1,5 +1,6 @@
 import type {
   Pricing,
+  PricingSourceSnapshot,
   PricingPreferences,
   UpsertPricingPreferences,
 } from "@lucro-caseiro/contracts";
@@ -17,6 +18,7 @@ import {
 import type { FindAllOpts, IPricingRepo } from "./pricing.types";
 
 interface CalculateInput {
+  sourceSnapshot?: PricingSourceSnapshot;
   productId?: string;
   ingredientCost: number;
   packagingCost: number;
@@ -60,6 +62,7 @@ export class PricingUseCases {
         directCost,
         input.marginPercent,
         costingPercent,
+        input.feesPercent ?? 0,
       );
       fixedCostShare = costing.overheadAmount;
       totalCost = costing.totalCost;
@@ -81,6 +84,7 @@ export class PricingUseCases {
     );
 
     return this.repo.create(userId, {
+      sourceSnapshot: input.sourceSnapshot,
       productId: input.productId,
       ingredientCost: input.ingredientCost,
       packagingCost: input.packagingCost,

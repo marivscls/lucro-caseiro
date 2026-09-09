@@ -1,6 +1,10 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../shared/hooks/use-form-validation";
+import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import type { Client } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Button,
   Chip,
   EmptyState,
@@ -22,7 +26,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  TextInput,
   View,
   type TextInputProps,
   type ViewStyle,
@@ -131,7 +134,7 @@ function SearchBox({
       }}
     >
       <AppIcon name="search-outline" size={24} color={pal.muted} />
-      <TextInput
+      <CenteredTextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -836,72 +839,90 @@ function ClientsListScreen({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
-            paddingTop: spacing.md,
+            paddingTop: isDesktop ? 0 : spacing.md,
             paddingBottom: listBottomPadding,
             gap: spacing.xl,
             ...pageGutter(isDesktop, width < 390 ? spacing.md : spacing.xl),
             ...desktopStretch(isDesktop, desktopWidths.data),
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: isDesktop ? spacing.md : spacing.sm,
-            }}
-          >
-            {!isDesktop ? (
-              <Pressable
-                onPress={onBack}
-                accessibilityRole="button"
-                accessibilityLabel="Voltar"
-                hitSlop={10}
+          <View style={{ gap: isDesktop ? 0 : spacing.xl }}>
+            {isDesktop ? (
+              <ScreenHeader
+                title="Clientes"
+                subtitle={clientsSubtitle}
+                hideBack
+                right={
+                  <FAB
+                    icon="add"
+                    header
+                    accessibilityLabel="Novo cliente"
+                    onPress={onCreatePress}
+                  />
+                }
+              />
+            ) : (
+              <View
                 style={{
-                  width: 44,
-                  height: 44,
-                  alignItems: "flex-start",
-                  justifyContent: "center",
-                  flexShrink: 0,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: isDesktop ? spacing.md : spacing.sm,
                 }}
               >
-                <AppIcon name="chevron-back" size={28} color={pal.wine} />
-              </Pressable>
-            ) : null}
-            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-              <Typography variant="screenTitle" color={pal.wine} numberOfLines={1}>
-                Clientes
-              </Typography>
-              <Typography variant="body" color={pal.muted} numberOfLines={1}>
-                {clientsSubtitle}
-              </Typography>
-            </View>
+                {!isDesktop ? (
+                  <Pressable
+                    onPress={onBack}
+                    accessibilityRole="button"
+                    accessibilityLabel="Voltar"
+                    hitSlop={10}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      alignItems: "flex-start",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <AppIcon name="chevron-back" size={28} color={pal.wine} />
+                  </Pressable>
+                ) : null}
+                <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                  <Typography variant="screenTitle" color={pal.wine} numberOfLines={1}>
+                    Clientes
+                  </Typography>
+                  <Typography variant="body" color={pal.muted} numberOfLines={1}>
+                    {clientsSubtitle}
+                  </Typography>
+                </View>
 
-            <FAB
-              icon="add"
-              accessibilityLabel="Novo cliente"
-              onPress={onCreatePress}
-              style={{
-                width: 52,
-                height: 52,
-                minWidth: 52,
-                backgroundColor: pal.rose,
-              }}
+                <FAB
+                  icon="add"
+                  accessibilityLabel="Novo cliente"
+                  onPress={onCreatePress}
+                  style={{
+                    width: 52,
+                    height: 52,
+                    minWidth: 52,
+                    backgroundColor: pal.rose,
+                  }}
+                />
+              </View>
+            )}
+
+            <ScreenGuidance
+              area="clients"
+              onStart={onCreatePress}
+              hasRecords={totalClients > 0}
+              loading={clientsLoading || baseClientsQuery.isError}
+              suspended={filterModalOpen || sortModalOpen}
             />
           </View>
-
-          <ScreenGuidance
-            area="clients"
-            onStart={onCreatePress}
-            hasRecords={totalClients > 0}
-            loading={clientsLoading || baseClientsQuery.isError}
-            suspended={filterModalOpen || sortModalOpen}
-          />
 
           <View
             style={{
               alignSelf: "flex-start",
-              maxWidth: isDesktop ? 760 : undefined,
+              maxWidth: isDesktop ? desktopWidths.data : undefined,
               width: "100%",
             }}
           >
@@ -916,7 +937,7 @@ function ClientsListScreen({
           <View
             style={{
               alignSelf: "flex-start",
-              maxWidth: isDesktop ? 760 : undefined,
+              maxWidth: isDesktop ? 480 : undefined,
               width: "100%",
             }}
           >
@@ -931,7 +952,7 @@ function ClientsListScreen({
             />
           </View>
 
-          <FilterChipRow style={isDesktop ? { maxWidth: 760 } : undefined}>
+          <FilterChipRow style={isDesktop ? { maxWidth: desktopWidths.data } : undefined}>
             {FILTER_OPTIONS.map((option) => (
               <Chip
                 key={option.key}
@@ -1068,7 +1089,7 @@ function NewClientField({
         >
           {label}
         </Typography>
-        <TextInput
+        <CenteredTextInput
           placeholderTextColor={pal.muted}
           style={[
             {
@@ -1077,7 +1098,7 @@ function NewClientField({
               lineHeight: 22,
               padding: 0,
               minHeight: tall ? 50 : 24,
-              textAlignVertical: tall ? "top" : "center",
+              textAlignVertical: "center",
             },
             style,
           ]}
@@ -1143,7 +1164,15 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
     onClose();
   }, [onClose, reset]);
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome do cliente.",
+    },
+    visible,
+  );
+
   async function handleCreate() {
+    if (!formValidation.validate()) return;
     if (submittingRef.current || createClient.isPending) return;
     submittingRef.current = true;
 
@@ -1304,14 +1333,16 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
             </View>
           </View>
 
-          <NewClientField
-            icon="person-outline"
-            label="Nome do cliente *"
-            placeholder="Ex: Maria Silva, João Pereira..."
-            value={name}
-            onChangeText={setName}
-            autoFocus
-          />
+          <ValidationField {...formValidation.field("name")}>
+            <NewClientField
+              icon="person-outline"
+              label="Nome do cliente *"
+              placeholder="Ex: Maria Silva, João Pereira..."
+              value={name}
+              onChangeText={setName}
+              autoFocus
+            />
+          </ValidationField>
           <NewClientField
             icon="call-outline"
             label="Telefone (opcional)"

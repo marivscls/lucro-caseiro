@@ -4,6 +4,7 @@ import {
   Keyboard,
   ScrollView,
   TextInput,
+  type View,
   type KeyboardEvent,
   type MeasureInWindowOnSuccessCallback,
   type NativeScrollEvent,
@@ -16,12 +17,8 @@ import {
   useScrollFocusedInputIntoView,
 } from "./keyboard-aware-scroll-view";
 
-type FocusedInput = NonNullable<
-  ReturnType<typeof TextInput.State.currentlyFocusedInput>
->;
-type NativeScrollRef = NonNullable<
-  ReturnType<ScrollView["getNativeScrollRef"]>
->;
+type FocusedInput = NonNullable<ReturnType<typeof TextInput.State.currentlyFocusedInput>>;
+type NativeScrollRef = NonNullable<ReturnType<ScrollView["getNativeScrollRef"]>>;
 
 function measuredInput(top: number, height: number): FocusedInput {
   return {
@@ -38,6 +35,21 @@ function measuredScrollView(top: number, height: number): NativeScrollRef {
 }
 
 describe("scrollInputIntoVisibleArea", () => {
+  it("reveals a required picker on native even when no keyboard input is focused", () => {
+    const scrollTo = vi.fn();
+    const ref = {
+      current: { getNativeScrollRef: () => measuredScrollView(100, 400), scrollTo },
+    } as unknown as React.RefObject<ScrollView | null>;
+    const target = measuredInput(620, 80) as unknown as View;
+    const { result } = renderHook(() => useScrollFocusedInputIntoView(ref, 24));
+    act(() => {
+      result.current.trackScroll({
+        nativeEvent: { contentOffset: { y: 200 } },
+      } as NativeSyntheticEvent<NativeScrollEvent>);
+      result.current.scrollValidationField(target);
+    });
+    expect(scrollTo).toHaveBeenCalledWith({ y: 696, animated: true });
+  });
   afterEach(() => {
     vi.restoreAllMocks();
   });

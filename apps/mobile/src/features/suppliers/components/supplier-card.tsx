@@ -1,14 +1,14 @@
 import type { SupplierOverviewItem } from "@lucro-caseiro/contracts";
 import { Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
-import { showAlert } from "../../../shared/components/alert-store";
 import { formatCurrency } from "../../../shared/utils/format";
 import { SUPPLIER_CATEGORY_LABELS } from "../domain";
 import { SupplierAvatar } from "./supplier-avatar";
+import { SupplierOptionsModal } from "./supplier-options-modal";
 
 interface SupplierCardProps {
   supplier: SupplierOverviewItem;
@@ -77,6 +77,7 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
   const { supplier } = props;
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
+  const [menuOpen, setMenuOpen] = useState(false);
   const compactFooter = width <= 430;
   const canWhatsApp = supplier.hasWhatsApp && !!supplier.phone;
   let footerAction: React.ReactNode = null;
@@ -120,167 +121,191 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
     );
   }
 
-  function openMenu() {
-    showAlert({
-      title: supplier.name,
-      message: "O que você quer fazer?",
-      buttons: [
-        { text: "Ver detalhes", onPress: props.onPress },
-        { text: "Editar fornecedor", onPress: props.onEdit },
-        ...(canWhatsApp
-          ? [{ text: "Falar no WhatsApp", onPress: props.onWhatsApp }]
-          : []),
-        {
-          text: supplier.needsFollowUp ? "Remover pendência" : "Marcar para falar",
-          onPress: props.onToggleFollowUp,
-        },
-        {
-          text: supplier.restockSoon ? "Remover reposição" : "Marcar para repor",
-          onPress: props.onToggleRestock,
-        },
-        { text: "Arquivar fornecedor", onPress: props.onArchive },
-        {
-          text: "Excluir fornecedor",
-          style: "destructive" as const,
-          onPress: props.onDelete,
-        },
-        { text: "Cancelar", style: "cancel" as const },
-      ],
-    });
-  }
-
   return (
-    <View
-      style={[
-        {
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          backgroundColor: theme.colors.surfaceElevated,
-          overflow: "hidden",
-        },
-        theme.shadows.sm,
-      ]}
-    >
-      <Pressable
-        onPress={props.onPress}
-        accessibilityRole="button"
-        accessibilityLabel={`Ver fornecedor ${supplier.name}`}
-        style={({ pressed }) => ({ padding: spacing.lg, opacity: pressed ? 0.82 : 1 })}
+    <>
+      <View
+        style={[
+          {
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surfaceElevated,
+            overflow: "hidden",
+          },
+        ]}
       >
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
-          <SupplierAvatar supplier={supplier} size={64} />
-          <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-            <Typography variant="h3" numberOfLines={1}>
-              {supplier.name}
-            </Typography>
+        <Pressable
+          onPress={props.onPress}
+          accessibilityRole="button"
+          accessibilityLabel={`Ver fornecedor ${supplier.name}`}
+          style={({ pressed }) => ({ padding: spacing.lg, opacity: pressed ? 0.82 : 1 })}
+        >
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}
+          >
+            <SupplierAvatar supplier={supplier} size={64} />
+            <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+              <Typography variant="h3" numberOfLines={1}>
+                {supplier.name}
+              </Typography>
+              <Typography
+                variant="caption"
+                color={
+                  theme.mode === "dark"
+                    ? {
+                        supplies: theme.colors.primaryStrong,
+                        packaging: theme.colors.lavender,
+                        food: theme.colors.success,
+                        other: theme.colors.premium,
+                      }[supplier.category]
+                    : CATEGORY_COLORS[supplier.category]
+                }
+                style={{ fontFamily: fonts.bold }}
+              >
+                {SUPPLIER_CATEGORY_LABELS[supplier.category].toLocaleUpperCase("pt-BR")}
+              </Typography>
+              <Typography
+                variant="body"
+                color={theme.colors.textSecondary}
+                numberOfLines={2}
+              >
+                {supplier.purchaseDescription || "Sem descrição do que é comprado"}
+              </Typography>
+            </View>
+            <Pressable
+              onPress={(event) => {
+                event.stopPropagation();
+                setMenuOpen(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Ações de ${supplier.name}`}
+              accessibilityState={{ expanded: menuOpen }}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                marginTop: -8,
+                marginRight: -8,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.55 : 1,
+              })}
+            >
+              <AppIcon name="ellipsis-vertical" size={22} color={theme.colors.text} />
+            </Pressable>
+          </View>
+
+          {supplier.isPreferred ||
+          supplier.hasOpenOrder ||
+          supplier.needsFollowUp ||
+          supplier.restockSoon ? (
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: spacing.sm,
+                marginLeft: 64 + spacing.md,
+                marginTop: spacing.sm,
+              }}
+            >
+              {supplier.isPreferred ? (
+                <StatusChip label="★ Preferido" tone="lime" />
+              ) : null}
+              {supplier.hasOpenOrder ? (
+                <StatusChip label="Pedido aberto" tone="lime" />
+              ) : null}
+              {supplier.needsFollowUp ? (
+                <StatusChip label="Falar com fornecedor" tone="rose" />
+              ) : null}
+              {supplier.restockSoon ? (
+                <StatusChip label="Repor em breve" tone="neutral" />
+              ) : null}
+            </View>
+          ) : null}
+        </Pressable>
+
+        <View
+          style={{
+            minHeight: 56,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.sm,
+            flexDirection: compactFooter ? "column" : "row",
+            alignItems: compactFooter ? "stretch" : "center",
+            gap: spacing.sm,
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+            }}
+          >
+            <AppIcon
+              name="calendar-outline"
+              size={18}
+              color={theme.colors.textSecondary}
+            />
             <Typography
               variant="caption"
-              color={CATEGORY_COLORS[supplier.category]}
-              style={{ fontFamily: fonts.bold }}
-            >
-              {SUPPLIER_CATEGORY_LABELS[supplier.category].toLocaleUpperCase("pt-BR")}
-            </Typography>
-            <Typography
-              variant="body"
               color={theme.colors.textSecondary}
-              numberOfLines={2}
+              style={{ flex: 1 }}
+              numberOfLines={1}
             >
-              {supplier.purchaseDescription || "Sem descrição do que é comprado"}
+              {supplier.lastPurchase
+                ? `Última compra: ${formatShortDate(supplier.lastPurchase.purchasedAt)}`
+                : "Sem compras recentes"}
             </Typography>
           </View>
-          <Pressable
-            onPress={(event) => {
-              event.stopPropagation();
-              openMenu();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={`Ações de ${supplier.name}`}
-            hitSlop={8}
-            style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              marginTop: -8,
-              marginRight: -8,
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: pressed ? 0.55 : 1,
-            })}
-          >
-            <AppIcon name="ellipsis-vertical" size={22} color={theme.colors.text} />
-          </Pressable>
-        </View>
-
-        {supplier.isPreferred ||
-        supplier.hasOpenOrder ||
-        supplier.needsFollowUp ||
-        supplier.restockSoon ? (
           <View
             style={{
               flexDirection: "row",
-              flexWrap: "wrap",
-              gap: spacing.sm,
-              marginLeft: 64 + spacing.md,
-              marginTop: spacing.sm,
+              alignItems: "center",
+              justifyContent: compactFooter ? "space-between" : "flex-end",
+              gap: spacing.md,
             }}
           >
-            {supplier.isPreferred ? <StatusChip label="★ Preferido" tone="lime" /> : null}
-            {supplier.hasOpenOrder ? (
-              <StatusChip label="Pedido aberto" tone="lime" />
+            {supplier.lastPurchase ? (
+              <Typography variant="money" color={theme.colors.text}>
+                {formatCurrency(supplier.lastPurchase.amount)}
+              </Typography>
             ) : null}
-            {supplier.needsFollowUp ? (
-              <StatusChip label="Falar com fornecedor" tone="rose" />
-            ) : null}
-            {supplier.restockSoon ? (
-              <StatusChip label="Repor em breve" tone="neutral" />
-            ) : null}
+            {footerAction}
           </View>
-        ) : null}
-      </Pressable>
-
-      <View
-        style={{
-          minHeight: 56,
-          borderTopWidth: 1,
-          borderTopColor: theme.colors.border,
-          paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.sm,
-          flexDirection: compactFooter ? "column" : "row",
-          alignItems: compactFooter ? "stretch" : "center",
-          gap: spacing.sm,
-        }}
-      >
-        <View
-          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm }}
-        >
-          <AppIcon name="calendar-outline" size={18} color={theme.colors.textSecondary} />
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={{ flex: 1 }}
-            numberOfLines={1}
-          >
-            {supplier.lastPurchase
-              ? `Última compra: ${formatShortDate(supplier.lastPurchase.purchasedAt)}`
-              : "Sem compras recentes"}
-          </Typography>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: compactFooter ? "space-between" : "flex-end",
-            gap: spacing.md,
-          }}
-        >
-          {supplier.lastPurchase ? (
-            <Typography variant="money" color={theme.colors.text}>
-              {formatCurrency(supplier.lastPurchase.amount)}
-            </Typography>
-          ) : null}
-          {footerAction}
         </View>
       </View>
-    </View>
+      <SupplierOptionsModal
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title={supplier.name}
+        options={[
+          { key: "detail", label: "Ver detalhes", onPress: props.onPress },
+          { key: "edit", label: "Editar fornecedor", onPress: props.onEdit },
+          ...(canWhatsApp
+            ? [{ key: "whatsapp", label: "Falar no WhatsApp", onPress: props.onWhatsApp }]
+            : []),
+          {
+            key: "followUp",
+            label: supplier.needsFollowUp ? "Remover pendência" : "Marcar para falar",
+            onPress: props.onToggleFollowUp,
+          },
+          {
+            key: "restock",
+            label: supplier.restockSoon ? "Remover reposição" : "Marcar para repor",
+            onPress: props.onToggleRestock,
+          },
+          { key: "archive", label: "Arquivar fornecedor", onPress: props.onArchive },
+          {
+            key: "delete",
+            label: "Excluir fornecedor",
+            destructive: true,
+            onPress: props.onDelete,
+          },
+        ]}
+      />
+    </>
   );
 }

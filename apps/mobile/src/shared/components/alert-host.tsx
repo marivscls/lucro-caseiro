@@ -151,7 +151,7 @@ export function AlertHost() {
                     style={{
                       color: "#FFF2EB",
                       textAlign: "center",
-                      fontSize: 20,
+                      fontSize: 18,
                       lineHeight: 24,
                     }}
                   >
@@ -188,7 +188,7 @@ export function AlertHost() {
                     overflow: "hidden",
                   }}
                 >
-                    {successFeatures.map((feature, index) => (
+                  {successFeatures.map((feature, index) => (
                     <View
                       key={feature.label}
                       style={{
@@ -241,7 +241,7 @@ export function AlertHost() {
                     variant="h2"
                     style={{
                       color: "#FFFFFF",
-                      fontSize: 17,
+                      fontSize: 14,
                       lineHeight: 22,
                     }}
                   >

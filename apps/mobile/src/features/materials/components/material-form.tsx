@@ -1,8 +1,17 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Material } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
+import {
+  CenteredTextInput,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+  fonts,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
@@ -242,13 +251,14 @@ function NotesField({
         borderColor: pal.border,
         backgroundColor: pal.fieldBg,
         flexDirection: "row",
+        alignItems: "center",
         padding: spacing.md,
         gap: spacing.md,
       }}
     >
       <AppIcon name="document-text-outline" size={22} color={theme.colors.primary} />
       <View style={{ flex: 1 }}>
-        <TextInput
+        <CenteredTextInput
           value={value}
           onChangeText={(t) => onChange(t.slice(0, MAX))}
           placeholder="Ex: Informações importantes para este cadastro..."
@@ -259,7 +269,7 @@ function NotesField({
             flex: 1,
             color: theme.colors.text,
             fontSize: 16,
-            textAlignVertical: "top",
+            textAlignVertical: "center",
             padding: 0,
             minHeight: 56,
           }}
@@ -344,7 +354,23 @@ export function MaterialForm({
     });
   }
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome do material.",
+      contentPerUnit:
+        !!contentUnit.trim() &&
+        !contentPerUnit.trim() &&
+        "Informe a quantidade do conteúdo.",
+      contentUnit:
+        !!contentPerUnit.trim() &&
+        !contentUnit.trim() &&
+        "Informe a unidade do conteúdo.",
+    },
+    visible,
+  );
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     if (!name.trim()) {
       alertValidation(
         `Dê um nome ao ${experienceCopy.materialNoun} (ex.: ${experienceCopy.materialExample}).`,
@@ -519,14 +545,16 @@ export function MaterialForm({
             </Typography>
             <View>
               <FieldLabel label={`Nome do ${experienceCopy.materialNoun}`} required />
-              <TextFieldCard
-                icon="pricetag-outline"
-                accessibilityLabel={`Nome do ${experienceCopy.materialNoun}`}
-                placeholder={`Ex: ${experienceCopy.materialExample}`}
-                value={name}
-                onChangeText={setName}
-                autoFocus
-              />
+              <ValidationField {...formValidation.field("name")}>
+                <TextFieldCard
+                  icon="pricetag-outline"
+                  accessibilityLabel={`Nome do ${experienceCopy.materialNoun}`}
+                  placeholder={`Ex: ${experienceCopy.materialExample}`}
+                  value={name}
+                  onChangeText={setName}
+                  autoFocus
+                />
+              </ValidationField>
             </View>
           </>
         )}
@@ -695,13 +723,15 @@ export function MaterialForm({
               >
                 Quantidade
               </Typography>
-              <TextFieldCard
-                icon="beaker-outline"
-                placeholder="Ex: 350"
-                value={contentPerUnit}
-                onChangeText={setContentPerUnit}
-                keyboardType="decimal-pad"
-              />
+              <ValidationField {...formValidation.field("contentPerUnit")}>
+                <TextFieldCard
+                  icon="beaker-outline"
+                  placeholder="Ex: 350"
+                  value={contentPerUnit}
+                  onChangeText={setContentPerUnit}
+                  keyboardType="decimal-pad"
+                />
+              </ValidationField>
             </View>
             <View style={{ flex: 1 }}>
               <Typography
@@ -711,7 +741,9 @@ export function MaterialForm({
               >
                 Unidade
               </Typography>
-              <ContentUnitField value={contentUnit} onChange={setContentUnit} />
+              <ValidationField {...formValidation.field("contentUnit")}>
+                <ContentUnitField value={contentUnit} onChange={setContentUnit} />
+              </ValidationField>
             </View>
           </View>
           <View

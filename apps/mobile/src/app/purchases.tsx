@@ -4,7 +4,6 @@ import {
   Button,
   EmptyState,
   Typography,
-  iconSizes,
   radii,
   spacing,
   useTheme,
@@ -156,7 +155,7 @@ export default function PurchasesScreen() {
 
   const pageFrame = {
     ...pageGutter(isDesktop),
-    ...desktopStretch(isDesktop, desktopWidths.wide),
+    ...desktopStretch(isDesktop, desktopWidths.data),
   };
 
   if (!isPremium) {
@@ -315,7 +314,7 @@ export default function PurchasesScreen() {
                 </Typography>
                 <View
                   accessibilityRole="text"
-                  accessibilityLabel="Ordenação: mais recentes"
+                  accessibilityLabel="Pendentes primeiro, depois mais recentes"
                   style={{
                     minHeight: 44,
                     flexShrink: 0,
@@ -327,9 +326,8 @@ export default function PurchasesScreen() {
                   }}
                 >
                   <Typography variant="captionBold" color={pal.muted} numberOfLines={1}>
-                    Mais recentes
+                    Pendentes primeiro
                   </Typography>
-                  <AppIcon name="chevron-down" size={iconSizes.xs} color={pal.muted} />
                 </View>
               </View>
 
