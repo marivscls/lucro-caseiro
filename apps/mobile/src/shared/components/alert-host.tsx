@@ -304,11 +304,27 @@ export function AlertHost() {
             }}
           >
             {options.variant === "sale-success" ? (
-              <SaleSuccessMark key={options.message} />
+              <View style={{ alignItems: "center" }}>
+                <SaleSuccessMark key={options.message} />
+              </View>
             ) : null}
-            <Typography variant="h3">{options.title}</Typography>
+            <Typography
+              variant="h3"
+              style={
+                options.variant === "sale-success" ? { textAlign: "center" } : undefined
+              }
+            >
+              {options.title}
+            </Typography>
             {options.message ? (
-              <Typography variant="body">{options.message}</Typography>
+              <Typography
+                variant="body"
+                style={
+                  options.variant === "sale-success" ? { textAlign: "center" } : undefined
+                }
+              >
+                {options.message}
+              </Typography>
             ) : null}
 
             <View
