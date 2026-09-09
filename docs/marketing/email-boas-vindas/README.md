@@ -1,12 +1,12 @@
 # Email de boas-vindas — Lucro Caseiro
 
-Modelos criados em 09/09/2026. A segunda opção foi aprovada e incorporada à automação de novos cadastros. A implementação está validada localmente; a ativação em produção depende da publicação da API e de `WELCOME_EMAIL_ENABLED=true`. Nenhum email foi enviado durante os testes. Veja [AUTOMATION.md](./AUTOMATION.md).
+Modelos criados em 09/09/2026. A segunda opção foi aprovada, enviada ao Gamaliel com autorização e incorporada à automação, agora ativa em produção para novos cadastros confirmados. Nenhum email foi enviado durante os testes. Veja [AUTOMATION.md](./AUTOMATION.md) para o registro de envio, implantação e pendência de publicação do código no GitHub.
 
 - **Assunto:** Boas-vindas, Gamaliel! Vamos cuidar do seu preço?
 - **Prévia:** Um próximo passo para a Oliveira Cachaças & Licores: organizar os custos e definir seu preço de venda.
 - **Remetente:** `Lucro Caseiro <notificacoes@lucrocaseiro.com.br>` — padrão confirmado em `apps/api/src/config.ts` e nos registros da integração Resend.
 - **Assinatura:** Lucro Caseiro.
-- **Reply-To:** usar a caixa monitorada de `EMAIL_REPLY_TO`. O último registro operacional disponível, de 15/08/2026, informa `contato@orionseven.com.br`; o valor atual em produção não foi consultado nesta criação.
+- **Reply-To:** `contato@orionseven.com.br`, relido na configuração de produção em 09/09/2026 e utilizado no envio autorizado.
 - **CTA:** `lucrocaseiro://`, conforme o padrão dos emails existentes; orienta abrir o app manualmente se o cliente de email não abrir o link.
 
 ## Arquivos

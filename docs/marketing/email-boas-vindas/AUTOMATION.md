@@ -1,12 +1,19 @@
 # Boas-vindas e ajuda no app
 
-Implementação de 09/09/2026. **Ainda não ativada em produção.**
+Implementação de 09/09/2026. **Ativa em produção**, com `WELCOME_EMAIL_ENABLED=true`. A API iniciou o worker, e o endpoint de saúde respondeu `ok` após a publicação.
+
+- Projeto Railway: `heroic-wholeness`, serviço `@lucro-caseiro/api`, ambiente `production`.
+- Implantação: `41ceac8b-45cc-4369-b42b-d9b5ada294c4` (SUCCESS).
+- Marco dos novos cadastros: 09/09/2026, 14:58:17 em Brasília (17:58:17 UTC).
+- Código validado: commit `6c5cc223`, branch local `codex/welcome-email-production`. O envio dessa branch ao GitHub público aguarda autorização após bloqueio da revisão automática. A implantação atual foi feita diretamente no Railway; incorporar a branch antes de futuras publicações de código antigo para preservar a automação.
 
 ## Comportamento
 
 A API verifica novos cadastros a cada minuto. Após pelo menos cinco minutos do cadastro e a confirmação do email, prepara o modelo aprovado “Passo a passo”, personalizado com primeiro nome, negócio e orientações para produtos ou serviços. O botão principal usa `lucrocaseiro://`; o site aparece no rodapé.
 
-O remetente é Lucro Caseiro e as respostas vão para a caixa configurada em `EMAIL_REPLY_TO`. Contas antigas, desativadas, excluídas, bloqueadas ou de outras marcas não entram na seleção inicial. A ativação grava um marco permanente no banco: reiniciar a API não reenviará boas-vindas aos usuários antigos. Não há envio retroativo para Gamaliel.
+O remetente é Lucro Caseiro e as respostas vão para a caixa configurada em `EMAIL_REPLY_TO`. Contas antigas, desativadas, excluídas, bloqueadas ou de outras marcas não entram na seleção inicial. A ativação grava um marco permanente no banco: reiniciar a API não reenviará boas-vindas aos usuários antigos.
+
+Exceção autorizada expressamente em 09/09/2026: o segundo modelo personalizado foi enviado ao Gamaliel às 14:58 de Brasília. O Resend aceitou a mensagem `2bfee72f-d130-4d97-9006-066f383ef413`, registrada como `sent` na fila após uma tentativa. A leitura posterior confirmou um único registro. A chave de envio não permitiu consultar os eventos de entrega; não foi comprovada chegada à caixa de entrada nem abertura.
 
 Uma fila privada no schema `app_email` mantém um registro por usuário. O conteúdo e a chave de idempotência permanecem iguais nas tentativas. Há exclusão entre processos, nova verificação de conta/email antes de enviar, recuo entre tentativas e interrupção para revisão após oito falhas ou 23 horas desde a primeira tentativa. `sent` significa aceito pelo provedor, não entrega comprovada na caixa de entrada.
 
@@ -42,3 +49,4 @@ O recurso estará disponível aos usuários após publicar a nova versão do app
 - Migração e queries executadas em PostgreSQL local em memória: marco persistente, seleção, duplicidade, exclusão entre workers, espera entre tentativas, token obsoleto, revisão, cancelamento e isolamento dos papéis de cliente.
 - TypeScript da API e mobile; ESLint dos arquivos alterados; validação dos contextos das features.
 - Prévia do componente real no navegador, com pergunta digitada, resposta e encaminhamento. Não substitui validação de deep link no dispositivo ou entrega real de email.
+- Publicação da API: 73 arquivos e 789 testes passaram no checkout isolado; TypeScript passou. A migration foi aplicada em produção. O log confirmou `signup automation enabled`, a configuração ativa foi relida e a API respondeu `ok`; requisições normais continuaram atendidas após a troca de versão.
