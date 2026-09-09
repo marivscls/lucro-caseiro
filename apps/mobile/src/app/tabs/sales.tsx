@@ -56,12 +56,7 @@ import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
-import {
-  desktopModalSurface,
-  desktopStretch,
-  desktopWidths,
-  pageGutter,
-} from "../../shared/layout/desktop-density";
+import { desktopModalSurface, pageGutter } from "../../shared/layout/desktop-density";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { alertError } from "../../shared/utils/alerts";
 import { brandScreenPalette } from "../../shared/brand-palette";
@@ -204,18 +199,18 @@ function SearchBar({
       <View
         style={{
           flex: 1,
-          minHeight: 56,
+          minHeight: 52,
           borderRadius: radii.lg,
-          paddingHorizontal: spacing.lg,
+          paddingHorizontal: spacing.md,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.md,
           ...getSurfaceStyle(theme),
         }}
       >
-        <AppIcon name="search-outline" size={24} color={theme.colors.textSecondary} />
+        <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
         <CenteredTextInput
-          placeholder="Buscar por produto ou cliente"
+          placeholder="Produto ou cliente"
           placeholderTextColor={theme.colors.textSecondary}
           value={value}
           onChangeText={onChangeText}
@@ -237,16 +232,18 @@ function SearchBar({
         accessibilityRole="button"
         accessibilityLabel="Abrir filtros"
         style={({ pressed }) => ({
-          width: 56,
-          height: 56,
+          width: 52,
+          height: 52,
           borderRadius: radii.lg,
-          backgroundColor: palette.wineFill,
+          backgroundColor: theme.colors.surface,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
           alignItems: "center",
           justifyContent: "center",
           opacity: pressed ? 0.84 : 1,
         })}
       >
-        <AppIcon name="options-outline" size={26} color={palette.onWine} />
+        <AppIcon name="options-outline" size={22} color={palette.wine} />
       </Pressable>
     </View>
   );
@@ -265,15 +262,12 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
         marginBottom: spacing.md,
       }}
     >
-      <Typography variant="h3" color={palette.wine}>
+      <Typography variant="bodyBold" color={palette.ink}>
         {title}
       </Typography>
       <View
         style={{
-          minHeight: 34,
-          paddingHorizontal: spacing.md,
-          borderRadius: radii.full,
-          backgroundColor: theme.colors.surface,
+          minHeight: 28,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -292,17 +286,15 @@ function AvatarCircle({ name }: Readonly<{ name: string }>) {
   return (
     <View
       style={{
-        width: 50,
-        height: 50,
+        width: 40,
+        height: 40,
         borderRadius: radii.full,
-        backgroundColor: palette.rose,
-        borderWidth: 2,
-        borderColor: palette.onWine,
+        backgroundColor: theme.colors.surface,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Typography variant="h3" color={palette.onRose}>
+      <Typography variant="bodyBold" color={palette.muted}>
         {(name || "M").charAt(0).toUpperCase()}
       </Typography>
     </View>
@@ -346,85 +338,51 @@ function SalesHeader({
     );
 
   return (
-    <View style={{ backgroundColor: palette.wineFill }}>
+    <View
+      style={{
+        backgroundColor: palette.background,
+        ...pageGutter(false),
+        paddingTop: spacing.md,
+        paddingBottom: spacing.md,
+        gap: spacing.md,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+          <Typography variant="screenTitle">Vendas</Typography>
+          <Typography variant="caption">Pedidos e recebimentos</Typography>
+        </View>
+        <AvatarCircle name={name} />
+      </View>
       <View
         style={{
-          width: "100%",
-          paddingTop: isDesktop ? spacing.xl : spacing.lg,
-          paddingBottom: spacing.xl,
-          gap: spacing.lg,
-          ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.data),
-          ...(isDesktop ? { paddingHorizontal: spacing["3xl"] } : undefined),
+          backgroundColor: theme.colors.surfaceElevated,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          borderRadius: radii.lg,
+          padding: spacing.md,
+          gap: spacing.xs,
         }}
       >
+        <Typography variant="caption">Recebido nas vendas desta lista</Typography>
         <View
           style={{
             flexDirection: "row",
-            alignItems: "flex-start",
+            alignItems: "baseline",
             justifyContent: "space-between",
-            gap: spacing.lg,
+            gap: spacing.md,
           }}
         >
-          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-            <Typography variant="screenTitle" color={palette.onWine}>
-              Vendas
-            </Typography>
-            <Typography variant="body" color={palette.onWine}>
-              Acompanhe seus pedidos e recebimentos
-            </Typography>
-          </View>
-          <AvatarCircle name={name} />
-        </View>
-
-        <View
-          accessibilityLabel={`${formattedTotal} recebidos em ${countLabel}`}
-          style={{
-            alignSelf: "flex-start",
-            width: isDesktop ? 320 : "72%",
-            minWidth: isDesktop ? 320 : 236,
-            maxWidth: 340,
-            minHeight: 82,
-            borderRadius: radii.xl,
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.surfaceElevated,
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.md,
-          }}
-        >
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+          <Typography
+            variant="moneyLg"
+            color={theme.colors.text}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={{ flex: 1, minWidth: 0 }}
           >
-            <Image
-              source={salesHeaderIcon}
-              resizeMode="contain"
-              style={{ width: 104, height: 104 }}
-            />
-          </View>
-          <View
-            style={{
-              width: 1,
-              height: 52,
-              marginHorizontal: spacing.lg,
-              backgroundColor: theme.colors.border,
-            }}
-          />
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Typography variant="moneyLg" color={theme.colors.text} numberOfLines={1}>
-              {formattedTotal}
-            </Typography>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              {countLabel}
-            </Typography>
-          </View>
+            {formattedTotal}
+          </Typography>
+          <Typography variant="caption">{countLabel}</Typography>
         </View>
       </View>
     </View>
@@ -555,7 +513,6 @@ type SalesContentProps = {
   readonly groups: SaleGroup[];
   readonly items: Sale[];
   readonly isDesktop: boolean;
-  readonly bottomInset: number;
   readonly page: number;
   readonly total: number;
   readonly totalPages: number;
@@ -1074,7 +1031,6 @@ function SalesContent({
   groups,
   items,
   isDesktop,
-  bottomInset,
   page,
   total,
   totalPages,
@@ -1088,11 +1044,8 @@ function SalesContent({
   compactEmpty = false,
 }: SalesContentProps) {
   const { theme } = useTheme();
-  const palette = brandScreenPalette(theme);
   const { copy } = useBrand();
-  const listBottomPadding = isDesktop
-    ? spacing["5xl"]
-    : floatingTabBarContentPadding(bottomInset);
+  const listBottomPadding = isDesktop ? spacing["5xl"] : spacing.lg;
 
   if (isLoading) {
     return (
@@ -1187,42 +1140,12 @@ function SalesContent({
       data={groups}
       keyExtractor={(item) => item.title}
       contentContainerStyle={{
-        paddingHorizontal: spacing.lg,
+        paddingHorizontal: spacing.xl,
         paddingBottom: listBottomPadding,
       }}
       showsVerticalScrollIndicator={false}
-      renderItem={({ item: group, index }) => (
-        <View
-          style={{
-            position: "relative",
-            marginTop: spacing.xl,
-            paddingLeft: spacing.xl,
-          }}
-        >
-          <View
-            style={{
-              position: "absolute",
-              left: 7,
-              top: 14,
-              bottom: index === groups.length - 1 ? spacing.xl : -spacing.xl,
-              width: 2,
-              borderRadius: radii.full,
-              backgroundColor: theme.colors.border,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 7,
-              width: 16,
-              height: 16,
-              borderRadius: radii.full,
-              borderWidth: 5,
-              borderColor: palette.lime,
-              backgroundColor: palette.white,
-            }}
-          />
+      renderItem={({ item: group }) => (
+        <View style={{ marginTop: spacing.md }}>
           <GroupHeader title={group.title} count={group.data.length} />
           <View style={{ gap: spacing.md }}>
             {group.data.map((sale, i) => (
@@ -1380,7 +1303,7 @@ export default function SalesScreen() {
         height: "100%",
         width: "100%",
         overflow: "hidden",
-        backgroundColor: isDesktop ? palette.background : palette.wineFill,
+        backgroundColor: palette.background,
       }}
     >
       <SalesHeader
@@ -1439,25 +1362,53 @@ export default function SalesScreen() {
 
           {operationView === "sales" ? (
             <>
-              <FilterChipRow
+              <View
+                accessibilityRole="tablist"
+                accessibilityLabel="Status das vendas"
                 style={{
-                  paddingTop: spacing.xl,
-                  paddingBottom: spacing.lg,
+                  flexDirection: "row",
+                  paddingTop: spacing.xs,
+                  paddingBottom: spacing.md,
                   ...pageGutter(isDesktop),
                 }}
               >
                 {FILTER_TABS.map((tab) => (
-                  <Chip
+                  <Pressable
                     key={tab.key}
-                    label={tab.label}
-                    selected={activeFilter === tab.key}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: activeFilter === tab.key }}
                     onPress={() => {
                       setActiveFilter(tab.key);
                       setPage(1);
                     }}
-                  />
+                    style={({ pressed }) => ({
+                      flex: isDesktop ? undefined : 1,
+                      minHeight: 44,
+                      paddingHorizontal: isDesktop ? spacing.lg : spacing.xs,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderBottomWidth: 2,
+                      borderBottomColor:
+                        activeFilter === tab.key ? palette.wine : theme.colors.border,
+                      backgroundColor: pressed ? theme.colors.surface : "transparent",
+                    })}
+                  >
+                    <Typography
+                      variant={activeFilter === tab.key ? "captionBold" : "caption"}
+                      color={
+                        activeFilter === tab.key
+                          ? palette.wine
+                          : theme.colors.textSecondary
+                      }
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.9}
+                    >
+                      {tab.label}
+                    </Typography>
+                  </Pressable>
                 ))}
-              </FilterChipRow>
+              </View>
 
               <View
                 style={{
@@ -1488,32 +1439,43 @@ export default function SalesScreen() {
                 />
               ) : null}
 
-              <SalesContent
-                isLoading={isLoading}
-                error={error}
-                hasItems={!!filteredItems?.length}
-                activeFilter={activeFilter}
-                hasActiveFilters={!!searchQuery.trim()}
-                groups={groups}
-                items={filteredItems ?? []}
-                isDesktop={isDesktop}
-                bottomInset={insets.bottom}
-                page={data?.page ?? page}
-                total={data?.total ?? 0}
-                totalPages={data?.totalPages ?? 1}
-                primaryColor={theme.colors.primary}
-                onSalePress={setSelectedSaleId}
-                onMarkPaid={(id) => {
-                  void updateSaleStatus.mutateAsync({ id, status: "paid" }).catch(() => {
-                    alertError("Não foi possível marcar a venda como paga.");
-                  });
+              <View
+                style={{
+                  flex: 1,
+                  minHeight: 0,
+                  paddingBottom: isDesktop
+                    ? 0
+                    : floatingTabBarContentPadding(insets.bottom),
                 }}
-                onClearFilters={handleClearFilters}
-                onNewSalePress={() => router.push("/tabs/new-sale")}
-                onRetry={() => void refetch()}
-                onPageChange={setPage}
-                compactEmpty={activeFilter !== "all"}
-              />
+              >
+                <SalesContent
+                  isLoading={isLoading}
+                  error={error}
+                  hasItems={!!filteredItems?.length}
+                  activeFilter={activeFilter}
+                  hasActiveFilters={!!searchQuery.trim()}
+                  groups={groups}
+                  items={filteredItems ?? []}
+                  isDesktop={isDesktop}
+                  page={data?.page ?? page}
+                  total={data?.total ?? 0}
+                  totalPages={data?.totalPages ?? 1}
+                  primaryColor={theme.colors.primary}
+                  onSalePress={setSelectedSaleId}
+                  onMarkPaid={(id) => {
+                    void updateSaleStatus
+                      .mutateAsync({ id, status: "paid" })
+                      .catch(() => {
+                        alertError("Não foi possível marcar a venda como paga.");
+                      });
+                  }}
+                  onClearFilters={handleClearFilters}
+                  onNewSalePress={() => router.push("/tabs/new-sale")}
+                  onRetry={() => void refetch()}
+                  onPageChange={setPage}
+                  compactEmpty={activeFilter !== "all"}
+                />
+              </View>
             </>
           ) : (
             <DesktopOrdersTable

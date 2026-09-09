@@ -40,6 +40,10 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Exibe dot de status colorido, nome visível do primeiro produto (`displayProductName`,
   sem prefixos como `[massa]`) (+N), itens resumidos, valor total, Badge de status
   (Pago/Pendente/Cancelado) e forma de pagamento.
+- Na lista mobile, o cartão separa produto/cliente de data, pagamento, valor e status.
+  Avatares são neutros; Pago usa verde, Pendente amarelo e Cancelado vermelho.
+  O cabeçalho de Vendas usa superfície neutra e identifica o valor recebido na lista;
+  os filtros de status ficam em uma linha, e a lista reserva espaço para a navegação.
 
 ### `SaleDetail`
 

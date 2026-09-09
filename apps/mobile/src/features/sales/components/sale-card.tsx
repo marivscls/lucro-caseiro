@@ -27,11 +27,10 @@ function getStatusColors(
   color: "success" | "warning" | "danger",
   theme: ReturnType<typeof useTheme>["theme"],
 ) {
-  const palette = brandScreenPalette(theme);
   if (color === "success") {
     return {
-      text: palette.wine,
-      bg: palette.softRose,
+      text: theme.colors.success,
+      bg: theme.colors.successBg,
     };
   }
   if (color === "warning") {
@@ -52,13 +51,9 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
   const title = firstItem ? displayProductName(firstItem.productName) : "Venda";
   const photoUrl = firstItem?.productPhotoUrl ?? null;
   const extraCount = Math.max((sale.items?.length ?? 1) - 1, 0);
-  const itemsSummary = sale.items
-    ?.map((i) => displayProductName(i.productName))
-    .filter(Boolean)
-    .join(", ");
   const soldDate = new Date(sale.soldAt).toLocaleDateString("pt-BR", {
     day: "numeric",
-    month: "long",
+    month: "short",
   });
 
   const statusColors = getStatusColors(status.color, theme);
@@ -67,10 +62,12 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
     <PressableScale
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityLabel={`${title}, ${formatCurrency(sale.total)}, ${status.label}`}
       style={{
-        minHeight: 108,
-        borderRadius: radii.xl,
+        minHeight: 104,
+        borderRadius: radii.lg,
         padding: spacing.md,
+        gap: spacing.md,
         backgroundColor: palette.white,
         borderWidth: 1,
         borderColor: theme.colors.border,
@@ -79,14 +76,12 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <View
           style={{
-            width: 58,
-            height: 58,
-            borderRadius: radii.lg,
+            width: 44,
+            height: 44,
+            borderRadius: radii.md,
             backgroundColor: theme.colors.surface,
             alignItems: "center",
             justifyContent: "center",
-            borderWidth: 1,
-            borderColor: theme.colors.border,
             overflow: "hidden",
           }}
         >
@@ -97,7 +92,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
               resizeMode="cover"
             />
           ) : (
-            <Typography variant="h3" color={theme.colors.text}>
+            <Typography variant="bodyBold" color={theme.colors.textSecondary}>
               {productInitial(title)}
             </Typography>
           )}
@@ -108,40 +103,40 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
             {title}
             {extraCount > 0 ? ` +${extraCount}` : ""}
           </Typography>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Typography
-              variant="caption"
-              numberOfLines={1}
-              style={{ flex: 1, minWidth: 0 }}
-            >
-              {sale.clientName ?? itemsSummary ?? "Cliente avulso"}
+          <Typography variant="caption" numberOfLines={1}>
+            {sale.clientName ?? "Venda avulsa"}
+          </Typography>
+        </View>
+        <AppIcon name="chevron-forward" size={18} color={theme.colors.textSecondary} />
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: spacing.md,
+        }}
+      >
+        <Typography variant="caption" style={{ flex: 1 }}>
+          {soldDate} · {payment}
+        </Typography>
+        <View style={{ alignItems: "flex-end", gap: spacing.xs }}>
+          <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
+            {formatCurrency(sale.total)}
+          </Typography>
+          <View
+            style={{
+              paddingHorizontal: spacing.sm,
+              paddingVertical: spacing.xs,
+              borderRadius: radii.sm,
+              backgroundColor: statusColors.bg,
+            }}
+          >
+            <Typography variant="caption" color={statusColors.text}>
+              {status.label}
             </Typography>
-            <Typography variant="money" color={theme.colors.text} numberOfLines={1}>
-              {formatCurrency(sale.total)}
-            </Typography>
-          </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Typography variant="caption" numberOfLines={1} style={{ flex: 1 }}>
-              {soldDate} • {payment}
-            </Typography>
-            <View
-              style={{
-                minHeight: 28,
-                paddingHorizontal: spacing.md,
-                borderRadius: radii.lg,
-                backgroundColor: statusColors.bg,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Typography variant="caption" color={statusColors.text}>
-                {status.label}
-              </Typography>
-            </View>
           </View>
         </View>
-
-        <AppIcon name="chevron-forward" size={22} color={theme.colors.text} />
       </View>
     </PressableScale>
   );
