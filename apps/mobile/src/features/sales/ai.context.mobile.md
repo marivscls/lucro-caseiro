@@ -59,7 +59,18 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   2. **Selecionar cliente:** opcao "Sem cliente (avulso)", busca de clientes, selecao com borda destacada.
   3. **Forma de pagamento:** opcoes Pix, Dinheiro, Cartao, Fiado, Transferencia com icones.
   4. **Revisar e confirmar:** resumo de itens, cliente, pagamento, total. Botao "Registrar venda".
-- Progress dots no topo.
+- Progresso no topo com quatro segmentos e rótulos: Cliente, Produtos, Pagamento e Revisão.
+- A etapa inicial de cliente usa avatares neutros e linhas compactas. Tocar em um cliente
+  ou em "Venda avulsa" avança para os produtos; no mobile, não há botão "Próximo"
+  redundante nessa etapa, e a lista reserva espaço acima da navegação inferior.
+- Produtos, pagamento e revisão usam uma barra de total no fluxo do layout mobile,
+  com reserva para a navegação, sem sobrepor as listas. Busca e atalhos de produto
+  rolam junto com a grade; quantidades ficam em controles de 44 px na base do card.
+- Seleções e superfícies são neutras; as ações principais usam vinho no tema claro
+  e o preenchimento acessível do tema escuro. A revisão permite editar itens,
+  cliente e pagamento e mostra subtotal, desconto, total e observações.
+- A confirmação de sucesso conserva as ações de nova venda e recibo, destacando
+  somente o acesso ao recibo; o atalho de venda rápida permanece disponível.
 - Checa limite freemium via `useLimitCheck("sales")` antes de submeter.
 - Modal inline para criar produto caso nao exista nenhum.
 

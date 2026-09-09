@@ -132,7 +132,8 @@ function TabItem({
   const [hovered, setHovered] = useState(false);
   let color = active ? pal.wine : pal.muted;
   if (primary) color = pal.onWine;
-  const borderColor = focused || (primary && active) ? pal.rose : "transparent";
+  const focusColor = primary ? pal.onWine : pal.wine;
+  const borderColor = focused ? focusColor : "transparent";
 
   return (
     <Pressable
@@ -145,7 +146,7 @@ function TabItem({
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
       style={({ pressed }) => {
-        let backgroundColor = active || pressed || hovered ? pal.softRose : "transparent";
+        let backgroundColor = active || pressed || hovered ? pal.surface : "transparent";
         if (primary) backgroundColor = pal.wineFill;
         return [
           styles.tabItem,

@@ -43,6 +43,19 @@ export function formatDateBR(iso: string): string {
   return isoToBR(iso);
 }
 
+export function agendaDateLimit(isDesktop: boolean): number {
+  return isDesktop ? 7 : 5;
+}
+
+export function agendaSummaryLabels(selectedDate: string | null): {
+  title: string;
+  total: string;
+} {
+  return selectedDate
+    ? { title: "Resumo do dia", total: "Total do dia" }
+    : { title: "Resumo geral", total: "Todos os pedidos" };
+}
+
 /**
  * Agrupa encomendas em Atrasadas / Hoje / Amanhã / Esta semana / Próximas, com
  * Finalizadas (entregues/canceladas) por último. Datas são strings YYYY-MM-DD

@@ -18,7 +18,7 @@ export function QuickSaleButton({
   return (
     <Button
       title="Venda rápida no dinheiro"
-      variant="text"
+      variant="ghost"
       size="lg"
       loading={pending}
       onPress={() => onConfirm("cash")}

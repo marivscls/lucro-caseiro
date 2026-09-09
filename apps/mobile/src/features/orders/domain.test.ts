@@ -1,7 +1,13 @@
 import type { Order } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { formatDateBR, groupOrders, upcomingCount } from "./domain";
+import {
+  agendaDateLimit,
+  agendaSummaryLabels,
+  formatDateBR,
+  groupOrders,
+  upcomingCount,
+} from "./domain";
 
 let idCounter = 0;
 
@@ -91,5 +97,23 @@ describe("upcomingCount", () => {
 describe("formatDateBR", () => {
   it("formats YYYY-MM-DD to DD/MM/YYYY", () => {
     expect(formatDateBR("2026-05-09")).toBe("09/05/2026");
+  });
+});
+
+describe("agenda presentation", () => {
+  it("keeps the mobile date row short enough to show every date", () => {
+    expect(agendaDateLimit(false)).toBe(5);
+    expect(agendaDateLimit(true)).toBe(7);
+  });
+
+  it("describes the period represented by the summary", () => {
+    expect(agendaSummaryLabels(null)).toEqual({
+      title: "Resumo geral",
+      total: "Todos os pedidos",
+    });
+    expect(agendaSummaryLabels("2026-05-09")).toEqual({
+      title: "Resumo do dia",
+      total: "Total do dia",
+    });
   });
 });

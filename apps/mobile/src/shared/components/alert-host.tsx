@@ -25,6 +25,7 @@ import successModalFrame from "../../assets/success-modal-frame.png";
 import { useBrandIllustration } from "../brand-illustrations";
 import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 import { SaleSuccessMark } from "./motion-feedback";
+import { useBrandScreenPalette } from "../brand-palette";
 
 export { showAlert } from "./alert-store";
 
@@ -44,6 +45,7 @@ export function shouldStackAlertButtons(buttons: readonly AppAlertButton[]): boo
  */
 export function AlertHost() {
   const { theme } = useTheme();
+  const palette = useBrandScreenPalette();
   const options = useAppAlert((s) => s.options);
   const hide = useAppAlert((s) => s.hide);
   const reduced = useReducedMotion();
@@ -93,12 +95,19 @@ export function AlertHost() {
     cancelButton?.onPress?.();
   };
 
-  const buttonStyle = (button: AppAlertButton): ViewStyle => {
+  const buttonStyle = (button: AppAlertButton, index: number): ViewStyle => {
     const width: ViewStyle =
       buttons.length === 1 || stacked ? { width: "100%" } : { flex: 1 };
-    return button.style === "destructive"
-      ? { ...width, backgroundColor: theme.colors.alert }
-      : width;
+    if (button.style === "destructive")
+      return { ...width, backgroundColor: theme.colors.alert };
+    if (options.variant === "sale-success" && index === buttons.length - 1) {
+      return {
+        ...width,
+        backgroundColor:
+          theme.mode === "light" ? palette.wineFill : theme.colors.primaryInteractive,
+      };
+    }
+    return width;
   };
 
   if (options.variant === "account-created") {
@@ -310,15 +319,21 @@ export function AlertHost() {
                 marginTop: spacing.sm,
               }}
             >
-              {buttons.map((button, i) => (
-                <Button
-                  key={`${button.text}-${i}`}
-                  title={button.text}
-                  variant={button.style === "cancel" ? "secondary" : "primary"}
-                  onPress={() => press(button)}
-                  style={buttonStyle(button)}
-                />
-              ))}
+              {buttons.map((button, i) => {
+                let variant: "primary" | "secondary" | "ghost" = "primary";
+                if (button.style === "cancel") variant = "secondary";
+                if (options.variant === "sale-success" && i < buttons.length - 1)
+                  variant = "ghost";
+                return (
+                  <Button
+                    key={`${button.text}-${i}`}
+                    title={button.text}
+                    variant={variant}
+                    onPress={() => press(button)}
+                    style={buttonStyle(button, i)}
+                  />
+                );
+              })}
             </View>
           </Pressable>
         </Animated.View>

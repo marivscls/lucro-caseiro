@@ -32,6 +32,8 @@ import { useAgendaTip } from "../../features/orders/use-agenda-tip";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
   STATUS_LABEL,
+  agendaDateLimit,
+  agendaSummaryLabels,
   formatDateBR,
   groupOrders,
   type OrderGroup,
@@ -657,14 +659,13 @@ function ModernOrderDetail({
 
 function OrdersSummaryHeader({
   selectedDate,
-  onOpenFilter,
-}: Readonly<{ selectedDate: string | null; onOpenFilter: () => void }>) {
+}: Readonly<{ selectedDate: string | null }>) {
   const { theme } = useTheme();
   const agColors = agendaPalette(theme);
   const { data: summary } = useOrdersSummary(
     selectedDate ? { startDate: selectedDate, endDate: selectedDate } : undefined,
   );
-  const filterLabel = selectedDate ? formatDateBR(selectedDate) : "Todos";
+  const summaryLabels = agendaSummaryLabels(selectedDate);
 
   if (!summary || summary.totalOrders === 0) return null;
 
@@ -679,49 +680,27 @@ function OrdersSummaryHeader({
         gap: spacing.md,
       }}
     >
-      <View
-        style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.md }}
-      >
-        <View style={{ flex: 1, gap: spacing.sm }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <AppIcon name="analytics-outline" size={20} color={agColors.muted} />
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.text}
-              style={{ fontSize: fontSizes.md }}
-            >
-              Resumo do dia
-            </Typography>
-          </View>
+      <View style={{ gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <AppIcon name="analytics-outline" size={20} color={agColors.muted} />
           <Typography
-            variant="body"
-            color={agColors.muted}
-            style={{ fontSize: fontSizes.lg }}
+            variant="bodyBold"
+            color={theme.colors.text}
+            style={{ fontSize: fontSizes.md }}
           >
-            Total dos pedidos
-          </Typography>
-          <Typography variant="moneyLg" color={theme.colors.success}>
-            {formatMoney(summary.totalAmount)}
+            {summaryLabels.title}
           </Typography>
         </View>
-        <Pressable
-          onPress={onOpenFilter}
-          style={{
-            alignSelf: "flex-start",
-            borderRadius: radii.lg,
-            backgroundColor: agColors.subtleFill,
-            paddingHorizontal: spacing.md,
-            minHeight: 42,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.sm,
-          }}
+        <Typography
+          variant="body"
+          color={agColors.muted}
+          style={{ fontSize: fontSizes.lg }}
         >
-          <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
-            {filterLabel}
-          </Typography>
-          <AppIcon name="chevron-down" size={18} color={agColors.muted} />
-        </Pressable>
+          {summaryLabels.total}
+        </Typography>
+        <Typography variant="moneyLg" color={theme.colors.success}>
+          {formatMoney(summary.totalAmount)}
+        </Typography>
       </View>
       <View
         style={{
@@ -733,58 +712,39 @@ function OrdersSummaryHeader({
         }}
       >
         {[
-          ["A receber", summary.toReceive, "apps-outline" as const, theme.colors.premium],
-          [
-            "Recebido",
-            summary.received,
-            "analytics-outline" as const,
-            theme.colors.success,
-          ],
-        ].map(([label, value, icon, color], index) => (
+          ["A receber", summary.toReceive, theme.colors.premium],
+          ["Recebido", summary.received, theme.colors.success],
+        ].map(([label, value, color], index) => (
           <View
             key={label as string}
             style={{
               flex: 1,
-              padding: spacing.sm,
-              flexDirection: "row",
-              gap: spacing.sm,
-              alignItems: "center",
+              minWidth: 0,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.sm,
+              gap: spacing.xs,
               borderLeftWidth: index === 1 ? 1 : 0,
               borderLeftColor: agColors.border,
             }}
           >
-            <View
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: radii.md,
-                backgroundColor: agColors.subtleFill,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+            <Typography
+              variant="body"
+              color={agColors.muted}
+              numberOfLines={1}
+              style={{ fontSize: fontSizes.sm }}
             >
-              <AppIcon name={icon as AppIconName} size={18} color={color as string} />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Typography
-                variant="body"
-                color={agColors.muted}
-                numberOfLines={1}
-                style={{ fontSize: fontSizes.sm }}
-              >
-                {label as string}
-              </Typography>
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.success}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.72}
-                style={{ fontSize: fontSizes.md }}
-              >
-                {formatMoney(value as number)}
-              </Typography>
-            </View>
+              {label as string}
+            </Typography>
+            <Typography
+              variant="bodyBold"
+              color={color as string}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.82}
+              style={{ fontSize: fontSizes.md }}
+            >
+              {formatMoney(value as number)}
+            </Typography>
           </View>
         ))}
       </View>
@@ -834,8 +794,9 @@ function OrdersList({
         options={dayOptions}
         selectedDate={selectedDate}
         onSelect={onSelectDate}
+        onOpenFilter={onOpenDayFilter}
       />
-      <OrdersSummaryHeader selectedDate={selectedDate} onOpenFilter={onOpenDayFilter} />
+      <OrdersSummaryHeader selectedDate={selectedDate} />
       {selectedDate ? <DayTimeline orders={orders} /> : null}
       {groups.length === 0 ? (
         <View
@@ -1032,15 +993,19 @@ function AgendaDateStrip({
   options,
   selectedDate,
   onSelect,
+  onOpenFilter,
 }: Readonly<{
   options: Array<{ date: string; count: number }>;
   selectedDate: string | null;
   onSelect: (date: string | null) => void;
+  onOpenFilter: () => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const countByDate = new Map(options.map((option) => [option.date, option.count]));
+  const totalOrders = options.reduce((total, option) => total + option.count, 0);
   const today = new Date();
-  const days = Array.from({ length: 7 }, (_, index) => {
+  const days = Array.from({ length: agendaDateLimit(isDesktop) }, (_, index) => {
     const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + index);
     const iso = isoLocalDate(date);
     return {
@@ -1052,77 +1017,123 @@ function AgendaDateStrip({
   });
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: spacing.sm }}
-    >
-      <Pressable
-        onPress={() => onSelect(null)}
-        accessibilityRole="button"
-        accessibilityLabel="Todos os dias"
-        accessibilityState={{ selected: selectedDate === null }}
-        aria-selected={selectedDate === null}
+    <View style={{ gap: spacing.sm }}>
+      <View
         style={{
-          minWidth: 66,
-          minHeight: 64,
-          borderRadius: radii.lg,
-          borderWidth: 1,
-          borderColor: selectedDate === null ? theme.colors.primary : theme.colors.border,
-          backgroundColor:
-            selectedDate === null ? theme.colors.primaryBg : theme.colors.surfaceElevated,
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
-          padding: spacing.sm,
+          justifyContent: "space-between",
+          gap: spacing.sm,
         }}
       >
-        <Typography variant="bodyBold">Todos</Typography>
-        <SelectionUnderline
-          selected={selectedDate === null}
-          color={theme.colors.primaryStrong}
-        />
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          {options.reduce((total, option) => total + option.count, 0)}
-        </Typography>
-      </Pressable>
-      {days.map((item) => {
-        const selected = selectedDate === item.date;
-        return (
-          <Pressable
-            key={item.date}
-            onPress={() => onSelect(item.date)}
-            accessibilityRole="button"
-            accessibilityLabel={`${item.label}, ${formatDateBR(item.date)}, ${item.count} encomendas`}
-            accessibilityState={{ selected }}
-            aria-selected={selected}
-            style={{
-              minWidth: 58,
-              minHeight: 64,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              borderColor: selected ? theme.colors.primary : theme.colors.border,
-              backgroundColor: selected
+        <Pressable
+          onPress={() => onSelect(null)}
+          accessibilityRole="button"
+          accessibilityLabel={`Todos os dias, ${totalOrders} encomendas`}
+          accessibilityState={{ selected: selectedDate === null }}
+          aria-selected={selectedDate === null}
+          style={{
+            minHeight: 44,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor:
+              selectedDate === null ? theme.colors.primary : theme.colors.border,
+            backgroundColor:
+              selectedDate === null
                 ? theme.colors.primaryBg
                 : theme.colors.surfaceElevated,
-              alignItems: "center",
-              justifyContent: "center",
-              padding: spacing.sm,
-            }}
-          >
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {item.label}
-            </Typography>
-            <Typography variant="bodyBold">{item.day}</Typography>
-            <SelectionUnderline selected={selected} color={theme.colors.primaryStrong} />
-            {item.count > 0 ? (
-              <Typography variant="caption" color={theme.colors.primaryStrong}>
-                {item.count}
+            paddingHorizontal: spacing.md,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+          }}
+        >
+          <Typography variant="bodyBold">Todos</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {totalOrders}
+          </Typography>
+        </Pressable>
+
+        <Pressable
+          onPress={onOpenFilter}
+          accessibilityRole="button"
+          accessibilityLabel="Ver todas as datas"
+          style={{
+            minHeight: 44,
+            borderRadius: radii.lg,
+            paddingHorizontal: spacing.sm,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.xs,
+          }}
+        >
+          <AppIcon name="calendar-outline" size={18} color={theme.colors.textSecondary} />
+          <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
+            Todas as datas
+          </Typography>
+          <AppIcon name="chevron-forward" size={16} color={theme.colors.textSecondary} />
+        </Pressable>
+      </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          gap: spacing.xs,
+          borderRadius: radii.xl,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.surfaceElevated,
+          padding: spacing.xs,
+        }}
+      >
+        {days.map((item) => {
+          const selected = selectedDate === item.date;
+          return (
+            <Pressable
+              key={item.date}
+              onPress={() => onSelect(item.date)}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.label}, ${formatDateBR(item.date)}, ${item.count} encomendas`}
+              accessibilityState={{ selected }}
+              aria-selected={selected}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 66,
+                borderRadius: radii.lg,
+                borderWidth: 1,
+                borderColor: selected ? theme.colors.primary : "transparent",
+                backgroundColor: selected ? theme.colors.primaryBg : "transparent",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: spacing.xs,
+                paddingVertical: spacing.sm,
+              }}
+            >
+              <Typography
+                variant="caption"
+                color={selected ? theme.colors.primaryStrong : theme.colors.textSecondary}
+                numberOfLines={1}
+              >
+                {item.label}
               </Typography>
-            ) : null}
-          </Pressable>
-        );
-      })}
-    </ScrollView>
+              <Typography variant="bodyBold" color={theme.colors.text}>
+                {item.day}
+              </Typography>
+              <SelectionUnderline
+                selected={selected}
+                color={theme.colors.primaryStrong}
+              />
+              {item.count > 0 ? (
+                <Typography variant="caption" color={theme.colors.primaryStrong}>
+                  {item.count}
+                </Typography>
+              ) : null}
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
@@ -1369,18 +1380,20 @@ function AgendaContent() {
         fallbackRoute="/tabs"
         hideBack={isDesktop}
         right={
-          <FAB
-            icon="add"
-            header
-            accessibilityLabel={createOrderLabel}
-            onPress={() => setShowCreate(true)}
-          />
+          isDesktop ? (
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel={createOrderLabel}
+              onPress={() => setShowCreate(true)}
+            />
+          ) : undefined
         }
       />
 
       <View style={{ flex: 1 }}>{renderContent()}</View>
 
-      {!isLoading && !error && (orders?.length ?? 0) > 0 ? (
+      {!isDesktop && !isLoading && !error && (orders?.length ?? 0) > 0 ? (
         <ScreenCreateBar title={createOrderLabel} onPress={() => setShowCreate(true)} />
       ) : null}
 
