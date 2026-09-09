@@ -35,6 +35,7 @@ const baseEnvSchema = z.object({
   RESEND_API_KEY: z.string().default(""),
   EMAIL_FROM: z.string().default("Lucro Caseiro <notificacoes@lucrocaseiro.com.br>"),
   EMAIL_REPLY_TO: z.string().default(""),
+  WELCOME_EMAIL_ENABLED: z.enum(["true", "false"]).default("false"),
 });
 
 const envSchema = baseEnvSchema.superRefine((env, ctx) => {
@@ -114,4 +115,5 @@ export const config = {
   resendApiKey: parsed.data.RESEND_API_KEY,
   emailFrom: parsed.data.EMAIL_FROM,
   emailReplyTo: parsed.data.EMAIL_REPLY_TO,
+  welcomeEmailEnabled: parsed.data.WELCOME_EMAIL_ENABLED === "true",
 };
