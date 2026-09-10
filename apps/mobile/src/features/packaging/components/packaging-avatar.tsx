@@ -1,8 +1,12 @@
 import React from "react";
 
-import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
-import { packagingIllustrationSlug, typeEmoji, typeSurfaceColor } from "../domain";
+import {
+  displayPackagingName,
+  packagingIllustrationSlug,
+  typeEmoji,
+  typeSurfaceColor,
+} from "../domain";
 
 interface PackagingAvatarProps {
   readonly name: string;
@@ -22,7 +26,7 @@ export function PackagingAvatar({
   photoUrl,
   size = 52,
 }: PackagingAvatarProps) {
-  const displayName = displayIngredientName(name);
+  const displayName = displayPackagingName(name);
   return (
     <IngredientAvatar
       name={displayName}

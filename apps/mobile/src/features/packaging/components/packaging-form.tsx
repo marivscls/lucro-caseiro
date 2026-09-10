@@ -40,7 +40,7 @@ import { duplicateKey } from "../../../shared/utils/duplicates";
 import {
   PACKAGING_TYPES,
   type PackagingTypeValue,
-  typeColor,
+  displayPackagingName,
   typeLabel,
 } from "../domain";
 import { useCreatePackaging, usePackagingList, useUpdatePackaging } from "../hooks";
@@ -67,7 +67,6 @@ function SummaryHero({
 }: Readonly<{ name: string; type: string; cost: string; photoUrl?: string | null }>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
-  const tColor = typeColor(theme, type);
   const price = cost.trim() ? parseCurrencyInput(cost) : NaN;
   const hasPrice = !isNaN(price) && price > 0;
   return (
@@ -87,36 +86,35 @@ function SummaryHero({
         name={name || "Embalagem"}
         type={type}
         photoUrl={photoUrl}
-        size={64}
+        size={52}
       />
-      <View style={{ flex: 1, gap: 6 }}>
-        <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
+      <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+        <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={2}>
           {name || "Embalagem"}
         </Typography>
         <View
           style={{
-            alignSelf: "flex-start",
-            backgroundColor: `${tColor}26`,
-            paddingHorizontal: 10,
-            paddingVertical: 3,
-            borderRadius: radii.full,
+            flexDirection: "row",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: spacing.xs,
           }}
         >
-          <Typography variant="caption" color={tColor} style={{ fontFamily: fonts.bold }}>
-            Tipo: {typeLabel(type)}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {typeLabel(type)}
           </Typography>
+          {hasPrice ? (
+            <>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                ·
+              </Typography>
+              <AppIcon name="cash-outline" size={14} color={theme.colors.success} />
+              <Typography variant="caption" color={theme.colors.success}>
+                {formatCurrency(price)} por unidade
+              </Typography>
+            </>
+          ) : null}
         </View>
-        {hasPrice ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <AppIcon name="cash-outline" size={16} color={theme.colors.success} />
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Custo unitário
-            </Typography>
-            <Typography variant="bodyBold" color={theme.colors.success}>
-              {formatCurrency(price)}
-            </Typography>
-          </View>
-        ) : null}
       </View>
     </View>
   );
@@ -199,8 +197,6 @@ function IconInputCard({
   );
 }
 
-const COMPOSITION_BAR = ["#E0A84E", "#7FB3D5", "#B8A9D4", "#C4707E"];
-
 export function PackagingForm({
   packaging,
   existingPackaging = [],
@@ -216,7 +212,7 @@ export function PackagingForm({
   const pal = useFieldPalette();
   const isEditing = !!packaging;
 
-  const [name, setName] = useState(packaging?.name ?? "");
+  const [name, setName] = useState(packaging ? displayPackagingName(packaging.name) : "");
   const [type, setType] = useState<PackagingTypeValue>(
     (packaging?.type as PackagingTypeValue) ?? "box",
   );
@@ -237,9 +233,6 @@ export function PackagingForm({
   const { checkAndBlock: checkPackagingLimit } = useLimitCheck("packaging");
   const showPaywall = usePaywall((s) => s.show);
   const saving = createPackaging.isPending || updatePackaging.isPending;
-
-  const costPreview = unitCost.trim() ? parseCurrencyInput(unitCost) : NaN;
-  const hasCost = !isNaN(costPreview) && costPreview > 0;
 
   const formValidation = useFormValidation(
     {
@@ -272,7 +265,7 @@ export function PackagingForm({
     const duplicate = duplicateCandidates.find(
       (item) =>
         item.id !== packaging?.id &&
-        duplicateKey(item.name) === duplicateKey(name) &&
+        duplicateKey(displayPackagingName(item.name)) === duplicateKey(name) &&
         item.type === type,
     );
     if (duplicate) {
@@ -323,7 +316,7 @@ export function PackagingForm({
             accessibilityRole="button"
             style={({ pressed }) => [
               {
-                minHeight: 52,
+                minHeight: 48,
                 borderRadius: radii.lg,
                 borderWidth: 1,
                 borderColor: pal.border,
@@ -373,9 +366,7 @@ export function PackagingForm({
           </Typography>
         )}
 
-        {/* Dados da embalagem */}
         <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="document-text-outline" title="Dados da embalagem" />
           <View>
             <FieldLabel label="Nome" required />
             <ValidationField {...formValidation.field("name")}>
@@ -394,9 +385,8 @@ export function PackagingForm({
           </View>
         </View>
 
-        {/* Tipo de embalagem */}
         <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="albums-outline" title="Tipo do custo adicional" />
+          <SectionHeader icon="albums-outline" title="Tipo de embalagem" />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
             {PACKAGING_TYPES.map((t) => {
               const active = type === t.value;
@@ -408,56 +398,43 @@ export function PackagingForm({
                   accessibilityState={{ selected: active }}
                   accessibilityLabel={t.label}
                   style={({ pressed }) => ({
-                    paddingHorizontal: spacing.lg,
-                    paddingVertical: spacing.sm + 2,
+                    minHeight: 44,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: spacing.xs,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
                     borderRadius: radii.full,
                     borderWidth: 1,
                     borderColor: active ? theme.colors.primary : pal.border,
-                    backgroundColor: active ? `${theme.colors.primary}1f` : pal.fieldBg,
+                    backgroundColor: active ? theme.colors.primaryBg : pal.fieldBg,
                     opacity: pressed ? 0.8 : 1,
                   })}
                 >
+                  {active ? (
+                    <AppIcon name="checkmark" size={16} color={theme.colors.primary} />
+                  ) : null}
                   <Typography
                     variant="bodyBold"
                     color={active ? theme.colors.text : theme.colors.textSecondary}
                   >
                     {t.label}
                   </Typography>
-                  {active ? (
-                    <View
-                      style={{
-                        position: "absolute",
-                        top: -4,
-                        right: -4,
-                        width: 18,
-                        height: 18,
-                        borderRadius: radii.full,
-                        backgroundColor: theme.colors.primary,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <AppIcon
-                        name="checkmark"
-                        size={12}
-                        color={theme.colors.textOnPrimary}
-                      />
-                    </View>
-                  ) : null}
                 </Pressable>
               );
             })}
           </View>
         </View>
 
-        {/* Custo */}
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <View style={isDesktop ? desktopCompactField(isDesktop) : { flex: 1 }}>
+        <View style={{ gap: spacing.md }}>
+          <SectionHeader icon="cash-outline" title="Custo" />
+          <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
             <ValidationField {...formValidation.field("unitCost")}>
               <IconInputCard
                 icon="cash-outline"
                 iconColor={theme.colors.success}
-                label="Custo unitário (R$)"
+                label="Quanto custa uma unidade?"
                 placeholder="0,00"
                 value={unitCost}
                 onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
@@ -467,66 +444,9 @@ export function PackagingForm({
           </View>
         </View>
 
-        {/* Fornecedor */}
         <View style={{ gap: spacing.md }}>
           <SectionHeader icon="business-outline" title="Fornecedor (opcional)" />
           <SupplierSelector value={supplierId} onChange={setSupplierId} />
-        </View>
-
-        {/* Pré-visualização do custo */}
-        <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="bar-chart-outline" title="Pré-visualização do custo" />
-          <View
-            style={{
-              flexDirection: "row",
-              gap: spacing.md,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              borderColor: pal.border,
-              backgroundColor: pal.fieldBg,
-              padding: spacing.md,
-              alignItems: "center",
-            }}
-          >
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                borderWidth: 1.5,
-                borderColor: `${theme.colors.primary}80`,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="bar-chart-outline" size={20} color={theme.colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Impacto no custo total
-              </Typography>
-              <Typography variant="h3" color={theme.colors.success}>
-                {hasCost ? `+ ${formatCurrency(costPreview)}` : "+ R$ 0,00"}
-              </Typography>
-            </View>
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Composição atual
-              </Typography>
-              <View
-                style={{
-                  flexDirection: "row",
-                  height: 12,
-                  borderRadius: radii.full,
-                  overflow: "hidden",
-                }}
-              >
-                {COMPOSITION_BAR.map((c) => (
-                  <View key={c} style={{ flex: 1, backgroundColor: c }} />
-                ))}
-              </View>
-            </View>
-          </View>
         </View>
       </View>
     </StandardModal>

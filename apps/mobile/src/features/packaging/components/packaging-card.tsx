@@ -14,8 +14,7 @@ import { Pressable, View } from "react-native";
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
-import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
-import { isLowStock, typeLabel, typeStripeColor } from "../domain";
+import { displayPackagingName, isLowStock, typeLabel, typeStripeColor } from "../domain";
 import { PackagingAvatar } from "./packaging-avatar";
 
 interface PackagingCardProps {
@@ -33,7 +32,7 @@ export function PackagingCard({
 }: PackagingCardProps) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
-  const displayName = displayIngredientName(packaging.name);
+  const displayName = displayPackagingName(packaging.name);
   const stripe = typeStripeColor(packaging.type);
   const lowStock = isLowStock(packaging);
   const stockHint = packaging.supplier?.trim() || null;

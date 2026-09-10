@@ -650,7 +650,7 @@ function PackagingScreenContent() {
         <StandardModal
           visible
           onClose={() => setSelectedId(null)}
-          title="Embalagem"
+          title="Detalhes da embalagem"
           right={
             <Pressable
               onPress={() => setEditing(true)}

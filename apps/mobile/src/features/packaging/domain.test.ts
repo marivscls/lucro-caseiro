@@ -6,6 +6,7 @@ import {
   PACKAGING_LIST_FILTERS,
   PACKAGING_TYPES,
   buildPackagingShareText,
+  displayPackagingName,
   isLowStock,
   packagingHeroIllustrationWidth,
   packagingHeroPanelHeight,
@@ -133,6 +134,15 @@ describe("packagingIllustrationSlug", () => {
       "sacola-personalizada",
     );
     expect(packagingIllustrationSlug("[massa] Filme PVC")).toBe("filme-pvc");
+  });
+});
+
+describe("displayPackagingName", () => {
+  it("remove o prefixo técnico antes de exibir ou compartilhar", () => {
+    expect(displayPackagingName("[massa] Filme PVC")).toBe("Filme PVC");
+    expect(
+      buildPackagingShareText(makePackaging({ name: "[massa] Filme PVC" })),
+    ).not.toContain("[massa]");
   });
 });
 

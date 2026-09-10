@@ -60,6 +60,10 @@ export function typeLabel(type: string): string {
   return PACKAGING_TYPES.find((t) => t.value === type)?.label ?? type;
 }
 
+export function displayPackagingName(name: string): string {
+  return displayIngredientName(name);
+}
+
 /** Emoji de fallback do avatar quando não há foto da embalagem. */
 export function typeEmoji(type: string): string {
   switch (type) {
@@ -153,7 +157,7 @@ export function packagingHeroPanelHeight(viewportWidth: number): number {
 /** Texto pronto p/ compartilhar os dados de uma embalagem. */
 export function buildPackagingShareText(p: Packaging): string {
   const lines = [
-    `📦 ${p.name}`,
+    `📦 ${displayPackagingName(p.name)}`,
     `Tipo: ${typeLabel(p.type)}`,
     `Custo unitário: ${formatCurrency(p.unitCost)}`,
   ];

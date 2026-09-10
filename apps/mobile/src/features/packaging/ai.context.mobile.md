@@ -127,6 +127,12 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 
 ## Change log / Decisions
 
+- 2026-09-09: **edição e detalhes simplificados** — nomes visíveis e compartilhados removem
+  prefixos internos como `[massa]`. A edição usa resumo compacto, “Tipo de embalagem”, seleção
+  com check interno e custo em linguagem direta; a prévia decorativa de composição foi removida.
+  O detalhe mostra nome real, tipo, custo, data e fornecedor uma única vez, com apenas uma ação
+  de excluir e texto correto de compartilhamento.
+
 - 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
 
 - Limite freemium: 3 embalagens no Free, ilimitado no Premium (enforcement no backend).
