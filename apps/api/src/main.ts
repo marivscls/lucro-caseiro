@@ -93,6 +93,7 @@ import {
   postgresRateLimit,
 } from "./shared/middleware/postgres-rate-limit";
 import { securityHeaders } from "./shared/middleware/security-headers";
+import { publicSiteRedirect } from "./shared/middleware/public-site-redirect";
 import { isAllowedCorsOrigin } from "./shared/middleware/cors";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -389,6 +390,7 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 app.use(securityHeaders);
+app.use(publicSiteRedirect);
 app.use(
   cors({
     origin(origin, callback) {
