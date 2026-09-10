@@ -23,6 +23,7 @@ import {
   ModalHeader,
   Typography,
   useBrand,
+  useFeature,
   useTheme,
   spacing,
   radii,
@@ -52,6 +53,7 @@ import {
   cartTotal as computeCartTotal,
   formatWeight,
   salePricing,
+  saleVariationFields,
 } from "../../features/sales/cart";
 import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { QuickSaleButton } from "../../features/sales/components/quick-sale-button";
@@ -387,6 +389,7 @@ export default function NewSaleScreen() {
   const actionFill =
     theme.mode === "light" ? pal.wineFill : theme.colors.primaryInteractive;
   const { copy } = useBrand();
+  const variationsEnabled = useFeature("catalogoCores");
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -440,27 +443,28 @@ export default function NewSaleScreen() {
   const pricing = salePricing(cartTotal, discountType, parsedDiscount);
 
   function addToCart(product: Product, variation?: ProductVariation) {
-    if ((product.variations?.length ?? 0) > 0 && !variation) {
+    const allowedVariation = variationsEnabled ? variation : undefined;
+    if (variationsEnabled && (product.variations?.length ?? 0) > 0 && !allowedVariation) {
       setVariationProduct(product);
       return;
     }
     // Produtos por peso (kg) abrem um campo pra digitar o peso em kg.
     if (product.saleUnit === "kg") {
       const existing = cart.find(
-        (i) => i.productId === product.id && i.variationId === variation?.id,
+        (i) => i.productId === product.id && i.variationId === allowedVariation?.id,
       );
       setWeightProduct(product);
-      setWeightVariation(variation ?? null);
+      setWeightVariation(allowedVariation ?? null);
       setWeightInput(existing ? String(existing.quantity).replace(".", ",") : "");
       return;
     }
     setCart((prev) => {
       const existing = prev.find(
-        (i) => i.productId === product.id && i.variationId === variation?.id,
+        (i) => i.productId === product.id && i.variationId === allowedVariation?.id,
       );
       if (existing) {
         return prev.map((i) =>
-          i.productId === product.id && i.variationId === variation?.id
+          i.productId === product.id && i.variationId === allowedVariation?.id
             ? { ...i, photoUrl: product.photoUrl, quantity: i.quantity + 1 }
             : i,
         );
@@ -474,8 +478,8 @@ export default function NewSaleScreen() {
           unitPrice: product.salePrice,
           quantity: 1,
           saleUnit: "unit",
-          variationId: variation?.id,
-          variationName: variation?.name,
+          variationId: allowedVariation?.id,
+          variationName: allowedVariation?.name,
         },
       ];
     });
@@ -638,8 +642,7 @@ export default function NewSaleScreen() {
         productId: i.productId,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
-        variationId: i.variationId,
-        variationName: i.variationName,
+        ...saleVariationFields(variationsEnabled, i),
       })),
     };
 
@@ -2160,7 +2163,7 @@ export default function NewSaleScreen() {
       </ResponsiveOverlayModal>
 
       <ResponsiveOverlayModal
-        visible={variationProduct !== null}
+        visible={variationsEnabled && variationProduct !== null}
         animationType="fade"
         transparent
         onRequestClose={() => setVariationProduct(null)}

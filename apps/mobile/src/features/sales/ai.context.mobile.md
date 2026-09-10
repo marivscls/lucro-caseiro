@@ -70,6 +70,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Produtos, pagamento e revisão usam uma barra de total no fluxo do layout mobile,
   com reserva para a navegação, sem sobrepor as listas. Busca e atalhos de produto
   rolam junto com a grade; quantidades ficam em controles de 44 px na base do card.
+- Variações só aparecem e só entram no payload quando a marca ativa `catalogoCores`.
+  Produtos legados com variações continuam vendáveis nas demais marcas como produto base.
 - Seleções e superfícies são neutras; as ações principais usam vinho no tema claro
   e o preenchimento acessível do tema escuro. A revisão permite editar itens,
   cliente e pagamento e mostra subtotal, desconto, total e observações.

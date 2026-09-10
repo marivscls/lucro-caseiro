@@ -50,3 +50,18 @@ export function formatWeight(kg: number): string {
 export function canUseQuickSale(cartLength: number, hasSelectedClient: boolean): boolean {
   return cartLength === 1 && !hasSelectedClient;
 }
+
+/**
+ * Variações pertencem apenas às marcas com catálogo de cores. Sanitizar o
+ * payload evita que produtos legados enviem variationId em outras marcas.
+ */
+export function saleVariationFields(
+  enabled: boolean,
+  item: Readonly<{ variationId?: string; variationName?: string }>,
+): { variationId?: string; variationName?: string } {
+  if (!enabled || !item.variationId) return {};
+  return {
+    variationId: item.variationId,
+    ...(item.variationName ? { variationName: item.variationName } : {}),
+  };
+}

@@ -6,6 +6,7 @@ import {
   formatWeight,
   itemSubtotal,
   salePricing,
+  saleVariationFields,
 } from "./cart";
 
 describe("itemSubtotal", () => {
@@ -85,5 +86,25 @@ describe("salePricing", () => {
   it("limita o desconto ao subtotal", () => {
     expect(salePricing(40, "fixed", 100).total).toBe(0);
     expect(salePricing(40, "percentage", 120).discount).toBe(40);
+  });
+});
+
+describe("saleVariationFields", () => {
+  it("remove dados de variação quando a marca não oferece catálogo de cores", () => {
+    expect(
+      saleVariationFields(false, {
+        variationId: "var-rosa",
+        variationName: "Rosa",
+      }),
+    ).toEqual({});
+  });
+
+  it("preserva dados de variação para marcas com o recurso ativo", () => {
+    expect(
+      saleVariationFields(true, {
+        variationId: "var-rosa",
+        variationName: "Rosa",
+      }),
+    ).toEqual({ variationId: "var-rosa", variationName: "Rosa" });
   });
 });
