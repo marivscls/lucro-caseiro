@@ -52,6 +52,24 @@ const redirect = await get("/landing?utm_source=check");
 assert.equal(redirect.status, 308);
 assert.equal(redirect.headers.get("location"), `${canonical}/?utm_source=check`);
 
+const wwwRedirects = [];
+if (new URL(base).origin === canonical) {
+  for (const [path, target] of [
+    ["/", "/"],
+    ["/landing?utm_source=check", "/?utm_source=check"],
+    ["/landing/calculadora?utm_source=check", "/landing/calculadora?utm_source=check"],
+  ]) {
+    // Normal TLS verification must succeed before checking the HTTP redirect.
+    const response = await fetch(`https://www.lucrocaseiro.com.br${path}`, {
+      method: "HEAD",
+      redirect: "manual",
+    });
+    assert.equal(response.status, 308, `www ${path}: permanent redirect`);
+    assert.equal(response.headers.get("location"), `${canonical}${target}`);
+    wwwRedirects.push({ path, status: response.status });
+  }
+}
+
 const robots = await (await get("/robots.txt")).text();
 const rules = [...robots.matchAll(/^(Allow|Disallow):\s*(.+)$/gmu)].map(
   ([, action, pattern]) => ({ action, pattern }),
@@ -91,6 +109,7 @@ console.log(
       base,
       pages: results,
       legacyRedirect: redirect.status,
+      wwwRedirects,
       crawlRules: "passed",
       sitemap: "passed",
       socialImage: "1200x630 PNG",

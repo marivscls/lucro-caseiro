@@ -74,6 +74,10 @@ O probe usa uma chave de idempotencia por destinatario e dia UTC. Repetir o mesm
 
 ### Custom domain (opcional)
 
+Em produção, o serviço da API também recebe `www.lucrocaseiro.com.br` exclusivamente para redirecionar GET/HEAD para `https://lucrocaseiro.com.br`, preservando caminho e query string. O middleware roda antes das rotas e recusa outros métodos nesse hostname. A API e os catálogos continuam em `catalogo.lucrocaseiro.com.br`. Essa configuração aproveita a segunda vaga de domínio personalizado do serviço, sem criar outro serviço ou contratar outro plano.
+
+O DNS de `www` aponta por CNAME para `i9h4va6n.up.railway.app` (TTL 300), com TXT de propriedade em `_railway-verify.www`. A Railway gerencia o certificado TLS. Se o serviço for recriado, confirme o novo destino indicado pela Railway antes de alterar o CNAME. Valide TLS e os redirecionamentos com `node scripts/check-landing.mjs https://lucrocaseiro.com.br`.
+
 Em **Settings → Networking → Custom Domain** → adicionar `api.lucrocaseiro.app` (ou subdominio do Orion). Railway da o CNAME pra apontar no seu DNS.
 
 ---
