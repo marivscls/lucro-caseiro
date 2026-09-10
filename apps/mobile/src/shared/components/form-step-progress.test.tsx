@@ -8,13 +8,16 @@ vi.mock("react-native", () => ({
   View: ({
     children,
     accessibilityRole,
+    accessibilityLabel,
     accessibilityValue,
   }: React.PropsWithChildren<{
     accessibilityRole?: string;
+    accessibilityLabel?: string;
     accessibilityValue?: { min: number; max: number; now: number };
   }>) => (
     <div
       role={accessibilityRole}
+      aria-label={accessibilityLabel}
       aria-valuemin={accessibilityValue?.min}
       aria-valuemax={accessibilityValue?.max}
       aria-valuenow={accessibilityValue?.now}
@@ -67,9 +70,13 @@ describe("FormStepProgress", () => {
   it("describes the current step with its name", () => {
     render(<FormStepProgress current={2} steps={steps} />);
 
-    expect(screen.getByText("Etapa 2 de 3")).toBeDefined();
+    expect(screen.getByText("2 de 3")).toBeDefined();
     expect(screen.getByText("Detalhes do cadastro")).toBeDefined();
-    expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("2");
+    expect(
+      screen
+        .getByRole("progressbar", { name: "Etapa 2 de 3: Detalhes do cadastro" })
+        .getAttribute("aria-valuenow"),
+    ).toBe("2");
   });
 
   it("allows returning only to completed steps", () => {
