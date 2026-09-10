@@ -9,7 +9,7 @@ import { desktopStretch, desktopWidths, pageGutter } from "../layout/desktop-den
 import { screenCreateBarBottomPadding } from "../layout/floating-tab-bar";
 import { useDesktopLayout } from "../layout/use-desktop-layout";
 
-const CREATE_CTA_HEIGHT = 56;
+const CREATE_CTA_HEIGHT = 48;
 
 export function ScreenCreateBar({
   title,
@@ -64,7 +64,7 @@ export function ScreenCreateBar({
             height: isDesktop ? 44 : CREATE_CTA_HEIGHT,
             minWidth: isDesktop ? 220 : undefined,
             paddingHorizontal: isDesktop ? spacing.xl : undefined,
-            borderRadius: isDesktop ? 12 : 16,
+            borderRadius: isDesktop ? 12 : 14,
             backgroundColor: palette.rose,
             alignItems: "center",
             justifyContent: "center",
