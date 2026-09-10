@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import {
   displayRecurringExpenseName,
   nextRecurringExpense,
-  sortRecurringExpenses,
+  sortRecurringExpensesByNextDue,
+  upcomingRecurringDays,
 } from "./recurring-expenses-view";
 
 function expense(
@@ -28,13 +29,12 @@ function expense(
 describe("recurring expenses presentation", () => {
   const items = [expense("dia-20", 20), expense("dia-8", 8), expense("dia-12", 12)];
 
-  it("ordena a lista nos dois sentidos sem alterar os dados de origem", () => {
-    expect(sortRecurringExpenses(items, "asc").map((item) => item.dayOfMonth)).toEqual([
-      8, 12, 20,
-    ]);
-    expect(sortRecurringExpenses(items, "desc").map((item) => item.dayOfMonth)).toEqual([
-      20, 12, 8,
-    ]);
+  it("ordena pelo próximo vencimento do ciclo sem alterar os dados de origem", () => {
+    expect(
+      sortRecurringExpensesByNextDue(items, new Date(2026, 8, 9)).map(
+        (item) => item.dayOfMonth,
+      ),
+    ).toEqual([12, 20, 8]);
     expect(items.map((item) => item.dayOfMonth)).toEqual([20, 8, 12]);
   });
 
@@ -56,5 +56,10 @@ describe("recurring expenses presentation", () => {
     expect(displayRecurringExpenseName("[massa] Energia elétrica")).toBe(
       "Energia elétrica",
     );
+  });
+
+  it("resume até cinco dias de vencimento no card mensal", () => {
+    const candidates = [2, 4, 6, 8, 10, 12].map((day) => expense(String(day), day));
+    expect(upcomingRecurringDays(candidates)).toEqual([2, 4, 6, 8, 10]);
   });
 });

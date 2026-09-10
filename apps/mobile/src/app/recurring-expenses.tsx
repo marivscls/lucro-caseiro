@@ -18,9 +18,17 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import fixedExpensesCalendar from "../assets/fixed-expenses-calendar.png";
 import { useBusinessCopy } from "../features/subscription/business-copy";
 import {
   useCreateRecurring,
@@ -31,8 +39,8 @@ import {
 import {
   displayRecurringExpenseName,
   nextRecurringExpense,
-  sortRecurringExpenses,
-  type RecurringSortDirection,
+  sortRecurringExpensesByNextDue,
+  upcomingRecurringDays,
 } from "../features/finance/recurring-expenses-view";
 import { useProfile } from "../features/subscription/hooks";
 import type { AppIconName } from "../shared/components/app-icon";
@@ -107,6 +115,7 @@ export default function RecurringExpensesScreen() {
   const { theme, styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
+  const { width: viewportWidth } = useWindowDimensions();
   const router = useRouter();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
@@ -116,16 +125,16 @@ export default function RecurringExpensesScreen() {
     hasActiveFeature(profile.plan, profile.planExpiresAt, "recurringExpenses");
   const showPaywall = usePaywall((state) => state.show);
   const [showForm, setShowForm] = useState(false);
-  const [sortDirection, setSortDirection] = useState<RecurringSortDirection>("asc");
   const [selectedExpense, setSelectedExpense] = useState<RecurringExpense | null>(null);
   const [editingExpense, setEditingExpense] = useState<RecurringExpense | null>(null);
 
   const recurringItems = items ?? [];
   const orderedItems = useMemo(
-    () => sortRecurringExpenses(items ?? [], sortDirection),
-    [items, sortDirection],
+    () => sortRecurringExpensesByNextDue(items ?? []),
+    [items],
   );
   const nextExpense = useMemo(() => nextRecurringExpense(items ?? []), [items]);
+  const timelineDays = useMemo(() => upcomingRecurringDays(items ?? []), [items]);
   const total = useMemo(
     () => (items ?? []).reduce((sum, item) => sum + item.amount, 0),
     [items],
@@ -205,8 +214,19 @@ export default function RecurringExpensesScreen() {
           showsVerticalScrollIndicator={false}
         >
           <MonthlyCommitmentsCard
+            compact={viewportWidth <= 360}
             count={recurringItems.length}
+            imageSize={Math.min(
+              160,
+              Math.max(
+                96,
+                (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
+                  (viewportWidth <= 360 ? 0.4 : 0.44) *
+                  0.92,
+              ),
+            )}
             nextDay={nextExpense?.dayOfMonth ?? null}
+            timelineDays={timelineDays}
             total={total}
           />
 
@@ -214,33 +234,11 @@ export default function RecurringExpensesScreen() {
             <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
           ) : (
             <>
-              <View style={styles.listHeadingRow}>
-                <View style={styles.listHeadingCopy}>
-                  <Typography variant="h3" color={palette.wine}>
-                    Seus gastos fixos
-                  </Typography>
-                  <Typography variant="caption">Ordenados por vencimento</Typography>
-                </View>
-                <Pressable
-                  accessibilityHint="Alterna a ordem dos gastos pelo dia do mês"
-                  accessibilityLabel={`Ordenar por data em ordem ${
-                    sortDirection === "asc" ? "decrescente" : "crescente"
-                  }`}
-                  accessibilityRole="button"
-                  onPress={() =>
-                    setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
-                  }
-                  style={({ pressed }) => [styles.sortButton, pressed && styles.pressed]}
-                >
-                  <AppIcon
-                    name="filter-outline"
-                    size={iconSizes.xs}
-                    color={palette.wine}
-                  />
-                  <Typography variant="captionBold" color={palette.wine}>
-                    {sortDirection === "asc" ? "Mais próximos" : "Mais distantes"}
-                  </Typography>
-                </Pressable>
+              <View style={styles.listHeadingCopy}>
+                <Typography variant="h3" color={palette.wine}>
+                  Seus gastos fixos
+                </Typography>
+                <Typography variant="caption">Próximos vencimentos primeiro</Typography>
               </View>
 
               {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
@@ -377,50 +375,87 @@ function RecurringHeader({
 }
 
 function MonthlyCommitmentsCard({
+  compact,
   count,
+  imageSize,
   nextDay,
+  timelineDays,
   total,
 }: Readonly<{
+  compact: boolean;
   count: number;
+  imageSize: number;
   nextDay: number | null;
+  timelineDays: readonly number[];
   total: number;
 }>) {
   const { styles, palette } = useRecurringTheme();
 
   return (
-    <View style={styles.commitmentCard}>
-      <View style={styles.commitmentHeader}>
-        <Typography variant="body" color="rgba(255,255,255,0.88)">
-          Total previsto por mês
-        </Typography>
-        <View style={styles.commitmentCountBadge}>
-          <Typography variant="captionBold" color={palette.onWine}>
-            {count} {count === 1 ? "gasto" : "gastos"}
+    <View style={[styles.commitmentCard, compact && styles.commitmentCardCompact]}>
+      <View style={styles.commitmentUpper}>
+        <View style={[styles.commitmentCopy, compact && styles.commitmentCopyCompact]}>
+          <Typography variant="body" color={palette.onWine}>
+            Compromissos do mês
           </Typography>
+          <Typography
+            variant="moneyHero"
+            color={palette.onWine}
+            adjustsFontSizeToFit
+            minimumFontScale={0.62}
+            numberOfLines={1}
+          >
+            {formatCurrency(total)}
+          </Typography>
+          <Typography variant="caption" color="rgba(255,255,255,0.9)">
+            {count} {count === 1 ? "gasto cadastrado" : "gastos cadastrados"}
+          </Typography>
+        </View>
+
+        <View
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          style={[styles.commitmentVisual, compact && styles.commitmentVisualCompact]}
+        >
+          <View style={styles.commitmentBlob} />
+          <Image
+            accessibilityIgnoresInvertColors
+            accessible={false}
+            resizeMode="contain"
+            source={fixedExpensesCalendar}
+            style={[styles.commitmentImage, { height: imageSize, width: imageSize }]}
+          />
         </View>
       </View>
-      <Typography
-        variant="moneyHero"
-        color={palette.onWine}
-        adjustsFontSizeToFit
-        minimumFontScale={0.72}
-        numberOfLines={1}
-      >
-        {formatCurrency(total)}
-      </Typography>
-      <View style={styles.commitmentDivider} />
-      <View style={styles.nextDueRow}>
-        <View style={styles.nextDueIcon}>
-          <AppIcon name="calendar-outline" size={iconSizes.xs} color={palette.wine} />
-        </View>
-        <View style={{ flex: 1 }}>
+
+      <View style={styles.timeline}>
+        {timelineDays.length > 1 ? <View style={styles.timelineLine} /> : null}
+        {timelineDays.length > 0 ? (
+          timelineDays.map((day) => {
+            const highlighted = day === nextDay;
+            return (
+              <View key={day} style={styles.timelineItem}>
+                <View
+                  style={[
+                    styles.timelineDot,
+                    highlighted && styles.timelineDotHighlighted,
+                  ]}
+                />
+                <Typography
+                  variant="caption"
+                  color={highlighted ? palette.lime : "rgba(255,255,255,0.9)"}
+                >
+                  {day}
+                </Typography>
+              </View>
+            );
+          })
+        ) : (
           <Typography variant="caption" color="rgba(255,255,255,0.72)">
-            Próximo vencimento
+            Seus próximos vencimentos aparecerão aqui
           </Typography>
-          <Typography variant="bodyBold" color={palette.onWine}>
-            {nextDay === null ? "Nenhum gasto ativo" : `Todo dia ${nextDay}`}
-          </Typography>
-        </View>
+        )}
       </View>
     </View>
   );
@@ -476,18 +511,24 @@ function ExpenseRow({
         <Typography variant="bodyBold" numberOfLines={2}>
           {displayRecurringExpenseName(item.description)}
         </Typography>
-        <Typography numberOfLines={2}>
-          {categoryLabel(item.category, materialNoun, packagingNoun)} · dia{" "}
-          {item.dayOfMonth}
-        </Typography>
+        <View style={styles.expenseMetaRow}>
+          <Typography variant="caption" numberOfLines={1}>
+            {categoryLabel(item.category, materialNoun, packagingNoun)} · vence dia{" "}
+            {item.dayOfMonth}
+          </Typography>
+          {isNext ? (
+            <View style={styles.nextBadge}>
+              <Typography variant="captionBold" color={palette.wine}>
+                Próximo
+              </Typography>
+            </View>
+          ) : null}
+        </View>
       </View>
       <View style={styles.expenseAmountBlock}>
         <Typography variant="money" numberOfLines={1} style={styles.expenseAmount}>
           {formatCurrency(item.amount)}
         </Typography>
-        {isNext ? (
-          <View accessibilityLabel="Próximo vencimento" style={styles.nextDot} />
-        ) : null}
       </View>
       <AppIcon name="chevron-forward" size={iconSizes.sm} color={palette.warmGray} />
     </Pressable>
@@ -949,27 +990,61 @@ function createStyles(theme: Theme) {
       borderColor: palette.wine,
       borderWidth: 1.5,
     },
+    commitmentBlob: {
+      backgroundColor: theme.colors.primaryBg,
+      borderRadius: radii.full,
+      height: "82%",
+      position: "absolute",
+      right: -spacing.sm,
+      top: spacing.md,
+      transform: [{ rotate: "-9deg" }],
+      width: "112%",
+    },
     commitmentCard: {
       backgroundColor: palette.wineFill,
       borderRadius: radii.lg,
-      gap: spacing.md,
-      padding: spacing.lg,
+      height: 216,
+      overflow: "hidden",
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
     },
-    commitmentCountBadge: {
-      backgroundColor: "rgba(255,255,255,0.14)",
-      borderRadius: radii.full,
+    commitmentCardCompact: {
+      height: 204,
       paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
+      paddingTop: spacing.md,
     },
-    commitmentDivider: {
-      backgroundColor: "rgba(255,255,255,0.22)",
-      height: StyleSheet.hairlineWidth,
+    commitmentCopy: {
+      gap: spacing.xs,
+      justifyContent: "center",
+      maxWidth: "55%",
+      minWidth: 0,
+      paddingBottom: spacing.sm,
+      width: "55%",
+      zIndex: 2,
     },
-    commitmentHeader: {
-      alignItems: "center",
+    commitmentCopyCompact: {
+      maxWidth: "60%",
+      width: "60%",
+    },
+    commitmentImage: {
+      zIndex: 2,
+    },
+    commitmentUpper: {
+      flex: 1,
       flexDirection: "row",
-      gap: spacing.md,
-      justifyContent: "space-between",
+      minHeight: 0,
+    },
+    commitmentVisual: {
+      alignItems: "center",
+      bottom: spacing.xs,
+      justifyContent: "center",
+      position: "absolute",
+      right: 0,
+      top: -spacing.sm,
+      width: "44%",
+    },
+    commitmentVisualCompact: {
+      width: "40%",
     },
     content: {
       gap: spacing.xl,
@@ -1037,23 +1112,16 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
       width: 44,
     },
-    nextDueIcon: {
-      alignItems: "center",
-      backgroundColor: theme.colors.primaryBg,
-      borderRadius: radii.md,
-      height: 40,
-      justifyContent: "center",
-      width: 40,
-    },
-    nextDueRow: {
-      alignItems: "center",
-      flexDirection: "row",
-      gap: spacing.md,
-    },
     expenseInfo: {
       flex: 1,
       gap: 1,
       minWidth: 0,
+    },
+    expenseMetaRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.xs,
     },
     expenseList: {
       backgroundColor: palette.white,
@@ -1080,7 +1148,7 @@ function createStyles(theme: Theme) {
       backgroundColor: palette.softRose,
     },
     expenseRowSelected: {
-      backgroundColor: palette.softRose,
+      backgroundColor: palette.neutral,
     },
     fieldBlock: {
       gap: spacing.sm,
@@ -1140,17 +1208,11 @@ function createStyles(theme: Theme) {
       flex: 1,
       minWidth: 0,
     },
-    listHeadingRow: {
-      alignItems: "center",
-      flexDirection: "row",
-      gap: spacing.md,
-      justifyContent: "space-between",
-    },
-    nextDot: {
-      backgroundColor: palette.lime,
+    nextBadge: {
+      backgroundColor: palette.softRose,
       borderRadius: radii.full,
-      height: 8,
-      width: 8,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 2,
     },
     nextExpenseBar: {
       backgroundColor: palette.rose,
@@ -1192,17 +1254,40 @@ function createStyles(theme: Theme) {
       flex: 1,
       minHeight: 0,
     },
-    sortButton: {
-      alignItems: "center",
-      backgroundColor: palette.white,
-      borderColor: palette.border,
-      borderRadius: radii.md,
-      borderWidth: 1,
+    timeline: {
+      alignItems: "flex-start",
       flexDirection: "row",
-      flexShrink: 0,
-      gap: spacing.sm,
-      minHeight: 44,
-      paddingHorizontal: spacing.md,
+      height: 48,
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.xs,
+      position: "relative",
+    },
+    timelineDot: {
+      backgroundColor: palette.wineFill,
+      borderColor: "rgba(255,255,255,0.8)",
+      borderRadius: radii.full,
+      borderWidth: 1.5,
+      height: 11,
+      width: 11,
+      zIndex: 2,
+    },
+    timelineDotHighlighted: {
+      backgroundColor: palette.lime,
+      borderColor: palette.onWine,
+    },
+    timelineItem: {
+      alignItems: "center",
+      flex: 1,
+      gap: spacing.xs,
+      zIndex: 2,
+    },
+    timelineLine: {
+      backgroundColor: "rgba(255,255,255,0.5)",
+      height: StyleSheet.hairlineWidth,
+      left: "10%",
+      position: "absolute",
+      right: "10%",
+      top: 5,
     },
   });
 }
