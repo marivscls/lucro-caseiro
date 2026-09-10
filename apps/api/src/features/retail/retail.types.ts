@@ -31,6 +31,7 @@ export interface IRetailRepo {
     userId: string,
     data: RetailDocumentCreateData,
     status: RetailDocument["status"],
+    requirePublicProducts?: boolean,
   ): Promise<RetailDocument>;
   findDocument(userId: string, id: string): Promise<RetailDocument | null>;
   findOpenCashSession(userId: string): Promise<RetailDocument | null>;

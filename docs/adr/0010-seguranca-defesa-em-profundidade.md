@@ -32,6 +32,11 @@ Adotamos as seguintes regras arquiteturais obrigatórias.
 - Consultas por recurso privado combinam `resource.id` e `resource.userId` na mesma operação.
 - O cliente pode esconder ações por UX, mas plano, feature, propriedade e limites são decididos na
   API.
+- As tabelas de negócio são privadas da API: RLS habilitada no schema Drizzle e no banco, com
+  privilégios de `PUBLIC`, `anon` e `authenticated` revogados por migração versionada. O cliente
+  usa Supabase diretamente somente para Auth e Storage, cujas políticas não são alteradas. O
+  backend conecta como proprietário das tabelas ou papel de serviço apropriado; não usa o papel
+  `authenticated` do Data API para executar suas consultas.
 
 ### 2.3 Navegador sob CSP e origem mínima
 
@@ -49,6 +54,9 @@ Adotamos as seguintes regras arquiteturais obrigatórias.
   buckets fixos. Isso evita depender de Redis inexistente e mantém consistência entre instâncias.
 - Quotas são específicas por operação; um limite global não substitui proteção de billing, IA,
   analytics ou formulários públicos.
+- A chave da quota usa somente a identidade já validada pelo middleware de autenticação ou, antes
+  da autenticação e nos formulários públicos, o IP determinado pelo proxy confiável. O conteúdo de
+  `Authorization` nunca identifica um bucket: trocar ou renovar um token não pode reiniciar a quota.
 - O acesso aos buckets usa o query builder tipado do Drizzle; mocks unitários não substituem o probe
   contra PostgreSQL real antes de concluir um rollout.
 

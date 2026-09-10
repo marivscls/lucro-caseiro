@@ -56,4 +56,4 @@ export const clients = pgTable(
         end
       ) <> ''`),
   ],
-);
+).enableRLS();

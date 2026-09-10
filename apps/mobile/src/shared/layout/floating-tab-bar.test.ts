@@ -3,11 +3,18 @@ import { spacing } from "@lucro-caseiro/ui";
 
 import {
   floatingTabBarReserve,
+  floatingTabBarHeight,
   mobileTabBarSafeInset,
   screenCreateBarBottomPadding,
 } from "./floating-tab-bar";
 
 describe("screenCreateBarBottomPadding", () => {
+  it("reserva espaço para os rótulos da navegação com fonte ampliada", () => {
+    expect(floatingTabBarHeight(1.5)).toBeGreaterThan(floatingTabBarHeight(1));
+    expect(floatingTabBarReserve(0, 1.5)).toBeGreaterThanOrEqual(
+      floatingTabBarHeight(1.5),
+    );
+  });
   it("usa o espaçamento médio no desktop", () => {
     expect(
       screenCreateBarBottomPadding({

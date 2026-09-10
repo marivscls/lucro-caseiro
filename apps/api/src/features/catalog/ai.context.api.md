@@ -47,6 +47,9 @@ ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no app.
 - Slug: `^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$` (1–40 chars, sem hífen nas pontas), único global.
 - Catálogo público só responde se `enabled = true`; senão 404 (não vaza existência).
 - Apenas produtos `isActive = true` aparecem; sempre escopados por `userId` do dono do slug.
+- O snapshot conserva o conteúdo publicado, mas a visibilidade é revogada imediatamente
+  quando um produto/serviço é ocultado, desativado ou excluído. A leitura pública
+  intersecta os IDs publicados com os IDs atualmente públicos do proprietário.
 - Defaults criados lazy no primeiro GET de settings: `enabled = false`, slug derivado do
   nome do negócio (sufixo `-N` em conflito), whatsapp = `users.phone`.
 - HTML escapa qualquer conteúdo do usuário (XSS).

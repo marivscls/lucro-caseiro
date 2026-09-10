@@ -18,8 +18,8 @@ import { ScreenHeader } from "../../shared/components/screen-header";
 import { FAB } from "../../shared/components/fab";
 import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { SelectionUnderline } from "../../shared/components/feature-motion";
-import { Redirect, Stack, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { Redirect, Stack, useRouter, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -1279,6 +1279,11 @@ function DayFilterModal({
 }
 
 function AgendaContent() {
+  const router = useRouter();
+  const { orderId, create } = useLocalSearchParams<{
+    orderId?: string;
+    create?: string;
+  }>();
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const nativeMobile = !isDesktop && Platform.OS !== "web";
@@ -1295,6 +1300,18 @@ function AgendaContent() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [completing, setCompleting] = useState(false);
+  useEffect(() => {
+    if (create === "home") {
+      setShowCreate(true);
+      router.setParams({ create: undefined });
+    }
+    if (orderId) {
+      setSelectedId(orderId);
+      setEditing(false);
+      setCompleting(false);
+      router.setParams({ orderId: undefined });
+    }
+  }, [create, orderId, router]);
 
   const dayFilterOptions = useMemo(() => getDayFilterOptions(orders ?? []), [orders]);
   const visibleOrders = useMemo(

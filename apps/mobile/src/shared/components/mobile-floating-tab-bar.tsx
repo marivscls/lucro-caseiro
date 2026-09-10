@@ -15,13 +15,20 @@ import {
   Users,
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { Platform, Pressable, StyleSheet, View, type ViewStyle } from "react-native";
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+  type ViewStyle,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBrandScreenPalette } from "../brand-palette";
 import { useAuth } from "../hooks/use-auth";
 import {
-  FLOATING_TAB_BAR_HEIGHT,
+  floatingTabBarHeight,
   floatingTabBarBottomOffset,
   mobileTabBarSafeInset,
 } from "../layout/floating-tab-bar";
@@ -43,6 +50,7 @@ const TAB_HREFS: Record<MobileTabKey, Href> = {
 
 /** Shared mobile navigation for tab routes and stacked screens. */
 export function MobileFloatingTabBar() {
+  const { fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const hasScheduling = useFeature("agendamento");
@@ -80,7 +88,6 @@ export function MobileFloatingTabBar() {
         hostPosition,
         {
           bottom: floatingTabBarBottomOffset(bottomInset),
-          height: FLOATING_TAB_BAR_HEIGHT,
         },
       ]}
     >
@@ -90,6 +97,7 @@ export function MobileFloatingTabBar() {
         style={[
           styles.bar,
           {
+            minHeight: floatingTabBarHeight(fontScale),
             backgroundColor: pal.white,
             borderColor: pal.border,
             shadowColor: pal.wineFill,
@@ -164,7 +172,6 @@ function TabItem({
       <Typography
         variant={active || primary ? "homeNavigationActive" : "homeNavigation"}
         color={color}
-        numberOfLines={1}
         style={styles.tabLabel}
       >
         {label}
@@ -181,7 +188,6 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   bar: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "stretch",
     gap: spacing.xs / 2,

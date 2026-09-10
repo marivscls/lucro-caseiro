@@ -24,6 +24,7 @@ import {
 import { and, asc, count, desc, eq, gte, lte, lt, ne, sql, sum } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
+import { ValidationError } from "../../shared/errors";
 import type {
   CreateOrderData,
   FindAllOrdersOpts,
@@ -46,6 +47,7 @@ export class OrdersRepoPg implements IOrdersRepo {
   constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateOrderData): Promise<Order> {
+    if (data.clientId) await this.assertOwnedClient(userId, data.clientId);
     const [row] = await this.db
       .insert(orders)
       .values({
@@ -100,8 +102,11 @@ export class OrdersRepoPg implements IOrdersRepo {
         serviceName: services.name,
       })
       .from(orders)
-      .leftJoin(clients, eq(orders.clientId, clients.id))
-      .leftJoin(services, eq(orders.serviceId, services.id))
+      .leftJoin(clients, and(eq(orders.clientId, clients.id), eq(clients.userId, userId)))
+      .leftJoin(
+        services,
+        and(eq(orders.serviceId, services.id), eq(services.userId, userId)),
+      )
       .where(and(eq(orders.userId, userId), eq(orders.id, id)));
 
     return row ? this.toOrder(row.order, row.clientName, row.serviceName) : null;
@@ -120,8 +125,11 @@ export class OrdersRepoPg implements IOrdersRepo {
         serviceName: services.name,
       })
       .from(orders)
-      .leftJoin(clients, eq(orders.clientId, clients.id))
-      .leftJoin(services, eq(orders.serviceId, services.id))
+      .leftJoin(clients, and(eq(orders.clientId, clients.id), eq(clients.userId, userId)))
+      .leftJoin(
+        services,
+        and(eq(orders.serviceId, services.id), eq(services.userId, userId)),
+      )
       .where(and(...conditions))
       .orderBy(asc(orders.deliveryDate), asc(orders.deliveryTime));
 
@@ -129,6 +137,7 @@ export class OrdersRepoPg implements IOrdersRepo {
   }
 
   async update(userId: string, id: string, data: UpdateOrderData): Promise<Order | null> {
+    if (data.clientId) await this.assertOwnedClient(userId, data.clientId);
     const set: Record<string, unknown> = {};
     if (data.title !== undefined) set.title = data.title;
     if (data.deliveryDate !== undefined) set.deliveryDate = data.deliveryDate;
@@ -373,6 +382,7 @@ export class OrdersRepoPg implements IOrdersRepo {
     packageData: ServicePackageInput,
     expiresAt: string,
   ): Promise<ServicePackagePurchase> {
+    await this.assertOwnedClient(userId, data.clientId);
     const [row] = await this.db
       .insert(servicePackagePurchases)
       .values({
@@ -432,10 +442,22 @@ export class OrdersRepoPg implements IOrdersRepo {
       .from(servicePackagePurchases)
       .innerJoin(
         servicePackages,
-        eq(servicePackagePurchases.packageId, servicePackages.id),
+        and(
+          eq(servicePackagePurchases.packageId, servicePackages.id),
+          eq(servicePackages.userId, userId),
+        ),
       )
-      .innerJoin(services, eq(servicePackagePurchases.serviceId, services.id))
-      .innerJoin(clients, eq(servicePackagePurchases.clientId, clients.id))
+      .innerJoin(
+        services,
+        and(
+          eq(servicePackagePurchases.serviceId, services.id),
+          eq(services.userId, userId),
+        ),
+      )
+      .innerJoin(
+        clients,
+        and(eq(servicePackagePurchases.clientId, clients.id), eq(clients.userId, userId)),
+      )
       .where(and(...conditions))
       .orderBy(desc(servicePackagePurchases.purchasedAt));
     return rows.map((row) =>
@@ -649,6 +671,14 @@ export class OrdersRepoPg implements IOrdersRepo {
       const occupiedEnd = occupiedStart + (order.durationMinutes ?? 60);
       return start < occupiedEnd && end > occupiedStart;
     });
+  }
+
+  private async assertOwnedClient(userId: string, clientId: string): Promise<void> {
+    const [client] = await this.db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.id, clientId), eq(clients.userId, userId)));
+    if (!client) throw new ValidationError(["Cliente não encontrado"]);
   }
 
   private async syncServiceOfferings(

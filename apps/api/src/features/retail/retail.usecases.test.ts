@@ -130,6 +130,97 @@ function makeSut(options?: {
 }
 
 describe("RetailUseCases", () => {
+  const publicOrder = {
+    slug: "papelaria",
+    customerName: "Maria",
+    customerPhone: "11999999999",
+    fulfillment: "pickup" as const,
+    items: [{ productId: PRODUCT_ID, quantity: 1 }],
+  };
+
+  it("rejects a hidden active product in a public order without revealing its name", async () => {
+    const { sut, mocks } = makeSut({
+      product: makeProduct({ publicEnabled: false, name: "Produto privado" }),
+    });
+    await expect(sut.createCatalogOrder(USER_ID, publicOrder)).rejects.toMatchObject({
+      message: "Produto indisponível",
+    });
+    expect(mocks.createDocument).not.toHaveBeenCalled();
+  });
+
+  it("still allows the owner to quote a hidden product at the register", async () => {
+    const { sut } = makeSut({ product: makeProduct({ publicEnabled: false }) });
+    await expect(
+      sut.quoteCheckout(USER_ID, {
+        items: publicOrder.items,
+        manualDiscount: 0,
+      }),
+    ).resolves.toMatchObject({ total: 10 });
+  });
+
+  it.each([false, true])(
+    "rejects duplicate public order lines exceeding available stock (variation: %s)",
+    async (withVariation) => {
+      const { sut, mocks } = makeSut({
+        product: makeProduct(
+          withVariation
+            ? {
+                variations: [{ id: VARIATION_ID, name: "Azul", stockQuantity: 10 }],
+              }
+            : {},
+        ),
+      });
+      mocks.reservedQuantities.mockResolvedValue(
+        new Map([
+          [`${PRODUCT_ID}:${withVariation ? VARIATION_ID : "product"}`, { quantity: 2 }],
+        ]),
+      );
+      const line = {
+        productId: PRODUCT_ID,
+        quantity: 5,
+        ...(withVariation ? { variationId: VARIATION_ID } : {}),
+      };
+      await expect(
+        sut.createCatalogOrder(USER_ID, {
+          ...publicOrder,
+          items: [line, line],
+        }),
+      ).rejects.toBeInstanceOf(ValidationError);
+      expect(mocks.createDocument).not.toHaveBeenCalled();
+    },
+  );
+
+  it("accepts duplicate public order lines when their total fits available stock", async () => {
+    const { sut, mocks } = makeSut();
+    mocks.reservedQuantities.mockResolvedValue(
+      new Map([[`${PRODUCT_ID}:product`, { quantity: 2 }]]),
+    );
+    await sut.createCatalogOrder(USER_ID, {
+      ...publicOrder,
+      items: [
+        { productId: PRODUCT_ID, quantity: 4 },
+        { productId: PRODUCT_ID, quantity: 4 },
+      ],
+    });
+    expect(mocks.createDocument).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ amount: 80 }),
+      "new",
+      true,
+    );
+  });
+
+  it("rejects a forged variation on a product without variations", async () => {
+    const { sut, mocks } = makeSut();
+    await expect(
+      sut.createCatalogOrder(USER_ID, {
+        ...publicOrder,
+        items: [{ productId: PRODUCT_ID, variationId: VARIATION_ID, quantity: 1 }],
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
+    expect(mocks.createDocument).not.toHaveBeenCalled();
+  });
+
   it("quotes the authoritative promotional total", async () => {
     const { sut } = makeSut({ promotions: [makePromotion()] });
     const quote = await sut.quoteCheckout(USER_ID, {

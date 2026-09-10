@@ -24,12 +24,15 @@ import { cancelOrderReminder, scheduleOrderReminder } from "./reminders";
 const ORDERS_KEY = ["orders"];
 const ORDERS_SUMMARY_KEY = ["orders", "summary"];
 
-export function useOrders(opts?: { status?: OrderStatus; from?: string; to?: string }) {
+export function useOrders(
+  opts?: { status?: OrderStatus; from?: string; to?: string },
+  enabled = true,
+) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...ORDERS_KEY, opts],
     queryFn: () => fetchOrders(token!, opts),
-    enabled: !!token,
+    enabled: !!token && enabled,
   });
 }
 

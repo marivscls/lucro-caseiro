@@ -324,7 +324,7 @@ export class RetailUseCases {
   }
 
   async createCatalogOrder(userId: string, data: PublicCatalogOrderData) {
-    const lines = await this.quoteItems(userId, data.items);
+    const lines = await this.quoteItems(userId, data.items, undefined, true);
     return this.repo.createDocument(
       userId,
       {
@@ -349,6 +349,7 @@ export class RetailUseCases {
         })),
       },
       "new",
+      true,
     );
   }
 
@@ -657,24 +658,31 @@ export class RetailUseCases {
     userId: string,
     items: Array<{ productId: string; variationId?: string; quantity: number }>,
     excludeReservationId?: string,
+    publicOnly = false,
   ): Promise<QuotedRetailLine[]> {
     const promotions = await this.repo.listPromotions(userId, new Date());
     const reserved = await this.repo.reservedQuantities(userId, excludeReservationId);
     const lines: QuotedRetailLine[] = [];
+    const requested = new Map<string, number>();
     for (const item of items) {
       const product = await this.productsRepo.findById(userId, item.productId);
-      if (!product || !product.isActive)
+      if (!product || !product.isActive || (publicOnly && !product.publicEnabled))
         throw new ValidationError(["Produto indisponível"]);
       const variation = item.variationId
         ? product.variations?.find((candidate) => candidate.id === item.variationId)
         : undefined;
+      if (item.variationId && !variation) {
+        throw new ValidationError(["Variação indisponível"]);
+      }
       if (product.variations?.length && !variation) {
         throw new ValidationError([`Escolha uma variação para ${product.name}`]);
       }
       const physical = variation?.stockQuantity ?? product.stockQuantity;
-      const held =
-        reserved.get(`${product.id}:${variation?.id ?? "product"}`)?.quantity ?? 0;
-      if (physical !== null && physical - held < item.quantity) {
+      const stockKey = `${product.id}:${variation?.id ?? "product"}`;
+      const held = reserved.get(stockKey)?.quantity ?? 0;
+      const quantity = (requested.get(stockKey) ?? 0) + item.quantity;
+      requested.set(stockKey, quantity);
+      if (physical !== null && physical - held < quantity) {
         throw new ValidationError([
           `Estoque disponível insuficiente para ${product.name}`,
         ]);

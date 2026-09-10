@@ -19,8 +19,8 @@ import {
   type Theme,
 } from "@lucro-caseiro/ui";
 import * as FileSystem from "expo-file-system/legacy";
-import { useRouter } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -151,6 +151,13 @@ export function FinanceDashboard({
     "income",
   );
   const [showCreateEntry, setShowCreateEntry] = useState(false);
+  const { create } = useLocalSearchParams<{ create?: string }>();
+  useEffect(() => {
+    if (create !== "expense" && create !== "income") return;
+    setInitialEntryType(create);
+    setShowCreateEntry(true);
+    router.setParams({ create: undefined });
+  }, [create, router]);
   const [selectedEntry, setSelectedEntry] = useState<FinanceEntry | null>(null);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(now.getFullYear());

@@ -44,7 +44,7 @@ export const packaging = pgTable(
     index("idx_packaging_user").on(table.userId),
     index("idx_packaging_user_supplier").on(table.userId, table.supplierId),
   ],
-);
+).enableRLS();
 
 export const productPackaging = pgTable("product_packaging", {
   productId: uuid("product_id")
@@ -53,4 +53,4 @@ export const productPackaging = pgTable("product_packaging", {
   packagingId: uuid("packaging_id")
     .notNull()
     .references(() => packaging.id, { onDelete: "cascade" }),
-});
+}).enableRLS();

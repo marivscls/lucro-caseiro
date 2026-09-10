@@ -9,27 +9,40 @@
   },
   "pnpm": {
     "overrides": {
-      "@xmldom/xmldom@<0.8.13": "0.8.13",
+      "@humanfs/node@<0.16.8": "0.16.8",
+      "@xmldom/xmldom@<0.8.15": "0.8.15",
+      "baseline-browser-mapping@>=2.0.0 <2.11.0": "2.11.0",
       "body-parser@>=2.0.0 <2.3.0": "2.3.0",
       "brace-expansion@<1.1.18": "1.1.18",
       "brace-expansion@>=2.0.0 <2.1.4": "2.1.4",
       "brace-expansion@>=5.0.0 <5.0.7": "5.0.9",
+      "browserslist@<4.28.7": "4.28.7",
+      "esbuild@<=0.24.2": "0.25.12",
       "esbuild@>=0.27.3 <0.28.1": "0.28.1",
-      "fast-uri@<=3.1.4": "3.1.5",
-      "js-yaml@>=3.0.0 <3.15.0": "3.15.0",
-      "js-yaml@>=4.0.0 <4.3.0": "4.3.0",
+      "fast-uri@>=3.0.0 <3.1.6": "3.1.6",
+      "js-yaml@>=3.0.0 <3.15.2": "3.15.2",
+      "js-yaml@>=4.0.0 <4.3.2": "4.3.2",
+      "minimatch@>=10.0.0 <10.2.3": "10.2.3",
+      "nanoid@>=3.0.0 <3.3.18": "3.3.18",
       "path-to-regexp@>=8.0.0 <8.4.0": "8.4.0",
       "postcss@<8.5.25": "8.5.25",
-      "qs@<6.15.3": "6.15.3",
+      "qs@<6.16.0": "6.16.0",
+      "sharp@<0.35.4": "0.35.4",
       "shell-quote@>=1.1.0 <1.10.0": "1.10.0",
-      "sharp@<0.35.0": "0.35.3",
+      "smol-toml@<1.7.1": "1.7.1",
       "tar@<=7.5.21": "7.5.22",
       "tmp@<0.2.7": "0.2.7",
       "undici@<6.28.0": "6.28.0",
+      "undici@>=7.0.0 <7.29.0": "7.29.0",
       "uuid@>=7.0.0 <11.1.1": "11.1.1",
       "ws@>=6.0.0 <6.2.4": "6.2.4",
       "ws@>=7.0.0 <7.5.11": "7.5.11",
-      "ws@>=8.0.0 <8.21.0": "8.21.0"
+      "ws@>=8.0.0 <8.21.0": "8.21.0",
+      "vite": "7.3.6"
+    },
+    "patchedDependencies": {
+      "image-size@1.2.1": "patches/image-size@1.2.1.patch",
+      "decode-uri-component@0.2.2": "patches/decode-uri-component@0.2.2.patch"
     }
   },
   "scripts": {
@@ -46,17 +59,18 @@
     "knip:full": "knip --include-entry-exports",
     "check": "pnpm lint && pnpm typecheck && pnpm build",
     "prepush": "pnpm lint && pnpm typecheck && pnpm test && pnpm sherif && pnpm context:lint",
-    "ci": "pnpm security:secrets && pnpm security:audit && pnpm lint && pnpm typecheck && pnpm test && pnpm sherif && pnpm knip:full && pnpm context:lint && pnpm build",
+    "ci": "pnpm security:secrets && pnpm security:patches && pnpm security:audit && pnpm lint && pnpm typecheck && pnpm test && pnpm sherif && pnpm knip:full && pnpm context:lint && pnpm build",
     "context:lint": "node scripts/context-lint-api.mjs && node scripts/context-lint-mobile.mjs",
     "context:lint:api": "node scripts/context-lint-api.mjs",
     "context:lint:mobile": "node scripts/context-lint-mobile.mjs",
     "context:lint:changed": "node scripts/context-lint-api.mjs --changed && node scripts/context-lint-mobile.mjs --changed",
     "context:lint:staged": "node scripts/context-lint-api.mjs --staged && node scripts/context-lint-mobile.mjs --staged",
-    "security:audit": "pnpm audit --prod --audit-level=high",
+    "security:audit": "node scripts/security-audit.mjs",
     "security:secrets": "node scripts/security-scan-secrets.mjs",
     "analytics:report": "pnpm --filter @lucro-caseiro/api analytics:report",
     "ai:eval": "pnpm --filter @lucro-caseiro/api ai:eval",
-    "prepare": "husky"
+    "prepare": "husky",
+    "security:patches": "node --test scripts/security-dependency-patches.test.mjs scripts/security-audit.test.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.6.1",
@@ -72,7 +86,7 @@
     "lint-staged": "^16.0.0",
     "prettier": "^3.4.2",
     "sherif": "^1.0.0",
-    "turbo": "^2.8.3",
+    "turbo": "2.9.14",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.21.0"
   }

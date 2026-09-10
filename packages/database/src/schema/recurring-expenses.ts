@@ -33,4 +33,4 @@ export const recurringExpenses = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_recurring_expenses_user").on(table.userId)],
-);
+).enableRLS();

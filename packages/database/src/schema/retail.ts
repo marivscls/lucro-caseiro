@@ -46,7 +46,7 @@ export const retailDocuments = pgTable(
       .on(table.userId)
       .where(sql`${table.kind} = 'cash_session' AND ${table.status} = 'open'`),
   ],
-);
+).enableRLS();
 
 export const retailDocumentItems = pgTable(
   "retail_document_items",
@@ -71,7 +71,7 @@ export const retailDocumentItems = pgTable(
     index("idx_retail_document_items_document").on(table.documentId),
     index("idx_retail_document_items_product").on(table.productId),
   ],
-);
+).enableRLS();
 
 export const retailCashMovements = pgTable(
   "retail_cash_movements",
@@ -88,7 +88,7 @@ export const retailCashMovements = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_retail_cash_movements_session").on(table.sessionId)],
-);
+).enableRLS();
 
 export const retailPromotions = pgTable(
   "retail_promotions",
@@ -112,7 +112,7 @@ export const retailPromotions = pgTable(
   (table) => [
     index("idx_retail_promotions_user_period").on(table.userId, table.startsAt),
   ],
-);
+).enableRLS();
 
 export const retailBusinessAccounts = pgTable(
   "retail_business_accounts",
@@ -147,7 +147,7 @@ export const retailBusinessAccounts = pgTable(
       table.clientId,
     ),
   ],
-);
+).enableRLS();
 
 export const retailPriceChanges = pgTable(
   "retail_price_changes",
@@ -167,4 +167,4 @@ export const retailPriceChanges = pgTable(
   (table) => [
     index("idx_retail_price_changes_product").on(table.productId, table.createdAt),
   ],
-);
+).enableRLS();

@@ -46,4 +46,4 @@ export const quotes = pgTable(
     index("idx_quotes_user_status").on(table.userId, table.status),
     index("idx_quotes_user_created").on(table.userId, table.createdAt),
   ],
-);
+).enableRLS();

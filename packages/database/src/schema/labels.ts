@@ -21,4 +21,4 @@ export const labels = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_labels_user").on(table.userId)],
-);
+).enableRLS();

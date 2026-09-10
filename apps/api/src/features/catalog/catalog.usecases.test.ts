@@ -502,6 +502,41 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.products[0]?.name).toBe("Produto publicado");
   });
 
+  it("revokes stale snapshot products and services when no longer publicly available", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        listPublicProducts: () => Promise.resolve([]),
+        listPublicServices: () => Promise.resolve([]),
+        findOwnerBySlug: () =>
+          Promise.resolve({
+            ...makeSettings({
+              publishedCustomization: { version: 1 } as StorefrontCustomization,
+            }),
+            ...makeOwner({ plan: "essential" }),
+            publishedProducts: [makeProduct()],
+            publishedServices: [
+              {
+                id: "22222222-2222-4222-8222-222222222222",
+                name: "Serviço oculto",
+                description: null,
+                durationMinutes: 60,
+                defaultPrice: 100,
+                locationMode: "business" as const,
+                bookingInstructions: null,
+                variations: [],
+                addOns: [],
+                packages: [],
+              },
+            ],
+          }),
+      }),
+    );
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+    expect(catalog.products).toEqual([]);
+    expect(catalog.services).toEqual([]);
+    expect(catalog.totalProducts).toBe(0);
+  });
+
   it("não vaza o rascunho quando ainda não há personalização publicada", async () => {
     const draft = {
       version: 1,

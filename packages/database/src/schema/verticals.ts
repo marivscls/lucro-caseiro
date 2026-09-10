@@ -35,7 +35,7 @@ export const appMemberships = pgTable(
     uniqueIndex("uq_app_memberships_user_brand").on(table.userId, table.brandId),
     index("idx_app_memberships_user_status").on(table.userId, table.status),
   ],
-);
+).enableRLS();
 
 export const verticalDocuments = pgTable(
   "vertical_documents",
@@ -76,7 +76,7 @@ export const verticalDocuments = pgTable(
     ),
     index("idx_vertical_documents_due_at").on(table.userId, table.domain, table.dueAt),
   ],
-);
+).enableRLS();
 
 export const verticalDocumentItems = pgTable(
   "vertical_document_items",
@@ -101,7 +101,7 @@ export const verticalDocumentItems = pgTable(
     index("idx_vertical_document_items_document").on(table.documentId),
     index("idx_vertical_document_items_product").on(table.productId),
   ],
-);
+).enableRLS();
 
 export const verticalEvents = pgTable(
   "vertical_events",
@@ -129,7 +129,7 @@ export const verticalEvents = pgTable(
       .on(table.userId, table.idempotencyKey)
       .where(sql`${table.idempotencyKey} IS NOT NULL`),
   ],
-);
+).enableRLS();
 
 export const verticalAssets = pgTable(
   "vertical_assets",
@@ -156,7 +156,7 @@ export const verticalAssets = pgTable(
       .on(table.userId, table.domain, table.identifier)
       .where(sql`${table.identifier} IS NOT NULL`),
   ],
-);
+).enableRLS();
 
 export const resaleSerials = pgTable(
   "resale_serials",
@@ -193,4 +193,4 @@ export const resaleSerials = pgTable(
       table.status,
     ),
   ],
-);
+).enableRLS();

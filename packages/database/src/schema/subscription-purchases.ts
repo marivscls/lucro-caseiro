@@ -27,4 +27,4 @@ export const subscriptionPurchaseClaims = pgTable(
     ),
     index("subscription_purchase_claims_user_idx").on(table.userId),
   ],
-);
+).enableRLS();

@@ -22,8 +22,10 @@ interface PostgresRateLimitOptions {
 }
 
 function clientKey(req: Request): string {
-  const authorization = req.header("authorization");
-  return authorization ? `auth:${authorization}` : `ip:${req.ip ?? "unknown"}`;
+  // Only authMiddleware can establish this identity. Headers and body fields are
+  // attacker-controlled, and rotating them must never create a fresh quota.
+  const userId = (req as Request & { userId?: string }).userId;
+  return userId ? `user:${userId}` : `ip:${req.ip ?? "unknown"}`;
 }
 
 export function createPostgresRateLimitStore(

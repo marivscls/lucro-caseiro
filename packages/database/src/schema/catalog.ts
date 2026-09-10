@@ -46,4 +46,4 @@ export const catalogSettings = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_catalog_settings_slug").on(table.slug)],
-);
+).enableRLS();

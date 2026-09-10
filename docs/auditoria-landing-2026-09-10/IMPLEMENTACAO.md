@@ -4,7 +4,7 @@ Revisão: 10 de setembro de 2026. O relatório original registra o diagnóstico 
 
 | Prioridade                 | Correção                                                                                                                                                                             | Estado                                       |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| P1 — rastreamento          | Raiz exata, páginas públicas e assets liberados; rotas internas continuam excluídas. Canonical da homepage consolidado em `/`; `/landing` redireciona com os parâmetros preservados. | Implementado e verificado por HTTP local     |
+| P1 — rastreamento          | Raiz exata, páginas públicas e assets liberados; rotas internas continuam excluídas. Canonical da homepage consolidado em `/`; `/landing` redireciona com os parâmetros preservados. | Publicado e verificado por HTTP em produção  |
 | P1 — HTTPS www             | Redirecionamento permanente para o domínio sem www implementado, incluindo remoção da porta interna.                                                                                 | Certificado pendente de infraestrutura       |
 | P1 — catálogo dos planos   | Essencial e Profissional mostram catálogo completo e personalizado. Limites/preços vêm do contracts.                                                                                 | Implementado                                 |
 | P1 — precificação avançada | Custos, trabalho, rateio por produção e taxas manuais descritos como recursos gerais. Profissional diferencia rateio por faturamento e perfis salvos.                                | Implementado                                 |
@@ -18,6 +18,8 @@ Revisão: 10 de setembro de 2026. O relatório original registra o diagnóstico 
 Também foram revisados H1 da calculadora, perguntas frequentes, suporte, identidade da operadora, explicação das métricas e documentação do produto.
 
 ## Validação
+
+Checagem completa `pnpm prepush` aprovada na revisão isolada: lint, tipos, testes (45 na web, 829 no mobile), sherif e context:lint. Build de produção com Next.js 16.2.11 aprovado. As mesmas verificações HTTP passaram no domínio público após o deploy.
 
 - Testes de redirecionamento, cabeçalhos e funil; regressão específica para não vazar a porta interna da hospedagem.
 - Build de produção, lint e TypeScript da web.
@@ -44,4 +46,12 @@ Cliques não comprovam cadastro, instalação nem ativação. O resultado de neg
 
 ## Publicação
 
-Pendente de registro da revisão e da verificação no domínio de produção.
+Código publicado em `main`: `2c771a16dd245f1f559281eedb88ffb64d49b27f`.
+
+Railway: deploy `5998487b-2573-451b-bbf8-0af4abb4a22d`, estado `SUCCESS` confirmado em 10 de setembro de 2026.
+
+`node scripts/check-landing.mjs https://lucrocaseiro.com.br` aprovado: nove páginas HTTP 200, canonical correto, robots index/follow, CSP, JSON-LD válido, redirecionamento 308 de /landing para / preservando parâmetros, regras de rastreamento e sitemap corretos, imagem PNG 1200 × 630.
+
+Em viewport 1280 × 720, os planos passaram da posição vertical aproximada de 6.660 px para 4.723 px: cerca de 29% menos rolagem até essa seção. Altura total observada: 7.674 px, ante 8.998 px no diagnóstico. Essas são medidas de layout, não resultados de conversão.
+
+Oito das dez prioridades estão resolvidas e publicadas. HTTPS de www e coleta real do Analytics continuam pendentes das dependências externas descritas acima; não foram considerados concluídos.

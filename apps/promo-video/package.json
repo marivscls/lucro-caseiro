@@ -18,7 +18,7 @@
     "@remotion/eslint-config-flat": "4.0.489",
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
-    "eslint": "9.19.0",
+    "eslint": "9.39.5",
     "prettier": "3.8.1",
     "typescript": "5.9.3"
   },
@@ -35,5 +35,15 @@
   },
   "sideEffects": [
     "*.css"
-  ]
+  ],
+  "overrides": {
+    "baseline-browser-mapping@>=2.0.0 <2.11.0": "2.11.0",
+    "brace-expansion@<1.1.18": "1.1.18",
+    "brace-expansion@>=2.0.0 <2.1.4": "2.1.4",
+    "browserslist@<4.28.7": "4.28.7",
+    "fast-uri@>=3.0.0 <3.1.6": "3.1.6",
+    "js-yaml@>=4.0.0 <4.3.2": "4.3.2",
+    "nanoid@>=3.0.0 <3.3.18": "3.3.18",
+    "postcss@<8.5.25": "8.5.25"
+  }
 }

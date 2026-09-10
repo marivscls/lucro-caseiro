@@ -1,5 +1,5 @@
 import { spacing } from "@lucro-caseiro/ui";
-import { Platform } from "react-native";
+import { Dimensions, Platform } from "react-native";
 
 export const FLOATING_TAB_BAR_HEIGHT = Platform.select({
   ios: 80,
@@ -7,12 +7,24 @@ export const FLOATING_TAB_BAR_HEIGHT = Platform.select({
   default: 68,
 });
 
+/** Leave room for wrapped navigation labels when system text is enlarged. */
+export function floatingTabBarHeight(
+  fontScale = Dimensions.get("window").fontScale ?? 1,
+): number {
+  if (fontScale <= 1.15) return FLOATING_TAB_BAR_HEIGHT;
+  const safePadding = Platform.OS === "ios" ? spacing["2xl"] : spacing.sm;
+  return Math.max(
+    FLOATING_TAB_BAR_HEIGHT,
+    Math.ceil(22 + 2 + 3 * 16 * fontScale + spacing.sm + safePadding + 4),
+  );
+}
+
 export function floatingTabBarBottomOffset(bottomInset: number): number {
   return Platform.OS === "android" ? bottomInset + spacing.sm : spacing.xs;
 }
 
-export function floatingTabBarReserve(bottomInset: number): number {
-  return FLOATING_TAB_BAR_HEIGHT + floatingTabBarBottomOffset(bottomInset);
+export function floatingTabBarReserve(bottomInset: number, fontScale?: number): number {
+  return floatingTabBarHeight(fontScale) + floatingTabBarBottomOffset(bottomInset);
 }
 
 export function floatingTabBarContentPadding(bottomInset: number): number {

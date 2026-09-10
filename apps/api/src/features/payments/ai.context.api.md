@@ -49,6 +49,10 @@ No payment tables. Mapping is derived from Stripe metadata:
 - Checkout uses `mode: "subscription"` and one recurring Price (selected by `tier` + `period`).
 - Webhook signature verification uses `Stripe-Signature` + `STRIPE_WEBHOOK_SECRET`.
 - Stripe webhook route must receive raw request body before `express.json()`.
+- Subscription events reconcile the current provider state by retrieving the subscription
+  by ID, including canceled subscriptions and expanded Checkout payloads. An old event
+  cannot restore its stale status/tier. Retrieval errors propagate for webhook retry,
+  without applying the event snapshot or changing the local plan.
 - `active` and `trialing` subscriptions activate the plan; the tier comes from `subscription.metadata.tier` (fallback: match the price id; last resort `professional`, covering legacy Premium subs).
 - `canceled`, `incomplete_expired`, `paused`, and `unpaid` subscriptions deactivate the plan (back to Free).
 - `past_due` is ignored so Stripe retry settings can run without immediate downgrade.
@@ -125,8 +129,8 @@ env:
 ## Performance
 
 - Checkout creation makes one Stripe API call.
-- `checkout.session.completed` may make one Stripe subscription retrieve call when the subscription is not expanded.
-- `customer.subscription.*` events are handled from the webhook payload without extra API calls.
+- `checkout.session.completed` and handled `customer.subscription.*` events make one
+  subscription retrieve call, including when the payload contains an expanded object.
 - Events are infrequent and no cache is used.
 
 ## Security
@@ -179,6 +183,10 @@ Stripe-Signature: t=...,v1=...
 
 ## Change log / Decisions
 
+- 2026-09-10: subscription webhooks reconcile current Stripe state instead of stale
+  event snapshots; this covers sequential out-of-order delivery for the same
+  subscription. Multiple concurrent subscriptions/providers and racing reconciliations
+  still require persisted entitlement ownership/versioning and are outside this change.
 - Stripe is the active hosted checkout path.
 - Products/Prices are dashboard-managed and referenced by env vars.
 - Mobile opens Stripe Checkout in the system browser.

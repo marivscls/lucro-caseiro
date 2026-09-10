@@ -20,4 +20,4 @@ export const ingredients = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_ingredients_user").on(table.userId)],
-);
+).enableRLS();

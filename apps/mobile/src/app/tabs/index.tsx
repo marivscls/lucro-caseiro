@@ -10,6 +10,7 @@ import {
   Typography,
   useBrand,
   useTheme,
+  useFeature,
 } from "@lucro-caseiro/ui";
 import { Redirect, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -24,22 +25,18 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
-import { useFinanceRangeSummary, useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
 import { useProlaboreStatus } from "../../features/goals/hooks";
-import { useInsights } from "../../features/insights/hooks";
 import { BusinessProfileCard } from "../../features/onboarding/business-profile";
 import { usePricingList } from "../../features/pricing/hooks";
 import { useProducts } from "../../features/products/hooks";
-import { useSales, useTodaySummary } from "../../features/sales/hooks";
+import { useSales } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { AppIcon, type AppIconName } from "../../shared/components/app-icon";
-import { GoalProgress } from "../../shared/components/feature-motion";
 import { GettingStartedOverlay } from "../../shared/components/getting-started-overlay";
-import { SkeletonHome } from "../../shared/components/skeleton";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
@@ -51,14 +48,21 @@ import {
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
-import { formatCurrency } from "../../shared/utils/format";
 import {
   resolveGettingStartedPresentation,
   type GettingStartedStage,
 } from "../../shared/utils/getting-started";
 import { resolveHomeNextStep } from "../../shared/utils/home-next-step";
 
-type OverviewPeriod = "today" | "month";
+import {
+  HomeDay,
+  HomeQuickActions,
+  HomeMoney,
+  HomeAttention,
+  HomeGoal,
+} from "../../features/home/components";
+import { useOrders } from "../../features/orders/hooks";
+import { useBusinessCopy } from "../../features/subscription/business-copy";
 
 function localDateKey(date = new Date()): string {
   return [
@@ -80,15 +84,6 @@ function formattedDate(date = new Date()): string {
       month: "long",
     }).format(date),
   );
-}
-
-function monthName(date = new Date()): string {
-  return capitalize(new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(date));
-}
-
-function registeredSalesLabel(count: number): string {
-  if (count === 0) return "Nenhuma venda registrada";
-  return count === 1 ? "1 venda registrada" : `${count} vendas registradas`;
 }
 
 function AvatarCircle({
@@ -137,7 +132,7 @@ const GETTING_STARTED_COPY: Record<
     title: "Cadastre seu primeiro produto",
   },
   sale: {
-    action: "Registrar",
+    action: "Nova venda",
     description: "Leva menos de 1 minuto",
     icon: "receipt-outline",
     title: "Registre sua primeira venda",
@@ -269,425 +264,6 @@ function NextStepCard({
   );
 }
 
-function PeriodSelector({
-  value,
-  onChange,
-}: Readonly<{ value: OverviewPeriod; onChange: (value: OverviewPeriod) => void }>) {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      style={{
-        flexDirection: "row",
-        flexShrink: 0,
-        width: 176,
-        padding: 3,
-        borderRadius: radii.lg,
-        borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.white,
-      }}
-    >
-      {(["today", "month"] as const).map((period) => {
-        const selected = value === period;
-        let backgroundColor = "transparent";
-        let textColor = theme.colors.textSecondary;
-
-        if (selected) {
-          backgroundColor = colors.wineFill;
-          textColor = colors.onWine;
-        }
-
-        return (
-          <Pressable
-            key={period}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: selected }}
-            accessibilityLabel={period === "today" ? "Hoje" : "Mês"}
-            accessibilityHint={
-              period === "today"
-                ? "Mostrar vendas e caixa de hoje"
-                : "Mostrar vendas e caixa do mês"
-            }
-            onPress={() => onChange(period)}
-            style={({ pressed }) => ({
-              flex: 1,
-              minWidth: 0,
-              minHeight: 44,
-              paddingHorizontal: spacing.sm,
-              borderRadius: radii.md,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor,
-              opacity: pressed ? 0.8 : 1,
-            })}
-          >
-            <Typography variant="homeLink" color={textColor}>
-              {period === "today" ? "Hoje" : "Mês"}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function FinancialMetric({
-  compact,
-  icon,
-  label,
-  value,
-  tone,
-}: Readonly<{
-  compact: boolean;
-  icon: AppIconName;
-  label: string;
-  value: string;
-  tone: string;
-}>) {
-  const colors = useBrandScreenPalette();
-  return (
-    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: compact ? spacing.sm : spacing.md,
-        }}
-      >
-        <View
-          style={{
-            width: compact ? 36 : 44,
-            height: compact ? 36 : 44,
-            borderRadius: radii.full,
-            backgroundColor: "rgba(255,255,255,0.10)",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <AppIcon
-            name={icon}
-            size={compact ? iconSizes.sm : iconSizes.md}
-            color={tone}
-          />
-        </View>
-        <Typography variant="homeMetricLabel" color="#F3DDE4">
-          {label}
-        </Typography>
-      </View>
-      <Typography
-        variant="homeMetricValue"
-        color={colors.onWine}
-        numberOfLines={1}
-        maxFontSizeMultiplier={1.1}
-      >
-        {value}
-      </Typography>
-    </View>
-  );
-}
-
-function FinancialHero({
-  compact,
-  expenses,
-  income,
-  onNewSale,
-  period,
-  salesAmount,
-  salesCount,
-  viewportWidth,
-}: Readonly<{
-  compact: boolean;
-  expenses: number;
-  income: number;
-  onNewSale: () => void;
-  period: OverviewPeriod;
-  salesAmount: number;
-  salesCount: number;
-  viewportWidth: number;
-}>) {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-  const background = colors.wineFill;
-  const periodText = period === "today" ? "hoje" : "no mês";
-  const actionWidth = Math.min(164, Math.max(154, viewportWidth * 0.4));
-
-  return (
-    <View
-      style={{
-        backgroundColor: background,
-        borderRadius: radii["2xl"],
-        padding: compact ? spacing.lg : spacing["2xl"],
-        ...theme.shadows.sm,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "nowrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: compact ? spacing.md : spacing.lg,
-        }}
-      >
-        <Typography
-          variant="homeFinancialLabel"
-          color="#F3DDE4"
-          numberOfLines={1}
-          style={{ flex: 1, minWidth: 0 }}
-        >
-          Vendas {periodText}
-        </Typography>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Registrar venda"
-          onPress={onNewSale}
-          style={({ pressed }) => ({
-            minHeight: compact ? 48 : 52,
-            width: compact ? actionWidth : undefined,
-            maxWidth: 180,
-            paddingHorizontal: compact ? spacing.sm : spacing.xl,
-            borderRadius: radii.full,
-            backgroundColor: theme.colors.primaryInteractive,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: compact ? 6 : spacing.sm,
-            opacity: pressed ? 0.84 : 1,
-          })}
-        >
-          <AppIcon
-            name="add"
-            size={compact ? iconSizes.sm : iconSizes.md}
-            color={theme.colors.textOnPrimary}
-          />
-          <Typography
-            variant="homeAction"
-            color={theme.colors.textOnPrimary}
-            numberOfLines={1}
-            maxFontSizeMultiplier={1.1}
-            style={compact ? { fontSize: 13, lineHeight: 18 } : undefined}
-          >
-            Registrar venda
-          </Typography>
-        </Pressable>
-      </View>
-      <Typography
-        variant="homeFinancialValue"
-        color={colors.onWine}
-        numberOfLines={1}
-        maxFontSizeMultiplier={1.1}
-        style={{ width: "100%", marginTop: spacing.sm }}
-      >
-        {formatCurrency(salesAmount)}
-      </Typography>
-      <Typography variant="homeBody" color="#E9C7D1" style={{ marginTop: spacing.xs }}>
-        {registeredSalesLabel(salesCount)}
-      </Typography>
-
-      <View
-        style={{
-          height: 1,
-          backgroundColor: "rgba(255,255,255,0.16)",
-          marginVertical: compact ? spacing.lg : spacing.xl,
-        }}
-      />
-      <View style={{ flexDirection: "row", gap: spacing.lg }}>
-        <FinancialMetric
-          compact={compact}
-          icon="arrow-down-circle-outline"
-          label="Entradas"
-          value={formatCurrency(income)}
-          tone={colors.lime}
-        />
-        <View style={{ width: 1, backgroundColor: "rgba(255,255,255,0.18)" }} />
-        <FinancialMetric
-          compact={compact}
-          icon="arrow-up-circle-outline"
-          label="Despesas"
-          value={formatCurrency(expenses)}
-          tone="#E792A6"
-        />
-      </View>
-    </View>
-  );
-}
-
-function GoalCard({
-  compact,
-  current,
-  goal,
-  hasGoal,
-  onPress,
-  progress,
-  viewportWidth,
-}: Readonly<{
-  compact: boolean;
-  current: number;
-  goal: number;
-  hasGoal: boolean;
-  onPress: () => void;
-  progress: number;
-  viewportWidth: number;
-}>) {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-  const safeProgress = Math.min(Math.max(progress, 0), 100);
-  const valueText = hasGoal
-    ? `${formatCurrency(current)} de ${formatCurrency(goal)}`
-    : "Meta ainda não definida";
-  const baseValueFontSize = Math.min(18, Math.max(16, viewportWidth * 0.048));
-  const valueFontSize = Math.max(
-    16,
-    baseValueFontSize * Math.min(1, 32 / valueText.length),
-  );
-  const keepValueOnOneLine = !hasGoal || valueText.length <= 36;
-
-  return (
-    <Card
-      variant="elevated"
-      padding={compact ? "lg" : "xl"}
-      style={{
-        borderColor: colors.border,
-        borderRadius: radii.xl,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: spacing.md,
-        }}
-      >
-        <Typography variant="homeGoalTitle">
-          Meta de {monthName().toLowerCase()}
-        </Typography>
-        <Pressable
-          accessibilityRole="button"
-          onPress={onPress}
-          style={({ pressed }) => ({
-            minHeight: 44,
-            paddingHorizontal: spacing.sm,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.xs,
-            opacity: pressed ? 0.65 : 1,
-          })}
-        >
-          <Typography variant="homeLink" color={theme.colors.primaryStrong}>
-            {hasGoal ? "Editar meta" : "Definir meta"}
-          </Typography>
-          <AppIcon
-            name="chevron-forward"
-            size={iconSizes.sm}
-            color={theme.colors.primaryStrong}
-          />
-        </Pressable>
-      </View>
-
-      <Typography
-        variant="homeGoalValue"
-        color={theme.colors.text}
-        numberOfLines={keepValueOnOneLine ? 1 : undefined}
-        adjustsFontSizeToFit={keepValueOnOneLine}
-        minimumFontScale={0.78}
-        maxFontSizeMultiplier={1.1}
-        style={{
-          marginTop: spacing.sm,
-          ...(compact
-            ? {
-                fontSize: valueFontSize,
-                lineHeight: valueFontSize + 6,
-                letterSpacing: -0.3,
-                fontVariant: ["tabular-nums"] as const,
-              }
-            : undefined),
-        }}
-      >
-        {valueText}
-      </Typography>
-
-      <View style={{ marginTop: compact ? spacing.md : spacing.lg }}>
-        <GoalProgress
-          value={safeProgress}
-          color={colors.lime}
-          trackColor={theme.colors.surface}
-          textColor={colors.onLime}
-        />
-      </View>
-    </Card>
-  );
-}
-
-const QUICK_ACTIONS = [
-  { icon: "trending-up-outline", label: "Venda", route: "/tabs/new-sale", active: true },
-  { icon: "cube-outline", label: "Produto", route: "/products", active: false },
-  {
-    icon: "calculator-outline",
-    label: "Preço",
-    accessibilityLabel: "Precificação",
-    route: "/pricing",
-    active: false,
-  },
-  { icon: "cash-outline", label: "Despesa", route: "/finance", active: false },
-] as const;
-
-function QuickAccess({ compact }: Readonly<{ compact: boolean }>) {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-  const router = useRouter();
-
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "nowrap", gap: spacing.sm }}>
-      {QUICK_ACTIONS.map((action) => (
-        <Pressable
-          key={action.label}
-          accessibilityRole="button"
-          accessibilityLabel={
-            "accessibilityLabel" in action ? action.accessibilityLabel : action.label
-          }
-          onPress={() => router.push(action.route)}
-          style={({ pressed }) => ({
-            flex: 1,
-            minWidth: 0,
-            minHeight: compact ? 92 : 100,
-            paddingHorizontal: spacing.sm,
-            paddingVertical: compact ? spacing.md : spacing.lg,
-            borderRadius: radii.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: action.active ? theme.colors.primaryBg : colors.white,
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed ? 0.74 : 1,
-          })}
-        >
-          <AppIcon
-            name={action.icon}
-            size={iconSizes.md}
-            color={
-              action.active ? theme.colors.primaryStrong : theme.colors.textSecondary
-            }
-          />
-          <Typography
-            variant="homeShortcut"
-            color={action.active ? theme.colors.primaryStrong : theme.colors.text}
-            numberOfLines={1}
-            maxFontSizeMultiplier={1.1}
-            style={{ textAlign: "center" }}
-          >
-            {action.label}
-          </Typography>
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
 function ContextualNextCard({
   accessibilityHint,
   accessibilityLabel,
@@ -772,39 +348,6 @@ function ContextualNextCard({
   );
 }
 
-function ErrorCard({ onRetry }: Readonly<{ onRetry: () => void }>) {
-  const { theme } = useTheme();
-
-  return (
-    <Card variant="elevated" padding="lg">
-      <Typography variant="h3">Não foi possível atualizar os números</Typography>
-      <Typography variant="body" style={{ marginTop: spacing.xs }}>
-        Seus atalhos continuam disponíveis. Tente novamente em instantes.
-      </Typography>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onRetry}
-        style={({ pressed }) => ({
-          alignSelf: "flex-start",
-          minHeight: 44,
-          marginTop: spacing.md,
-          paddingHorizontal: spacing.lg,
-          borderRadius: radii.full,
-          borderWidth: 1,
-          borderColor: theme.colors.primaryStrong,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: pressed ? 0.68 : 1,
-        })}
-      >
-        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-          Tentar novamente
-        </Typography>
-      </Pressable>
-    </Card>
-  );
-}
-
 export default function HomeScreen() {
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
@@ -816,7 +359,6 @@ export default function HomeScreen() {
   const compact = !isDesktop && width < 480;
   const today = localDateKey();
 
-  const [period, setPeriod] = useState<OverviewPeriod>("today");
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [manuallyOpenedGuideUserId, setManuallyOpenedGuideUserId] = useState<
     string | null
@@ -826,16 +368,17 @@ export default function HomeScreen() {
   const authUser = useAuth((state) => state.user);
   const onboardingState = useOnboarding();
   const businessOnboarding = useBusinessOnboarding();
+  const businessCopy = useBusinessCopy();
   const serviceBusiness =
-    brand.id === "lucro-caseiro" && businessOnboarding.answers.segment === "services";
+    ["services", "beauty"].includes(businessCopy.profile) ||
+    businessOnboarding.answers.segment === "services";
+  const hasScheduling = useFeature("agendamento");
+  const stockEnabled = useFeature("estoque");
+  const ordersQuery = useOrders(undefined, hasScheduling);
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
 
-  const todaySalesQuery = useTodaySummary();
-  const monthSalesQuery = useInsights(1);
-  const dayFinanceQuery = useFinanceRangeSummary(today, today);
-  const monthFinanceQuery = useFinanceSummary();
   const goalQuery = useProlaboreStatus();
   const productsQuery = useProducts();
   const salesQuery = useSales();
@@ -889,27 +432,6 @@ export default function HomeScreen() {
     if (userId) dismissGettingStarted(userId);
   }
 
-  const selectedSales = period === "today" ? todaySalesQuery.data : monthSalesQuery.data;
-  const selectedFinance =
-    period === "today" ? dayFinanceQuery.data : monthFinanceQuery.data;
-  const salesAmount =
-    period === "today"
-      ? (todaySalesQuery.data?.totalAmount ?? 0)
-      : (monthSalesQuery.data?.totalRevenue ?? 0);
-  const salesCount =
-    period === "today"
-      ? (todaySalesQuery.data?.totalSales ?? 0)
-      : (monthSalesQuery.data?.totalSales ?? 0);
-  const periodLoading =
-    period === "today"
-      ? todaySalesQuery.isLoading || dayFinanceQuery.isLoading
-      : monthSalesQuery.isLoading || monthFinanceQuery.isLoading;
-  const periodError =
-    period === "today"
-      ? todaySalesQuery.error || dayFinanceQuery.error
-      : monthSalesQuery.error || monthFinanceQuery.error;
-  const goal = goalQuery.data?.progress;
-  const hasGoal = !!goalQuery.data?.config;
   const firstName = profile?.name?.trim().split(/\s+/)[0] || "Maria";
   const showSalesLimitBanner = getLimitBannerState(limits, profile, "sales") !== null;
 
@@ -929,16 +451,6 @@ export default function HomeScreen() {
 
     if (userId) completeGettingStarted(userId);
     router.push("/finance");
-  }
-
-  function retrySelectedPeriod() {
-    if (period === "today") {
-      void todaySalesQuery.refetch();
-      void dayFinanceQuery.refetch();
-      return;
-    }
-    void monthSalesQuery.refetch();
-    void monthFinanceQuery.refetch();
   }
 
   if (
@@ -1030,7 +542,12 @@ export default function HomeScreen() {
             onPress: () => router.push("/finance"),
           }}
         />
-        {brand.id === "lucro-caseiro" ? <BusinessProfileCard hasSale={hasSale} /> : null}
+        {brand.id === "lucro-caseiro" ? (
+          <BusinessProfileCard
+            hasSale={hasSale}
+            compactHome={hasSale || hasPriced || (ordersQuery.data?.length ?? 0) > 0}
+          />
+        ) : null}
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
@@ -1044,85 +561,13 @@ export default function HomeScreen() {
           />
         ) : null}
 
-        <View style={{ gap: spacing.lg }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: spacing.sm,
-            }}
-          >
-            <Typography variant="homeTitle" numberOfLines={1} maxFontSizeMultiplier={1.1}>
-              Visão geral
-            </Typography>
-            <PeriodSelector value={period} onChange={setPeriod} />
-          </View>
-
-          {periodError ? <ErrorCard onRetry={retrySelectedPeriod} /> : null}
-          {periodLoading && !selectedSales ? (
-            <SkeletonHome />
-          ) : (
-            <FinancialHero
-              compact={compact}
-              expenses={selectedFinance?.totalExpenses ?? 0}
-              income={selectedFinance?.totalIncome ?? 0}
-              onNewSale={() => router.push("/tabs/new-sale")}
-              period={period}
-              salesAmount={salesAmount}
-              salesCount={salesCount}
-              viewportWidth={width}
-            />
-          )}
-        </View>
-
-        {goalQuery.isLoading ? (
-          <SkeletonHome />
-        ) : (
-          <GoalCard
-            compact={compact}
-            current={goal?.currentRevenue ?? 0}
-            goal={goal?.requiredRevenue ?? 0}
-            hasGoal={hasGoal}
-            onPress={() => setShowGoalForm(true)}
-            progress={goal?.progressPct ?? 0}
-            viewportWidth={width}
-          />
+        {hasScheduling && (
+          <HomeDay query={ordersQuery} today={today} service={serviceBusiness} />
         )}
-
-        <View style={{ gap: spacing.md }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography variant="homeTitle">Acesso rápido</Typography>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push("/tabs/more")}
-              style={({ pressed }) => ({
-                minHeight: 44,
-                paddingLeft: spacing.md,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.xs,
-                opacity: pressed ? 0.65 : 1,
-              })}
-            >
-              <Typography variant="homeLink" color={theme.colors.primaryStrong}>
-                Ver todos
-              </Typography>
-              <AppIcon
-                name="chevron-forward"
-                size={iconSizes.sm}
-                color={theme.colors.primaryStrong}
-              />
-            </Pressable>
-          </View>
-          <QuickAccess compact={compact} />
-        </View>
+        <HomeQuickActions service={serviceBusiness} scheduling={hasScheduling} />
+        <HomeMoney today={today} orders={ordersQuery} scheduling={hasScheduling} />
+        <HomeAttention enabled={!serviceBusiness && stockEnabled} />
+        <HomeGoal query={goalQuery} onEdit={() => setShowGoalForm(true)} />
 
         {homeNextStep === "register-product" ? (
           <ContextualNextCard

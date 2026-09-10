@@ -3,10 +3,15 @@ import type { KnipConfig } from "knip";
 const config: KnipConfig = {
   ignore: ["apps/promo-video/**"],
   ignoreExportsUsedInFile: true,
-  // runner e2e externo (nao instalado como dep).
-  ignoreBinaries: ["maestro"],
+  // CLIs de e2e e builds nativos instalados externamente ao workspace.
+  ignoreBinaries: ["maestro", "eas"],
   workspaces: {
-    ".": {},
+    ".": {
+      // Scripts operacionais sao executados diretamente por Node/CI/Railway.
+      // Caches de navegador, skills e artefatos de auditoria nao sao codigo do app.
+      entry: ["scripts/*.{mjs,cjs,ts}"],
+      project: ["*.{mjs,cjs,ts}", "scripts/**/*.{mjs,cjs,ts}"],
+    },
     // Tool de codegen standalone (package.json proprio, fora do pnpm-workspace):
     // cli/worker sao os entrypoints que puxam o resto de src/.
     "tools/asset-forge": {
@@ -15,6 +20,8 @@ const config: KnipConfig = {
       project: ["**/*.mjs"],
     },
     "apps/mobile": {
+      // Expo fornece Babel transitivamente; habilitar a leitura do preset explicito.
+      babel: true,
       entry: ["src/app/**/*.{ts,tsx}", "scripts/guidance-smoke.cjs"],
       project: ["src/**/*.{ts,tsx}"],
       ignore: [
@@ -38,6 +45,14 @@ const config: KnipConfig = {
     },
     "apps/api": {
       project: ["src/**/*.ts"],
+    },
+    "apps/web": {
+      // Registrado por URL no navegador, sem import estatico.
+      entry: ["public/sw.js"],
+      project: ["src/**/*.{ts,tsx,css}"],
+      // Knip infere postcss do plugin Tailwind; @tailwindcss/postcss ja o fornece
+      // como dependencia propria, sem peer nem import direto neste workspace.
+      ignoreDependencies: ["postcss"],
     },
     "packages/config": {
       entry: ["eslint/*.mjs", "tsconfig/*.json"],

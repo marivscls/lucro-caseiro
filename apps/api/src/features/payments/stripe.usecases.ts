@@ -73,7 +73,8 @@ export class StripeUseCases {
       event.type === "customer.subscription.updated" ||
       event.type === "customer.subscription.deleted"
     ) {
-      const stripeSubscription = event.data.object;
+      const stripeSubscription = await this.getSubscription(event.data.object.id);
+      if (!stripeSubscription) return;
       const userId = getStripeSubscriptionUserId(stripeSubscription);
       if (!userId) return;
 
@@ -92,9 +93,9 @@ export class StripeUseCases {
     subscription: string | Stripe.Subscription | null,
   ): Promise<Stripe.Subscription | null> {
     if (!subscription) return null;
-    if (typeof subscription !== "string") return subscription;
-    if (!this.stripe) return null;
-    return this.stripe.subscriptions.retrieve(subscription);
+    if (!this.stripe) throw new Error("Stripe não configurado");
+    const id = typeof subscription === "string" ? subscription : subscription.id;
+    return this.stripe.subscriptions.retrieve(id);
   }
 
   private async applySubscriptionState(

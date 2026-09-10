@@ -8,6 +8,7 @@ import type {
   UpdateRetailDocument,
 } from "@lucro-caseiro/contracts";
 import {
+  products,
   retailBusinessAccounts,
   retailCashMovements,
   retailDocumentItems,
@@ -15,9 +16,10 @@ import {
   retailPriceChanges,
   retailPromotions,
 } from "@lucro-caseiro/database/schema";
-import { and, eq, gt, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, ne, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
+import { ValidationError } from "../../shared/errors";
 import type {
   CreateBusinessAccountData,
   CreateCashMovementData,
@@ -28,6 +30,7 @@ import type {
 
 type DocumentRow = typeof retailDocuments.$inferSelect;
 type DocumentItemRow = typeof retailDocumentItems.$inferSelect;
+type RetailTransaction = Parameters<Parameters<AppDatabase["transaction"]>[0]>[0];
 
 export class RetailRepoPg implements IRetailRepo {
   constructor(private db: AppDatabase) {}
@@ -36,8 +39,12 @@ export class RetailRepoPg implements IRetailRepo {
     userId: string,
     data: RetailDocumentCreateData,
     status: RetailDocument["status"],
+    requirePublicProducts = false,
   ): Promise<RetailDocument> {
     return this.db.transaction(async (tx) => {
+      if (data.kind === "catalog_order") {
+        await this.assertReservationStock(tx, userId, data, requirePublicProducts);
+      }
       const amount =
         data.amount ??
         data.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
@@ -344,6 +351,7 @@ export class RetailRepoPg implements IRetailRepo {
   async reservedQuantities(
     userId: string,
     excludeDocumentId?: string,
+    connection: AppDatabase | RetailTransaction = this.db,
   ): Promise<Map<string, { productId: string; variationId?: string; quantity: number }>> {
     const conditions = [
       eq(retailDocuments.userId, userId),
@@ -352,7 +360,7 @@ export class RetailRepoPg implements IRetailRepo {
       gt(retailDocuments.reservedUntil, new Date()),
     ];
     if (excludeDocumentId) conditions.push(ne(retailDocuments.id, excludeDocumentId));
-    const rows = await this.db
+    const rows = await connection
       .select({
         productId: retailDocumentItems.productId,
         variationId: retailDocumentItems.variationId,
@@ -376,6 +384,60 @@ export class RetailRepoPg implements IRetailRepo {
       });
     }
     return result;
+  }
+
+  private async assertReservationStock(
+    tx: RetailTransaction,
+    userId: string,
+    data: RetailDocumentCreateData,
+    requirePublicProducts: boolean,
+  ): Promise<void> {
+    const ids = [...new Set(data.items.map((item) => item.productId))];
+    if (ids.some((id) => !id)) throw new ValidationError(["Produto indisponível"]);
+    if (!ids.length) return;
+    // Lock in the same order for multi-product carts; re-read reservations after
+    // acquiring the locks so a competing commit is visible under READ COMMITTED.
+    const rows = await tx
+      .select({
+        id: products.id,
+        isActive: products.isActive,
+        publicEnabled: products.publicEnabled,
+        stockQuantity: products.stockQuantity,
+        variations: products.variations,
+      })
+      .from(products)
+      .where(and(eq(products.userId, userId), inArray(products.id, ids as string[])))
+      .orderBy(asc(products.id))
+      .for("update");
+    const byId = new Map(rows.map((product) => [product.id, product]));
+    const reserved = await this.reservedQuantities(userId, undefined, tx);
+    const requested = new Map<string, number>();
+    for (const item of data.items) {
+      const product = byId.get(item.productId!);
+      if (
+        !product ||
+        !product.isActive ||
+        (requirePublicProducts && !product.publicEnabled)
+      ) {
+        throw new ValidationError(["Produto indisponível"]);
+      }
+      const variation = product.variations?.find(
+        (entry) => entry.id === item.variationId,
+      );
+      if ((item.variationId || product.variations?.length) && !variation) {
+        throw new ValidationError(["Variação indisponível"]);
+      }
+      const key = `${product.id}:${variation?.id ?? "product"}`;
+      const quantity = (requested.get(key) ?? 0) + item.quantity;
+      requested.set(key, quantity);
+      const physical = variation?.stockQuantity ?? product.stockQuantity;
+      if (
+        physical !== null &&
+        Number(physical) - (reserved.get(key)?.quantity ?? 0) < quantity
+      ) {
+        throw new ValidationError(["Estoque disponível insuficiente"]);
+      }
+    }
   }
 
   async recordPriceChange(

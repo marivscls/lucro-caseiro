@@ -5,7 +5,9 @@ import { GooglePlayClient } from "./google-play.client";
 const request = vi.fn();
 
 vi.mock("google-auth-library", () => ({
-  GoogleAuth: vi.fn(() => ({ request })),
+  GoogleAuth: vi.fn(function GoogleAuthMock() {
+    return { request };
+  }),
 }));
 
 const serviceAccount = JSON.stringify({

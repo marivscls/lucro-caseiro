@@ -1647,7 +1647,7 @@ export default function ProductsScreen() {
   const contentGutter = compactLayout ? spacing.lg : spacing.xl;
   const listContentMaxWidth = isDesktop ? desktopWidths.data : desktopWidths.standard;
   const router = useRouter();
-  const { from, create, salePrice, costPrice, name, category, stock } =
+  const { from, create, salePrice, costPrice, name, category, stock, productId } =
     useLocalSearchParams<{
       from?: string;
       create?: string;
@@ -1656,10 +1656,16 @@ export default function ProductsScreen() {
       name?: string;
       category?: string;
       stock?: string;
+      productId?: string;
     }>();
   const guidedCreate = create === "getting-started";
   const [showCreate, setShowCreate] = useState(create === "from-pricing" || guidedCreate);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!productId) return;
+    setSelectedProductId(productId);
+    router.setParams({ productId: undefined });
+  }, [productId, router]);
   const [search, setSearch] = useState("");
   const stockEnabled = useFeature("estoque");
   const [typeFilter, setTypeFilter] = useState<ProductTypeFilter>("all");

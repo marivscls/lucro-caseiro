@@ -103,6 +103,10 @@ db:
 ## Authorization & RLS
 
 - Rotas protegidas por `authMiddleware`; `userId` via `getUserId(req)`. Isolamento por `userId` em nível de aplicação (mesma estratégia das demais tabelas).
+- Criação/edição de encomendas e compra de pacotes validam que o cliente pertence
+  ao usuário antes de gravar. Cliente inexistente ou de outra conta gera 400
+  `Cliente não encontrado`. Joins de clientes/serviços também filtram o proprietário,
+  evitando exposição por vínculos antigos inconsistentes.
 
 ## Contracts (Zod/DTO)
 

@@ -32,4 +32,4 @@ export const suppliers = pgTable(
     index("idx_suppliers_user_name").on(table.userId, table.name),
     index("idx_suppliers_user_active").on(table.userId, table.isActive),
   ],
-);
+).enableRLS();

@@ -1,5 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "./supabase";
 import { supportedImageMimeFromBytes, uploadCatalogLogo } from "./upload-image";
@@ -14,6 +14,12 @@ function session(expiresAt: number): Session {
     user: { id: "user-123" },
   } as Session;
 }
+
+beforeEach(() => {
+  vi.spyOn(supabase.auth, "getSession").mockReset();
+  vi.spyOn(supabase.auth, "refreshSession").mockReset();
+  vi.spyOn(supabase.storage, "from").mockReset();
+});
 
 afterEach(() => {
   vi.restoreAllMocks();

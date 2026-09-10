@@ -19,4 +19,4 @@ export const professionalTrialCampaignGrants = pgTable(
     emailAttempts: integer("email_attempts").notNull().default(0),
     emailLastError: text("email_last_error"),
   },
-);
+).enableRLS();

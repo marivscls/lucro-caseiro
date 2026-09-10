@@ -61,11 +61,23 @@ devolve `{ url }`; senão devolve `{ b64 }` (a CLI salva em `out/png/`).
 
 ```bash
 # 1) sobe o worker (modo stub: gera um PNG real de placeholder, offline)
-node worker.mjs            # http://localhost:8787  (GET /health para checar)
+node worker.mjs            # http://127.0.0.1:8787  (GET /health para checar)
 
 # 2) em outro terminal, gera apontando a CLI pro worker
-ASSET_FORGE_PROVIDER=http ASSET_FORGE_IMAGE_ENDPOINT=http://localhost:8787 node cli.mjs gen --all
+ASSET_FORGE_PROVIDER=http ASSET_FORGE_IMAGE_ENDPOINT=http://127.0.0.1:8787 node cli.mjs gen --all
 ```
+
+O worker escuta somente em `127.0.0.1` por padrão. Para disponibilizá-lo em outra
+interface, configure `ASSET_FORGE_HOST` e `ASSET_FORGE_API_KEY`; sem chave, ele recusa
+iniciar fora do loopback. Quando há chave configurada, todo POST exige
+`Authorization: Bearer <chave>`, inclusive no acesso local. O provider HTTP envia
+esse cabeçalho quando recebe a mesma `ASSET_FORGE_API_KEY`. Use HTTPS no endpoint
+externo (por exemplo, com um proxy TLS à frente do worker).
+
+Os POSTs devem usar `Content-Type: application/json`, um `slug` com até 100 letras
+minúsculas, números e hífens, e um `prompt` não vazio com até 16000 caracteres. O
+corpo tem limite de 1 MB. Erros de geração retornam uma mensagem genérica, sem
+repassar respostas internas do provedor ou Storage. `GET /health` permanece público.
 
 ### Adapters de imagem (`src/image-adapters.mjs`)
 
@@ -86,7 +98,7 @@ export OPENAI_API_KEY=...
 export SUPABASE_URL=https://xxxx.supabase.co
 export SUPABASE_SERVICE_KEY=...        # service role (upload no Storage)
 node worker.mjs
-ASSET_FORGE_PROVIDER=http ASSET_FORGE_IMAGE_ENDPOINT=http://localhost:8787 node cli.mjs gen --all
+ASSET_FORGE_PROVIDER=http ASSET_FORGE_IMAGE_ENDPOINT=http://127.0.0.1:8787 node cli.mjs gen --all
 ```
 
 > Para produção, o `worker.mjs` é portátil — a mesma lógica vira uma Supabase Edge

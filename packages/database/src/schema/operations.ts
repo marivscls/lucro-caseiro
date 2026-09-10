@@ -38,7 +38,7 @@ export const stockMovements = pgTable(
     index("idx_stock_movements_user_product").on(table.userId, table.productId),
     index("idx_stock_movements_user_date").on(table.userId, table.occurredAt),
   ],
-);
+).enableRLS();
 
 export const services = pgTable(
   "services",
@@ -78,7 +78,7 @@ export const services = pgTable(
     index("idx_services_user_active").on(table.userId, table.active),
     index("idx_services_user_name").on(table.userId, table.name),
   ],
-);
+).enableRLS();
 
 export const serviceVariations = pgTable(
   "service_variations",
@@ -103,7 +103,7 @@ export const serviceVariations = pgTable(
       table.active,
     ),
   ],
-);
+).enableRLS();
 
 export const serviceAddOns = pgTable(
   "service_add_ons",
@@ -124,7 +124,7 @@ export const serviceAddOns = pgTable(
   (table) => [
     index("idx_service_add_ons_service").on(table.userId, table.serviceId, table.active),
   ],
-);
+).enableRLS();
 
 export const servicePackages = pgTable(
   "service_packages",
@@ -147,7 +147,7 @@ export const servicePackages = pgTable(
   (table) => [
     index("idx_service_packages_service").on(table.userId, table.serviceId, table.active),
   ],
-);
+).enableRLS();
 
 export const servicePackagePurchases = pgTable(
   "service_package_purchases",
@@ -182,7 +182,7 @@ export const servicePackagePurchases = pgTable(
       table.status,
     ),
   ],
-);
+).enableRLS();
 
 export const servicePackageSessionUsages = pgTable(
   "service_package_session_usages",
@@ -204,7 +204,7 @@ export const servicePackageSessionUsages = pgTable(
       table.purchaseId,
     ),
   ],
-);
+).enableRLS();
 
 export const publicServiceBookingRequests = pgTable(
   "public_service_booking_requests",
@@ -233,7 +233,7 @@ export const publicServiceBookingRequests = pgTable(
       table.createdAt,
     ),
   ],
-);
+).enableRLS();
 
 export const productionRuns = pgTable(
   "production_runs",
@@ -262,7 +262,7 @@ export const productionRuns = pgTable(
     index("idx_production_runs_user_created").on(table.userId, table.createdAt),
     index("idx_production_runs_user_product").on(table.userId, table.productId),
   ],
-);
+).enableRLS();
 
 export const productionRunItems = pgTable(
   "production_run_items",
@@ -282,4 +282,4 @@ export const productionRunItems = pgTable(
     unitCost: decimal("unit_cost", { precision: 12, scale: 4 }).notNull(),
   },
   (table) => [index("idx_production_run_items_run").on(table.productionRunId)],
-);
+).enableRLS();

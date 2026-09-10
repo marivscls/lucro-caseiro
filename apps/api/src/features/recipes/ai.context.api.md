@@ -201,6 +201,10 @@ invariants:
 - Todas as rotas protegidas por `authMiddleware`
 - `userId` extraido do token JWT
 - Toda query filtra por `userId`
+- Criação e substituição de ingredientes validam a propriedade de cada insumo
+  antes de qualquer escrita; insumo inexistente ou de outra conta gera 400
+  `Insumo não encontrado`. Leituras de ingredientes filtram também o `userId` do
+  insumo, protegendo nome/custo mesmo em vínculos antigos inconsistentes.
 
 ## Contracts (Zod/DTO)
 

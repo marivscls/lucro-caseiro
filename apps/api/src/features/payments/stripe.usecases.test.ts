@@ -120,6 +120,90 @@ describe("StripeUseCases.createCheckoutUrl", () => {
 });
 
 describe("StripeUseCases.handleEvent", () => {
+  it.each(["customer.subscription.created", "customer.subscription.updated"])(
+    "does not reactivate a canceled subscription from a delayed %s snapshot",
+    async (type) => {
+      const { sut, retrieveSubscription, activatePlan, deactivatePlan } = makeSut({
+        subscription: makeSubscription({ status: "canceled" }),
+      });
+      await sut.handleEvent({
+        type,
+        data: { object: makeSubscription() },
+      } as Stripe.Event);
+      expect(retrieveSubscription).toHaveBeenCalledWith("sub_123");
+      expect(activatePlan).not.toHaveBeenCalled();
+      expect(deactivatePlan).toHaveBeenCalledWith(USER_ID);
+    },
+  );
+
+  it("does not downgrade a recovered subscription from an old unpaid snapshot", async () => {
+    const { sut, activatePlan, deactivatePlan } = makeSut();
+    await sut.handleEvent({
+      type: "customer.subscription.updated",
+      data: { object: makeSubscription({ status: "unpaid" }) },
+    } as Stripe.Event);
+    expect(deactivatePlan).not.toHaveBeenCalled();
+    expect(activatePlan).toHaveBeenCalledWith(USER_ID, "professional", expect.any(Date));
+  });
+
+  it("keeps the current tier and expiry instead of an old subscription revision", async () => {
+    const { sut, activatePlan } = makeSut();
+    const previous = makeSubscription({
+      metadata: { userId: USER_ID, tier: "essential" },
+    });
+    previous.items.data[0]!.current_period_end = 1_700_000_000;
+    await sut.handleEvent({
+      type: "customer.subscription.updated",
+      data: { object: previous },
+    } as Stripe.Event);
+    expect(activatePlan).toHaveBeenCalledWith(
+      USER_ID,
+      "professional",
+      new Date("2027-01-01T00:00:00.000Z"),
+    );
+  });
+
+  it("does not send a stale payment-failure email after recovery", async () => {
+    const { sut, notifyPaymentFailed } = makeSut();
+    await sut.handleEvent({
+      id: "old-failure",
+      type: "customer.subscription.updated",
+      data: { object: makeSubscription({ status: "past_due" }) },
+    } as Stripe.Event);
+    expect(notifyPaymentFailed).not.toHaveBeenCalled();
+  });
+
+  it("retrieves current state even for expanded checkout subscriptions", async () => {
+    const { sut, activatePlan, deactivatePlan } = makeSut({
+      subscription: makeSubscription({ status: "canceled" }),
+    });
+    await sut.handleEvent({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          mode: "subscription",
+          client_reference_id: USER_ID,
+          subscription: makeSubscription(),
+        },
+      },
+    } as Stripe.Event);
+    expect(activatePlan).not.toHaveBeenCalled();
+    expect(deactivatePlan).toHaveBeenCalledWith(USER_ID);
+  });
+
+  it("fails for retry without applying old state when retrieval fails", async () => {
+    const { sut, retrieveSubscription, activatePlan, deactivatePlan } = makeSut();
+    retrieveSubscription.mockRejectedValue(new Error("Stripe indisponível"));
+    await expect(
+      sut.handleEvent({
+        type: "customer.subscription.updated",
+        data: { object: makeSubscription() },
+      } as Stripe.Event),
+    ).rejects.toThrow("Stripe indisponível");
+    expect(activatePlan).not.toHaveBeenCalled();
+    expect(deactivatePlan).not.toHaveBeenCalled();
+  });
+
   it("activates the resolved tier after checkout session completion", async () => {
     const { sut, retrieveSubscription, activatePlan } = makeSut();
 
@@ -165,7 +249,9 @@ describe("StripeUseCases.handleEvent", () => {
   });
 
   it("falls back to professional when no tier can be resolved (legacy premium)", async () => {
-    const { sut, activatePlan } = makeSut();
+    const { sut, activatePlan } = makeSut({
+      subscription: makeSubscription({ metadata: { userId: USER_ID } }),
+    });
 
     await sut.handleEvent({
       type: "customer.subscription.updated",
@@ -185,7 +271,9 @@ describe("StripeUseCases.handleEvent", () => {
   });
 
   it("deactivates when Stripe sends a canceled subscription", async () => {
-    const { sut, deactivatePlan } = makeSut();
+    const { sut, deactivatePlan, retrieveSubscription } = makeSut({
+      subscription: makeSubscription({ status: "canceled" }),
+    });
 
     await sut.handleEvent({
       type: "customer.subscription.deleted",
@@ -193,10 +281,13 @@ describe("StripeUseCases.handleEvent", () => {
     } as Stripe.Event);
 
     expect(deactivatePlan).toHaveBeenCalledWith(USER_ID);
+    expect(retrieveSubscription).toHaveBeenCalledWith("sub_123");
   });
 
   it("notifies a failed renewal when the subscription becomes past due", async () => {
-    const { sut, notifyPaymentFailed } = makeSut();
+    const { sut, notifyPaymentFailed } = makeSut({
+      subscription: makeSubscription({ status: "past_due" }),
+    });
 
     await sut.handleEvent({
       id: "evt_payment_failed",

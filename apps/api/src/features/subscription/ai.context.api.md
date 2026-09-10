@@ -51,6 +51,7 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 
 - `userId` always comes from the Supabase JWT via `authMiddleware`.
 - Client cannot set a paid `plan` through profile update.
+- Direct Data API access to `users` and `subscription_purchase_claims` is denied for `PUBLIC`, `anon`, and `authenticated`; versioned RLS/grants hardening preserves API-only billing and profile writes (ADR-0010).
 - `resolvePlan(plan, expiresAt)` (via contracts `resolveActivePlan`) falls back to `free` when `planExpiresAt` is in the past, and normalizes legacy `premium` → `professional`.
 - Provider sync activates a paid plan only after server-side validation; the tier comes from the purchased product id.
 - If Google Play returns free/inactive, `/sync-plan` returns the current profile instead of downgrading other payment channels.

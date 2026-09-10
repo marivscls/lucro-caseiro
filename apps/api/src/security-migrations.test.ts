@@ -16,6 +16,7 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
       "../../../packages/database/src/migrations/060_storefront_customization.sql",
       "../../../packages/database/src/migrations/061_supplier_management.sql",
+      "../../../packages/database/src/migrations/20260910123323_restrict_api_table_access.sql",
     ]);
   });
   it("installs supplier management fields before startup", () => {

@@ -22,4 +22,4 @@ export const businessGoals = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex("idx_business_goals_user").on(table.userId)],
-);
+).enableRLS();

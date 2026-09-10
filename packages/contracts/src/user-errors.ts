@@ -34,7 +34,8 @@ export function userErrorMessage(
       : error instanceof Error
         ? error.message
         : undefined;
-  if (typeof message !== "string") return fallback;
+  // Bound untrusted library/API messages before any regular-expression matching.
+  if (typeof message !== "string" || message.length > 600) return fallback;
   if (/Recurso .+ desativado para esta marca/i.test(message))
     return USER_ERROR_MESSAGES.unavailable;
   if (

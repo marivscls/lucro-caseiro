@@ -115,6 +115,85 @@ describe("security middleware", () => {
     consoleError.mockRestore();
   });
 
+  it("mantém a quota pública ao alternar cabeçalhos Authorization não validados", async () => {
+    const buckets = new Map<string, number>();
+    const middleware = postgresRateLimit({
+      store: {
+        increment: ({ keyHash }) => {
+          const count = (buckets.get(keyHash) ?? 0) + 1;
+          buckets.set(keyHash, count);
+          return Promise.resolve(count);
+        },
+        cleanup: vi.fn(),
+      },
+      scope: "public-write",
+      windowMs: 60_000,
+      max: 1,
+    });
+    const next = vi.fn();
+    for (const authorization of [undefined, "Bearer forged-a", "Bearer forged-b"]) {
+      const response = responseMock();
+      await middleware(
+        { ip: "192.0.2.1", header: () => authorization } as unknown as Request,
+        response as unknown as Response,
+        next,
+      );
+      if (authorization) expect(response.status).toHaveBeenCalledWith(429);
+    }
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it("mantém a quota por usuário validado após renovação do token ou mudança de IP", async () => {
+    const buckets = new Map<string, number>();
+    const middleware = postgresRateLimit({
+      store: {
+        increment: ({ keyHash }) => {
+          const count = (buckets.get(keyHash) ?? 0) + 1;
+          buckets.set(keyHash, count);
+          return Promise.resolve(count);
+        },
+        cleanup: vi.fn(),
+      },
+      scope: "billing",
+      windowMs: 60_000,
+      max: 1,
+    });
+    const next = vi.fn();
+    const first = responseMock();
+    const second = responseMock();
+    const otherUser = responseMock();
+    await middleware(
+      {
+        userId: "verified-user",
+        ip: "192.0.2.1",
+        header: () => "Bearer original",
+      } as unknown as Request,
+      first as unknown as Response,
+      next,
+    );
+    await middleware(
+      {
+        userId: "verified-user",
+        ip: "192.0.2.2",
+        header: () => "Bearer refreshed",
+      } as unknown as Request,
+      second as unknown as Response,
+      next,
+    );
+    await middleware(
+      {
+        userId: "another-user",
+        ip: "192.0.2.1",
+        header: () => "Bearer other",
+      } as unknown as Request,
+      otherUser as unknown as Response,
+      next,
+    );
+    expect(second.status).toHaveBeenCalledWith(429);
+    expect(otherUser.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(2);
+  });
+
   it("traduz payload acima do teto para 413", () => {
     const response = responseMock();
     const error = Object.assign(new Error("too large"), { type: "entity.too.large" });

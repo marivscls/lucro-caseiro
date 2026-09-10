@@ -35,4 +35,4 @@ export const materials = pgTable(
     index("idx_materials_user_name").on(table.userId, table.name),
     index("idx_materials_user_supplier").on(table.userId, table.supplierId),
   ],
-);
+).enableRLS();

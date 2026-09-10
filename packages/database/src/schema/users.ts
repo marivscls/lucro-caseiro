@@ -29,4 +29,4 @@ export const users = pgTable("users", {
   planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();

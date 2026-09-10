@@ -48,4 +48,4 @@ export const financeEntries = pgTable(
     index("idx_finance_user_date").on(table.userId, table.date),
     index("idx_finance_user_type_date").on(table.userId, table.type, table.date),
   ],
-);
+).enableRLS();

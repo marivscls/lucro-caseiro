@@ -1,8 +1,9 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
 import { materials } from "@lucro-caseiro/database/schema";
 import { recipeIngredients, recipes } from "@lucro-caseiro/database/schema";
-import { and, count, eq, ilike, sql } from "drizzle-orm";
+import { and, count, eq, ilike, inArray, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
+import { ValidationError } from "../../shared/errors";
 import { effectiveCostPerUnit } from "./recipes.domain";
 import type { CreateRecipeData, FindAllOpts, IRecipesRepo } from "./recipes.types";
 
@@ -10,6 +11,7 @@ export class RecipesRepoPg implements IRecipesRepo {
   constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateRecipeData): Promise<Recipe> {
+    await this.assertOwnedMaterials(userId, data.ingredients);
     const [recipeRow] = await this.db
       .insert(recipes)
       .values({
@@ -61,7 +63,7 @@ export class RecipesRepoPg implements IRecipesRepo {
       })
       .from(recipeIngredients)
       .innerJoin(materials, eq(recipeIngredients.materialId, materials.id))
-      .where(eq(recipeIngredients.recipeId, id));
+      .where(and(eq(recipeIngredients.recipeId, id), eq(materials.userId, userId)));
 
     return this.toRecipe(recipeRow, lineRows);
   }
@@ -108,7 +110,9 @@ export class RecipesRepoPg implements IRecipesRepo {
           })
           .from(recipeIngredients)
           .innerJoin(materials, eq(recipeIngredients.materialId, materials.id))
-          .where(eq(recipeIngredients.recipeId, row.id));
+          .where(
+            and(eq(recipeIngredients.recipeId, row.id), eq(materials.userId, userId)),
+          );
 
         return this.toRecipe(row, lineRows);
       }),
@@ -127,6 +131,9 @@ export class RecipesRepoPg implements IRecipesRepo {
   ): Promise<Recipe | null> {
     const existing = await this.findById(userId, id);
     if (!existing) return null;
+    if (data.ingredients !== undefined) {
+      await this.assertOwnedMaterials(userId, data.ingredients);
+    }
 
     const updateData: Record<string, unknown> = {};
 
@@ -179,6 +186,21 @@ export class RecipesRepoPg implements IRecipesRepo {
       .where(eq(recipes.userId, userId));
 
     return result?.value ?? 0;
+  }
+
+  private async assertOwnedMaterials(
+    userId: string,
+    ingredients: CreateRecipeData["ingredients"],
+  ): Promise<void> {
+    const ids = [...new Set(ingredients.map((line) => line.materialId))];
+    if (!ids.length) return;
+    const owned = await this.db
+      .select({ id: materials.id })
+      .from(materials)
+      .where(and(eq(materials.userId, userId), inArray(materials.id, ids)));
+    if (owned.length !== ids.length) {
+      throw new ValidationError(["Insumo não encontrado"]);
+    }
   }
 
   private toRecipe(

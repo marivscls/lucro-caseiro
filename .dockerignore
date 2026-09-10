@@ -4,8 +4,7 @@
 **/.expo
 **/.expo-shared
 **/coverage
-**/.env
-**/.env.local
+**/.env*
 **/*.tsbuildinfo
 
 .git
@@ -13,8 +12,10 @@
 .vscode
 .husky
 
-docs
+docs/*
+!docs/marketing/
 tasks
+tmp
 
 *.jks
 *.keystore

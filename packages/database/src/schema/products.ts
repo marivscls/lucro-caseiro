@@ -69,4 +69,4 @@ export const products = pgTable(
       table.publicEnabled,
     ),
   ],
-);
+).enableRLS();

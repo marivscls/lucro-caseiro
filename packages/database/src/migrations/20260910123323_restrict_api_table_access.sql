@@ -1,0 +1,93 @@
+-- Business tables are API-only. Auth and Storage retain their existing grants.
+-- Applies to existing tables; Drizzle enableRLS() also protects later schema pushes.
+-- The API must connect as the table owner or a dedicated privileged service role.
+DO $hardening$
+DECLARE
+  table_name text;
+BEGIN
+  FOREACH table_name IN ARRAY ARRAY[
+    'analytics_activity_days',
+    'analytics_events',
+    'analytics_installation_users',
+    'analytics_installations',
+    'analytics_user_activity_days',
+    'api_rate_limit_buckets',
+    'app_memberships',
+    'business_goals',
+    'catalog_settings',
+    'character_profiles',
+    'clients',
+    'finance_entries',
+    'ingredients',
+    'labels',
+    'marketing_ai_evaluations',
+    'marketing_ai_examples',
+    'marketing_ai_feedback',
+    'marketing_ai_instructions',
+    'marketing_ai_knowledge',
+    'marketing_ai_learning',
+    'marketing_ai_messages',
+    'marketing_ai_sessions',
+    'marketing_ai_settings',
+    'marketing_document_attachments',
+    'marketing_document_versions',
+    'marketing_documents',
+    'marketing_resources',
+    'materials',
+    'orders',
+    'packaging',
+    'pricing_calculations',
+    'pricing_preferences',
+    'product_components',
+    'product_packaging',
+    'production_run_items',
+    'production_runs',
+    'products',
+    'professional_trial_campaign_grants',
+    'professional_trial_campaigns',
+    'public_service_booking_requests',
+    'purchase_items',
+    'purchases',
+    'push_notification_tokens',
+    'quotes',
+    'recipe_ingredients',
+    'recipes',
+    'recurring_expenses',
+    'resale_serials',
+    'retail_business_accounts',
+    'retail_cash_movements',
+    'retail_document_items',
+    'retail_documents',
+    'retail_price_changes',
+    'retail_promotions',
+    'sale_items',
+    'sales',
+    'service_add_ons',
+    'service_package_purchases',
+    'service_package_session_usages',
+    'service_packages',
+    'service_variations',
+    'services',
+    'stock_movements',
+    'subscription_purchase_claims',
+    'suppliers',
+    'users',
+    'vertical_assets',
+    'vertical_document_items',
+    'vertical_documents',
+    'vertical_events',
+    'video_edit_assets',
+    'video_edit_jobs',
+    'video_edit_versions',
+    'video_prompt_projects',
+    'video_prompt_versions',
+    'video_scenes',
+    'web_push_subscriptions'
+  ] LOOP
+    IF to_regclass(format('public.%I', table_name)) IS NOT NULL THEN
+      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', table_name);
+      EXECUTE format('REVOKE ALL PRIVILEGES ON TABLE public.%I FROM PUBLIC, anon, authenticated', table_name);
+    END IF;
+  END LOOP;
+END
+$hardening$;

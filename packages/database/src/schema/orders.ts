@@ -72,4 +72,4 @@ export const orders = pgTable(
     index("idx_orders_user_date").on(table.userId, table.deliveryDate),
     index("idx_orders_user_status").on(table.userId, table.status),
   ],
-);
+).enableRLS();

@@ -115,7 +115,8 @@ export function BusinessProfileFlow({
 export function BusinessProfileCard({
   settings = false,
   hasSale = false,
-}: Readonly<{ settings?: boolean; hasSale?: boolean }>) {
+  compactHome = false,
+}: Readonly<{ settings?: boolean; hasSale?: boolean; compactHome?: boolean }>) {
   const state = useBusinessOnboarding();
   const colors = useBrandScreenPalette();
   const router = useRouter();
@@ -128,6 +129,36 @@ export function BusinessProfileCard({
   const next = complete ? profileRecommendation(state.answers, { hasSale }) : undefined;
   const ideas = complete ? marketingIdeas(state.answers) : [];
   if (!settings && (state.loading || state.loadError || !complete)) return null;
+  const goalLabel: Record<string, string> = {
+    orders: "organizar os pedidos",
+    price: "definir preços",
+    money: "acompanhar o dinheiro",
+    catalog: "divulgar seu negócio",
+  };
+  if (compactHome && !settings && next)
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push(next.route)}
+        style={({ pressed }) => ({
+          minHeight: 48,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        <View style={{ flex: 1 }}>
+          <Typography variant="homeBody" color={colors.muted}>
+            Seu objetivo: {goalLabel[state.answers.goal] ?? "organizar seu negócio"}
+          </Typography>
+          <Typography variant="homeLink" color={colors.wine}>
+            {next.action}
+          </Typography>
+        </View>
+        <AppIcon name="chevron-forward" size={18} color={colors.wine} />
+      </Pressable>
+    );
   return (
     <>
       {settings ? (

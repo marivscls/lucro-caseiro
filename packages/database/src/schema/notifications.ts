@@ -17,7 +17,7 @@ export const pushNotificationTokens = pgTable(
   (table) => [
     index("idx_push_notification_tokens_user_brand").on(table.userId, table.brandId),
   ],
-);
+).enableRLS();
 
 export const webPushSubscriptions = pgTable(
   "web_push_subscriptions",
@@ -36,4 +36,4 @@ export const webPushSubscriptions = pgTable(
     retryAfter: timestamp("retry_after", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_web_push_user_brand").on(table.userId, table.brandId)],
-);
+).enableRLS();

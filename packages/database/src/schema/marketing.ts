@@ -42,7 +42,7 @@ export const marketingResources = pgTable(
     index("idx_marketing_resources_user_kind").on(table.userId, table.kind),
     index("idx_marketing_resources_schedule").on(table.userId, table.scheduledFor),
   ],
-);
+).enableRLS();
 
 export const marketingDocuments = pgTable(
   "marketing_documents",
@@ -62,7 +62,7 @@ export const marketingDocuments = pgTable(
     uniqueIndex("uq_marketing_documents_user_slug").on(table.userId, table.slug),
     index("idx_marketing_documents_user_updated").on(table.userId, table.updatedAt),
   ],
-);
+).enableRLS();
 
 export const marketingDocumentVersions = pgTable(
   "marketing_document_versions",
@@ -82,7 +82,7 @@ export const marketingDocumentVersions = pgTable(
   (table) => [
     uniqueIndex("uq_marketing_document_versions").on(table.documentId, table.version),
   ],
-);
+).enableRLS();
 
 export const marketingDocumentAttachments = pgTable(
   "marketing_document_attachments",
@@ -100,7 +100,7 @@ export const marketingDocumentAttachments = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_marketing_document_attachments_document").on(table.documentId)],
-);
+).enableRLS();
 
 export const marketingAiSessions = pgTable(
   "marketing_ai_sessions",
@@ -113,7 +113,7 @@ export const marketingAiSessions = pgTable(
     ...timestamps,
   },
   (table) => [index("idx_marketing_ai_sessions_user").on(table.userId, table.updatedAt)],
-);
+).enableRLS();
 
 export const marketingAiMessages = pgTable(
   "marketing_ai_messages",
@@ -133,7 +133,7 @@ export const marketingAiMessages = pgTable(
   (table) => [
     index("idx_marketing_ai_messages_session").on(table.sessionId, table.createdAt),
   ],
-);
+).enableRLS();
 
 export const marketingAiInstructions = pgTable(
   "marketing_ai_instructions",
@@ -151,7 +151,7 @@ export const marketingAiInstructions = pgTable(
   (table) => [
     uniqueIndex("uq_marketing_ai_instructions_version").on(table.userId, table.version),
   ],
-);
+).enableRLS();
 
 export const marketingAiKnowledge = pgTable(
   "marketing_ai_knowledge",
@@ -170,7 +170,7 @@ export const marketingAiKnowledge = pgTable(
     ...timestamps,
   },
   (table) => [index("idx_marketing_ai_knowledge_user").on(table.userId, table.active)],
-);
+).enableRLS();
 
 export const marketingAiExamples = pgTable(
   "marketing_ai_examples",
@@ -186,7 +186,7 @@ export const marketingAiExamples = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_marketing_ai_examples_user").on(table.userId, table.approved)],
-);
+).enableRLS();
 
 export const marketingAiEvaluations = pgTable(
   "marketing_ai_evaluations",
@@ -205,7 +205,7 @@ export const marketingAiEvaluations = pgTable(
     ...timestamps,
   },
   (table) => [index("idx_marketing_ai_evaluations_user").on(table.userId)],
-);
+).enableRLS();
 
 export const marketingAiFeedback = pgTable(
   "marketing_ai_feedback",
@@ -224,7 +224,7 @@ export const marketingAiFeedback = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_marketing_ai_feedback_user").on(table.userId, table.createdAt)],
-);
+).enableRLS();
 
 export const marketingAiLearning = pgTable(
   "marketing_ai_learning",
@@ -243,7 +243,7 @@ export const marketingAiLearning = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_marketing_ai_learning_user").on(table.userId, table.createdAt)],
-);
+).enableRLS();
 
 export const marketingAiSettings = pgTable("marketing_ai_settings", {
   userId: uuid("user_id")
@@ -255,7 +255,7 @@ export const marketingAiSettings = pgTable("marketing_ai_settings", {
   minimumSamples: integer("minimum_samples").notNull().default(5),
   minimumScore: integer("minimum_score").notNull().default(80),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
 
 export const characterProfiles = pgTable(
   "character_profiles",
@@ -294,7 +294,7 @@ export const characterProfiles = pgTable(
     ),
     index("idx_character_profiles_user_brand").on(table.userId, table.brandId),
   ],
-);
+).enableRLS();
 
 export const videoPromptProjects = pgTable(
   "video_prompt_projects",
@@ -340,7 +340,7 @@ export const videoPromptProjects = pgTable(
     index("idx_video_prompt_projects_user_status").on(table.userId, table.status),
     index("idx_video_prompt_projects_character").on(table.characterProfileId),
   ],
-);
+).enableRLS();
 
 export const videoScenes = pgTable(
   "video_scenes",
@@ -377,7 +377,7 @@ export const videoScenes = pgTable(
     uniqueIndex("uq_video_scenes_project_order").on(table.projectId, table.order),
     index("idx_video_scenes_project").on(table.projectId),
   ],
-);
+).enableRLS();
 
 export const videoPromptVersions = pgTable(
   "video_prompt_versions",
@@ -411,7 +411,7 @@ export const videoPromptVersions = pgTable(
     ),
     index("idx_video_prompt_versions_project").on(table.projectId, table.createdAt),
   ],
-);
+).enableRLS();
 
 export const videoEditJobs = pgTable(
   "video_edit_jobs",
@@ -441,7 +441,7 @@ export const videoEditJobs = pgTable(
     index("idx_video_edit_jobs_user_updated").on(table.userId, table.updatedAt),
     index("idx_video_edit_jobs_status").on(table.status, table.updatedAt),
   ],
-);
+).enableRLS();
 
 export const videoEditAssets = pgTable(
   "video_edit_assets",
@@ -470,7 +470,7 @@ export const videoEditAssets = pgTable(
     uniqueIndex("uq_video_edit_assets_job_path").on(table.jobId, table.storagePath),
     index("idx_video_edit_assets_job").on(table.jobId, table.createdAt),
   ],
-);
+).enableRLS();
 
 export const videoEditVersions = pgTable(
   "video_edit_versions",
@@ -494,4 +494,4 @@ export const videoEditVersions = pgTable(
     uniqueIndex("uq_video_edit_versions_job_version").on(table.jobId, table.version),
     index("idx_video_edit_versions_job").on(table.jobId, table.createdAt),
   ],
-);
+).enableRLS();

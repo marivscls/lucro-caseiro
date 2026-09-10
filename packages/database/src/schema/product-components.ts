@@ -19,4 +19,4 @@ export const productComponents = pgTable(
     quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
   },
   (table) => [index("idx_product_components_product").on(table.productId)],
-);
+).enableRLS();

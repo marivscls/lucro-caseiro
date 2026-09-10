@@ -38,7 +38,7 @@ export const pricingCalculations = pgTable("pricing_calculations", {
     monthlyFixed?: number;
   }>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();
 
 export const pricingPreferences = pgTable("pricing_preferences", {
   userId: uuid("user_id")
@@ -49,4 +49,4 @@ export const pricingPreferences = pgTable("pricing_preferences", {
     .notNull()
     .default([]),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}).enableRLS();

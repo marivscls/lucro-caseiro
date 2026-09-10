@@ -30,7 +30,7 @@ Um único fluxo em que a informação anda com a pessoa: o que ela digita na pre
 - Pedidos chegam e são combinados no WhatsApp; o catálogo público (`catalogo.lucrocaseiro.com.br/c/<slug>`) inicia o pedido pelo WhatsApp.
 - Custos sensíveis por segmento: ingredientes/materiais fracionados, embalagem, gás e energia, tempo de produção, taxas de cartão/app, perdas e refação.
 - Funciona offline com sincronização posterior.
-- Fórmula de preço compartilhada por app, API e web em `@lucro-caseiro/contracts` (`pricing-calculator.ts`): custo = insumos + embalagem + mão de obra (minutos × valor da hora) + rateio de fixos; preço sugerido = custo × (1 + lucro sobre o custo); taxas com gross-up.
+- Fórmula de preço compartilhada por app, API e web em `@lucro-caseiro/contracts` (`pricing-calculator.ts`): custo = insumos + embalagem + mão de obra (minutos ÷ 60 × valor da hora) + rateio de fixos; preço sugerido = custo × (1 + lucro sobre o custo); taxas com gross-up.
 
 ## Capabilities and Constraints
 

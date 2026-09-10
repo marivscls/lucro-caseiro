@@ -22,7 +22,7 @@ export const recipes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_recipes_user").on(table.userId)],
-);
+).enableRLS();
 
 export const recipeIngredients = pgTable("recipe_ingredients", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -32,4 +32,4 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   materialId: uuid("material_id").notNull(),
   quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
   unit: text("unit").notNull(),
-});
+}).enableRLS();

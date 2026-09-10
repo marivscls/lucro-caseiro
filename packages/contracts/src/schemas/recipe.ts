@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_MONEY, MAX_QUANTITY } from "./common";
+import { MAX_QUANTITY } from "./common";
 
 export const RecipeIngredientDto = z.object({
   materialId: z.string().uuid(),

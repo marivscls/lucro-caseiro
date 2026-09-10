@@ -44,7 +44,7 @@ export const purchases = pgTable(
     index("idx_purchases_user_status").on(table.userId, table.paymentStatus),
     index("idx_purchases_supplier").on(table.supplierId),
   ],
-);
+).enableRLS();
 
 export const purchaseItems = pgTable(
   "purchase_items",
@@ -67,4 +67,4 @@ export const purchaseItems = pgTable(
     index("idx_purchase_items_purchase").on(table.purchaseId),
     index("idx_purchase_items_product").on(table.productId),
   ],
-);
+).enableRLS();

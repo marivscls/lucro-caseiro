@@ -42,6 +42,15 @@ catálogo, convênios e fronteira fiscal.
 - Checkout exige caixa aberto, estoque disponível e soma exata dos pagamentos.
 - Promoções não acumulam: vence a melhor regra aplicável; desconto adicional é rateado.
 - Reserva de catálogo expira em quatro horas e só é recebida quando estiver `ready`.
+- Reservas públicas aceitam somente produtos ativos e com `publicEnabled = true`;
+  produtos ocultos retornam a mesma mensagem genérica de indisponibilidade.
+- A disponibilidade considera a soma das linhas repetidas de cada produto/variação
+  no pedido, descontando também as reservas existentes.
+- Uma variação informada deve pertencer ao produto; produtos sem variações rejeitam
+  IDs de variação para preservar o vínculo das reservas ao estoque correto.
+- A persistência de reservas bloqueia as linhas de produto em ordem estável e
+  revalida disponibilidade na mesma transação da inserção; pedidos concorrentes
+  não podem reservar acima do estoque disponível.
 - Venda concluída passa por `SalesUseCases`, preservando estoque e financeiro canônicos.
 - Contagem finalizada ajusta estoque por produto/variação e exige motivo para diferença.
 
@@ -111,6 +120,8 @@ operations:
 
 ## Change log / Decisions
 
+- 2026-09-10: revisão de segurança bloqueia reservas públicas de produtos ocultos e
+  valida o total solicitado por produto/variação, inclusive em linhas repetidas.
 - 2026-07-19: operação completa criada a partir do PRD da Papelaria. Documentos tipados
   evitam dez subsistemas paralelos; venda, compra e estoque continuam canônicos.
 - 2026-07-19: fiscal entra como fronteira `waiting_configuration` até existir provedor

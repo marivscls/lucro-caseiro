@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_MONEY, MAX_QUANTITY } from "./common";
+import { MAX_MONEY } from "./common";
 
 export const UpsertProlaboreGoalDto = z.object({
   monthlyProlaboreGoal: z.number().positive().max(MAX_MONEY),

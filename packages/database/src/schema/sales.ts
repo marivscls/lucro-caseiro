@@ -55,7 +55,7 @@ export const sales = pgTable(
     index("idx_sales_user_date").on(table.userId, table.soldAt),
     index("idx_sales_user_status").on(table.userId, table.status),
   ],
-);
+).enableRLS();
 
 export const saleItems = pgTable("sale_items", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -74,4 +74,4 @@ export const saleItems = pgTable("sale_items", {
   variationId: uuid("variation_id"),
   variationName: text("variation_name"),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
-});
+}).enableRLS();

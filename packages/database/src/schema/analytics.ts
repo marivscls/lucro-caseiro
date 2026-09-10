@@ -28,7 +28,7 @@ export const analyticsInstallations = pgTable(
     index("idx_analytics_installations_first_open").on(table.firstOpenedAt),
     index("idx_analytics_installations_last_open").on(table.lastOpenedAt),
   ],
-);
+).enableRLS();
 
 export const analyticsInstallationUsers = pgTable(
   "analytics_installation_users",
@@ -46,7 +46,7 @@ export const analyticsInstallationUsers = pgTable(
     primaryKey({ columns: [table.installationId, table.userId] }),
     index("idx_analytics_installation_users_user").on(table.userId),
   ],
-);
+).enableRLS();
 
 export const analyticsActivityDays = pgTable(
   "analytics_activity_days",
@@ -62,7 +62,7 @@ export const analyticsActivityDays = pgTable(
     primaryKey({ columns: [table.installationId, table.activityDate] }),
     index("idx_analytics_activity_date").on(table.activityDate),
   ],
-);
+).enableRLS();
 
 export const analyticsUserActivityDays = pgTable(
   "analytics_user_activity_days",
@@ -77,7 +77,7 @@ export const analyticsUserActivityDays = pgTable(
     primaryKey({ columns: [table.userId, table.activityDate] }),
     index("idx_analytics_user_activity_date").on(table.activityDate),
   ],
-);
+).enableRLS();
 
 export const analyticsEvents = pgTable(
   "analytics_events",
@@ -104,4 +104,4 @@ export const analyticsEvents = pgTable(
     index("idx_analytics_events_installation").on(table.installationId),
     index("idx_analytics_events_user").on(table.userId),
   ],
-);
+).enableRLS();

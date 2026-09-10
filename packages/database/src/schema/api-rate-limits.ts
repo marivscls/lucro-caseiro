@@ -9,4 +9,4 @@ export const apiRateLimitBuckets = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   },
   (table) => [primaryKey({ columns: [table.keyHash, table.bucketStart] })],
-);
+).enableRLS();

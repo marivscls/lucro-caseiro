@@ -229,12 +229,18 @@ export class CatalogUseCases {
       owner.publishedCustomization !== undefined &&
       owner.publishedProducts != null &&
       owner.publishedServices != null;
-    const [allProducts, services] = hasPublishedItemSnapshot
-      ? [owner.publishedProducts!, owner.publishedServices!]
-      : await Promise.all([
-          this.repo.listPublicProducts(owner.userId),
-          this.repo.listPublicServices?.(owner.userId) ?? Promise.resolve([]),
-        ]);
+    const [liveProducts, liveServices] = await Promise.all([
+      this.repo.listPublicProducts(owner.userId),
+      this.repo.listPublicServices?.(owner.userId) ?? Promise.resolve([]),
+    ]);
+    const visibleProductIds = new Set(liveProducts.map((product) => product.id));
+    const visibleServiceIds = new Set(liveServices.map((service) => service.id));
+    const allProducts = hasPublishedItemSnapshot
+      ? owner.publishedProducts!.filter((product) => visibleProductIds.has(product.id))
+      : liveProducts;
+    const services = hasPublishedItemSnapshot
+      ? owner.publishedServices!.filter((service) => visibleServiceIds.has(service.id))
+      : liveServices;
     // O plano gratuito exibe no máximo 3 produtos na vitrine
     // (gatilho de conversao; o app mostra "Mostre seu catalogo completo").
     let products = allProducts;

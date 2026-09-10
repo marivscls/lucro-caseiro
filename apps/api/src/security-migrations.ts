@@ -13,6 +13,7 @@ export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
   "../../../packages/database/src/migrations/060_storefront_customization.sql",
   "../../../packages/database/src/migrations/061_supplier_management.sql",
+  "../../../packages/database/src/migrations/20260910123323_restrict_api_table_access.sql",
 ] as const;
 
 export function getSecurityMigrationPaths(baseUrl = import.meta.url): string[] {

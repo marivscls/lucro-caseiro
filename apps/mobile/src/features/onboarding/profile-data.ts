@@ -242,7 +242,7 @@ export function profileRecommendation(
           ? "Prepare sua primeira venda"
           : "Organize a próxima venda",
       text: "Reúna o que foi combinado: cliente, valor e prazo. Assim, cada pedido fica mais fácil de acompanhar.",
-      action: "Organizar uma venda",
+      action: "Nova venda",
       route: "/tabs/new-sale",
     },
     money: {
