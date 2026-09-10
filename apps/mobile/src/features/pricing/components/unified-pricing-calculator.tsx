@@ -12,6 +12,9 @@ import { useCalculatePricing } from "../hooks";
 import { usePricingSources } from "../use-pricing-sources";
 import {
   draftCalculation,
+  firstInvalidPricingStep,
+  pricingStepError,
+  type PricingStep,
   draftForProduct,
   moneyValue,
   usePricingDraft,
@@ -21,8 +24,7 @@ import { currencyInput } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
-import { desktopSplitLayout, pageGutter } from "../../../shared/layout/desktop-density";
+import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   PricingChoice,
@@ -32,15 +34,24 @@ import {
 } from "./pricing-fields";
 import { PricingFees, PricingLabor, PricingOverhead } from "./pricing-cost-details";
 import { PricingSummary } from "./pricing-summary";
+import { PricingStepLayout } from "./pricing-step-layout";
+import { displayProductName } from "../../products/display";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
+import { AppIcon } from "../../../shared/components/app-icon";
 
 export function UnifiedPricingCalculator({
+  step,
+  onStepChange,
+  onBusyChange,
   initialIngredientCost,
   initialProductId,
   initialProduct,
   onSave,
   onCreateProduct,
 }: Readonly<{
+  step: PricingStep;
+  onStepChange: (step: PricingStep) => void;
+  onBusyChange: (busy: boolean) => void;
   initialProduct?: { name?: string; category?: string };
   initialIngredientCost?: number;
   initialProductId?: string;
@@ -74,6 +85,7 @@ export function UnifiedPricingCalculator({
   const apply = useUpdateProduct();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [attempted, setAttempted] = useState(false);
   const applying = useRef(false);
   const initialLoaded = useRef(false);
   const {
@@ -106,10 +118,30 @@ export function UnifiedPricingCalculator({
     sourceError =
       "A origem do custo não está disponível. Escolha um cadastro ou informe o custo manualmente.";
   let ingredientHint =
-    "Origem: informado por você. Use o custo de uma unidade, não do lote.";
+    "Informe o custo usado para produzir uma unidade, não o lote inteiro.";
   if (draft.source === "recipe")
-    ingredientHint = "Origem: receita atual, calculada com os insumos cadastrados.";
-  if (draft.source === "product") ingredientHint = "Origem: custo cadastrado do produto.";
+    ingredientHint =
+      "Preenchido pela receita atual. Você pode editar se precisar ajustar este cálculo.";
+  if (draft.source === "product")
+    ingredientHint =
+      "Preenchido pelo cadastro do produto. Você pode editar se precisar ajustar este cálculo.";
+  let productSelectionDetail = `Custo carregado: ${formatCurrency(importedCost ?? 0)} por unidade`;
+  if (draft.source === "manual")
+    productSelectionDetail = "Os custos abaixo foram ajustados manualmente.";
+  else if (importedCost == null)
+    productSelectionDetail = "O cadastro não possui um custo disponível.";
+  const productPickerItems = products.map((item) => {
+    const cost = currentProductCost(item, products, recipes);
+    const origin = item.recipeId ? "Receita atual" : "Custo cadastrado";
+    return {
+      id: item.id,
+      label: displayProductName(item.name),
+      detail:
+        cost == null
+          ? "Custo não disponível · preencha manualmente"
+          : `${origin}: ${formatCurrency(cost)}`,
+    };
+  });
   const calculation = sourceError
     ? { error: sourceError, input: undefined }
     : draftCalculation(draft, packaging);
@@ -152,22 +184,41 @@ export function UnifiedPricingCalculator({
 
   const formValidation = useFormValidation({
     ingredient:
+      step === 1 &&
       (!Number.isFinite(moneyValue(draft.ingredient)) ||
         moneyValue(draft.ingredient) <= 0) &&
       "Informe o custo por unidade.",
     overhead:
+      step === 2 &&
       moneyValue(draft.fixed) > 0 &&
       draft.allocation === "unit" &&
       (!Number.isFinite(Number(draft.production.replace(",", "."))) ||
         Number(draft.production.replace(",", ".")) <= 0) &&
       "Informe a produção mensal para dividir as despesas.",
     profit:
+      step === 3 &&
       !draft.profit.trim() &&
       "Informe o ganho desejado. Use zero para simular sem ganho.",
   });
 
+  function changeStep(next: PricingStep) {
+    if (blocked) return;
+    setAttempted(false);
+    formValidation.reset();
+    onStepChange(next);
+  }
+  function validateAll() {
+    const invalid = firstInvalidPricingStep(draft, packaging, sourceError);
+    if (invalid) {
+      if (invalid !== step) onStepChange(invalid);
+      setAttempted(true);
+      if (invalid === step) formValidation.validate();
+      return false;
+    }
+    return formValidation.validate();
+  }
   async function saveSuggested() {
-    if (!formValidation.validate()) return;
+    if (!validateAll()) return;
     if (!calculation.input || busy) return;
     try {
       await save.mutateAsync(calculation.input);
@@ -177,7 +228,7 @@ export function UnifiedPricingCalculator({
     }
   }
   async function createProduct(price: number) {
-    if (!formValidation.validate()) return;
+    if (!validateAll()) return;
     if (!calculation.input || busy) return;
     try {
       await save.mutateAsync(calculation.input);
@@ -187,6 +238,7 @@ export function UnifiedPricingCalculator({
     }
   }
   function confirmApply(price: number) {
+    if (!validateAll()) return;
     if (!product || !calculation.input || busy) return;
     const target = product;
     const input = calculation.input;
@@ -232,6 +284,7 @@ export function UnifiedPricingCalculator({
     });
   }
   const blocked = busy || save.isPending || apply.isPending;
+  useEffect(() => onBusyChange(blocked), [blocked, onBusyChange]);
   const result = calculation.input ? (
     <PricingSummary
       key={draft.productId}
@@ -239,7 +292,6 @@ export function UnifiedPricingCalculator({
       draft={draft}
       product={product}
       saving={blocked}
-      onSave={() => void saveSuggested()}
       onCreate={(price) => void createProduct(price)}
       onApply={confirmApply}
       onAlternativeChange={(alternative) => update({ alternative })}
@@ -254,124 +306,105 @@ export function UnifiedPricingCalculator({
         title="Conferir campos"
         variant="secondary"
         onPress={() => {
-          formValidation.validate();
+          validateAll();
         }}
       />
     </Card>
   );
 
-  return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={{
-        ...pageGutter(desktop),
-        paddingVertical: spacing.lg,
-        paddingBottom: spacing["3xl"],
-        gap: spacing.lg,
-      }}
-    >
-      <View style={{ gap: spacing.sm }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
-            Quanto cobrar pelo seu produto?
-          </Typography>
-          <Image
-            source={pricingIllustration}
-            resizeMode="contain"
-            accessible={false}
-            style={{ width: desktop ? 104 : 88, height: desktop ? 96 : 80 }}
-          />
-        </View>
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Comece pelo custo por unidade. Abra os detalhes para incluir trabalho, despesas
-          e taxas.
+  const currentStepError = pricingStepError(step, draft, packaging, sourceError);
+  const notice =
+    attempted && currentStepError ? (
+      <View accessibilityRole="alert" style={{ gap: spacing.xs }}>
+        <Typography variant="body" color={theme.colors.alert}>
+          {currentStepError}
         </Typography>
       </View>
-      {sources.isLoading ? (
-        <Typography variant="caption">
-          Carregando produtos e custos cadastrados… Você também pode preencher
-          manualmente.
-        </Typography>
-      ) : null}
-      {sources.data ? (
-        <Button
-          title="Atualizar custos cadastrados"
-          variant="text"
-          loading={sources.isFetching}
-          onPress={() => void sources.refetch()}
-        />
-      ) : null}
-      {sources.isError ? (
-        <Card style={{ gap: spacing.sm }}>
-          <Typography variant="body">
-            Não foi possível conferir os cadastros e os alertas de custo. Os valores já
-            preenchidos continuam disponíveis.
-          </Typography>
-          <Button
-            title="Tentar novamente"
-            variant="secondary"
-            onPress={() => void sources.refetch()}
-          />
-        </Card>
-      ) : null}
-      {reviews.length ? (
-        <PricingSection
-          title={`${reviews.length} ${reviews.length === 1 ? "preço precisa" : "preços precisam"} de revisão`}
-          summary="Custos aumentaram ou uma origem deixou de existir"
-          initiallyOpen
-        >
-          {reviews.map((review) => (
-            <View key={review.calculation.id} style={{ gap: spacing.sm }}>
-              <Typography variant="bodyBold">
-                {review.product.name}
-                {review.calculation.channelName
-                  ? ` · ${review.calculation.channelName}`
-                  : ""}
+    ) : null;
+
+  return (
+    <PricingStepLayout
+      step={step}
+      onStepChange={changeStep}
+      saving={blocked}
+      onNext={() => {
+        if (step === 3) {
+          void saveSuggested();
+          return;
+        }
+        setAttempted(true);
+        formValidation.validate();
+        if (!currentStepError) changeStep((step + 1) as PricingStep);
+      }}
+    >
+      {[
+        <React.Fragment key="costs">
+          <View style={{ gap: spacing.sm }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
+                Produto e custos
               </Typography>
-              <Typography variant="caption">
-                {review.missingSource
-                  ? "Uma origem do custo não está mais disponível. Confira antes de recalcular."
-                  : `Aumento de ${formatCurrency(review.increasedBy)} nos custos por unidade desde este cálculo.`}
-              </Typography>
-              <Button
-                title={`Recalcular ${review.product.name}`}
-                variant="secondary"
-                onPress={() => selectProduct(review.product.id, review.calculation)}
+              <Image
+                source={pricingIllustration}
+                resizeMode="contain"
+                accessible={false}
+                style={{ width: desktop ? 104 : 88, height: desktop ? 96 : 80 }}
               />
             </View>
-          ))}
-        </PricingSection>
-      ) : null}
-      <View style={split.row}>
-        <View style={[split.main, { gap: spacing.lg }]}>
-          <Card style={{ gap: spacing.lg }}>
-            <Typography variant="bodyBold">Produto e custo por unidade</Typography>
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              Escolha um produto ou informe o custo de uma unidade e sua embalagem.
+            </Typography>
+          </View>
+          {step === 1 ? notice : null}
+          <Card style={{ gap: spacing.xl }}>
+            <View style={{ gap: spacing.xs }}>
+              <Typography variant="bodyBold">Produto</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Selecione um cadastro para preencher os custos automaticamente.
+              </Typography>
+            </View>
             <PricingPicker
-              title="Produtos cadastrados"
-              action={
-                product
-                  ? `Trocar produto: ${product.name}`
-                  : "Escolher produto cadastrado"
-              }
-              items={products.map((item) => {
-                const cost = currentProductCost(item, products, recipes);
-                const origin = item.recipeId ? "Receita atual" : "Custo cadastrado";
-                return {
-                  id: item.id,
-                  label: item.name,
-                  detail:
-                    cost == null
-                      ? "Custo não disponível · preencha manualmente"
-                      : `${origin}: ${formatCurrency(cost)}`,
-                };
-              })}
+              title={product ? "Escolher outro produto" : "Produtos cadastrados"}
+              action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
+              selectedLabel={product ? displayProductName(product.name) : undefined}
+              items={productPickerItems}
               onSelect={(id) => selectProduct(id)}
             />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <AppIcon
+                name={product ? "checkmark-circle" : "create-outline"}
+                size={18}
+                color={theme.colors.textSecondary}
+              />
+              <Typography
+                variant="caption"
+                color={theme.colors.textSecondary}
+                style={{ flex: 1 }}
+              >
+                {product
+                  ? productSelectionDetail
+                  : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."}
+              </Typography>
+            </View>
             {product ? (
-              <Button title="Fazer cálculo avulso" variant="text" onPress={reset} />
+              <Button
+                title="Calcular sem produto"
+                variant="ghost"
+                size="sm"
+                compact
+                style={{ alignSelf: "flex-start" }}
+                onPress={reset}
+              />
             ) : null}
+            <View style={{ gap: spacing.xs }}>
+              <Typography variant="bodyBold">Custos de uma unidade</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Revise os valores que entram no preço de cada unidade vendida.
+              </Typography>
+            </View>
             <ValidationField {...formValidation.field("ingredient")}>
               <PricingField
-                label="Ingredientes / material por unidade"
+                label="Ingredientes ou material"
                 value={draft.ingredient}
                 onChange={(ingredient) =>
                   update({ ingredient, source: "manual", recipeId: undefined })
@@ -387,13 +420,13 @@ export function UnifiedPricingCalculator({
               />
             ) : null}
             <PricingField
-              label="Embalagem por unidade"
+              label="Embalagem"
               value={draft.packaging}
               onChange={(value) => update({ packaging: value, packagingIds: [] })}
               hint={
                 draft.packagingIds.length
-                  ? "Origem: embalagens selecionadas do cadastro (uma unidade de cada)."
-                  : "Origem: informado por você. Digite 0 se não usa embalagem."
+                  ? "Uma unidade de cada embalagem selecionada."
+                  : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
               }
             />
             {packagingChanged ? (
@@ -405,12 +438,12 @@ export function UnifiedPricingCalculator({
             ) : null}
             <PricingPicker
               title="Embalagens cadastradas"
-              action="Adicionar embalagem cadastrada"
+              action="Usar embalagem cadastrada"
               items={packaging
                 .filter((item) => !draft.packagingIds.includes(item.id))
                 .map((item) => ({
                   id: item.id,
-                  label: item.name,
+                  label: displayProductName(item.name),
                   detail: formatCurrency(item.unitCost),
                 }))}
               onSelect={(id) => {
@@ -429,7 +462,7 @@ export function UnifiedPricingCalculator({
               <Button
                 key={id}
                 variant="text"
-                title={`Remover ${packaging.find((item) => item.id === id)?.name ?? "embalagem excluída"}`}
+                title={`Remover ${displayProductName(packaging.find((item) => item.id === id)?.name ?? "embalagem excluída")}`}
                 onPress={() => {
                   const ids = draft.packagingIds.filter((item) => item !== id);
                   update({
@@ -444,53 +477,124 @@ export function UnifiedPricingCalculator({
               />
             ))}
           </Card>
+          {sources.isLoading ? (
+            <Typography variant="caption">
+              Carregando produtos e custos cadastrados… Você também pode preencher
+              manualmente.
+            </Typography>
+          ) : null}
+          {sources.isError ? (
+            <Card style={{ gap: spacing.sm }}>
+              <Typography variant="body">
+                Não foi possível conferir os cadastros e os alertas de custo. Os valores
+                já preenchidos continuam disponíveis.
+              </Typography>
+              <Button
+                title="Tentar novamente"
+                variant="secondary"
+                onPress={() => void sources.refetch()}
+              />
+            </Card>
+          ) : null}
+          {reviews.length ? (
+            <PricingSection
+              title={`${reviews.length} ${reviews.length === 1 ? "preço precisa" : "preços precisam"} de revisão`}
+              summary="Custos aumentaram ou uma origem deixou de existir"
+            >
+              {reviews.map((review) => (
+                <View key={review.calculation.id} style={{ gap: spacing.sm }}>
+                  <Typography variant="bodyBold">
+                    {review.product.name}
+                    {review.calculation.channelName
+                      ? ` · ${review.calculation.channelName}`
+                      : ""}
+                  </Typography>
+                  <Typography variant="caption">
+                    {review.missingSource
+                      ? "Uma origem do custo não está mais disponível. Confira antes de recalcular."
+                      : `Aumento de ${formatCurrency(review.increasedBy)} nos custos por unidade desde este cálculo.`}
+                  </Typography>
+                  <Button
+                    title={`Recalcular ${review.product.name}`}
+                    variant="secondary"
+                    onPress={() => selectProduct(review.product.id, review.calculation)}
+                  />
+                </View>
+              ))}
+            </PricingSection>
+          ) : null}
+          {calculations.some((item) => item.productId && !item.sourceSnapshot) ? (
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Cálculos antigos sem origem registrada precisam de conferência manual. Novos
+              cálculos vinculados a cadastros permitem acompanhar aumentos.
+            </Typography>
+          ) : null}
+        </React.Fragment>,
+        <React.Fragment key="expenses">
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="h3">Trabalho e despesas</Typography>
+            <Typography variant="body">
+              Abra cada detalhe para incluir os custos que se aplicam ao seu negócio.
+            </Typography>
+          </View>
+          {step === 2 ? notice : null}
           <PricingLabor draft={draft} update={update} />
           <ValidationField {...formValidation.field("overhead")}>
             <PricingOverhead draft={draft} update={update} professional={professional} />
           </ValidationField>
-          <Card style={{ gap: spacing.lg }}>
-            <Typography variant="bodyBold">Quanto você quer ganhar?</Typography>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              <PricingChoice
-                label="Valor em reais"
-                selected={draft.profitMode === "money"}
-                onPress={() => update({ profitMode: "money", profit: "" })}
-              />
-              <PricingChoice
-                label="Acréscimo sobre o custo"
-                selected={draft.profitMode === "markup"}
-                onPress={() => update({ profitMode: "markup", profit: "" })}
-              />
-            </View>
-            <ValidationField {...formValidation.field("profit")}>
-              <PricingField
-                label={
-                  draft.profitMode === "money"
-                    ? "Ganho desejado por unidade"
-                    : "Acréscimo sobre o custo (%)"
-                }
-                money={draft.profitMode === "money"}
-                value={draft.profit}
-                onChange={(profit) => update({ profit })}
-                hint={
-                  draft.profitMode === "markup"
-                    ? "50% de acréscimo sobre R$ 10 dá R$ 15 antes das taxas. Isso é diferente de 50% de margem sobre a venda."
-                    : "Este ganho depende de incluir todos os custos do negócio."
-                }
-              />
-            </ValidationField>
-          </Card>
           <PricingFees draft={draft} update={update} professional={professional} />
-          {!desktop ? result : null}
-        </View>
-        {desktop ? <View style={split.aside}>{result}</View> : null}
-      </View>
-      {calculations.some((item) => item.productId && !item.sourceSnapshot) ? (
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Cálculos antigos sem origem registrada precisam de conferência manual. Novos
-          cálculos vinculados a cadastros permitem acompanhar aumentos.
-        </Typography>
-      ) : null}
-    </KeyboardAwareScrollView>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Valores não informados ficam fora da estimativa. Você pode voltar e completar
+            depois.
+          </Typography>
+        </React.Fragment>,
+        <React.Fragment key="result">
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="h3">Preço e resultado</Typography>
+            <Typography variant="body">
+              Defina seu ganho, confira a estimativa e salve o cálculo.
+            </Typography>
+          </View>
+          {step === 3 ? notice : null}
+          <View style={[split.row, { gap: spacing.lg }]}>
+            <View style={split.main}>
+              <Card style={{ gap: spacing.lg }}>
+                <Typography variant="bodyBold">Quanto você quer ganhar?</Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  <PricingChoice
+                    label="Valor em reais"
+                    selected={draft.profitMode === "money"}
+                    onPress={() => update({ profitMode: "money", profit: "" })}
+                  />
+                  <PricingChoice
+                    label="Acréscimo sobre o custo"
+                    selected={draft.profitMode === "markup"}
+                    onPress={() => update({ profitMode: "markup", profit: "" })}
+                  />
+                </View>
+                <ValidationField {...formValidation.field("profit")}>
+                  <PricingField
+                    label={
+                      draft.profitMode === "money"
+                        ? "Ganho desejado por unidade"
+                        : "Acréscimo sobre o custo (%)"
+                    }
+                    money={draft.profitMode === "money"}
+                    value={draft.profit}
+                    onChange={(profit) => update({ profit })}
+                    hint={
+                      draft.profitMode === "markup"
+                        ? "50% de acréscimo sobre R$ 10 dá R$ 15 antes das taxas. Isso é diferente de 50% de margem sobre a venda."
+                        : "Este ganho depende de incluir todos os custos do negócio."
+                    }
+                  />
+                </ValidationField>
+              </Card>
+            </View>
+            <View style={split.aside}>{result}</View>
+          </View>
+        </React.Fragment>,
+      ]}
+    </PricingStepLayout>
   );
 }

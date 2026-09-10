@@ -206,3 +206,37 @@ export function draftCalculation(draft: PricingDraft, packaging: Packaging[]) {
     };
   }
 }
+
+export type PricingStep = 1 | 2 | 3;
+
+/** Validate only decisions already presented, using the existing calculation rules. */
+export function pricingStepError(
+  step: PricingStep,
+  draft: PricingDraft,
+  packaging: Packaging[],
+  sourceError?: string,
+): string | undefined {
+  if (sourceError) return sourceError;
+  const scoped = { ...draft };
+  if (step < 3) scoped.profit = "0";
+  if (step === 1) {
+    scoped.labor = "0";
+    scoped.fixed = "0";
+    scoped.production = "";
+    scoped.revenue = "";
+    scoped.allocation = "unit";
+    scoped.fees = "0";
+  }
+  return draftCalculation(scoped, packaging).error;
+}
+
+export function firstInvalidPricingStep(
+  draft: PricingDraft,
+  packaging: Packaging[],
+  sourceError?: string,
+): PricingStep | null {
+  for (const step of [1, 2, 3] as const) {
+    if (pricingStepError(step, draft, packaging, sourceError)) return step;
+  }
+  return null;
+}

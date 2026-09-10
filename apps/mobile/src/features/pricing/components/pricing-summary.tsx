@@ -8,7 +8,7 @@ import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { currencyInput } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { evaluateSalePrice, pricingQuote } from "../calc";
-import { PricingField } from "./pricing-fields";
+import { PricingField, PricingSection } from "./pricing-fields";
 import { moneyValue, type PricingDraft } from "../use-pricing-draft";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
 
@@ -17,7 +17,6 @@ export function PricingSummary({
   draft,
   product,
   saving,
-  onSave,
   onApply,
   onCreate,
   onAlternativeChange,
@@ -26,7 +25,6 @@ export function PricingSummary({
   draft: PricingDraft;
   product?: Product;
   saving: boolean;
-  onSave: () => void;
   onApply: (price: number) => void;
   onCreate: (price: number) => void;
   onAlternativeChange: (value: string) => void;
@@ -98,35 +96,49 @@ export function PricingSummary({
         </Typography>
       )}
       <ValidationField {...formValidation.field("alternative")}>
-        <PricingField
-          label="Preço que você quer cobrar"
-          value={alternative}
-          onChange={setAlternative}
-          hint={`Deixe vazio para usar ${formatCurrency(suggested)}. A composição abaixo acompanha este preço.`}
-        />
-      </ValidationField>
-      {product ? (
-        <Button
-          title={`Simular preço atual: ${formatCurrency(product.salePrice)}`}
-          variant="secondary"
-          onPress={() => setAlternative(currencyInput(product.salePrice))}
-        />
-      ) : null}
-      {rows.map(([label, value]) => (
-        <View
-          key={label}
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            gap: spacing.md,
-          }}
+        <PricingSection
+          title="Simular outro preço"
+          summary={
+            alternative.trim()
+              ? `Preço informado: ${formatCurrency(price)}`
+              : "Opcional · compare com o preço sugerido"
+          }
         >
-          <Typography variant="caption" style={{ flex: 1 }}>
-            {label}
-          </Typography>
-          <Typography variant="captionBold">{formatCurrency(value)}</Typography>
-        </View>
-      ))}
+          <PricingField
+            label="Preço que você quer cobrar"
+            value={alternative}
+            onChange={setAlternative}
+            hint={`Deixe vazio para usar ${formatCurrency(suggested)}. A composição abaixo acompanha este preço.`}
+          />
+          {product ? (
+            <Button
+              title={`Simular preço atual: ${formatCurrency(product.salePrice)}`}
+              variant="secondary"
+              onPress={() => setAlternative(currencyInput(product.salePrice))}
+            />
+          ) : null}
+        </PricingSection>
+      </ValidationField>
+      <PricingSection
+        title="Composição do preço"
+        summary="Veja custos, trabalho, despesas e taxas"
+      >
+        {rows.map(([label, value]) => (
+          <View
+            key={label}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              gap: spacing.md,
+            }}
+          >
+            <Typography variant="caption" style={{ flex: 1 }}>
+              {label}
+            </Typography>
+            <Typography variant="captionBold">{formatCurrency(value)}</Typography>
+          </View>
+        ))}
+      </PricingSection>
       <View
         style={{
           borderTopWidth: 1,
@@ -157,12 +169,6 @@ export function PricingSummary({
           Informe um preço de venda maior que zero e dentro do limite permitido.
         </Typography>
       ) : null}
-      <Button
-        title="Salvar cálculo sugerido"
-        variant="secondary"
-        loading={saving}
-        onPress={onSave}
-      />
       {product ? (
         <>
           <Typography variant="caption">
@@ -176,6 +182,7 @@ export function PricingSummary({
           ) : null}
           <Button
             title="Aplicar ao produto"
+            variant="ghost"
             disabled={saving}
             onPress={handleChosenPrice}
           />
@@ -183,6 +190,7 @@ export function PricingSummary({
       ) : (
         <Button
           title="Salvar e criar produto"
+          variant="ghost"
           disabled={saving}
           onPress={handleChosenPrice}
         />

@@ -11,7 +11,7 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { FlatList, Pressable, ScrollView, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -20,6 +20,7 @@ import { SkeletonList } from "../../../shared/components/skeleton";
 import { formatCurrency } from "../../../shared/utils/format";
 import { useAllProducts } from "../../products/hooks";
 import { usePricingList } from "../hooks";
+import { PricingPicker } from "./pricing-fields";
 import { displayProductName } from "../../products/display";
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 
@@ -142,7 +143,6 @@ export function PricingHistoryModal({
   onClose,
 }: Readonly<{ visible: boolean; onClose: () => void }>) {
   const { theme } = useTheme();
-  const palette = useBrandScreenPalette();
   const { data: products = [] } = useAllProducts();
   const { data, isLoading, error, refetch } = usePricingList();
   const [filter, setFilter] = useState<string>("all");
@@ -192,7 +192,7 @@ export function PricingHistoryModal({
     content = (
       <EmptyState
         title="Nenhum cálculo ainda"
-        description="Faça uma precificação e toque em 'Salvar cálculo sugerido' para ver o histórico aqui."
+        description="Faça uma precificação e toque em 'Salvar cálculo' para ver o histórico aqui."
       />
     );
   } else {
@@ -266,50 +266,34 @@ export function PricingHistoryModal({
         </View>
 
         {chips.length > 1 ? (
-          <ScrollView
-            horizontal
-            style={{ flexGrow: 0, flexShrink: 0 }}
-            nestedScrollEnabled
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
+          <View
+            style={{
+              flexShrink: 0,
               paddingHorizontal: spacing.xl,
               paddingBottom: spacing.md,
-              gap: spacing.sm,
-              alignItems: "center",
             }}
           >
-            {chips.map((chip) => (
-              <Pressable
-                key={chip.key}
-                accessibilityRole="button"
-                accessibilityLabel={chip.label}
-                accessibilityState={{ selected: filter === chip.key }}
-                onPress={() => setFilter(chip.key)}
-                style={({ pressed }) => ({
-                  minHeight: 44,
-                  maxWidth: 220,
-                  paddingHorizontal: spacing.md,
-                  borderRadius: radii.md,
-                  borderWidth: 1,
-                  borderColor: filter === chip.key ? palette.wine : theme.colors.border,
-                  backgroundColor:
-                    filter === chip.key || pressed
-                      ? theme.colors.surface
-                      : theme.colors.surfaceElevated,
-                  alignItems: "center",
-                  justifyContent: "center",
-                })}
-              >
-                <Typography
-                  variant={filter === chip.key ? "captionBold" : "caption"}
-                  color={filter === chip.key ? palette.wine : theme.colors.textSecondary}
-                  numberOfLines={1}
-                >
-                  {chip.label}
-                </Typography>
-              </Pressable>
-            ))}
-          </ScrollView>
+            <PricingPicker
+              title="Filtrar histórico"
+              action="Filtrar por produto"
+              selectedLabel={
+                filter === "all"
+                  ? "Todos os produtos"
+                  : (chips.find((chip) => chip.key === filter)?.label ??
+                    "Produto indisponível")
+              }
+              items={chips.map((chip) => ({
+                id: chip.key,
+                label: chip.key === "all" ? "Todos os produtos" : chip.label,
+                detail:
+                  chip.key === "all"
+                    ? "Ver todos os cálculos salvos"
+                    : "Ver cálculos deste filtro",
+              }))}
+              onSelect={setFilter}
+              emptyMessage="Nenhum produto encontrado. Tente outro nome."
+            />
+          </View>
         ) : null}
 
         {content}

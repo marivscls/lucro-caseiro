@@ -1,6 +1,8 @@
 import { useTheme } from "@lucro-caseiro/ui";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { BackHandler } from "react-native";
+import type { PricingStep } from "../features/pricing/use-pricing-draft";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -28,8 +30,27 @@ export default function SimplePricingScreen() {
       ? parsedRecipeCost
       : undefined;
   const [showHistory, setShowHistory] = useState(false);
+  const [step, setStep] = useState<PricingStep>(1);
+  const [saving, setSaving] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+        if (saving) return true;
+        if (showHistory || step === 1) return false;
+        setStep((current) => (current - 1) as PricingStep);
+        return true;
+      });
+      return () => subscription.remove();
+    }, [saving, showHistory, step]),
+  );
 
   function leavePricing() {
+    if (saving) return;
+    if (step > 1) {
+      setStep((current) => (current - 1) as PricingStep);
+      return;
+    }
     if (router.canGoBack()) router.back();
     else router.replace("/tabs/more");
   }
@@ -48,6 +69,9 @@ export default function SimplePricingScreen() {
       />
 
       <UnifiedPricingCalculator
+        step={step}
+        onStepChange={setStep}
+        onBusyChange={setSaving}
         initialProductId={productId}
         key={JSON.stringify([recipeCost, name, category])}
         initialIngredientCost={initialIngredientCost}

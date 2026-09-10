@@ -6,6 +6,7 @@ import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { maskCurrencyInput } from "../../../shared/utils/currency-input";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { useBrandScreenPalette } from "../../../shared/brand-palette";
 
 export function PricingField({
   label,
@@ -109,6 +110,7 @@ export function PricingChoice({
   onPress,
 }: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
   const { theme } = useTheme();
+  const palette = useBrandScreenPalette();
   return (
     <Pressable
       accessibilityRole="button"
@@ -116,8 +118,8 @@ export function PricingChoice({
       onPress={onPress}
       style={{
         borderWidth: 1,
-        borderColor: selected ? theme.colors.primary : theme.colors.border,
-        backgroundColor: selected ? theme.colors.primaryBg : theme.colors.surface,
+        borderColor: selected ? palette.wine : theme.colors.border,
+        backgroundColor: theme.colors.surface,
         padding: spacing.md,
         minHeight: 44,
         borderRadius: radii.md,
@@ -127,7 +129,7 @@ export function PricingChoice({
       }}
     >
       {selected ? (
-        <AppIcon name="checkmark-circle" size={18} color={theme.colors.primaryStrong} />
+        <AppIcon name="checkmark-circle" size={18} color={palette.wine} />
       ) : null}
       <Typography variant="captionBold" style={{ flexShrink: 1 }}>
         {label}
@@ -141,11 +143,15 @@ export function PricingPicker({
   action,
   items,
   onSelect,
+  selectedLabel,
+  emptyMessage = "Nenhum cadastro disponível para esta busca. Você pode informar o valor manualmente.",
 }: Readonly<{
   title: string;
   action: string;
   items: Array<{ id: string; label: string; detail: string }>;
   onSelect: (id: string) => void;
+  selectedLabel?: string;
+  emptyMessage?: string;
 }>) {
   const { theme } = useTheme();
   const [open, setOpen] = useState(false);
@@ -155,14 +161,42 @@ export function PricingPicker({
   );
   return (
     <>
-      <Button
-        title={action}
-        variant="secondary"
-        onPress={() => {
-          setSearch("");
-          setOpen(true);
-        }}
-      />
+      {selectedLabel ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${action}: ${selectedLabel}`}
+          accessibilityState={{ expanded: open }}
+          onPress={() => {
+            setSearch("");
+            setOpen(true);
+          }}
+          style={{
+            minHeight: 48,
+            padding: spacing.md,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            borderRadius: radii.md,
+            backgroundColor: theme.colors.surfaceElevated,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+          }}
+        >
+          <Typography variant="body" style={{ flex: 1, minWidth: 0 }}>
+            {selectedLabel}
+          </Typography>
+          <AppIcon name="chevron-down" size={18} color={theme.colors.textSecondary} />
+        </Pressable>
+      ) : (
+        <Button
+          title={action}
+          variant="outline"
+          onPress={() => {
+            setSearch("");
+            setOpen(true);
+          }}
+        />
+      )}
       <ResponsiveOverlayModal
         visible={open}
         transparent
@@ -222,10 +256,7 @@ export function PricingPicker({
                 </Pressable>
               ))}
               {!visible.length ? (
-                <Typography variant="body">
-                  Nenhum cadastro disponível para esta busca. Você pode informar o valor
-                  manualmente.
-                </Typography>
+                <Typography variant="body">{emptyMessage}</Typography>
               ) : null}
             </ScrollView>
             <Button title="Fechar" variant="secondary" onPress={() => setOpen(false)} />

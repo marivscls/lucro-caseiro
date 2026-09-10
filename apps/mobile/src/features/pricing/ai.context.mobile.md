@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Uma única precificação em `/pricing`, com detalhes expansíveis para trabalho, despesas e taxas. `/pricing-complete` preserva links antigos redirecionando para a mesma tela. Custo, embalagem, ganho, trabalho e rateio por produção estão disponíveis em qualquer plano; rateio por faturamento e perfis salvos de canal exigem `advancedPricing`.
+Uma única precificação em `/pricing`, dividida em três etapas: produto e custos, trabalho e despesas, preço e resultado. `/pricing-complete` preserva links antigos redirecionando para a mesma tela. Custo, embalagem, ganho, trabalho e rateio por produção estão disponíveis em qualquer plano; rateio por faturamento e perfis salvos de canal exigem `advancedPricing`.
 
 ## Non-goals
 
@@ -17,6 +17,7 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 ## Code pointers
 
 - `components/unified-pricing-calculator.tsx`: fluxo único, importação, revisão e confirmação.
+- `components/pricing-step-layout.tsx`: progresso, painéis e rodapé com Voltar, Continuar e Salvar cálculo; mantém os painéis montados para preservar detalhes ainda não aplicados.
 - `components/pricing-fields.tsx`: campos, seções expansíveis e seleção pesquisável.
 - `components/pricing-cost-details.tsx`: trabalho, despesas e canais.
 - `components/pricing-summary.tsx`: composição, preço alternativo, ganho e margem.
@@ -30,7 +31,11 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 
 ## Components
 
+A rota controla a etapa atual; o botão do cabeçalho e o retorno do Android voltam uma etapa antes de sair. A navegação e o salvamento ficam bloqueados durante requisições. Cada avanço valida os campos já apresentados; salvar valida o rascunho completo e retorna à primeira etapa inválida. Trabalho, despesas, taxas, simulação alternativa e composição começam recolhidos. O rodapé permanece fora da rolagem, acima do espaço reservado à navegação global.
+
 `UnifiedPricingCalculator` aceita custo inicial, productId inicial, metadados de nome/categoria vindos da receita, callbacks de salvamento e criação. `PricingSummary` permite simular outro preço; mostra margem sobre a venda efetiva, despesas e taxas recalculadas. O resultado identifica custos ausentes, inclusive ao restaurar zeros de históricos sem confirmação.
+
+Na primeira etapa, o produto escolhido aparece como seleção atual, separado dos custos editáveis. Trocar o produto e calcular sem cadastro são ações explícitas; ingredientes/material e embalagem são apresentados como custos de uma unidade, com a origem e a possibilidade de ajuste explicadas junto ao campo. Os cadastros são atualizados automaticamente ao focar a tela, sem ação manual de atualização.
 
 A introdução reaproveita a ilustração original `pricingCostsHero` via `useBrandIllustration`,
 em tamanho compacto ao lado do título. A descrição, os campos e o resultado conservam
@@ -39,8 +44,8 @@ O resultado também reaproveita `pricingResultHero`, ao lado do rótulo do preç
 em 96 × 64 px. O valor fica abaixo, com toda a largura do cartão disponível.
 
 O histórico usa cartões compactos com nome visível do produto, data, preço sugerido,
-custo e acréscimo. A faixa de filtros neutros não encolhe com a lista; trocar o filtro
-reinicia sua rolagem. Produtos indisponíveis são diferenciados de cálculos avulsos,
+custo e acréscimo. O filtro é um seletor pesquisável com nome completo e quebra de linha,
+sem faixa horizontal cortada; trocar o filtro reinicia a rolagem da lista. Produtos indisponíveis são diferenciados de cálculos avulsos,
 e falhas de carregamento oferecem nova tentativa.
 
 ## Hooks
@@ -79,6 +84,9 @@ No rateio por faturamento: `final = (direto + ganhoAlvo) / (1 - indiretos% - tax
 Cálculos locais, sem requisição a cada tecla. Cadastros usam cache React Query e são recarregados ao focar a tela. Histórico percorre todas as páginas para não perder produtos antigos; cada produto/canal é comparado somente com seu último cálculo. Não há polling em segundo plano.
 
 ## Test matrix
+
+- `pricing-steps.test.ts`: validação por etapa, custos alterados, campos opcionais, taxas e retorno à primeira etapa inválida.
+- `components/pricing-step-layout.test.tsx`: uma etapa visível, preservação de detalhes ao voltar, bloqueio de saltos e salvamento pela ação final.
 
 - Fórmulas com trabalho, taxa, rateio por unidade e faturamento.
 - Acréscimo versus margem e simulação de prejuízo.
