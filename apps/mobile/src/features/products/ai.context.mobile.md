@@ -166,6 +166,12 @@ it must not turn the Products registry into Services; services use `/services`.
 
 ## Change log / Decisions
 
+- 2026-09-09: **detalhes do produto com hierarquia editorial** — foto, nome, tipo e
+  categoria formam um cabeçalho horizontal compacto. Preço ganha destaque próprio; custo e
+  ganho bruto ficam lado a lado; descrição é separada por divisor. Kits mostram quantidade,
+  componente e custo em linhas estruturadas, e o histórico diferencia entradas e saídas com
+  ícone, cor e divisores. Cards de leitura usam superfície branca com borda leve.
+
 - 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
 
 - 2026-07-24: criação e edição foram organizadas em blocos canônicos (`FormSection`) para

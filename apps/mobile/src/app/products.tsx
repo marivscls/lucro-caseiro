@@ -109,6 +109,11 @@ function priceLabel(p: Product): string {
     : formatCurrency(p.salePrice);
 }
 
+function costLabel(p: Product): string {
+  if (p.costPrice != null) return formatCurrency(p.costPrice);
+  return p.isComposite ? "Sem custo" : "Não informado";
+}
+
 function stockLabel(p: Product): string {
   const quantity = totalVariationStock(p.variations) ?? p.stockQuantity;
   if (quantity === null) return "Não controlado";
@@ -163,6 +168,7 @@ function ProductDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const { copy } = useBrand();
   const variationsEnabled = useFeature("catalogoCores");
   const directCostEnabled = useFeature("custoDireto");
@@ -460,18 +466,31 @@ function ProductDetailModal({
         ) : null}
         {!isLoading && product ? (
           <View style={{ flexShrink: 1, gap: spacing.lg }}>
-            <View style={{ alignItems: "center", gap: spacing.md }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.md,
+                paddingHorizontal: spacing.xs,
+              }}
+            >
               {product.photoUrl ? (
                 <Image
+                  accessibilityLabel={`Foto de ${displayProductName(product.name)}`}
                   source={{ uri: product.photoUrl }}
-                  style={{ width: 96, height: 96, borderRadius: radii.full }}
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: radii.xl,
+                    backgroundColor: palette.surface,
+                  }}
                 />
               ) : (
                 <View
                   style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: radii.full,
+                    width: 88,
+                    height: 88,
+                    borderRadius: radii.xl,
                     backgroundColor: theme.colors.primaryBg,
                     borderWidth: 1,
                     borderColor: theme.colors.border,
@@ -484,62 +503,119 @@ function ProductDetailModal({
                   </Typography>
                 </View>
               )}
-              <Typography
-                variant="h3"
-                style={{ alignSelf: "stretch", textAlign: "center" }}
-              >
-                {displayProductName(product.name)}
-              </Typography>
-              {product.isComposite && <Badge label="Kit" variant="lavender" />}
-              <Typography variant="caption">{product.category}</Typography>
-            </View>
-
-            <Card>
-              <View style={{ gap: spacing.sm }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="caption">
-                    {product.saleUnit === "kg" ? "Preço por kg" : "Preço de venda"}
-                  </Typography>
-                  <Typography variant="h3" color={theme.colors.success}>
-                    {priceLabel(product)}
-                  </Typography>
-                </View>
-                {product.isComposite && (
-                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <Typography variant="caption">Custo do kit</Typography>
-                    <Typography variant="bodyBold">
-                      {product.costPrice != null
-                        ? formatCurrency(product.costPrice)
-                        : "Sem custo"}
+              <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
+                <Typography variant="h2" numberOfLines={2}>
+                  {displayProductName(product.name)}
+                </Typography>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: spacing.sm,
+                  }}
+                >
+                  {product.isComposite ? <Badge label="Kit" variant="lavender" /> : null}
+                  <View
+                    style={{
+                      minHeight: 32,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                      paddingHorizontal: spacing.sm,
+                      borderRadius: radii.full,
+                      backgroundColor: palette.surface,
+                    }}
+                  >
+                    <AppIcon name="grid-outline" size={16} color={palette.warmGray} />
+                    <Typography variant="caption" color={palette.warmGray}>
+                      {product.category}
                     </Typography>
                   </View>
-                )}
-                {directCostEnabled && !product.isComposite && (
-                  <>
+                </View>
+              </View>
+            </View>
+
+            <Card
+              variant="elevated"
+              padding="lg"
+              style={{ backgroundColor: palette.white }}
+            >
+              <View style={{ gap: spacing.lg }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: radii.md,
+                      backgroundColor: theme.colors.successBg,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AppIcon name="cash-outline" size={22} color={theme.colors.success} />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="caption" color={palette.warmGray}>
+                      {product.saleUnit === "kg" ? "Preço por kg" : "Preço de venda"}
+                    </Typography>
+                    <Typography variant="h2" color={theme.colors.success}>
+                      {priceLabel(product)}
+                    </Typography>
+                  </View>
+                </View>
+
+                {product.isComposite || directCostEnabled ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "stretch",
+                      borderRadius: radii.lg,
+                      backgroundColor: palette.surface,
+                      paddingVertical: spacing.md,
+                    }}
+                  >
                     <View
-                      style={{ flexDirection: "row", justifyContent: "space-between" }}
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        gap: spacing.xs,
+                        paddingHorizontal: spacing.md,
+                      }}
                     >
-                      <Typography variant="caption">Custo unitário</Typography>
-                      <Typography variant="bodyBold">
-                        {product.costPrice == null
-                          ? "Não informado"
-                          : formatCurrency(product.costPrice)}
+                      <Typography variant="caption" color={palette.warmGray}>
+                        {product.isComposite ? "Custo do kit" : "Custo unitário"}
                       </Typography>
+                      <Typography variant="bodyBold">{costLabel(product)}</Typography>
                     </View>
                     {product.costPrice != null ? (
-                      <View
-                        style={{ flexDirection: "row", justifyContent: "space-between" }}
-                      >
-                        <Typography variant="caption">
-                          Ganho bruto com o custo informado
-                        </Typography>
-                        <Typography variant="bodyBold" color={theme.colors.success}>
-                          {formatCurrency(product.salePrice - product.costPrice)}
-                        </Typography>
-                      </View>
+                      <>
+                        <View style={{ width: 1, backgroundColor: palette.border }} />
+                        <View
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            gap: spacing.xs,
+                            paddingHorizontal: spacing.md,
+                          }}
+                        >
+                          <Typography variant="caption" color={palette.warmGray}>
+                            Ganho bruto
+                          </Typography>
+                          <Typography variant="bodyBold" color={theme.colors.success}>
+                            {formatCurrency(product.salePrice - product.costPrice)}
+                          </Typography>
+                        </View>
+                      </>
                     ) : null}
-                  </>
-                )}
+                  </View>
+                ) : null}
                 {product.saleUnit === "unit" && !product.isComposite && (
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <Typography variant="caption">{copy.stockLabel}</Typography>
@@ -578,8 +654,17 @@ function ProductDetailModal({
                     </View>
                   )}
                 {product.description && (
-                  <View style={{ gap: spacing.xs }}>
-                    <Typography variant="caption">Descrição</Typography>
+                  <View
+                    style={{
+                      gap: spacing.xs,
+                      borderTopWidth: 1,
+                      borderTopColor: palette.border,
+                      paddingTop: spacing.md,
+                    }}
+                  >
+                    <Typography variant="caption" color={palette.warmGray}>
+                      Descrição
+                    </Typography>
                     <Typography variant="body">{product.description}</Typography>
                   </View>
                 )}
@@ -587,35 +672,89 @@ function ProductDetailModal({
             </Card>
 
             {product.isComposite && product.components && (
-              <Card>
-                <View style={{ gap: spacing.sm }}>
-                  <Typography variant="bodyBold">O que vem no kit</Typography>
-                  {product.components.map((c) => (
-                    <View
-                      key={c.componentProductId}
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Typography
-                        variant="body"
-                        style={{ flex: 1, minWidth: 0 }}
-                        numberOfLines={2}
-                      >
-                        {c.quantity}x {displayProductName(c.name)}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color={theme.colors.textSecondary}
-                        style={{ flexShrink: 0 }}
-                      >
-                        {c.costPrice != null
-                          ? formatCurrency(c.costPrice * c.quantity)
-                          : "Sem custo"}
+              <Card
+                variant="elevated"
+                padding="lg"
+                style={{ backgroundColor: palette.white }}
+              >
+                <View style={{ gap: spacing.md }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="h3">O que vem no kit</Typography>
+                      <Typography variant="caption" color={palette.warmGray}>
+                        {product.components.length}{" "}
+                        {product.components.length === 1 ? "item" : "itens"} na composição
                       </Typography>
                     </View>
-                  ))}
+                    <View
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: radii.md,
+                        backgroundColor: palette.softRose,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AppIcon name="gift-outline" size={20} color={palette.wine} />
+                    </View>
+                  </View>
+                  <View>
+                    {product.components.map((component, index) => (
+                      <View key={component.componentProductId}>
+                        <View
+                          style={{
+                            minHeight: 56,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.md,
+                          }}
+                        >
+                          <View
+                            style={{
+                              minWidth: 40,
+                              height: 32,
+                              paddingHorizontal: spacing.sm,
+                              borderRadius: radii.full,
+                              backgroundColor: palette.surface,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Typography variant="captionBold" color={palette.wine}>
+                              {component.quantity}x
+                            </Typography>
+                          </View>
+                          <Typography
+                            variant="body"
+                            style={{ flex: 1, minWidth: 0 }}
+                            numberOfLines={2}
+                          >
+                            {displayProductName(component.name)}
+                          </Typography>
+                          <Typography
+                            variant="bodyBold"
+                            color={palette.warmGray}
+                            style={{ flexShrink: 0 }}
+                          >
+                            {component.costPrice != null
+                              ? formatCurrency(component.costPrice * component.quantity)
+                              : "Sem custo"}
+                          </Typography>
+                        </View>
+                        {index < product.components!.length - 1 ? (
+                          <View style={{ height: 1, backgroundColor: palette.border }} />
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </Card>
             )}
@@ -675,39 +814,103 @@ function ProductDetailModal({
             ) : null}
 
             {stockMovements.length > 0 ? (
-              <Card>
+              <Card
+                variant="elevated"
+                padding="lg"
+                style={{ backgroundColor: palette.white }}
+              >
                 <View style={{ gap: spacing.md }}>
-                  <Typography variant="h3">Histórico de movimentações</Typography>
-                  {stockMovements.slice(0, 8).map((movement) => (
-                    <View
-                      key={movement.id}
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: spacing.md,
-                      }}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Typography variant="bodyBold">
-                          {movementLabel(movement.type)}
-                        </Typography>
-                        <Typography variant="caption" color={theme.colors.textSecondary}>
-                          {new Date(movement.occurredAt).toLocaleDateString("pt-BR")}
-                          {movement.reason ? ` · ${movement.reason}` : ""}
-                        </Typography>
-                      </View>
-                      <Typography
-                        variant="bodyBold"
-                        color={
-                          movement.delta > 0 ? theme.colors.success : theme.colors.alert
-                        }
-                      >
-                        {movement.delta > 0 ? "+" : ""}
-                        {movement.delta}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="h3">Histórico de movimentações</Typography>
+                      <Typography variant="caption" color={palette.warmGray}>
+                        Últimas alterações no estoque
                       </Typography>
                     </View>
-                  ))}
+                    <View
+                      style={{
+                        minWidth: 36,
+                        minHeight: 32,
+                        paddingHorizontal: spacing.sm,
+                        borderRadius: radii.full,
+                        backgroundColor: palette.surface,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Typography variant="captionBold" color={palette.wine}>
+                        {Math.min(stockMovements.length, 8)}
+                      </Typography>
+                    </View>
+                  </View>
+                  <View>
+                    {stockMovements.slice(0, 8).map((movement, index) => (
+                      <View key={movement.id}>
+                        <View
+                          style={{
+                            minHeight: 64,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.md,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: radii.full,
+                              backgroundColor:
+                                movement.delta > 0
+                                  ? theme.colors.successBg
+                                  : theme.colors.alertBg,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <AppIcon
+                              name={movement.delta > 0 ? "add" : "remove"}
+                              size={18}
+                              color={
+                                movement.delta > 0
+                                  ? theme.colors.success
+                                  : theme.colors.alert
+                              }
+                            />
+                          </View>
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="bodyBold">
+                              {movementLabel(movement.type)}
+                            </Typography>
+                            <Typography variant="caption" color={palette.warmGray}>
+                              {new Date(movement.occurredAt).toLocaleDateString("pt-BR")}
+                              {movement.reason ? ` · ${movement.reason}` : ""}
+                            </Typography>
+                          </View>
+                          <Typography
+                            variant="bodyBold"
+                            color={
+                              movement.delta > 0
+                                ? theme.colors.success
+                                : theme.colors.alert
+                            }
+                          >
+                            {movement.delta > 0 ? "+" : ""}
+                            {movement.delta}
+                          </Typography>
+                        </View>
+                        {index < Math.min(stockMovements.length, 8) - 1 ? (
+                          <View style={{ height: 1, backgroundColor: palette.border }} />
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </Card>
             ) : null}
