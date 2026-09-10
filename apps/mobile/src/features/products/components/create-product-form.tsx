@@ -4,6 +4,7 @@ import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/co
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   CenteredTextInput,
+  Button,
   Typography,
   useBrand,
   useFeature,
@@ -63,6 +64,7 @@ import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { FormSection } from "../../../shared/components/form-section";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import { VariationEditor } from "./variation-editor";
 import { validateVariations } from "../variations";
 import { trackAnalyticsAction } from "../../analytics/tracker";
@@ -98,6 +100,12 @@ interface CreateProductFormProps {
     returnAction?: { label: string; onPress: () => void };
   };
 }
+
+const PRODUCT_FORM_STEPS = [
+  { label: "Essencial", title: "Informações e preço" },
+  { label: "Detalhes", title: "Tipo, variações e apresentação" },
+  { label: "Estoque", title: "Estoque e identificação" },
+] as const;
 
 /** Cores derivadas do tema para os campos (funciona em claro e escuro). */
 function useFieldPalette() {
@@ -642,6 +650,7 @@ export function CreateProductForm({
   const priceInput = useRef<TextInput>(null);
   const [categoryFocus, setCategoryFocus] = useState(0);
   const [attempted, setAttempted] = useState(false);
+  const [formStep, setFormStep] = useState(1);
   const [name, setName] = useState(initialValues?.name ?? "");
   const [category, setCategory] = useState(initialValues?.category ?? "");
   const [salePrice, setSalePrice] = useState(
@@ -750,8 +759,14 @@ export function CreateProductForm({
         const event = events[field];
         void trackAnalyticsAction(`product_${event}`, useAuth.getState().token);
       })
-    )
+    ) {
+      if (!name.trim() || !category.trim() || parseCurrencyInput(salePrice) <= 0) {
+        setFormStep(1);
+      } else if (isComposite) {
+        setFormStep(2);
+      }
       return;
+    }
     if (checkProductLimit()) return;
 
     const price = parseCurrencyInput(salePrice);
@@ -938,334 +953,358 @@ export function CreateProductForm({
 
   const fields = (
     <>
-      <FormSection
-        collapsible={false}
-        title="Informações básicas"
-        subtitle={`Nome, categoria e tipo do ${experienceCopy.productNoun}`}
-        icon="pricetag-outline"
-        initiallyOpen
+      <View
+        style={{ display: !modal || formStep === 1 ? "flex" : "none", gap: spacing.xl }}
+        accessibilityElementsHidden={!!modal && formStep !== 1}
+        importantForAccessibility={
+          !modal || formStep === 1 ? "auto" : "no-hide-descendants"
+        }
       >
-        <View
-          style={{
-            flexDirection: wideLayout ? "row" : "column",
-            gap: wideLayout ? spacing.lg : spacing.xl,
-          }}
+        <FormSection
+          collapsible={false}
+          title="Informações básicas"
+          subtitle={`Nome, categoria e tipo do ${experienceCopy.productNoun}`}
+          icon="pricetag-outline"
+          initiallyOpen
         >
-          <View style={wideLayout ? { flex: 1 } : undefined}>
-            {attempted && !name.trim() ? (
-              <Typography variant="body" accessibilityRole="alert">
-                Informe o nome do que você vende.
-              </Typography>
-            ) : null}
-            <FieldLabel label={`Nome do ${experienceCopy.productNoun}`} required />
-            <ValidationField {...formValidation.field("name")}>
-              <TextFieldCard
-                icon="pricetag-outline"
-                placeholder={`Ex: ${experienceCopy.productExample}`}
-                inputRef={nameInput}
-                accessibilityLabel={`Nome do ${experienceCopy.productNoun}, obrigatório`}
-                value={name}
-                onChangeText={setName}
-                autoFocus
-                isDesktop={isDesktop}
-              />
-            </ValidationField>
-          </View>
-
-          <View style={wideLayout ? { flex: 1 } : undefined}>
-            {attempted && !category.trim() ? (
-              <Typography variant="body" accessibilityRole="alert">
-                Escolha uma categoria para organizar o produto.
-              </Typography>
-            ) : null}
-            <FieldLabel label="Categoria" required />
-            <ValidationField {...formValidation.field("category")}>
-              <CategoryField
-                focusRequest={categoryFocus}
-                value={category}
-                onChange={setCategory}
-                categories={categories}
-                placeholder={`Ex: ${experienceCopy.categoryExample}...`}
-                isDesktop={isDesktop}
-              />
-            </ValidationField>
-          </View>
-        </View>
-      </FormSection>
-
-      <FormSection
-        collapsible={false}
-        title="Preço e custo"
-        subtitle="Veja o ganho estimado enquanto preenche"
-        icon="cash-outline"
-        initiallyOpen={!modal || isDesktop}
-      >
-        <View
-          style={{
-            flexDirection: wideLayout ? "row" : "column",
-            alignItems: wideLayout ? "flex-end" : undefined,
-            gap: spacing.xl,
-          }}
-        >
-          <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
-            {attempted &&
-            (!Number.isFinite(parseCurrencyInput(salePrice)) ||
-              parseCurrencyInput(salePrice) <= 0) ? (
-              <Typography variant="body" accessibilityRole="alert">
-                Informe um preço maior que zero. Exemplo: 25,00.
-              </Typography>
-            ) : null}
-            <FieldLabel
-              label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
-              required
-            />
-            <ValidationField {...formValidation.field("salePrice")}>
-              <TextFieldCard
-                icon="cash-outline"
-                placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
-                inputRef={priceInput}
-                accessibilityLabel="Preço de venda em reais, obrigatório"
-                value={salePrice}
-                onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-                keyboardType="numeric"
-                isDesktop={isDesktop}
-              />
-            </ValidationField>
-          </View>
-
-          {directCostEnabled && !isComposite ? (
-            <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
-              <FieldLabel label="Custo unitário (R$)" />
-              <TextFieldCard
-                icon="wallet-outline"
-                placeholder="Ex: 2,10"
-                value={costPrice}
-                onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
-                keyboardType="numeric"
-                isDesktop={isDesktop}
-              />
-            </View>
-          ) : null}
-        </View>
-        {/* Venda por peso (kg) so faz sentido para produto simples. */}
-        {!isComposite && weightEnabled && (
-          <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
-            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
-          </View>
-        )}
-        {estimatedGain !== null && marginOnPrice !== null && !wideLayout ? (
           <View
             style={{
-              borderRadius: radii.xl,
-              padding: spacing.lg,
-              gap: spacing.xs,
-              backgroundColor:
-                estimatedGain >= 0 ? theme.colors.successBg : theme.colors.alertBg,
+              flexDirection: wideLayout ? "row" : "column",
+              gap: wideLayout ? spacing.lg : spacing.xl,
             }}
           >
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Estimativa com os custos informados
-            </Typography>
-            <Typography
-              variant="h3"
-              color={estimatedGain >= 0 ? theme.colors.success : theme.colors.alert}
-            >
-              Ganho bruto:{" "}
-              {estimatedGain.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Margem sobre o preço: {marginOnPrice.toFixed(1).replace(".", ",")}%
-            </Typography>
+            <View style={wideLayout ? { flex: 1 } : undefined}>
+              {attempted && !name.trim() ? (
+                <Typography variant="body" accessibilityRole="alert">
+                  Informe o nome do que você vende.
+                </Typography>
+              ) : null}
+              <FieldLabel label={`Nome do ${experienceCopy.productNoun}`} required />
+              <ValidationField {...formValidation.field("name")}>
+                <TextFieldCard
+                  icon="pricetag-outline"
+                  placeholder={`Ex: ${experienceCopy.productExample}`}
+                  inputRef={nameInput}
+                  accessibilityLabel={`Nome do ${experienceCopy.productNoun}, obrigatório`}
+                  value={name}
+                  onChangeText={setName}
+                  autoFocus
+                  isDesktop={isDesktop}
+                />
+              </ValidationField>
+            </View>
+
+            <View style={wideLayout ? { flex: 1 } : undefined}>
+              {attempted && !category.trim() ? (
+                <Typography variant="body" accessibilityRole="alert">
+                  Escolha uma categoria para organizar o produto.
+                </Typography>
+              ) : null}
+              <FieldLabel label="Categoria" required />
+              <ValidationField {...formValidation.field("category")}>
+                <CategoryField
+                  focusRequest={categoryFocus}
+                  value={category}
+                  onChange={setCategory}
+                  categories={categories}
+                  placeholder={`Ex: ${experienceCopy.categoryExample}...`}
+                  isDesktop={isDesktop}
+                />
+              </ValidationField>
+            </View>
           </View>
-        ) : null}
-      </FormSection>
+        </FormSection>
 
-      <FormSection
-        title="Tipo e variações"
-        subtitle="Kit, componentes e opções do produto"
-        icon="cube-outline"
-        initiallyOpen={isComposite}
-        collapsible={!isComposite}
-      >
-        {!simpleOnly ? (
-          <CompositeToggle
-            value={isComposite}
-            onChange={handleCompositeChange}
-            locked={!canUseCompositeProducts}
-          />
-        ) : null}
-
-        {isComposite ? (
-          <ValidationField {...formValidation.field("components")}>
-            <ComponentPicker
-              value={components}
-              onChange={setComponents}
-              onCreateSimpleProduct={() => setCreatingComponent(true)}
-            />
-          </ValidationField>
-        ) : null}
-
-        {variationsEnabled && !isComposite ? (
-          <VariationEditor value={variations} onChange={setVariations} />
-        ) : null}
-      </FormSection>
-
-      <FormSection
-        title="Fotos e descrição"
-        subtitle={`Apresentação do ${experienceCopy.productNoun} no catálogo`}
-        icon="camera-outline"
-      >
-        <View
-          style={{
-            flexDirection: wideLayout ? "row" : "column",
-            alignItems: wideLayout ? "flex-start" : undefined,
-            gap: spacing.xl,
-          }}
+        <FormSection
+          collapsible={false}
+          title="Preço e custo"
+          subtitle="Veja o ganho estimado enquanto preenche"
+          icon="cash-outline"
+          initiallyOpen={!modal || isDesktop}
         >
           <View
-            style={wideLayout ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}
+            style={{
+              flexDirection: wideLayout ? "row" : "column",
+              alignItems: wideLayout ? "flex-end" : undefined,
+              gap: spacing.xl,
+            }}
           >
-            <PhotoField
-              imageUri={imageUri ?? initialValues?.photoUrl ?? null}
-              onPress={showPicker}
-              isDesktop={isDesktop}
-            />
-
-            <ExtraPhotosField
-              uris={extraUris}
-              onAdd={() => void addExtraPhoto()}
-              onRemove={removeExtraPhoto}
-              max={MAX_EXTRA_PHOTOS}
-              isPremium={canUseExtraPhotos}
-              isDesktop={isDesktop}
-            />
-          </View>
-
-          <View style={wideLayout ? { flex: 1 } : undefined}>
-            <DescriptionField
-              value={description}
-              onChange={setDescription}
-              isDesktop={isDesktop}
-            />
-          </View>
-        </View>
-      </FormSection>
-
-      <FormSection
-        title="Estoque e identificação"
-        subtitle="Código, quantidade disponível e alerta de reposição"
-        icon="albums-outline"
-        initiallyOpen={!modal || isDesktop}
-      >
-        <View
-          style={{
-            flexDirection: wideLayout ? "row" : "column",
-            alignItems: wideLayout ? "flex-end" : undefined,
-            gap: wideLayout ? spacing.lg : spacing.xl,
-          }}
-        >
-          <View style={wideLayout ? { flex: 1, maxWidth: 480 } : undefined}>
-            <FieldLabel label="Código de barras (opcional)" />
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <View style={{ flex: 1 }}>
+            <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
+              {attempted &&
+              (!Number.isFinite(parseCurrencyInput(salePrice)) ||
+                parseCurrencyInput(salePrice) <= 0) ? (
+                <Typography variant="body" accessibilityRole="alert">
+                  Informe um preço maior que zero. Exemplo: 25,00.
+                </Typography>
+              ) : null}
+              <FieldLabel
+                label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+                required
+              />
+              <ValidationField {...formValidation.field("salePrice")}>
                 <TextFieldCard
-                  icon="barcode-outline"
-                  placeholder="Ex: 789..."
-                  value={code}
-                  onChangeText={setCode}
+                  icon="cash-outline"
+                  placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+                  inputRef={priceInput}
+                  accessibilityLabel="Preço de venda em reais, obrigatório"
+                  value={salePrice}
+                  onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+                  keyboardType="numeric"
+                  isDesktop={isDesktop}
+                />
+              </ValidationField>
+            </View>
+
+            {directCostEnabled && !isComposite ? (
+              <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
+                <FieldLabel label="Custo unitário (R$)" />
+                <TextFieldCard
+                  icon="wallet-outline"
+                  placeholder="Ex: 2,10"
+                  value={costPrice}
+                  onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
+                  keyboardType="numeric"
                   isDesktop={isDesktop}
                 />
               </View>
+            ) : null}
+          </View>
+          {/* Venda por peso (kg) so faz sentido para produto simples. */}
+          {!isComposite && weightEnabled && (
+            <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
+              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+            </View>
+          )}
+          {estimatedGain !== null && marginOnPrice !== null && !wideLayout ? (
+            <View
+              style={{
+                borderRadius: radii.xl,
+                padding: spacing.lg,
+                gap: spacing.xs,
+                backgroundColor:
+                  estimatedGain >= 0 ? theme.colors.successBg : theme.colors.alertBg,
+              }}
+            >
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Estimativa com os custos informados
+              </Typography>
+              <Typography
+                variant="h3"
+                color={estimatedGain >= 0 ? theme.colors.success : theme.colors.alert}
+              >
+                Ganho bruto:{" "}
+                {estimatedGain.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Margem sobre o preço: {marginOnPrice.toFixed(1).replace(".", ",")}%
+              </Typography>
+            </View>
+          ) : null}
+        </FormSection>
+      </View>
+
+      <View
+        style={{ display: !modal || formStep === 2 ? "flex" : "none", gap: spacing.xl }}
+        accessibilityElementsHidden={!!modal && formStep !== 2}
+        importantForAccessibility={
+          !modal || formStep === 2 ? "auto" : "no-hide-descendants"
+        }
+      >
+        <FormSection
+          title="Tipo e variações"
+          subtitle="Kit, componentes e opções do produto"
+          icon="cube-outline"
+          initiallyOpen={isComposite}
+          collapsible={!isComposite}
+        >
+          {!simpleOnly ? (
+            <CompositeToggle
+              value={isComposite}
+              onChange={handleCompositeChange}
+              locked={!canUseCompositeProducts}
+            />
+          ) : null}
+
+          {isComposite ? (
+            <ValidationField {...formValidation.field("components")}>
+              <ComponentPicker
+                value={components}
+                onChange={setComponents}
+                onCreateSimpleProduct={() => setCreatingComponent(true)}
+              />
+            </ValidationField>
+          ) : null}
+
+          {variationsEnabled && !isComposite ? (
+            <VariationEditor value={variations} onChange={setVariations} />
+          ) : null}
+        </FormSection>
+
+        <FormSection
+          title="Fotos e descrição"
+          subtitle={`Apresentação do ${experienceCopy.productNoun} no catálogo`}
+          icon="camera-outline"
+        >
+          <View
+            style={{
+              flexDirection: wideLayout ? "row" : "column",
+              alignItems: wideLayout ? "flex-start" : undefined,
+              gap: spacing.xl,
+            }}
+          >
+            <View
+              style={wideLayout ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}
+            >
+              <PhotoField
+                imageUri={imageUri ?? initialValues?.photoUrl ?? null}
+                onPress={showPicker}
+                isDesktop={isDesktop}
+              />
+
+              <ExtraPhotosField
+                uris={extraUris}
+                onAdd={() => void addExtraPhoto()}
+                onRemove={removeExtraPhoto}
+                max={MAX_EXTRA_PHOTOS}
+                isPremium={canUseExtraPhotos}
+                isDesktop={isDesktop}
+              />
+            </View>
+
+            <View style={wideLayout ? { flex: 1 } : undefined}>
+              <DescriptionField
+                value={description}
+                onChange={setDescription}
+                isDesktop={isDesktop}
+              />
+            </View>
+          </View>
+        </FormSection>
+      </View>
+
+      <View
+        style={{ display: !modal || formStep === 3 ? "flex" : "none", gap: spacing.xl }}
+        accessibilityElementsHidden={!!modal && formStep !== 3}
+        importantForAccessibility={
+          !modal || formStep === 3 ? "auto" : "no-hide-descendants"
+        }
+      >
+        <FormSection
+          title="Estoque e identificação"
+          subtitle="Código, quantidade disponível e alerta de reposição"
+          icon="albums-outline"
+          initiallyOpen={!modal || isDesktop}
+        >
+          <View
+            style={{
+              flexDirection: wideLayout ? "row" : "column",
+              alignItems: wideLayout ? "flex-end" : undefined,
+              gap: wideLayout ? spacing.lg : spacing.xl,
+            }}
+          >
+            <View style={wideLayout ? { flex: 1, maxWidth: 480 } : undefined}>
+              <FieldLabel label="Código de barras (opcional)" />
+              <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                <View style={{ flex: 1 }}>
+                  <TextFieldCard
+                    icon="barcode-outline"
+                    placeholder="Ex: 789..."
+                    value={code}
+                    onChangeText={setCode}
+                    isDesktop={isDesktop}
+                  />
+                </View>
+                <Pressable
+                  onPress={() => setShowScanner(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Escanear código"
+                  style={{
+                    width: isDesktop ? 48 : 60,
+                    minHeight: isDesktop ? 48 : 60,
+                    borderRadius: radii.lg,
+                    backgroundColor: theme.colors.surface,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <AppIcon
+                    name="scan-outline"
+                    size={24}
+                    color={theme.colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
               <Pressable
-                onPress={() => setShowScanner(true)}
+                onPress={() => setCode(createInternalProductCode())}
                 accessibilityRole="button"
-                accessibilityLabel="Escanear código"
+                accessibilityLabel="Gerar código interno"
                 style={{
-                  width: isDesktop ? 48 : 60,
-                  minHeight: isDesktop ? 48 : 60,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
+                  alignSelf: "flex-start",
+                  flexDirection: "row",
                   alignItems: "center",
-                  justifyContent: "center",
+                  gap: spacing.xs,
+                  paddingTop: spacing.sm,
                 }}
               >
                 <AppIcon
-                  name="scan-outline"
-                  size={24}
-                  color={theme.colors.textSecondary}
+                  name="repeat-outline"
+                  size={18}
+                  color={theme.colors.primaryStrong}
                 />
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  Gerar código interno
+                </Typography>
               </Pressable>
             </View>
-            <Pressable
-              onPress={() => setCode(createInternalProductCode())}
-              accessibilityRole="button"
-              accessibilityLabel="Gerar código interno"
-              style={{
-                alignSelf: "flex-start",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.xs,
-                paddingTop: spacing.sm,
-              }}
-            >
-              <AppIcon
-                name="repeat-outline"
-                size={18}
-                color={theme.colors.primaryStrong}
-              />
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                Gerar código interno
-              </Typography>
-            </Pressable>
-          </View>
 
-          {saleUnit === "unit" && !isComposite && variations.length === 0 && (
-            <>
-              <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
-                <FieldLabel label="Quantidade em estoque (opcional)" />
-                <TextFieldCard
-                  icon="albums-outline"
-                  placeholder="Ex: 50"
-                  value={stockQuantity}
-                  onChangeText={setStockQuantity}
-                  keyboardType="number-pad"
-                  isDesktop={isDesktop}
-                />
-              </View>
+            {saleUnit === "unit" && !isComposite && variations.length === 0 && (
+              <>
+                <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+                  <FieldLabel label="Quantidade em estoque (opcional)" />
+                  <TextFieldCard
+                    icon="albums-outline"
+                    placeholder="Ex: 50"
+                    value={stockQuantity}
+                    onChangeText={setStockQuantity}
+                    keyboardType="number-pad"
+                    isDesktop={isDesktop}
+                  />
+                </View>
 
+                <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+                  <FieldLabel label="Alerta de estoque baixo (opcional)" />
+                  <TextFieldCard
+                    icon="notifications-outline"
+                    placeholder="Ex: 10"
+                    value={stockAlert}
+                    onChangeText={setStockAlert}
+                    keyboardType="number-pad"
+                    isDesktop={isDesktop}
+                  />
+                </View>
+              </>
+            )}
+            {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
               <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
-                <FieldLabel label="Alerta de estoque baixo (opcional)" />
+                <FieldLabel label="Alerta por variação (opcional)" />
                 <TextFieldCard
                   icon="notifications-outline"
-                  placeholder="Ex: 10"
+                  placeholder="Ex: 3"
                   value={stockAlert}
                   onChangeText={setStockAlert}
                   keyboardType="number-pad"
                   isDesktop={isDesktop}
                 />
               </View>
-            </>
-          )}
-          {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
-            <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
-              <FieldLabel label="Alerta por variação (opcional)" />
-              <TextFieldCard
-                icon="notifications-outline"
-                placeholder="Ex: 3"
-                value={stockAlert}
-                onChangeText={setStockAlert}
-                keyboardType="number-pad"
-                isDesktop={isDesktop}
-              />
-            </View>
-          ) : null}
-        </View>
-      </FormSection>
+            ) : null}
+          </View>
+        </FormSection>
+      </View>
     </>
   );
 
@@ -1304,6 +1343,31 @@ export function CreateProductForm({
           {uploading ? "Enviando foto..." : `Cadastrar ${experienceCopy.productNoun}`}
         </Typography>
       </Pressable>
+    );
+  }
+
+  function renderWizardFooter() {
+    return (
+      <View style={{ flex: 1, flexDirection: "row", gap: spacing.md }}>
+        {formStep > 1 ? (
+          <Button
+            title="Voltar"
+            variant="ghost"
+            disabled={loading}
+            onPress={() => setFormStep((current) => current - 1)}
+          />
+        ) : null}
+        {formStep < PRODUCT_FORM_STEPS.length ? (
+          <Button
+            title="Continuar"
+            disabled={loading}
+            onPress={() => setFormStep((current) => current + 1)}
+            style={{ flex: 1 }}
+          />
+        ) : (
+          renderSubmitButton({ flex: 1, alignSelf: "stretch", width: undefined })
+        )}
+      </View>
     );
   }
 
@@ -1478,14 +1542,17 @@ export function CreateProductForm({
                 gap: spacing.md,
               }}
             >
-              {returnButton}
-              {renderSubmitButton(
-                isDesktop ? undefined : { alignSelf: "stretch", width: "100%" },
-              )}
+              {formStep === 1 ? returnButton : null}
+              {renderWizardFooter()}
             </View>
           }
         >
           <View style={{ flexShrink: 1, gap: isDesktop ? spacing.lg : spacing.xl }}>
+            <FormStepProgress
+              current={formStep}
+              steps={PRODUCT_FORM_STEPS}
+              onStepPress={setFormStep}
+            />
             {fields}
           </View>
         </StandardModal>

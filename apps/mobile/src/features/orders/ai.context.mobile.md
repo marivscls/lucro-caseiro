@@ -171,3 +171,7 @@ A orientação informa obrigatoriedade de serviço, horário e local em atendime
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-09: AgendaDateStrip usa SelectionUnderline (180 ms) no dia ativo. Botões anunciam data e seleção; a animação não atrasa a filtragem de encomendas.
+
+## Cadastro em etapas — 2026-09-09
+
+Encomendas e atendimentos usam três etapas: pedido, serviço e cliente; data, horário e valores; detalhes e confirmação. Dependências de serviço/local são resolvidas antes da agenda, e erros finais levam a pessoa de volta à etapa correspondente.

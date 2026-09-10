@@ -17,10 +17,11 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Switch, View } from "react-native";
 
 import { FormSection } from "../../../shared/components/form-section";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
@@ -43,6 +44,12 @@ interface ServiceFormProps {
   readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
+
+const SERVICE_FORM_STEPS = [
+  { label: "Serviço", title: "Serviço e agenda" },
+  { label: "Opções", title: "Opções, adicionais e pacotes" },
+  { label: "Preço", title: "Custos e preço sugerido" },
+] as const;
 
 function moneyValue(value: string): number {
   return parseCurrencyInput(value) || 0;
@@ -113,6 +120,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
     service?.feesPercent ? String(service.feesPercent).replace(".", ",") : "",
   );
   const [active, setActive] = useState(service?.active ?? true);
+  const [formStep, setFormStep] = useState(1);
   const [locationMode, setLocationMode] = useState<ServiceLocationMode>(
     service?.locationMode ?? "business",
   );
@@ -190,6 +198,10 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
 
   const saving = createService.isPending || updateService.isPending;
 
+  useEffect(() => {
+    if (visible) setFormStep(1);
+  }, [service?.id, visible]);
+
   function fieldError(
     kind: ServiceItemValidationError["kind"],
     index: number,
@@ -215,7 +227,10 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
   );
 
   async function submit() {
-    if (!formValidation.validate()) return;
+    if (!formValidation.validate()) {
+      setFormStep(1);
+      return;
+    }
     const normalizedName = name.trim();
     const duration = Number.parseInt(durationMinutes, 10);
     if (!normalizedName) {
@@ -249,6 +264,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       return;
     }
     if (itemValidationError) {
+      setFormStep(2);
       setShowItemValidationErrors(true);
       alertValidation(itemValidationError.message);
       return;
@@ -314,536 +330,586 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       wide
       footer={
         <>
-          <Button
-            title="Cancelar"
-            variant="secondary"
-            onPress={onClose}
-            disabled={saving}
-            style={{ flex: 1 }}
-          />
-          <Button
-            title={service ? "Salvar" : "Cadastrar"}
-            onPress={() => void submit()}
-            loading={saving}
-            disabled={saving}
-            style={{ flex: 1 }}
-          />
+          {formStep > 1 ? (
+            <Button
+              title="Voltar"
+              variant="ghost"
+              onPress={() => setFormStep((current) => current - 1)}
+              disabled={saving}
+            />
+          ) : null}
+          {formStep < SERVICE_FORM_STEPS.length ? (
+            <Button
+              title="Continuar"
+              onPress={() => {
+                if (formStep === 1 && !formValidation.validate()) return;
+                if (formStep === 2 && itemValidationError) {
+                  setShowItemValidationErrors(true);
+                  alertValidation(itemValidationError.message);
+                  return;
+                }
+                setFormStep((current) => current + 1);
+              }}
+              disabled={saving}
+              style={{ flex: 1 }}
+            />
+          ) : (
+            <Button
+              title={service ? "Salvar" : "Cadastrar"}
+              onPress={() => void submit()}
+              loading={saving}
+              disabled={saving}
+              style={{ flex: 1 }}
+            />
+          )}
         </>
       }
     >
-      <Card
-        variant="elevated"
-        style={{
-          backgroundColor: theme.colors.surface,
-        }}
+      <FormStepProgress
+        current={formStep}
+        steps={SERVICE_FORM_STEPS}
+        onStepPress={setFormStep}
+      />
+      <View
+        style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.lg }}
+        accessibilityElementsHidden={formStep !== 1}
+        importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
       >
-        <View style={{ flex: 1, gap: spacing.xs }}>
-          <Typography variant="bodyBold">
-            Serve para diferentes tipos de trabalho
-          </Typography>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Cadastre atendimentos presenciais, online ou no endereço do cliente:
-            consultas, aulas, beleza, manutenção, instalação, criação e outros.
-          </Typography>
-        </View>
-      </Card>
-
-      <FormSection
-        title="Como o serviço funciona"
-        subtitle="O que a pessoa recebe, quanto tempo leva e quanto custa"
-        icon="briefcase-outline"
-        initiallyOpen
-      >
-        <ValidationField {...formValidation.field("name")}>
-          <Input
-            label="Nome do serviço"
-            placeholder="Ex.: Consulta, corte, instalação ou aula"
-            value={name}
-            onChangeText={setName}
-            maxLength={120}
-          />
-        </ValidationField>
-        <Input
-          label="Descrição (opcional)"
-          placeholder="Explique o que está incluído, o formato e onde acontece"
-          value={description}
-          onChangeText={setDescription}
-          maxLength={500}
-          multiline
-          textAlignVertical="center"
-          style={{ height: 88, paddingVertical: spacing.md }}
-        />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-          <ValidationField
-            {...formValidation.field("durationMinutes")}
-            style={{ flex: 1, minWidth: 180 }}
-          >
-            <Input
-              label="Duração em minutos"
-              placeholder="60"
-              value={durationMinutes}
-              onChangeText={(value) =>
-                setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
-              }
-              keyboardType="number-pad"
-            />
-          </ValidationField>
-          <Input
-            label="Preço cobrado (opcional)"
-            placeholder="R$ 0,00"
-            value={defaultPrice}
-            onChangeText={(value) => setDefaultPrice(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-        </View>
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Atalhos de duração
-          </Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {DURATION_PRESETS.map((preset) => (
-              <Chip
-                key={preset.value}
-                label={preset.label}
-                selected={durationMinutes === preset.value}
-                onPress={() => setDurationMinutes(preset.value)}
-              />
-            ))}
-          </View>
-        </View>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Se o preço variar conforme o atendimento, deixe em branco e combine o valor ao
-          criar o agendamento.
-        </Typography>
-        <Typography variant="bodyBold">Disponibilidade</Typography>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Serviços disponíveis aparecem para novos agendamentos. Pausar preserva o
-          histórico.
-        </Typography>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          <Chip label="Disponível" selected={active} onPress={() => setActive(true)} />
-          <Chip label="Pausado" selected={!active} onPress={() => setActive(false)} />
-        </View>
-      </FormSection>
-
-      <FormSection
-        title="Agenda"
-        subtitle="Defina onde acontece e o respiro entre horários"
-        icon="calendar-outline"
-        initiallyOpen
-      >
-        <Typography variant="bodyBold">Onde o atendimento acontece</Typography>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          {LOCATION_OPTIONS.map((option) => (
-            <Chip
-              key={option.value}
-              label={option.label}
-              selected={locationMode === option.value}
-              onPress={() => setLocationMode(option.value)}
-            />
-          ))}
-        </View>
-        <Input
-          label="Intervalo após cada atendimento"
-          placeholder="0 minutos"
-          value={bufferMinutes}
-          onChangeText={(value) => setBufferMinutes(value.replace(/\D/g, "").slice(0, 4))}
-          keyboardType="number-pad"
-          containerStyle={isDesktop ? { maxWidth: 320 } : undefined}
-        />
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Evita horários colados e considera limpeza, deslocamento ou preparação.
-        </Typography>
-        <View
+        <Card
+          variant="elevated"
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-            paddingTop: spacing.sm,
+            backgroundColor: theme.colors.surface,
           }}
         >
           <View style={{ flex: 1, gap: spacing.xs }}>
-            <Typography variant="bodyBold">Exibir no catálogo</Typography>
+            <Typography variant="bodyBold">
+              Serve para diferentes tipos de trabalho
+            </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
-              A curadoria e o compartilhamento ficam em Catálogo online.
+              Cadastre atendimentos presenciais, online ou no endereço do cliente:
+              consultas, aulas, beleza, manutenção, instalação, criação e outros.
             </Typography>
           </View>
-          <Switch
-            value={publicEnabled}
-            onValueChange={setPublicEnabled}
-            trackColor={{ true: theme.colors.primary }}
-            accessibilityLabel="Exibir serviço no catálogo"
-          />
-        </View>
-      </FormSection>
-
-      <FormSection
-        title="Opções e adicionais"
-        subtitle="Crie versões do serviço e complementos que alteram tempo e valor"
-        icon="options-outline"
-        initiallyOpen={variations.length > 0 || addOns.length > 0}
-      >
-        <Typography variant="bodyBold">Variações</Typography>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Use quando o cliente escolhe uma versão, como curta, completa ou premium.
-        </Typography>
-        {variations.map((variation, index) => (
-          <Card key={variation.id ?? `variation-${index}`} style={{ gap: spacing.md }}>
-            <Input
-              label="Nome da opção"
-              placeholder="Ex.: Sessão completa"
-              value={variation.name}
-              error={fieldError("variation", index, "name")}
-              onChangeText={(value) =>
-                setVariations(
-                  replaceListItem(variations, index, { ...variation, name: value }),
-                )
-              }
-            />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-              <Input
-                label="Duração"
-                value={String(variation.durationMinutes)}
-                error={fieldError("variation", index, "durationMinutes")}
-                onChangeText={(value) =>
-                  setVariations(
-                    replaceListItem(variations, index, {
-                      ...variation,
-                      durationMinutes: Number(value.replace(/\D/g, "")) || 0,
-                    }),
-                  )
-                }
-                keyboardType="number-pad"
-                containerStyle={{ flex: 1, minWidth: 140 }}
-              />
-              <Input
-                label="Preço"
-                value={currencyInput(variation.price)}
-                error={fieldError("variation", index, "price")}
-                onChangeText={(value) =>
-                  setVariations(
-                    replaceListItem(variations, index, {
-                      ...variation,
-                      price: parseCurrencyInput(value) || 0,
-                    }),
-                  )
-                }
-                keyboardType="numeric"
-                containerStyle={{ flex: 1, minWidth: 140 }}
-              />
-            </View>
-            <Button
-              title="Remover opção"
-              variant="secondary"
-              onPress={() => setVariations(removeListItem(variations, index))}
-            />
-          </Card>
-        ))}
-        <Button
-          title="Adicionar variação"
-          variant="secondary"
-          onPress={() =>
-            setVariations((current) => [
-              ...current,
-              {
-                name: "",
-                durationMinutes: Number.parseInt(durationMinutes, 10) || 60,
-                price: moneyValue(defaultPrice),
-                active: true,
-              },
-            ])
-          }
-        />
-
-        <Typography variant="bodyBold" style={{ marginTop: spacing.md }}>
-          Adicionais
-        </Typography>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Use para extras opcionais, como deslocamento, finalização ou material especial.
-        </Typography>
-        {addOns.map((addOn, index) => (
-          <Card key={addOn.id ?? `addon-${index}`} style={{ gap: spacing.md }}>
-            <Input
-              label="Nome do adicional"
-              placeholder="Ex.: Deslocamento"
-              value={addOn.name}
-              error={fieldError("addOn", index, "name")}
-              onChangeText={(value) =>
-                setAddOns(replaceListItem(addOns, index, { ...addOn, name: value }))
-              }
-            />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-              <Input
-                label="Minutos extras"
-                value={String(addOn.durationMinutes)}
-                error={fieldError("addOn", index, "durationMinutes")}
-                onChangeText={(value) =>
-                  setAddOns(
-                    replaceListItem(addOns, index, {
-                      ...addOn,
-                      durationMinutes: Number(value.replace(/\D/g, "")) || 0,
-                    }),
-                  )
-                }
-                keyboardType="number-pad"
-                containerStyle={{ flex: 1, minWidth: 140 }}
-              />
-              <Input
-                label="Valor adicional"
-                value={currencyInput(addOn.price)}
-                error={fieldError("addOn", index, "price")}
-                onChangeText={(value) =>
-                  setAddOns(
-                    replaceListItem(addOns, index, {
-                      ...addOn,
-                      price: parseCurrencyInput(value) || 0,
-                    }),
-                  )
-                }
-                keyboardType="numeric"
-                containerStyle={{ flex: 1, minWidth: 140 }}
-              />
-            </View>
-            <Button
-              title="Remover adicional"
-              variant="secondary"
-              onPress={() => setAddOns(removeListItem(addOns, index))}
-            />
-          </Card>
-        ))}
-        <Button
-          title="Adicionar adicional"
-          variant="secondary"
-          onPress={() =>
-            setAddOns((current) => [
-              ...current,
-              { name: "", durationMinutes: 0, price: 0, active: true },
-            ])
-          }
-        />
-      </FormSection>
-
-      <FormSection
-        title="Pacotes e recorrência"
-        subtitle="Venda várias sessões juntas e controle o saldo usado por cliente"
-        icon="repeat-outline"
-        initiallyOpen={packages.length > 0}
-      >
-        {packages.map((servicePackage, index) => (
-          <Card key={servicePackage.id ?? `package-${index}`} style={{ gap: spacing.md }}>
-            <Input
-              label="Nome do pacote"
-              placeholder="Ex.: Plano mensal"
-              value={servicePackage.name}
-              error={fieldError("package", index, "name")}
-              onChangeText={(value) =>
-                setPackages(
-                  replaceListItem(packages, index, {
-                    ...servicePackage,
-                    name: value,
-                  }),
-                )
-              }
-            />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-              <Input
-                label="Sessões"
-                value={String(servicePackage.sessions)}
-                error={fieldError("package", index, "sessions")}
-                onChangeText={(value) =>
-                  setPackages(
-                    replaceListItem(packages, index, {
-                      ...servicePackage,
-                      sessions: Number(value.replace(/\D/g, "")) || 0,
-                    }),
-                  )
-                }
-                keyboardType="number-pad"
-                containerStyle={{ flex: 1, minWidth: 130 }}
-              />
-              <Input
-                label="Valor do pacote"
-                value={currencyInput(servicePackage.price)}
-                error={fieldError("package", index, "price")}
-                onChangeText={(value) =>
-                  setPackages(
-                    replaceListItem(packages, index, {
-                      ...servicePackage,
-                      price: parseCurrencyInput(value) || 0,
-                    }),
-                  )
-                }
-                keyboardType="numeric"
-                containerStyle={{ flex: 1, minWidth: 160 }}
-              />
-              <Input
-                label="Validade (dias)"
-                value={String(servicePackage.validityDays)}
-                error={fieldError("package", index, "validityDays")}
-                onChangeText={(value) =>
-                  setPackages(
-                    replaceListItem(packages, index, {
-                      ...servicePackage,
-                      validityDays: Number(value.replace(/\D/g, "")) || 0,
-                    }),
-                  )
-                }
-                keyboardType="number-pad"
-                containerStyle={{ flex: 1, minWidth: 150 }}
-              />
-              <Input
-                label="Repetir a cada (dias)"
-                placeholder="Opcional"
-                value={
-                  servicePackage.recurrenceDays
-                    ? String(servicePackage.recurrenceDays)
-                    : ""
-                }
-                error={fieldError("package", index, "recurrenceDays")}
-                onChangeText={(value) =>
-                  setPackages(
-                    replaceListItem(packages, index, {
-                      ...servicePackage,
-                      recurrenceDays: Number(value.replace(/\D/g, "")) || null,
-                    }),
-                  )
-                }
-                keyboardType="number-pad"
-                containerStyle={{ flex: 1, minWidth: 170 }}
-              />
-            </View>
-            <Button
-              title="Remover pacote"
-              variant="secondary"
-              onPress={() => setPackages(removeListItem(packages, index))}
-            />
-          </Card>
-        ))}
-        <Button
-          title="Adicionar pacote"
-          variant="secondary"
-          onPress={() =>
-            setPackages((current) => [
-              ...current,
-              {
-                name: "",
-                sessions: 4,
-                price: Math.max(moneyValue(defaultPrice) * 4, 0),
-                validityDays: 90,
-                recurrenceDays: 7,
-                active: true,
-              },
-            ])
-          }
-        />
-      </FormSection>
-
-      <FormSection
-        title="Custos e preço sugerido"
-        subtitle="Opcional; preencha somente o que se aplica ao seu trabalho"
-        icon="calculator-outline"
-        initiallyOpen={hasPricingData}
-      >
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Campos vazios valem zero. O cálculo usa apenas os valores que você informar.
-        </Typography>
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            alignItems: isDesktop ? "flex-end" : "stretch",
-            gap: spacing.md,
-          }}
-        >
-          <Input
-            label="Materiais e insumos"
-            placeholder="R$ 0,00"
-            value={materialCost}
-            onChangeText={(value) => setMaterialCost(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-          <Input
-            label="Valor da sua hora de trabalho"
-            placeholder="R$ 0,00"
-            value={hourlyRate}
-            onChangeText={(value) => setHourlyRate(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-          <Input
-            label="Deslocamento e outros custos"
-            placeholder="R$ 0,00"
-            value={otherCost}
-            onChangeText={(value) => setOtherCost(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-          <Input
-            label="Rateio de custos fixos"
-            placeholder="R$ 0,00"
-            value={fixedCostShare}
-            onChangeText={(value) => setFixedCostShare(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-          <Input
-            label="Acréscimo desejado sobre o custo (%)"
-            placeholder="0"
-            value={markupPercent}
-            onChangeText={(value) => setMarkupPercent(percentageInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-          <Input
-            label="Taxas de pagamento ou plataforma (%)"
-            placeholder="0"
-            value={feesPercent}
-            onChangeText={(value) => setFeesPercent(percentageInput(value))}
-            keyboardType="numeric"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
-        </View>
-
-        <Card
-          style={{
-            gap: spacing.sm,
-            borderColor: theme.colors.primary,
-            backgroundColor: theme.colors.primaryBg,
-          }}
-        >
-          <Typography variant="bodyBold">Estimativa com os dados informados</Typography>
-          <Typography variant="body">
-            Seu tempo de trabalho: {formatCurrency(pricing.laborCost)}
-          </Typography>
-          <Typography variant="body">
-            Custo estimado do atendimento: {formatCurrency(pricing.totalCost)}
-          </Typography>
-          <Typography variant="h3" color={theme.colors.primaryStrong}>
-            Preço sugerido: {formatCurrency(pricing.suggestedPrice)}
-          </Typography>
-          {pricing.feesAmount > 0 ? (
-            <Typography variant="caption">
-              Inclui {formatCurrency(pricing.feesAmount)} para cobrir as taxas informadas.
-            </Typography>
-          ) : null}
-          {defaultPrice && pricing.totalCost > 0 && priceAfterFees < pricing.totalCost ? (
-            <Typography variant="caption" color={theme.colors.alert}>
-              Depois das taxas, o preço cobrado fica abaixo do custo estimado.
-            </Typography>
-          ) : null}
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Esta estimativa não inclui valores que você deixou em branco.
-          </Typography>
-          <Button
-            title="Usar como preço padrão"
-            variant="secondary"
-            disabled={pricing.suggestedPrice <= 0}
-            onPress={() => setDefaultPrice(currencyInput(pricing.suggestedPrice))}
-          />
         </Card>
-      </FormSection>
+
+        <FormSection
+          title="Como o serviço funciona"
+          subtitle="O que a pessoa recebe, quanto tempo leva e quanto custa"
+          icon="briefcase-outline"
+          initiallyOpen
+        >
+          <ValidationField {...formValidation.field("name")}>
+            <Input
+              label="Nome do serviço"
+              placeholder="Ex.: Consulta, corte, instalação ou aula"
+              value={name}
+              onChangeText={setName}
+              maxLength={120}
+            />
+          </ValidationField>
+          <Input
+            label="Descrição (opcional)"
+            placeholder="Explique o que está incluído, o formato e onde acontece"
+            value={description}
+            onChangeText={setDescription}
+            maxLength={500}
+            multiline
+            textAlignVertical="center"
+            style={{ height: 88, paddingVertical: spacing.md }}
+          />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+            <ValidationField
+              {...formValidation.field("durationMinutes")}
+              style={{ flex: 1, minWidth: 180 }}
+            >
+              <Input
+                label="Duração em minutos"
+                placeholder="60"
+                value={durationMinutes}
+                onChangeText={(value) =>
+                  setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+                }
+                keyboardType="number-pad"
+              />
+            </ValidationField>
+            <Input
+              label="Preço cobrado (opcional)"
+              placeholder="R$ 0,00"
+              value={defaultPrice}
+              onChangeText={(value) => setDefaultPrice(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+          </View>
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Atalhos de duração
+            </Typography>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {DURATION_PRESETS.map((preset) => (
+                <Chip
+                  key={preset.value}
+                  label={preset.label}
+                  selected={durationMinutes === preset.value}
+                  onPress={() => setDurationMinutes(preset.value)}
+                />
+              ))}
+            </View>
+          </View>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Se o preço variar conforme o atendimento, deixe em branco e combine o valor ao
+            criar o agendamento.
+          </Typography>
+          <Typography variant="bodyBold">Disponibilidade</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Serviços disponíveis aparecem para novos agendamentos. Pausar preserva o
+            histórico.
+          </Typography>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            <Chip label="Disponível" selected={active} onPress={() => setActive(true)} />
+            <Chip label="Pausado" selected={!active} onPress={() => setActive(false)} />
+          </View>
+        </FormSection>
+
+        <FormSection
+          title="Agenda"
+          subtitle="Defina onde acontece e o respiro entre horários"
+          icon="calendar-outline"
+          initiallyOpen
+        >
+          <Typography variant="bodyBold">Onde o atendimento acontece</Typography>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {LOCATION_OPTIONS.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                selected={locationMode === option.value}
+                onPress={() => setLocationMode(option.value)}
+              />
+            ))}
+          </View>
+          <Input
+            label="Intervalo após cada atendimento"
+            placeholder="0 minutos"
+            value={bufferMinutes}
+            onChangeText={(value) =>
+              setBufferMinutes(value.replace(/\D/g, "").slice(0, 4))
+            }
+            keyboardType="number-pad"
+            containerStyle={isDesktop ? { maxWidth: 320 } : undefined}
+          />
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Evita horários colados e considera limpeza, deslocamento ou preparação.
+          </Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.md,
+              paddingTop: spacing.sm,
+            }}
+          >
+            <View style={{ flex: 1, gap: spacing.xs }}>
+              <Typography variant="bodyBold">Exibir no catálogo</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                A curadoria e o compartilhamento ficam em Catálogo online.
+              </Typography>
+            </View>
+            <Switch
+              value={publicEnabled}
+              onValueChange={setPublicEnabled}
+              trackColor={{ true: theme.colors.primary }}
+              accessibilityLabel="Exibir serviço no catálogo"
+            />
+          </View>
+        </FormSection>
+      </View>
+
+      <View
+        style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
+        accessibilityElementsHidden={formStep !== 2}
+        importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
+      >
+        <FormSection
+          title="Opções e adicionais"
+          subtitle="Crie versões do serviço e complementos que alteram tempo e valor"
+          icon="options-outline"
+          initiallyOpen={variations.length > 0 || addOns.length > 0}
+        >
+          <Typography variant="bodyBold">Variações</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Use quando o cliente escolhe uma versão, como curta, completa ou premium.
+          </Typography>
+          {variations.map((variation, index) => (
+            <Card key={variation.id ?? `variation-${index}`} style={{ gap: spacing.md }}>
+              <Input
+                label="Nome da opção"
+                placeholder="Ex.: Sessão completa"
+                value={variation.name}
+                error={fieldError("variation", index, "name")}
+                onChangeText={(value) =>
+                  setVariations(
+                    replaceListItem(variations, index, { ...variation, name: value }),
+                  )
+                }
+              />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+                <Input
+                  label="Duração"
+                  value={String(variation.durationMinutes)}
+                  error={fieldError("variation", index, "durationMinutes")}
+                  onChangeText={(value) =>
+                    setVariations(
+                      replaceListItem(variations, index, {
+                        ...variation,
+                        durationMinutes: Number(value.replace(/\D/g, "")) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="number-pad"
+                  containerStyle={{ flex: 1, minWidth: 140 }}
+                />
+                <Input
+                  label="Preço"
+                  value={currencyInput(variation.price)}
+                  error={fieldError("variation", index, "price")}
+                  onChangeText={(value) =>
+                    setVariations(
+                      replaceListItem(variations, index, {
+                        ...variation,
+                        price: parseCurrencyInput(value) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="numeric"
+                  containerStyle={{ flex: 1, minWidth: 140 }}
+                />
+              </View>
+              <Button
+                title="Remover opção"
+                variant="secondary"
+                onPress={() => setVariations(removeListItem(variations, index))}
+              />
+            </Card>
+          ))}
+          <Button
+            title="Adicionar variação"
+            variant="secondary"
+            onPress={() =>
+              setVariations((current) => [
+                ...current,
+                {
+                  name: "",
+                  durationMinutes: Number.parseInt(durationMinutes, 10) || 60,
+                  price: moneyValue(defaultPrice),
+                  active: true,
+                },
+              ])
+            }
+          />
+
+          <Typography variant="bodyBold" style={{ marginTop: spacing.md }}>
+            Adicionais
+          </Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Use para extras opcionais, como deslocamento, finalização ou material
+            especial.
+          </Typography>
+          {addOns.map((addOn, index) => (
+            <Card key={addOn.id ?? `addon-${index}`} style={{ gap: spacing.md }}>
+              <Input
+                label="Nome do adicional"
+                placeholder="Ex.: Deslocamento"
+                value={addOn.name}
+                error={fieldError("addOn", index, "name")}
+                onChangeText={(value) =>
+                  setAddOns(replaceListItem(addOns, index, { ...addOn, name: value }))
+                }
+              />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+                <Input
+                  label="Minutos extras"
+                  value={String(addOn.durationMinutes)}
+                  error={fieldError("addOn", index, "durationMinutes")}
+                  onChangeText={(value) =>
+                    setAddOns(
+                      replaceListItem(addOns, index, {
+                        ...addOn,
+                        durationMinutes: Number(value.replace(/\D/g, "")) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="number-pad"
+                  containerStyle={{ flex: 1, minWidth: 140 }}
+                />
+                <Input
+                  label="Valor adicional"
+                  value={currencyInput(addOn.price)}
+                  error={fieldError("addOn", index, "price")}
+                  onChangeText={(value) =>
+                    setAddOns(
+                      replaceListItem(addOns, index, {
+                        ...addOn,
+                        price: parseCurrencyInput(value) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="numeric"
+                  containerStyle={{ flex: 1, minWidth: 140 }}
+                />
+              </View>
+              <Button
+                title="Remover adicional"
+                variant="secondary"
+                onPress={() => setAddOns(removeListItem(addOns, index))}
+              />
+            </Card>
+          ))}
+          <Button
+            title="Adicionar adicional"
+            variant="secondary"
+            onPress={() =>
+              setAddOns((current) => [
+                ...current,
+                { name: "", durationMinutes: 0, price: 0, active: true },
+              ])
+            }
+          />
+        </FormSection>
+
+        <FormSection
+          title="Pacotes e recorrência"
+          subtitle="Venda várias sessões juntas e controle o saldo usado por cliente"
+          icon="repeat-outline"
+          initiallyOpen={packages.length > 0}
+        >
+          {packages.map((servicePackage, index) => (
+            <Card
+              key={servicePackage.id ?? `package-${index}`}
+              style={{ gap: spacing.md }}
+            >
+              <Input
+                label="Nome do pacote"
+                placeholder="Ex.: Plano mensal"
+                value={servicePackage.name}
+                error={fieldError("package", index, "name")}
+                onChangeText={(value) =>
+                  setPackages(
+                    replaceListItem(packages, index, {
+                      ...servicePackage,
+                      name: value,
+                    }),
+                  )
+                }
+              />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+                <Input
+                  label="Sessões"
+                  value={String(servicePackage.sessions)}
+                  error={fieldError("package", index, "sessions")}
+                  onChangeText={(value) =>
+                    setPackages(
+                      replaceListItem(packages, index, {
+                        ...servicePackage,
+                        sessions: Number(value.replace(/\D/g, "")) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="number-pad"
+                  containerStyle={{ flex: 1, minWidth: 130 }}
+                />
+                <Input
+                  label="Valor do pacote"
+                  value={currencyInput(servicePackage.price)}
+                  error={fieldError("package", index, "price")}
+                  onChangeText={(value) =>
+                    setPackages(
+                      replaceListItem(packages, index, {
+                        ...servicePackage,
+                        price: parseCurrencyInput(value) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="numeric"
+                  containerStyle={{ flex: 1, minWidth: 160 }}
+                />
+                <Input
+                  label="Validade (dias)"
+                  value={String(servicePackage.validityDays)}
+                  error={fieldError("package", index, "validityDays")}
+                  onChangeText={(value) =>
+                    setPackages(
+                      replaceListItem(packages, index, {
+                        ...servicePackage,
+                        validityDays: Number(value.replace(/\D/g, "")) || 0,
+                      }),
+                    )
+                  }
+                  keyboardType="number-pad"
+                  containerStyle={{ flex: 1, minWidth: 150 }}
+                />
+                <Input
+                  label="Repetir a cada (dias)"
+                  placeholder="Opcional"
+                  value={
+                    servicePackage.recurrenceDays
+                      ? String(servicePackage.recurrenceDays)
+                      : ""
+                  }
+                  error={fieldError("package", index, "recurrenceDays")}
+                  onChangeText={(value) =>
+                    setPackages(
+                      replaceListItem(packages, index, {
+                        ...servicePackage,
+                        recurrenceDays: Number(value.replace(/\D/g, "")) || null,
+                      }),
+                    )
+                  }
+                  keyboardType="number-pad"
+                  containerStyle={{ flex: 1, minWidth: 170 }}
+                />
+              </View>
+              <Button
+                title="Remover pacote"
+                variant="secondary"
+                onPress={() => setPackages(removeListItem(packages, index))}
+              />
+            </Card>
+          ))}
+          <Button
+            title="Adicionar pacote"
+            variant="secondary"
+            onPress={() =>
+              setPackages((current) => [
+                ...current,
+                {
+                  name: "",
+                  sessions: 4,
+                  price: Math.max(moneyValue(defaultPrice) * 4, 0),
+                  validityDays: 90,
+                  recurrenceDays: 7,
+                  active: true,
+                },
+              ])
+            }
+          />
+        </FormSection>
+      </View>
+
+      <View
+        style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
+        accessibilityElementsHidden={formStep !== 3}
+        importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
+      >
+        <FormSection
+          title="Custos e preço sugerido"
+          subtitle="Opcional; preencha somente o que se aplica ao seu trabalho"
+          icon="calculator-outline"
+          initiallyOpen={hasPricingData}
+        >
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Campos vazios valem zero. O cálculo usa apenas os valores que você informar.
+          </Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: isDesktop ? "flex-end" : "stretch",
+              gap: spacing.md,
+            }}
+          >
+            <Input
+              label="Materiais e insumos"
+              placeholder="R$ 0,00"
+              value={materialCost}
+              onChangeText={(value) => setMaterialCost(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+            <Input
+              label="Valor da sua hora de trabalho"
+              placeholder="R$ 0,00"
+              value={hourlyRate}
+              onChangeText={(value) => setHourlyRate(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+            <Input
+              label="Deslocamento e outros custos"
+              placeholder="R$ 0,00"
+              value={otherCost}
+              onChangeText={(value) => setOtherCost(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+            <Input
+              label="Rateio de custos fixos"
+              placeholder="R$ 0,00"
+              value={fixedCostShare}
+              onChangeText={(value) => setFixedCostShare(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+            <Input
+              label="Acréscimo desejado sobre o custo (%)"
+              placeholder="0"
+              value={markupPercent}
+              onChangeText={(value) => setMarkupPercent(percentageInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+            <Input
+              label="Taxas de pagamento ou plataforma (%)"
+              placeholder="0"
+              value={feesPercent}
+              onChangeText={(value) => setFeesPercent(percentageInput(value))}
+              keyboardType="numeric"
+              containerStyle={{ flex: 1, minWidth: 180 }}
+            />
+          </View>
+
+          <Card
+            style={{
+              gap: spacing.sm,
+              borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.primaryBg,
+            }}
+          >
+            <Typography variant="bodyBold">Estimativa com os dados informados</Typography>
+            <Typography variant="body">
+              Seu tempo de trabalho: {formatCurrency(pricing.laborCost)}
+            </Typography>
+            <Typography variant="body">
+              Custo estimado do atendimento: {formatCurrency(pricing.totalCost)}
+            </Typography>
+            <Typography variant="h3" color={theme.colors.primaryStrong}>
+              Preço sugerido: {formatCurrency(pricing.suggestedPrice)}
+            </Typography>
+            {pricing.feesAmount > 0 ? (
+              <Typography variant="caption">
+                Inclui {formatCurrency(pricing.feesAmount)} para cobrir as taxas
+                informadas.
+              </Typography>
+            ) : null}
+            {defaultPrice &&
+            pricing.totalCost > 0 &&
+            priceAfterFees < pricing.totalCost ? (
+              <Typography variant="caption" color={theme.colors.alert}>
+                Depois das taxas, o preço cobrado fica abaixo do custo estimado.
+              </Typography>
+            ) : null}
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Esta estimativa não inclui valores que você deixou em branco.
+            </Typography>
+            <Button
+              title="Usar como preço padrão"
+              variant="secondary"
+              disabled={pricing.suggestedPrice <= 0}
+              onPress={() => setDefaultPrice(currencyInput(pricing.suggestedPrice))}
+            />
+          </Card>
+        </FormSection>
+      </View>
     </StandardModal>
   );
 }

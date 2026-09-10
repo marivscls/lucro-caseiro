@@ -15,6 +15,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import {
   desktopAction,
   desktopCompactField,
@@ -51,6 +52,12 @@ interface CreatePurchaseFormProps {
   >;
   onSuccess?: () => void;
 }
+
+const PURCHASE_FORM_STEPS = [
+  { label: "Compra", title: "Dados da compra" },
+  { label: "Valores", title: "Produtos e valores" },
+  { label: "Finalizar", title: "Categoria e pagamento" },
+] as const;
 
 function todayBR(): string {
   const d = new Date();
@@ -121,6 +128,7 @@ export function CreatePurchaseForm({
   );
   const [date, setDate] = useState(purchase ? isoToBR(purchase.purchasedAt) : todayBR());
   const [alreadyPaid, setAlreadyPaid] = useState(false);
+  const [formStep, setFormStep] = useState(1);
   const [receiveStock, setReceiveStock] = useState(
     source ? source.items.length > 0 : stockPurchaseEnabled,
   );
@@ -139,6 +147,10 @@ export function CreatePurchaseForm({
       setItems((current) => enrichItemProducts(current, products));
     }
   }, [products]);
+
+  useEffect(() => {
+    if (visible) setFormStep(1);
+  }, [purchase?.id, visible]);
 
   function addProduct(product: Product) {
     setItems((current) => [
@@ -195,6 +207,18 @@ export function CreatePurchaseForm({
   });
 
   async function handleSubmit() {
+    if (!description.trim()) setFormStep(1);
+    else if (
+      (!receiveStock && parseCurrencyInput(amount) <= 0) ||
+      (receiveStock &&
+        (items.length === 0 ||
+          items.some(
+            (item) =>
+              Number(item.quantity.replace(",", ".")) <= 0 || !item.unitCost.trim(),
+          )))
+    )
+      setFormStep(2);
+    else if (!brToIso(date)) setFormStep(3);
     if (!formValidation.validate()) return;
     if (!description.trim()) {
       alertValidation("Descreva a compra (ex.: Farinha 25kg).");
@@ -279,18 +303,63 @@ export function CreatePurchaseForm({
       visible={visible}
       onClose={onClose}
       footer={
-        <Button
-          title={isEditing ? "Salvar alterações" : "Registrar compra"}
-          size="lg"
-          onPress={() => {
-            void handleSubmit();
-          }}
-          loading={createPurchase.isPending || updatePurchase.isPending}
-          style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 240) }}
-        />
+        <>
+          {formStep > 1 ? (
+            <Button
+              title="Voltar"
+              variant="ghost"
+              onPress={() => setFormStep(formStep - 1)}
+            />
+          ) : null}
+          {formStep < PURCHASE_FORM_STEPS.length ? (
+            <Button
+              title="Continuar"
+              size="lg"
+              onPress={() => {
+                if (formStep === 1 && !description.trim()) {
+                  alertValidation("Descreva a compra antes de continuar.");
+                  return;
+                }
+                if (formStep === 2 && receiveStock && items.length === 0) {
+                  alertValidation("Adicione ao menos um produto recebido.");
+                  return;
+                }
+                if (formStep === 2 && !receiveStock && parseCurrencyInput(amount) <= 0) {
+                  alertValidation("Informe um valor maior que zero.");
+                  return;
+                }
+                setFormStep(formStep + 1);
+              }}
+              style={{
+                flex: isDesktop ? undefined : 1,
+                ...desktopAction(isDesktop, 240),
+              }}
+            />
+          ) : (
+            <Button
+              title={isEditing ? "Salvar alterações" : "Registrar compra"}
+              size="lg"
+              onPress={() => void handleSubmit()}
+              loading={createPurchase.isPending || updatePurchase.isPending}
+              style={{
+                flex: isDesktop ? undefined : 1,
+                ...desktopAction(isDesktop, 240),
+              }}
+            />
+          )}
+        </>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.lg }}>
+      <FormStepProgress
+        current={formStep}
+        steps={PURCHASE_FORM_STEPS}
+        onStepPress={setFormStep}
+      />
+      <View
+        style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.lg }}
+        accessibilityElementsHidden={formStep !== 1}
+        importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
+      >
         <View>
           <Typography variant="label" style={{ marginBottom: spacing.xs }}>
             FORNECEDOR (OPCIONAL)
@@ -325,7 +394,13 @@ export function CreatePurchaseForm({
             </View>
           </View>
         ) : null}
+      </View>
 
+      <View
+        style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
+        accessibilityElementsHidden={formStep !== 2}
+        importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
+      >
         {receiveStock ? (
           <View style={{ gap: spacing.md }}>
             <View>
@@ -449,7 +524,13 @@ export function CreatePurchaseForm({
             </ValidationField>
           </View>
         )}
+      </View>
 
+      <View
+        style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
+        accessibilityElementsHidden={formStep !== 3}
+        importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
+      >
         <View>
           <Typography variant="label" style={{ marginBottom: spacing.sm }}>
             CATEGORIA

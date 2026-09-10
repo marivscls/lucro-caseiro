@@ -11,11 +11,12 @@ import {
   spacing,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
@@ -49,6 +50,12 @@ interface QuoteFormProps {
   readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
+
+const QUOTE_FORM_STEPS = [
+  { label: "Cliente", title: "Orçamento e cliente" },
+  { label: "Itens", title: "Itens, valores e desconto" },
+  { label: "Detalhes", title: "Prazo e observações" },
+] as const;
 
 function toDrafts(items: QuoteItem[]): ItemDraft[] {
   return items.map((item) => ({
@@ -110,6 +117,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
         ],
   );
   const [reviewData, setReviewData] = useState<CreateQuote | null>(null);
+  const [formStep, setFormStep] = useState(1);
   const isSaving = createQuote.isPending || updateQuote.isPending;
 
   const pricing = computeQuotePricing(
@@ -132,6 +140,10 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
     : null;
   const split = desktopSplitLayout(isDesktop);
   const compactField = desktopCompactField(isDesktop);
+
+  useEffect(() => {
+    if (visible) setFormStep(1);
+  }, [quote?.id, visible]);
 
   function setItem(index: number, patch: Partial<ItemDraft>) {
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
@@ -255,6 +267,18 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
   }
 
   function handleReview() {
+    if (!title.trim()) setFormStep(1);
+    else if (
+      items.some(
+        (item) =>
+          !item.description.trim() ||
+          !Number.isFinite(parseNumber(item.quantity)) ||
+          parseNumber(item.quantity) <= 0 ||
+          !item.unitPrice.trim(),
+      )
+    )
+      setFormStep(2);
+    else if (validUntil.trim() && !brToIso(validUntil)) setFormStep(3);
     const data = buildQuoteData();
     if (data) setReviewData(data);
   }
@@ -286,269 +310,352 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
         onClose={onClose}
         wide={isDesktop}
         footer={
-          <Button
-            title="Revisar orçamento"
-            size="lg"
-            onPress={handleReview}
-            style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 240) }}
-          />
+          <>
+            {formStep > 1 ? (
+              <Button
+                title="Voltar"
+                variant="ghost"
+                onPress={() => setFormStep(formStep - 1)}
+              />
+            ) : null}
+            {formStep < QUOTE_FORM_STEPS.length ? (
+              <Button
+                title="Continuar"
+                size="lg"
+                onPress={() => {
+                  if (formStep === 1 && !title.trim()) {
+                    alertValidation("Dê um título ao orçamento antes de continuar.");
+                    return;
+                  }
+                  if (
+                    formStep === 2 &&
+                    items.some(
+                      (item) =>
+                        !item.description.trim() ||
+                        parseNumber(item.quantity) <= 0 ||
+                        !item.unitPrice.trim(),
+                    )
+                  ) {
+                    alertValidation(
+                      "Confira descrição, quantidade e preço de cada item.",
+                    );
+                    return;
+                  }
+                  setFormStep(formStep + 1);
+                }}
+                style={{
+                  flex: isDesktop ? undefined : 1,
+                  ...desktopAction(isDesktop, 240),
+                }}
+              />
+            ) : (
+              <Button
+                title="Revisar orçamento"
+                size="lg"
+                onPress={handleReview}
+                style={{
+                  flex: isDesktop ? undefined : 1,
+                  ...desktopAction(isDesktop, 240),
+                }}
+              />
+            )}
+          </>
         }
       >
+        <FormStepProgress
+          current={formStep}
+          steps={QUOTE_FORM_STEPS}
+          onStepPress={setFormStep}
+        />
         <View style={isDesktop ? split.row : { flexShrink: 1, gap: spacing.xl }}>
           <View style={isDesktop ? split.main : { flexShrink: 1, gap: spacing.lg }}>
-            <ValidationField {...formValidation.field("title")}>
+            <View
+              style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.lg }}
+              accessibilityElementsHidden={formStep !== 1}
+              importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
+            >
+              <ValidationField {...formValidation.field("title")}>
+                <Input
+                  label="Título"
+                  placeholder="Ex.: Kit festa Safari"
+                  value={title}
+                  onChangeText={setTitle}
+                />
+              </ValidationField>
               <Input
-                label="Título"
-                placeholder="Ex.: Kit festa Safari"
-                value={title}
-                onChangeText={setTitle}
+                label="Cliente (opcional)"
+                placeholder="Nome de quem pediu o orçamento"
+                value={clientName}
+                onChangeText={(value) => {
+                  setClientId(null);
+                  setClientName(value);
+                }}
               />
-            </ValidationField>
-            <Input
-              label="Cliente (opcional)"
-              placeholder="Nome de quem pediu o orçamento"
-              value={clientName}
-              onChangeText={(value) => {
-                setClientId(null);
-                setClientName(value);
-              }}
-            />
-            <Button
-              title={
-                clientId ? "Trocar cliente cadastrado" : "Selecionar cliente cadastrado"
-              }
-              variant="outline"
-              icon={
-                <AppIcon name="person-outline" size={20} color={theme.colors.primary} />
-              }
-              onPress={() => setShowClientPicker(true)}
-            />
-            <ClientPickerModal
-              visible={showClientPicker}
-              onClose={() => setShowClientPicker(false)}
-              onSelect={(client) => {
-                setClientId(client?.id ?? null);
-                setClientName(client?.name ?? "");
-              }}
-            />
+              <Button
+                title={
+                  clientId ? "Trocar cliente cadastrado" : "Selecionar cliente cadastrado"
+                }
+                variant="outline"
+                icon={
+                  <AppIcon name="person-outline" size={20} color={theme.colors.primary} />
+                }
+                onPress={() => setShowClientPicker(true)}
+              />
+              <ClientPickerModal
+                visible={showClientPicker}
+                onClose={() => setShowClientPicker(false)}
+                onSelect={(client) => {
+                  setClientId(client?.id ?? null);
+                  setClientName(client?.name ?? "");
+                }}
+              />
+            </View>
 
-            <Typography variant="h3">Itens</Typography>
-            <Button
-              title="Adicionar do catálogo"
-              variant="outline"
-              icon={
-                <AppIcon name="pricetag-outline" size={20} color={theme.colors.primary} />
-              }
-              onPress={() => setShowProductPicker(true)}
-            />
-            {items.map((item, index) => (
+            <View
+              style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
+              accessibilityElementsHidden={formStep !== 2}
+              importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
+            >
+              <Typography variant="h3">Itens</Typography>
+              <Button
+                title="Adicionar do catálogo"
+                variant="outline"
+                icon={
+                  <AppIcon
+                    name="pricetag-outline"
+                    size={20}
+                    color={theme.colors.primary}
+                  />
+                }
+                onPress={() => setShowProductPicker(true)}
+              />
+              {items.map((item, index) => (
+                <View
+                  key={index}
+                  style={{
+                    gap: spacing.sm,
+                    borderRadius: radii.xl,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    padding: spacing.md,
+                  }}
+                >
+                  <ValidationField {...formValidation.field(`item-${index}-description`)}>
+                    <Input
+                      placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
+                      value={item.description}
+                      onChangeText={(v) => setItem(index, { description: v })}
+                    />
+                  </ValidationField>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      gap: spacing.sm,
+                      alignItems: "center",
+                    }}
+                  >
+                    <View style={compactField}>
+                      <ValidationField
+                        {...formValidation.field(`item-${index}-quantity`)}
+                      >
+                        <Input
+                          placeholder="Qtd."
+                          value={item.quantity}
+                          onChangeText={(v) => setItem(index, { quantity: v })}
+                          keyboardType="decimal-pad"
+                        />
+                      </ValidationField>
+                    </View>
+                    <View
+                      style={[
+                        compactField,
+                        isDesktop ? { flex: 1, maxWidth: undefined } : { flex: 1.4 },
+                      ]}
+                    >
+                      <ValidationField {...formValidation.field(`item-${index}-price`)}>
+                        <Input
+                          placeholder="Preço un."
+                          value={item.unitPrice}
+                          onChangeText={(v) =>
+                            setItem(index, { unitPrice: maskCurrencyInput(v) })
+                          }
+                          keyboardType="numeric"
+                        />
+                      </ValidationField>
+                    </View>
+                    <Pressable
+                      onPress={() => removeItem(index)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remover item ${index + 1}`}
+                      disabled={items.length === 1}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        opacity: items.length === 1 ? 0.35 : 1,
+                      }}
+                    >
+                      <AppIcon
+                        name="trash-outline"
+                        size={22}
+                        color={theme.colors.alert}
+                      />
+                    </Pressable>
+                  </View>
+                  <View style={compactField}>
+                    <Input
+                      label="Custo unitário estimado (só você vê)"
+                      placeholder="R$ 0,00"
+                      value={item.estimatedUnitCost}
+                      onChangeText={(value) =>
+                        setItem(index, { estimatedUnitCost: maskCurrencyInput(value) })
+                      }
+                      keyboardType="numeric"
+                    />
+                  </View>
+                </View>
+              ))}
+
+              <Button
+                title="Adicionar item"
+                variant="outline"
+                icon={<AppIcon name="add" size={20} color={theme.colors.primary} />}
+                onPress={addItem}
+              />
+
+              <View style={{ gap: spacing.sm }}>
+                <Typography variant="bodyBold">Desconto</Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  <Chip
+                    label="Sem desconto"
+                    selected={discountType === null}
+                    onPress={() => {
+                      setDiscountType(null);
+                      setDiscountValue("");
+                    }}
+                  />
+                  <Chip
+                    label="Valor em R$"
+                    selected={discountType === "fixed"}
+                    onPress={() => setDiscountType("fixed")}
+                  />
+                  <Chip
+                    label="Porcentagem"
+                    selected={discountType === "percentage"}
+                    onPress={() => setDiscountType("percentage")}
+                  />
+                </View>
+                {discountType ? (
+                  <View style={compactField}>
+                    <Input
+                      label={
+                        discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"
+                      }
+                      value={discountValue}
+                      onChangeText={setDiscountValue}
+                      keyboardType="decimal-pad"
+                    />
+                  </View>
+                ) : null}
+              </View>
+
               <View
-                key={index}
                 style={{
-                  gap: spacing.sm,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  backgroundColor: theme.colors.successBg,
+                  borderRadius: radii.xl,
+                  padding: spacing.lg,
+                }}
+              >
+                <Typography variant="bodyBold">Total do orçamento</Typography>
+                <Typography variant="moneyLg" color={theme.colors.success}>
+                  {formatCurrency(pricing.total)}
+                </Typography>
+              </View>
+
+              <View
+                style={{
                   borderRadius: radii.xl,
                   borderWidth: 1,
                   borderColor: theme.colors.border,
-                  padding: spacing.md,
+                  backgroundColor: theme.colors.surfaceElevated,
+                  padding: spacing.lg,
+                  gap: spacing.sm,
                 }}
               >
-                <ValidationField {...formValidation.field(`item-${index}-description`)}>
-                  <Input
-                    placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
-                    value={item.description}
-                    onChangeText={(v) => setItem(index, { description: v })}
-                  />
-                </ValidationField>
-                <View
-                  style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}
-                >
-                  <View style={compactField}>
-                    <ValidationField {...formValidation.field(`item-${index}-quantity`)}>
-                      <Input
-                        placeholder="Qtd."
-                        value={item.quantity}
-                        onChangeText={(v) => setItem(index, { quantity: v })}
-                        keyboardType="decimal-pad"
-                      />
-                    </ValidationField>
-                  </View>
-                  <View
-                    style={[
-                      compactField,
-                      isDesktop ? { flex: 1, maxWidth: undefined } : { flex: 1.4 },
-                    ]}
-                  >
-                    <ValidationField {...formValidation.field(`item-${index}-price`)}>
-                      <Input
-                        placeholder="Preço un."
-                        value={item.unitPrice}
-                        onChangeText={(v) =>
-                          setItem(index, { unitPrice: maskCurrencyInput(v) })
-                        }
-                        keyboardType="numeric"
-                      />
-                    </ValidationField>
-                  </View>
-                  <Pressable
-                    onPress={() => removeItem(index)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Remover item ${index + 1}`}
-                    disabled={items.length === 1}
-                    style={{
-                      width: 48,
-                      height: 48,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      opacity: items.length === 1 ? 0.35 : 1,
-                    }}
-                  >
-                    <AppIcon name="trash-outline" size={22} color={theme.colors.alert} />
-                  </Pressable>
-                </View>
-                <View style={compactField}>
-                  <Input
-                    label="Custo unitário estimado (só você vê)"
-                    placeholder="R$ 0,00"
-                    value={item.estimatedUnitCost}
-                    onChangeText={(value) =>
-                      setItem(index, { estimatedUnitCost: maskCurrencyInput(value) })
-                    }
-                    keyboardType="numeric"
-                  />
-                </View>
-              </View>
-            ))}
-
-            <Button
-              title="Adicionar item"
-              variant="outline"
-              icon={<AppIcon name="add" size={20} color={theme.colors.primary} />}
-              onPress={addItem}
-            />
-
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="bodyBold">Desconto</Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                <Chip
-                  label="Sem desconto"
-                  selected={discountType === null}
-                  onPress={() => {
-                    setDiscountType(null);
-                    setDiscountValue("");
-                  }}
-                />
-                <Chip
-                  label="Valor em R$"
-                  selected={discountType === "fixed"}
-                  onPress={() => setDiscountType("fixed")}
-                />
-                <Chip
-                  label="Porcentagem"
-                  selected={discountType === "percentage"}
-                  onPress={() => setDiscountType("percentage")}
-                />
-              </View>
-              {discountType ? (
-                <View style={compactField}>
-                  <Input
-                    label={
-                      discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"
-                    }
-                    value={discountValue}
-                    onChangeText={setDiscountValue}
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-              ) : null}
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                backgroundColor: theme.colors.successBg,
-                borderRadius: radii.xl,
-                padding: spacing.lg,
-              }}
-            >
-              <Typography variant="bodyBold">Total do orçamento</Typography>
-              <Typography variant="moneyLg" color={theme.colors.success}>
-                {formatCurrency(pricing.total)}
-              </Typography>
-            </View>
-
-            <View
-              style={{
-                borderRadius: radii.xl,
-                borderWidth: 1,
-                borderColor: theme.colors.border,
-                backgroundColor: theme.colors.surfaceElevated,
-                padding: spacing.lg,
-                gap: spacing.sm,
-              }}
-            >
-              <Typography variant="bodyBold">Visão interna de lucro</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Estes valores não aparecem no documento do cliente.
-              </Typography>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Typography variant="body">Subtotal</Typography>
-                <Typography variant="bodyBold">
-                  {formatCurrency(pricing.subtotal)}
+                <Typography variant="bodyBold">Visão interna de lucro</Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Estes valores não aparecem no documento do cliente.
                 </Typography>
-              </View>
-              {pricing.discount > 0 ? (
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="body">Desconto</Typography>
-                  <Typography variant="bodyBold" color={theme.colors.success}>
-                    − {formatCurrency(pricing.discount)}
+                  <Typography variant="body">Subtotal</Typography>
+                  <Typography variant="bodyBold">
+                    {formatCurrency(pricing.subtotal)}
                   </Typography>
                 </View>
-              ) : null}
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Typography variant="body">Custo estimado</Typography>
-                <Typography variant="bodyBold">
-                  {formatCurrency(pricing.estimatedCost)}
-                </Typography>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Typography variant="body">Ganho estimado</Typography>
-                <Typography
-                  variant="bodyBold"
-                  color={
-                    pricing.estimatedGain >= 0 ? theme.colors.success : theme.colors.alert
-                  }
-                >
-                  {formatCurrency(pricing.estimatedGain)}
-                </Typography>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Typography variant="body">Margem estimada</Typography>
-                <Typography variant="bodyBold">
-                  {pricing.estimatedMargin.toFixed(1).replace(".", ",")}%
-                </Typography>
+                {pricing.discount > 0 ? (
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Typography variant="body">Desconto</Typography>
+                    <Typography variant="bodyBold" color={theme.colors.success}>
+                      − {formatCurrency(pricing.discount)}
+                    </Typography>
+                  </View>
+                ) : null}
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Typography variant="body">Custo estimado</Typography>
+                  <Typography variant="bodyBold">
+                    {formatCurrency(pricing.estimatedCost)}
+                  </Typography>
+                </View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Typography variant="body">Ganho estimado</Typography>
+                  <Typography
+                    variant="bodyBold"
+                    color={
+                      pricing.estimatedGain >= 0
+                        ? theme.colors.success
+                        : theme.colors.alert
+                    }
+                  >
+                    {formatCurrency(pricing.estimatedGain)}
+                  </Typography>
+                </View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Typography variant="body">Margem estimada</Typography>
+                  <Typography variant="bodyBold">
+                    {pricing.estimatedMargin.toFixed(1).replace(".", ",")}%
+                  </Typography>
+                </View>
               </View>
             </View>
 
-            <Input
-              label="Válido até (opcional)"
-              placeholder="DD/MM/AAAA"
-              value={validUntil}
-              onChangeText={(v) => setValidUntil(maskDateBR(v))}
-              keyboardType="number-pad"
-            />
-            <Input
-              label="Observações (opcional)"
-              placeholder="Condições, prazo de produção, retirada..."
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={3}
-              style={{ height: 80, textAlignVertical: "center" }}
-            />
+            <View
+              style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
+              accessibilityElementsHidden={formStep !== 3}
+              importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
+            >
+              <Input
+                label="Válido até (opcional)"
+                placeholder="DD/MM/AAAA"
+                value={validUntil}
+                onChangeText={(v) => setValidUntil(maskDateBR(v))}
+                keyboardType="number-pad"
+              />
+              <Input
+                label="Observações (opcional)"
+                placeholder="Condições, prazo de produção, retirada..."
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={3}
+                style={{ height: 80, textAlignVertical: "center" }}
+              />
+            </View>
           </View>
-          {isDesktop ? (
+          {isDesktop && formStep === 3 ? (
             <View style={split.aside}>
               <View
                 style={{

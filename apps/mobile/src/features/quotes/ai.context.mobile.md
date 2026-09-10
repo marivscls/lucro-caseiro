@@ -115,3 +115,7 @@ Ajuda por tarefa inicia criação existente; produto e cliente não são inventa
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-09: Status nos cards e no detalhe usa ContentTransition de 220 ms ao mudar o status retornado pela API. Abrir um card ou renderizar novamente o mesmo status não dispara o efeito; erros não simulam aprovação.
+
+## Cadastro em etapas — 2026-09-09
+
+Orçamentos usam três etapas antes da confirmação existente: orçamento e cliente; itens, valores e desconto; prazo e observações. A revisão continua sendo a confirmação final antes de salvar.

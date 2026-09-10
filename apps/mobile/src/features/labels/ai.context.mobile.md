@@ -200,3 +200,7 @@ registros existentes nao quebrem, mas nao aparecem no formulario, preview ou PDF
 Ao faltar produto, CreateLabelForm conserva seu rascunho fora do modal e abre CreateProductForm como pré-requisito. Após salvar, seleciona o produto e preenche o nome da impressão. Cancelar/falhar conserva o rascunho; coletar prerequisite_resumed não completa a etiqueta.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Cadastro em etapas — 2026-09-09
+
+O cadastro de etiqueta usa três etapas: produto e modelo; texto e datas; contato e acabamento. A prévia final aparece junto do acabamento no desktop, e as ações de baixar/criar ficam na etapa final.

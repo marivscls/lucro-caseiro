@@ -192,3 +192,7 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Atalho para precificar — 2026-09-09
 
 O detalhe oferece “Precificar com esta receita”. Abre `/pricing` com o custo por unidade da escala exibida (`soma dos ingredientes ÷ rendimento`), nome visível e categoria; esses dados podem pré-preencher o produto criado depois do cálculo.
+
+## Cadastro em etapas — 2026-09-09
+
+Criar e editar receita usa três etapas: informações da receita; rendimento; ingredientes e custo. Nome/categoria e rendimento são validados ao avançar; ingredientes e custo ficam juntos na etapa final.

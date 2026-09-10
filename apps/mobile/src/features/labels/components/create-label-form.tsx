@@ -13,13 +13,14 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, Platform, Pressable, Switch, View, type ViewStyle } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
 import { DateField } from "../../../shared/components/date-field";
 import { FormSection } from "../../../shared/components/form-section";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -48,6 +49,12 @@ interface CreateLabelFormProps {
   onClose: () => void;
   onSuccess?: () => void;
 }
+
+const LABEL_FORM_STEPS = [
+  { label: "Produto", title: "Produto e modelo" },
+  { label: "Conteúdo", title: "Texto e datas" },
+  { label: "Marca", title: "Contato e acabamento" },
+] as const;
 
 export function CreateLabelForm({
   productId,
@@ -80,6 +87,7 @@ export function CreateLabelForm({
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [layoutValid, setLayoutValid] = useState(true);
+  const [formStep, setFormStep] = useState(1);
   const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
   const { data: catalogSettings } = useCatalogSettings();
   const qrUrl =
@@ -90,6 +98,10 @@ export function CreateLabelForm({
   const { data: labelsData } = useLabels(
     selectedProductId ? { productId: selectedProductId } : undefined,
   );
+
+  useEffect(() => {
+    if (visible) setFormStep(1);
+  }, [visible]);
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
     setLabelData((previous) => ({ ...previous, [key]: value }));
@@ -145,7 +157,10 @@ export function CreateLabelForm({
   });
 
   async function handleSubmit() {
-    if (!formValidation.validate()) return;
+    if (!formValidation.validate()) {
+      setFormStep(!name.trim() || !selectedProductId ? 1 : 2);
+      return;
+    }
     if (!name.trim()) {
       alertValidation("Dê um nome para a etiqueta");
       return;
@@ -267,38 +282,78 @@ export function CreateLabelForm({
               flexWrap: "wrap",
             }}
           >
-            <Button
-              title="Baixar / Compartilhar"
-              variant="outline"
-              size="lg"
-              compact
-              icon={
-                <AppIcon name="download-outline" size={20} color={theme.colors.primary} />
-              }
-              onPress={() => void handleExport()}
-              loading={exporting}
-              style={
-                isDesktop
-                  ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
-                  : { alignSelf: "stretch" }
-              }
-            />
-            <Button
-              title={uploading ? "Enviando logo..." : "Criar etiqueta"}
-              size="lg"
-              compact
-              onPress={() => void handleSubmit()}
-              loading={createLabel.isPending || uploading}
-              style={
-                isDesktop
-                  ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
-                  : { alignSelf: "stretch" }
-              }
-            />
+            {formStep > 1 ? (
+              <Button
+                title="Voltar"
+                variant="ghost"
+                onPress={() => setFormStep(formStep - 1)}
+              />
+            ) : null}
+            {formStep < LABEL_FORM_STEPS.length ? (
+              <Button
+                title="Continuar"
+                size="lg"
+                compact
+                onPress={() => {
+                  if (formStep === 1 && (!name.trim() || !selectedProductId)) {
+                    alertValidation(
+                      "Informe o nome e escolha o produto antes de continuar.",
+                    );
+                    return;
+                  }
+                  if (formStep === 2 && !labelData.productName.trim()) {
+                    alertValidation("Informe o nome que será impresso.");
+                    return;
+                  }
+                  setFormStep(formStep + 1);
+                }}
+                style={isDesktop ? { minWidth: 220 } : { alignSelf: "stretch" }}
+              />
+            ) : (
+              <>
+                <Button
+                  title="Baixar / Compartilhar"
+                  variant="outline"
+                  size="lg"
+                  compact
+                  icon={
+                    <AppIcon
+                      name="download-outline"
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                  }
+                  onPress={() => void handleExport()}
+                  loading={exporting}
+                  style={
+                    isDesktop
+                      ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                      : { alignSelf: "stretch" }
+                  }
+                />
+                <Button
+                  title={uploading ? "Enviando logo..." : "Criar etiqueta"}
+                  size="lg"
+                  compact
+                  onPress={() => void handleSubmit()}
+                  loading={createLabel.isPending || uploading}
+                  style={
+                    isDesktop
+                      ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                      : { alignSelf: "stretch" }
+                  }
+                />
+              </>
+            )}
           </View>
         }
       >
         <View style={[{ width: "100%", minWidth: 0 }, split.outer]}>
+          <FormStepProgress
+            current={formStep}
+            steps={LABEL_FORM_STEPS}
+            onStepPress={setFormStep}
+          />
           <View
             style={
               isDesktop
@@ -322,220 +377,244 @@ export function CreateLabelForm({
               ]}
             >
               <View
-                style={{
-                  borderRadius: radii.md,
-                  backgroundColor: theme.colors.surface,
-                  padding: spacing.md,
-                }}
+                style={{ display: formStep === 1 ? "flex" : "none", gap: spacing["2xl"] }}
+                accessibilityElementsHidden={formStep !== 1}
+                importantForAccessibility={
+                  formStep === 1 ? "auto" : "no-hide-descendants"
+                }
               >
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Etiqueta para identificar seu produto. Não substitui a rotulagem
-                  obrigatória quando aplicável.
-                </Typography>
+                <View
+                  style={{
+                    borderRadius: radii.md,
+                    backgroundColor: theme.colors.surface,
+                    padding: spacing.md,
+                  }}
+                >
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Etiqueta para identificar seu produto. Não substitui a rotulagem
+                    obrigatória quando aplicável.
+                  </Typography>
+                </View>
+
+                <ValidationField {...formValidation.field("name")}>
+                  <Input
+                    label="Nome da etiqueta"
+                    placeholder={`Ex: ${experienceCopy.productExample}`}
+                    value={name}
+                    onChangeText={setName}
+                  />
+                </ValidationField>
+
+                {productCreated ? (
+                  <Typography variant="body" accessibilityLiveRegion="polite">
+                    Produto cadastrado e selecionado. Continue sua etiqueta abaixo.
+                  </Typography>
+                ) : null}
+                <ValidationField {...formValidation.field("selectedProductId")}>
+                  <LabelProductPicker
+                    onCreate={() => setCreatingProduct(true)}
+                    selectedId={selectedProductId}
+                    onSelect={(product) => {
+                      setProductCreated(true);
+                      setSelectedProductId(product.id);
+                      updateField("productName", product.name);
+                      if (!name.trim()) setName(`Etiqueta ${product.name}`);
+                    }}
+                  />
+                </ValidationField>
+
+                <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+                <FormSection
+                  title="Formato de impressão"
+                  subtitle="Tamanho exato e quantidade na folha A4"
+                  icon="grid-outline"
+                  titleAccessory={<Badge label="Profissional" variant="premium" />}
+                >
+                  <LabelLayoutEditor
+                    value={labelData.layout}
+                    onChange={(layout) => updateField("layout", layout)}
+                    onValidityChange={setLayoutValid}
+                    locked={!isPremium}
+                    onLockedPress={() => showPaywall("labels")}
+                  />
+                </FormSection>
               </View>
+              <View
+                style={{ display: formStep === 2 ? "flex" : "none", gap: spacing["2xl"] }}
+                accessibilityElementsHidden={formStep !== 2}
+                importantForAccessibility={
+                  formStep === 2 ? "auto" : "no-hide-descendants"
+                }
+              >
+                {!isDesktop ? previewBlock : null}
 
-              <ValidationField {...formValidation.field("name")}>
+                <ValidationField {...formValidation.field("productName")}>
+                  <Input
+                    label="Nome que será impresso"
+                    placeholder={`Ex: ${experienceCopy.productExample}`}
+                    value={labelData.productName}
+                    onChangeText={(value) => updateField("productName", value)}
+                  />
+                </ValidationField>
                 <Input
-                  label="Nome da etiqueta"
-                  placeholder={`Ex: ${experienceCopy.productExample}`}
-                  value={name}
-                  onChangeText={setName}
-                />
-              </ValidationField>
-
-              {productCreated ? (
-                <Typography variant="body" accessibilityLiveRegion="polite">
-                  Produto cadastrado e selecionado. Continue sua etiqueta abaixo.
-                </Typography>
-              ) : null}
-              <ValidationField {...formValidation.field("selectedProductId")}>
-                <LabelProductPicker
-                  onCreate={() => setCreatingProduct(true)}
-                  selectedId={selectedProductId}
-                  onSelect={(product) => {
-                    setProductCreated(true);
-                    setSelectedProductId(product.id);
-                    updateField("productName", product.name);
-                    if (!name.trim()) setName(`Etiqueta ${product.name}`);
+                  label="Observação (opcional)"
+                  placeholder="Ex: Manter refrigerado"
+                  value={labelData.note ?? ""}
+                  onChangeText={(value) => updateField("note", value)}
+                  multiline
+                  numberOfLines={3}
+                  style={{
+                    height: 88,
+                    lineHeight: 24,
+                    paddingTop: spacing["3xl"],
+                    paddingBottom: spacing["3xl"],
+                    textAlignVertical: "center",
                   }}
                 />
-              </ValidationField>
 
-              <TemplatePicker selected={templateId} onSelect={setTemplateId} />
-              <FormSection
-                title="Formato de impressão"
-                subtitle="Tamanho exato e quantidade na folha A4"
-                icon="grid-outline"
-                titleAccessory={<Badge label="Profissional" variant="premium" />}
-              >
-                <LabelLayoutEditor
-                  value={labelData.layout}
-                  onChange={(layout) => updateField("layout", layout)}
-                  onValidityChange={setLayoutValid}
-                  locked={!isPremium}
-                  onLockedPress={() => showPaywall("labels")}
-                />
-              </FormSection>
-              {!isDesktop ? previewBlock : null}
-
-              <ValidationField {...formValidation.field("productName")}>
-                <Input
-                  label="Nome que será impresso"
-                  placeholder={`Ex: ${experienceCopy.productExample}`}
-                  value={labelData.productName}
-                  onChangeText={(value) => updateField("productName", value)}
-                />
-              </ValidationField>
-              <Input
-                label="Observação (opcional)"
-                placeholder="Ex: Manter refrigerado"
-                value={labelData.note ?? ""}
-                onChangeText={(value) => updateField("note", value)}
-                multiline
-                numberOfLines={3}
-                style={{
-                  height: 88,
-                  lineHeight: 24,
-                  paddingTop: spacing["3xl"],
-                  paddingBottom: spacing["3xl"],
-                  textAlignVertical: "center",
-                }}
-              />
-
-              <FormSection
-                title="Datas (opcional)"
-                subtitle="Imprima a produção e a validade se quiser"
-                icon="calendar-outline"
-              >
-                <View style={{ gap: spacing.md }}>
-                  <DateField
-                    label="Feito em"
-                    value={labelData.manufacturingDate ?? ""}
-                    onChange={(value) => updateField("manufacturingDate", value)}
-                  />
-                  <DateField
-                    label="Validade"
-                    value={labelData.expirationDate ?? ""}
-                    onChange={(value) => updateField("expirationDate", value)}
-                  />
-                </View>
-              </FormSection>
-
-              <FormSection
-                title="Contato e marca"
-                subtitle="Opcional: nome, telefone, logo e catálogo"
-                icon="person-circle-outline"
-              >
-                <Input
-                  label="Seu nome / nome do negócio"
-                  placeholder={`Ex: ${experienceCopy.businessNameExample}`}
-                  value={labelData.producerName ?? ""}
-                  onChangeText={(value) => updateField("producerName", value)}
-                />
-                <Input
-                  label="Telefone"
-                  placeholder="(11) 99999-9999"
-                  value={labelData.producerPhone ?? ""}
-                  onChangeText={(value) =>
-                    updateField("producerPhone", maskPhoneBR(value))
-                  }
-                  keyboardType="phone-pad"
-                />
-                <View>
-                  <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-                    Logo do negócio (opcional)
-                  </Typography>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.md,
-                    }}
-                  >
-                    <Pressable
-                      onPress={showPicker}
-                      accessibilityRole="button"
-                      accessibilityLabel="Adicionar logo do negócio"
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: radii.lg,
-                        backgroundColor: theme.colors.surface,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {logoUri ? (
-                        <Image
-                          source={{ uri: logoUri }}
-                          style={{ width: 80, height: 80 }}
-                        />
-                      ) : (
-                        <AppIcon
-                          name="image-outline"
-                          size={28}
-                          color={theme.colors.textSecondary}
-                        />
-                      )}
-                    </Pressable>
-                    {logoUri ? (
-                      <Pressable onPress={clearLogo} hitSlop={8}>
-                        <Typography variant="caption" color={theme.colors.primary}>
-                          Remover logo
-                        </Typography>
-                      </Pressable>
-                    ) : null}
-                  </View>
-                </View>
-                {catalogSettings && selectedProductId ? (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: spacing.md,
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Typography variant="bodyBold">
-                        Incluir QR Code do catálogo
-                      </Typography>
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Abre este produto diretamente no seu catálogo.
-                      </Typography>
-                    </View>
-                    <Switch
-                      value={includeQr}
-                      onValueChange={setIncludeQr}
-                      trackColor={{
-                        false: theme.colors.border,
-                        true: theme.colors.primary,
-                      }}
+                <FormSection
+                  title="Datas (opcional)"
+                  subtitle="Imprima a produção e a validade se quiser"
+                  icon="calendar-outline"
+                >
+                  <View style={{ gap: spacing.md }}>
+                    <DateField
+                      label="Feito em"
+                      value={labelData.manufacturingDate ?? ""}
+                      onChange={(value) => updateField("manufacturingDate", value)}
+                    />
+                    <DateField
+                      label="Validade"
+                      value={labelData.expirationDate ?? ""}
+                      onChange={(value) => updateField("expirationDate", value)}
                     />
                   </View>
-                ) : null}
-              </FormSection>
+                </FormSection>
+              </View>
 
-              <FormSection
-                title="Personalizar"
-                subtitle="Profissional: cores, borda e cantos"
-                icon="color-palette-outline"
+              <View
+                style={{ display: formStep === 3 ? "flex" : "none", gap: spacing["2xl"] }}
+                accessibilityElementsHidden={formStep !== 3}
+                importantForAccessibility={
+                  formStep === 3 ? "auto" : "no-hide-descendants"
+                }
               >
-                <LabelStyleEditor
-                  value={labelData.style}
-                  onChange={(style) => updateField("style", style)}
-                  locked={!isPremium}
-                  onLockedPress={() => {
-                    if (isPremium) return false;
-                    showPaywall("labels");
-                    return true;
-                  }}
-                />
-              </FormSection>
+                <FormSection
+                  title="Contato e marca"
+                  subtitle="Opcional: nome, telefone, logo e catálogo"
+                  icon="person-circle-outline"
+                >
+                  <Input
+                    label="Seu nome / nome do negócio"
+                    placeholder={`Ex: ${experienceCopy.businessNameExample}`}
+                    value={labelData.producerName ?? ""}
+                    onChangeText={(value) => updateField("producerName", value)}
+                  />
+                  <Input
+                    label="Telefone"
+                    placeholder="(11) 99999-9999"
+                    value={labelData.producerPhone ?? ""}
+                    onChangeText={(value) =>
+                      updateField("producerPhone", maskPhoneBR(value))
+                    }
+                    keyboardType="phone-pad"
+                  />
+                  <View>
+                    <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+                      Logo do negócio (opcional)
+                    </Typography>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                      }}
+                    >
+                      <Pressable
+                        onPress={showPicker}
+                        accessibilityRole="button"
+                        accessibilityLabel="Adicionar logo do negócio"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          borderRadius: radii.lg,
+                          backgroundColor: theme.colors.surface,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {logoUri ? (
+                          <Image
+                            source={{ uri: logoUri }}
+                            style={{ width: 80, height: 80 }}
+                          />
+                        ) : (
+                          <AppIcon
+                            name="image-outline"
+                            size={28}
+                            color={theme.colors.textSecondary}
+                          />
+                        )}
+                      </Pressable>
+                      {logoUri ? (
+                        <Pressable onPress={clearLogo} hitSlop={8}>
+                          <Typography variant="caption" color={theme.colors.primary}>
+                            Remover logo
+                          </Typography>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  </View>
+                  {catalogSettings && selectedProductId ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: spacing.md,
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Typography variant="bodyBold">
+                          Incluir QR Code do catálogo
+                        </Typography>
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Abre este produto diretamente no seu catálogo.
+                        </Typography>
+                      </View>
+                      <Switch
+                        value={includeQr}
+                        onValueChange={setIncludeQr}
+                        trackColor={{
+                          false: theme.colors.border,
+                          true: theme.colors.primary,
+                        }}
+                      />
+                    </View>
+                  ) : null}
+                </FormSection>
+
+                <FormSection
+                  title="Personalizar"
+                  subtitle="Profissional: cores, borda e cantos"
+                  icon="color-palette-outline"
+                >
+                  <LabelStyleEditor
+                    value={labelData.style}
+                    onChange={(style) => updateField("style", style)}
+                    locked={!isPremium}
+                    onLockedPress={() => {
+                      if (isPremium) return false;
+                      showPaywall("labels");
+                      return true;
+                    }}
+                  />
+                </FormSection>
+              </View>
             </View>
 
-            {isDesktop ? (
+            {isDesktop && formStep === 3 ? (
               <View style={[split.aside, previewRailSticky]}>{previewBlock}</View>
             ) : null}
           </View>

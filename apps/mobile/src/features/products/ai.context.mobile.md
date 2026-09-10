@@ -217,3 +217,7 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Catálogo completo no Essencial — 2026-09-09
 
 O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.
+
+## Cadastro em etapas — 2026-09-09
+
+No modal, o cadastro de produto usa três etapas: informações e preço; tipo, variações e apresentação; estoque e identificação. Os valores ficam no estado do formulário ao avançar ou voltar, e a validação final retorna à etapa que contém o erro. A versão inline em desktop continua exibindo o formulário completo.

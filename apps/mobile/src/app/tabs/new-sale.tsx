@@ -30,6 +30,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
+import { FormStepProgress } from "../../shared/components/form-step-progress";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -131,7 +132,6 @@ const STEP_TITLES: Record<Step, string> = {
   4: "Revisar e confirmar",
 };
 
-const TOTAL_STEPS = 4;
 const STEP_LABELS = ["Cliente", "Produtos", "Pagamento", "Revisão"] as const;
 
 const STEP_SUBTITLES: Record<Step, string> = {
@@ -253,47 +253,6 @@ function SearchBox({
       >
         <AppIcon name={trailingIcon} size={20} color={theme.colors.textSecondary} />
       </Pressable>
-    </View>
-  );
-}
-
-function StepIndicator({
-  step,
-  align = "center",
-}: Readonly<{ step: Step; align?: "center" | "flex-start" }>) {
-  const { theme } = useTheme();
-  const pal = useBrandScreenPalette();
-  return (
-    <View
-      accessibilityRole="progressbar"
-      accessibilityLabel={`Etapa ${step} de ${TOTAL_STEPS}: ${STEP_LABELS[step - 1]}`}
-      accessibilityValue={{ min: 1, max: TOTAL_STEPS, now: step }}
-      style={{
-        flexDirection: "row",
-        gap: spacing.sm,
-        paddingTop: spacing.sm,
-        paddingBottom: spacing.lg,
-        maxWidth: align === "flex-start" ? 420 : undefined,
-      }}
-    >
-      {STEP_LABELS.map((label, i) => (
-        <View key={label} style={{ flex: 1, gap: spacing.sm }}>
-          <View
-            style={{
-              height: 3,
-              borderRadius: radii.full,
-              backgroundColor: i + 1 <= step ? pal.wine : theme.colors.border,
-            }}
-          />
-          <Typography
-            variant="caption"
-            color={i + 1 === step ? pal.wine : theme.colors.textSecondary}
-            style={{ fontFamily: i + 1 === step ? fonts.semiBold : fonts.regular }}
-          >
-            {label}
-          </Typography>
-        </View>
-      ))}
     </View>
   );
 }
@@ -969,7 +928,22 @@ export default function NewSaleScreen() {
             showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
           }
         />
-        <StepIndicator step={step} align={isDesktop ? "flex-start" : "center"} />
+        <View
+          style={{
+            maxWidth: isDesktop ? 520 : undefined,
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.lg,
+          }}
+        >
+          <FormStepProgress
+            current={step}
+            steps={STEP_LABELS.map((label, index) => ({
+              label,
+              title: STEP_TITLES[(index + 1) as Step],
+            }))}
+            onStepPress={(target) => setStep(target as Step)}
+          />
+        </View>
 
         <View style={{ paddingBottom: spacing.lg }}>
           <Typography variant="h3">{STEP_TITLES[step]}</Typography>

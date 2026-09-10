@@ -120,3 +120,7 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 Orientação chama openCreate existente, preservando bloqueios do plano; purchase_created vem do sucesso da mutation.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Cadastro em etapas — 2026-09-09
+
+Compras usam três etapas: dados da compra; produtos e valores; categoria e pagamento. A segunda etapa muda conforme entrada de estoque ou somente despesa e impede avanço sem item ou valor válido.

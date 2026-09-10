@@ -27,6 +27,7 @@ import {
 import { showAlert } from "../../../shared/components/alert-store";
 import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import {
   brToIso,
@@ -63,6 +64,12 @@ interface OrderFormProps {
   readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
+
+const ORDER_FORM_STEPS = [
+  { label: "Pedido", title: "Pedido, serviço e cliente" },
+  { label: "Agenda", title: "Data, horário e valores" },
+  { label: "Detalhes", title: "Detalhes e confirmação" },
+] as const;
 
 // Paleta derivada do tema ativo (antes eram constantes fixas de dark, que
 // deixavam o formulario de encomenda com cores erradas no modo claro).
@@ -443,6 +450,7 @@ export function OrderForm({
   const [savedPhotoUrl, setSavedPhotoUrl] = useState(order?.photoUrl ?? null);
   const { imageUri, showPicker, clear } = useImagePicker();
   const [uploading, setUploading] = useState(false);
+  const [formStep, setFormStep] = useState(1);
 
   const createOrder = useCreateOrder();
   const createService = useCreateService();
@@ -475,6 +483,10 @@ export function OrderForm({
       setAmount(currencyInput(initialService.defaultPrice));
     }
   }, [initialServiceId, isAppointment, order, services]);
+
+  useEffect(() => {
+    if (visible) setFormStep(1);
+  }, [order?.id, visible]);
 
   function openDatePicker() {
     setShowDatePicker(true);
@@ -532,7 +544,17 @@ export function OrderForm({
   );
 
   async function saveOrder() {
-    if (!formValidation.validate()) return;
+    if (!formValidation.validate()) {
+      if (
+        (isAppointment && (!serviceId || !locationMode)) ||
+        (!isAppointment && !title.trim())
+      ) {
+        setFormStep(1);
+      } else {
+        setFormStep(2);
+      }
+      return;
+    }
     if (isAppointment && !serviceId) {
       alertValidation("Selecione o serviço deste atendimento.");
       return;
@@ -690,7 +712,7 @@ export function OrderForm({
             gap: spacing.sm,
           }}
         >
-          {isDesktop ? (
+          {isDesktop && formStep === 1 ? (
             <Pressable
               disabled={isSaving}
               onPress={onClose}
@@ -712,9 +734,61 @@ export function OrderForm({
               </Typography>
             </Pressable>
           ) : null}
+          {formStep > 1 ? (
+            <Pressable
+              disabled={isSaving}
+              onPress={() => setFormStep((current) => current - 1)}
+              accessibilityRole="button"
+              style={({ pressed }) => ({
+                minHeight: 48,
+                minWidth: isDesktop ? 136 : undefined,
+                paddingHorizontal: spacing.xl,
+                borderRadius: radii.md,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed || isSaving ? 0.72 : 1,
+              })}
+            >
+              <Typography variant="bodyBold" color={theme.colors.textSecondary}>
+                Voltar
+              </Typography>
+            </Pressable>
+          ) : null}
           <Pressable
             disabled={isSaving}
             onPress={() => {
+              if (formStep === 1) {
+                if (isAppointment && !serviceId) {
+                  alertValidation("Selecione o serviço deste atendimento.");
+                  return;
+                }
+                if (isAppointment && !locationMode) {
+                  alertValidation("Escolha o local do atendimento.");
+                  return;
+                }
+                if (!isAppointment && !title.trim()) {
+                  alertValidation("Dê um nome para este cadastro.");
+                  return;
+                }
+                setFormStep(2);
+                return;
+              }
+              if (formStep === 2) {
+                if (!brToIso(dateText)) {
+                  alertValidation("Informe uma data válida no formato DD/MM/AAAA.");
+                  return;
+                }
+                if (isAppointment && !time.trim()) {
+                  alertValidation("Informe o horário do atendimento.");
+                  return;
+                }
+                if (time.trim() && !isValidTimeBR(time)) {
+                  alertValidation("Horário inválido. Use HH:MM, ex.: 14:30.");
+                  return;
+                }
+                setFormStep(3);
+                return;
+              }
               void handleSave();
             }}
             accessibilityRole="button"
@@ -736,7 +810,11 @@ export function OrderForm({
               <ActivityIndicator color={theme.colors.textOnPrimary} />
             ) : (
               <AppIcon
-                name="checkmark-circle"
+                name={
+                  formStep === ORDER_FORM_STEPS.length
+                    ? "checkmark-circle"
+                    : "arrow-forward"
+                }
                 size={25}
                 color={theme.colors.textOnPrimary}
               />
@@ -746,13 +824,18 @@ export function OrderForm({
               color={theme.colors.textOnPrimary}
               style={{ fontSize: 16 }}
             >
-              {saveLabel}
+              {formStep === ORDER_FORM_STEPS.length ? saveLabel : "Continuar"}
             </Typography>
           </Pressable>
         </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.lg }}>
+        <FormStepProgress
+          current={formStep}
+          steps={ORDER_FORM_STEPS}
+          onStepPress={setFormStep}
+        />
         <View
           style={{
             borderRadius: 24,
@@ -764,195 +847,162 @@ export function OrderForm({
           }}
         >
           <View
-            style={{
-              flexDirection: isDesktop ? "row" : "column",
-              alignItems: "stretch",
-              gap: spacing["2xl"],
-            }}
+            style={{ display: formStep === 1 ? "flex" : "none", gap: spacing["2xl"] }}
+            accessibilityElementsHidden={formStep !== 1}
+            importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
           >
-            {!isAppointment ? (
-              <View
-                style={[
-                  { gap: spacing.md },
-                  isDesktop ? { width: 280, flexShrink: 0 } : undefined,
-                ]}
-              >
-                <Typography variant="h3" color={theme.colors.text}>
-                  Imagem: {experienceCopy.orderNoun} (opcional)
-                </Typography>
+            <View
+              style={{
+                flexDirection: isDesktop ? "row" : "column",
+                alignItems: "stretch",
+                gap: spacing["2xl"],
+              }}
+            >
+              {!isAppointment ? (
                 <View
-                  style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}
+                  style={[
+                    { gap: spacing.md },
+                    isDesktop ? { width: 280, flexShrink: 0 } : undefined,
+                  ]}
                 >
-                  <Pressable
-                    onPress={showPicker}
-                    style={({ pressed }) => ({
-                      width: 96,
-                      height: 96,
-                      borderRadius: radii.lg,
-                      backgroundColor: pal.subtleFill,
-                      borderWidth: 1,
-                      borderStyle: currentPhotoUrl ? "solid" : "dashed",
-                      borderColor: pal.border,
+                  <Typography variant="h3" color={theme.colors.text}>
+                    Imagem: {experienceCopy.orderNoun} (opcional)
+                  </Typography>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      gap: spacing.md,
                       alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                      opacity: pressed ? 0.86 : 1,
-                    })}
+                    }}
                   >
-                    {currentPhotoUrl ? (
-                      <Image
-                        source={{ uri: currentPhotoUrl }}
-                        style={{ width: 96, height: 96 }}
-                      />
-                    ) : (
-                      <AppIcon
-                        name="image-outline"
-                        size={34}
-                        color={theme.colors.primaryLight}
-                      />
-                    )}
-                  </Pressable>
-                  <View style={{ flex: 1, gap: spacing.sm }}>
                     <Pressable
                       onPress={showPicker}
                       style={({ pressed }) => ({
-                        minHeight: 46,
+                        width: 96,
+                        height: 96,
                         borderRadius: radii.lg,
+                        backgroundColor: pal.subtleFill,
                         borderWidth: 1,
-                        borderColor: theme.colors.primaryLight,
+                        borderStyle: currentPhotoUrl ? "solid" : "dashed",
+                        borderColor: pal.border,
                         alignItems: "center",
                         justifyContent: "center",
-                        flexDirection: "row",
-                        gap: spacing.sm,
-                        opacity: pressed ? 0.82 : 1,
+                        overflow: "hidden",
+                        opacity: pressed ? 0.86 : 1,
                       })}
                     >
-                      <AppIcon
-                        name={
-                          currentPhotoUrl
-                            ? "swap-horizontal-outline"
-                            : "cloud-upload-outline"
-                        }
-                        size={19}
-                        color={theme.colors.primaryLight}
-                      />
-                      <Typography
-                        variant="bodyBold"
-                        color={theme.colors.primaryLight}
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                      >
-                        {currentPhotoUrl ? "Trocar imagem" : "Adicionar imagem"}
-                      </Typography>
+                      {currentPhotoUrl ? (
+                        <Image
+                          source={{ uri: currentPhotoUrl }}
+                          style={{ width: 96, height: 96 }}
+                        />
+                      ) : (
+                        <AppIcon
+                          name="image-outline"
+                          size={34}
+                          color={theme.colors.primaryLight}
+                        />
+                      )}
                     </Pressable>
-                    <Typography variant="caption" color={pal.muted}>
-                      Foto opcional para identificar este cadastro.
-                    </Typography>
-                    {currentPhotoUrl ? (
+                    <View style={{ flex: 1, gap: spacing.sm }}>
                       <Pressable
-                        onPress={() => {
-                          setSavedPhotoUrl(null);
-                          clear();
-                        }}
+                        onPress={showPicker}
+                        style={({ pressed }) => ({
+                          minHeight: 46,
+                          borderRadius: radii.lg,
+                          borderWidth: 1,
+                          borderColor: theme.colors.primaryLight,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexDirection: "row",
+                          gap: spacing.sm,
+                          opacity: pressed ? 0.82 : 1,
+                        })}
                       >
-                        <Typography variant="caption" color={theme.colors.alert}>
-                          Remover imagem
+                        <AppIcon
+                          name={
+                            currentPhotoUrl
+                              ? "swap-horizontal-outline"
+                              : "cloud-upload-outline"
+                          }
+                          size={19}
+                          color={theme.colors.primaryLight}
+                        />
+                        <Typography
+                          variant="bodyBold"
+                          color={theme.colors.primaryLight}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                        >
+                          {currentPhotoUrl ? "Trocar imagem" : "Adicionar imagem"}
                         </Typography>
                       </Pressable>
-                    ) : null}
+                      <Typography variant="caption" color={pal.muted}>
+                        Foto opcional para identificar este cadastro.
+                      </Typography>
+                      {currentPhotoUrl ? (
+                        <Pressable
+                          onPress={() => {
+                            setSavedPhotoUrl(null);
+                            clear();
+                          }}
+                        >
+                          <Typography variant="caption" color={theme.colors.alert}>
+                            Remover imagem
+                          </Typography>
+                        </Pressable>
+                      ) : null}
+                    </View>
                   </View>
                 </View>
-              </View>
-            ) : null}
+              ) : null}
 
-            {!isAppointment ? (
-              <View
-                style={
-                  isDesktop
-                    ? { width: 1, alignSelf: "stretch", backgroundColor: pal.border }
-                    : { height: 1, backgroundColor: pal.border }
-                }
-              />
-            ) : null}
+              {!isAppointment ? (
+                <View
+                  style={
+                    isDesktop
+                      ? { width: 1, alignSelf: "stretch", backgroundColor: pal.border }
+                      : { height: 1, backgroundColor: pal.border }
+                  }
+                />
+              ) : null}
 
-            <ValidationField {...formValidation.field("serviceId")}>
-              <View
-                style={[
-                  { gap: spacing.md },
-                  isDesktop ? { flex: 1, minWidth: 0 } : undefined,
-                ]}
-              >
-                <View>
-                  <Typography variant="h3" color={theme.colors.text}>
-                    Serviço{isAppointment ? "" : " (opcional)"}
-                    {isAppointment ? (
-                      <Typography variant="bodyBold" color={theme.colors.primary}>
-                        {" "}
-                        *
-                      </Typography>
-                    ) : null}
-                  </Typography>
-                  <Typography variant="caption" color={pal.muted}>
-                    {isAppointment
-                      ? "Confirme a opção, os adicionais e a duração."
-                      : "Use para bloquear o horário correto na agenda."}
-                  </Typography>
-                </View>
-                {services.length > 0 ? (
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                  >
-                    {!isAppointment ? (
-                      <Pressable
-                        onPress={() => {
-                          setServiceId(null);
-                          setServiceVariationId(null);
-                          setServiceAddOnIds([]);
-                          setServicePackagePurchaseId(null);
-                          setLocationMode(null);
-                          setLocationDetails("");
-                        }}
-                        style={{
-                          minHeight: 44,
-                          justifyContent: "center",
-                          paddingHorizontal: spacing.md,
-                          borderRadius: radii.full,
-                          borderWidth: 1,
-                          borderColor:
-                            serviceId === null ? theme.colors.primary : pal.border,
-                          backgroundColor:
-                            serviceId === null ? theme.colors.primaryBg : pal.surface,
-                        }}
-                      >
-                        <Typography variant="caption">Sem serviço</Typography>
-                      </Pressable>
-                    ) : null}
-                    {services
-                      .filter(
-                        (service) =>
-                          service.active &&
-                          (!isAppointment ||
-                            !initialServiceId ||
-                            service.id === initialServiceId),
-                      )
-                      .map((service) => (
+              <ValidationField {...formValidation.field("serviceId")}>
+                <View
+                  style={[
+                    { gap: spacing.md },
+                    isDesktop ? { flex: 1, minWidth: 0 } : undefined,
+                  ]}
+                >
+                  <View>
+                    <Typography variant="h3" color={theme.colors.text}>
+                      Serviço{isAppointment ? "" : " (opcional)"}
+                      {isAppointment ? (
+                        <Typography variant="bodyBold" color={theme.colors.primary}>
+                          {" "}
+                          *
+                        </Typography>
+                      ) : null}
+                    </Typography>
+                    <Typography variant="caption" color={pal.muted}>
+                      {isAppointment
+                        ? "Confirme a opção, os adicionais e a duração."
+                        : "Use para bloquear o horário correto na agenda."}
+                    </Typography>
+                  </View>
+                  {services.length > 0 ? (
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                    >
+                      {!isAppointment ? (
                         <Pressable
-                          key={service.id}
                           onPress={() => {
-                            setServiceId(service.id);
+                            setServiceId(null);
                             setServiceVariationId(null);
                             setServiceAddOnIds([]);
                             setServicePackagePurchaseId(null);
-                            setDurationMinutes(String(service.durationMinutes));
-                            setLocationMode(
-                              service.locationMode === "flexible"
-                                ? "business"
-                                : service.locationMode,
-                            );
-                            setTitle((current) => current || service.name);
-                            if (service.defaultPrice !== null) {
-                              setAmount(currencyInput(service.defaultPrice));
-                            }
+                            setLocationMode(null);
+                            setLocationDetails("");
                           }}
                           style={{
                             minHeight: 44,
@@ -961,219 +1011,67 @@ export function OrderForm({
                             borderRadius: radii.full,
                             borderWidth: 1,
                             borderColor:
-                              serviceId === service.id
-                                ? theme.colors.primary
-                                : pal.border,
+                              serviceId === null ? theme.colors.primary : pal.border,
                             backgroundColor:
-                              serviceId === service.id
-                                ? theme.colors.primaryBg
-                                : pal.surface,
+                              serviceId === null ? theme.colors.primaryBg : pal.surface,
                           }}
                         >
-                          <Typography variant="caption">{service.name}</Typography>
+                          <Typography variant="caption">Sem serviço</Typography>
                         </Pressable>
-                      ))}
-                  </View>
-                ) : null}
-                {selectedService?.variations.some((item) => item.active) ? (
-                  <View style={{ gap: spacing.sm }}>
-                    <Typography variant="caption" color={pal.muted}>
-                      Opção do serviço
-                    </Typography>
-                    <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                    >
-                      {selectedService.variations
-                        .filter((item) => item.active)
-                        .map((variation) => (
-                          <Pressable
-                            key={variation.id}
-                            onPress={() => {
-                              setServiceVariationId(variation.id);
-                              setDurationMinutes(String(variation.durationMinutes));
-                              setAmount(currencyInput(variation.price));
-                            }}
-                            style={{
-                              minHeight: 44,
-                              justifyContent: "center",
-                              paddingHorizontal: spacing.md,
-                              borderRadius: radii.full,
-                              borderWidth: 1,
-                              borderColor:
-                                serviceVariationId === variation.id
-                                  ? theme.colors.primary
-                                  : pal.border,
-                              backgroundColor:
-                                serviceVariationId === variation.id
-                                  ? theme.colors.primaryBg
-                                  : pal.surface,
-                            }}
-                          >
-                            <Typography variant="caption">
-                              {variation.name} · {variation.durationMinutes} min
-                            </Typography>
-                          </Pressable>
-                        ))}
-                    </View>
-                  </View>
-                ) : null}
-                {selectedService?.addOns.some((item) => item.active) ? (
-                  <View style={{ gap: spacing.sm }}>
-                    <Typography variant="caption" color={pal.muted}>
-                      Adicionais
-                    </Typography>
-                    <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                    >
-                      {selectedService.addOns
-                        .filter((item) => item.active)
-                        .map((addOn) => {
-                          const selected = serviceAddOnIds.includes(addOn.id);
-                          return (
-                            <Pressable
-                              key={addOn.id}
-                              onPress={() => {
-                                setServiceAddOnIds(
-                                  selected
-                                    ? withoutValue(serviceAddOnIds, addOn.id)
-                                    : [...serviceAddOnIds, addOn.id],
-                                );
-                                const currentAmount = parseCurrencyInput(amount) || 0;
-                                setAmount(
-                                  currencyInput(
-                                    Math.max(
-                                      0,
-                                      currentAmount +
-                                        (selected ? -addOn.price : addOn.price),
-                                    ),
-                                  ),
-                                );
-                                setDurationMinutes((current) =>
-                                  String(
-                                    Math.max(
-                                      5,
-                                      (Number.parseInt(current, 10) || 0) +
-                                        (selected
-                                          ? -addOn.durationMinutes
-                                          : addOn.durationMinutes),
-                                    ),
-                                  ),
-                                );
-                              }}
-                              style={{
-                                minHeight: 44,
-                                justifyContent: "center",
-                                paddingHorizontal: spacing.md,
-                                borderRadius: radii.full,
-                                borderWidth: 1,
-                                borderColor: selected ? theme.colors.primary : pal.border,
-                                backgroundColor: selected
-                                  ? theme.colors.primaryBg
-                                  : pal.surface,
-                              }}
-                            >
-                              <Typography variant="caption">
-                                {addOn.name} · +{currencyInput(addOn.price)}
-                              </Typography>
-                            </Pressable>
-                          );
-                        })}
-                    </View>
-                  </View>
-                ) : null}
-                {packagePurchases.length > 0 ? (
-                  <View style={{ gap: spacing.sm }}>
-                    <Typography variant="caption" color={pal.muted}>
-                      Usar sessão de pacote
-                    </Typography>
-                    <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                    >
-                      <Pressable
-                        onPress={() => setServicePackagePurchaseId(null)}
-                        style={{
-                          minHeight: 44,
-                          justifyContent: "center",
-                          paddingHorizontal: spacing.md,
-                          borderRadius: radii.full,
-                          borderWidth: 1,
-                          borderColor:
-                            servicePackagePurchaseId === null
-                              ? theme.colors.primary
-                              : pal.border,
-                          backgroundColor:
-                            servicePackagePurchaseId === null
-                              ? theme.colors.primaryBg
-                              : pal.surface,
-                        }}
-                      >
-                        <Typography variant="caption">Cobrança avulsa</Typography>
-                      </Pressable>
-                      {packagePurchases
-                        .filter(
-                          (purchase) =>
-                            purchase.status === "active" &&
-                            (!clientId || purchase.clientId === clientId),
-                        )
-                        .map((purchase) => (
-                          <Pressable
-                            key={purchase.id}
-                            onPress={() => {
-                              setServicePackagePurchaseId(purchase.id);
-                              setClientId(purchase.clientId);
-                              setClientName(purchase.clientName);
-                            }}
-                            style={{
-                              minHeight: 44,
-                              justifyContent: "center",
-                              paddingHorizontal: spacing.md,
-                              borderRadius: radii.full,
-                              borderWidth: 1,
-                              borderColor:
-                                servicePackagePurchaseId === purchase.id
-                                  ? theme.colors.primary
-                                  : pal.border,
-                              backgroundColor:
-                                servicePackagePurchaseId === purchase.id
-                                  ? theme.colors.primaryBg
-                                  : pal.surface,
-                            }}
-                          >
-                            <Typography variant="caption">
-                              {purchase.clientName} ·{" "}
-                              {purchase.sessionsTotal - purchase.sessionsUsed} sessões
-                            </Typography>
-                          </Pressable>
-                        ))}
-                    </View>
-                  </View>
-                ) : null}
-                {serviceId ? (
-                  <View style={{ gap: spacing.sm }}>
-                    <Typography variant="caption" color={pal.muted}>
-                      Duração do atendimento
-                    </Typography>
-                    <View style={compactField}>
-                      <Field
-                        icon="time-outline"
-                        placeholder="Duração em minutos"
-                        value={durationMinutes}
-                        onChangeText={(value) =>
-                          setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
-                        }
-                        keyboardType="number-pad"
-                      />
-                    </View>
-                    <Typography variant="caption" color={pal.muted}>
-                      Local do atendimento
-                      {isAppointment ? (
-                        <Typography variant="bodyBold" color={theme.colors.primary}>
-                          {" "}
-                          *
-                        </Typography>
                       ) : null}
-                    </Typography>
-                    <ValidationField {...formValidation.field("locationMode")}>
+                      {services
+                        .filter(
+                          (service) =>
+                            service.active &&
+                            (!isAppointment ||
+                              !initialServiceId ||
+                              service.id === initialServiceId),
+                        )
+                        .map((service) => (
+                          <Pressable
+                            key={service.id}
+                            onPress={() => {
+                              setServiceId(service.id);
+                              setServiceVariationId(null);
+                              setServiceAddOnIds([]);
+                              setServicePackagePurchaseId(null);
+                              setDurationMinutes(String(service.durationMinutes));
+                              setLocationMode(
+                                service.locationMode === "flexible"
+                                  ? "business"
+                                  : service.locationMode,
+                              );
+                              setTitle((current) => current || service.name);
+                              if (service.defaultPrice !== null) {
+                                setAmount(currencyInput(service.defaultPrice));
+                              }
+                            }}
+                            style={{
+                              minHeight: 44,
+                              justifyContent: "center",
+                              paddingHorizontal: spacing.md,
+                              borderRadius: radii.full,
+                              borderWidth: 1,
+                              borderColor:
+                                serviceId === service.id
+                                  ? theme.colors.primary
+                                  : pal.border,
+                              backgroundColor:
+                                serviceId === service.id
+                                  ? theme.colors.primaryBg
+                                  : pal.surface,
+                            }}
+                          >
+                            <Typography variant="caption">{service.name}</Typography>
+                          </Pressable>
+                        ))}
+                    </View>
+                  ) : null}
+                  {selectedService?.variations.some((item) => item.active) ? (
+                    <View style={{ gap: spacing.sm }}>
+                      <Typography variant="caption" color={pal.muted}>
+                        Opção do serviço
+                      </Typography>
                       <View
                         style={{
                           flexDirection: "row",
@@ -1181,369 +1079,592 @@ export function OrderForm({
                           gap: spacing.sm,
                         }}
                       >
-                        {[
-                          { label: "Meu espaço", value: "business" as const },
-                          { label: "Cliente", value: "client" as const },
-                          { label: "Online", value: "online" as const },
-                        ].map((option) => (
-                          <Pressable
-                            key={option.value}
-                            onPress={() => setLocationMode(option.value)}
-                            style={{
-                              minHeight: 44,
-                              justifyContent: "center",
-                              paddingHorizontal: spacing.md,
-                              borderRadius: radii.full,
-                              borderWidth: 1,
-                              borderColor:
-                                locationMode === option.value
-                                  ? theme.colors.primary
-                                  : pal.border,
-                              backgroundColor:
-                                locationMode === option.value
-                                  ? theme.colors.primaryBg
-                                  : pal.surface,
-                            }}
-                          >
-                            <Typography variant="caption">{option.label}</Typography>
-                          </Pressable>
-                        ))}
+                        {selectedService.variations
+                          .filter((item) => item.active)
+                          .map((variation) => (
+                            <Pressable
+                              key={variation.id}
+                              onPress={() => {
+                                setServiceVariationId(variation.id);
+                                setDurationMinutes(String(variation.durationMinutes));
+                                setAmount(currencyInput(variation.price));
+                              }}
+                              style={{
+                                minHeight: 44,
+                                justifyContent: "center",
+                                paddingHorizontal: spacing.md,
+                                borderRadius: radii.full,
+                                borderWidth: 1,
+                                borderColor:
+                                  serviceVariationId === variation.id
+                                    ? theme.colors.primary
+                                    : pal.border,
+                                backgroundColor:
+                                  serviceVariationId === variation.id
+                                    ? theme.colors.primaryBg
+                                    : pal.surface,
+                              }}
+                            >
+                              <Typography variant="caption">
+                                {variation.name} · {variation.durationMinutes} min
+                              </Typography>
+                            </Pressable>
+                          ))}
                       </View>
-                    </ValidationField>
-                    <Field
-                      icon="location-outline"
-                      placeholder={
-                        locationMode === "online"
-                          ? "Link da chamada (opcional)"
-                          : "Detalhes do local (opcional)"
-                      }
-                      value={locationDetails}
-                      onChangeText={setLocationDetails}
-                    />
-                  </View>
-                ) : null}
-                {!isAppointment ? (
-                  <View
-                    style={{
-                      gap: spacing.md,
-                      padding: spacing.md,
-                      borderRadius: radii.lg,
-                      backgroundColor: pal.subtleFill,
-                      borderWidth: 1,
-                      borderColor: pal.border,
-                    }}
-                  >
-                    <View>
-                      <Typography variant="bodyBold" color={theme.colors.text}>
-                        Cadastrar serviço rápido
-                      </Typography>
-                      <Typography variant="caption" color={pal.muted}>
-                        Se a opção ainda não estiver na lista, informe nome e duração.
-                      </Typography>
                     </View>
+                  ) : null}
+                  {selectedService?.addOns.some((item) => item.active) ? (
+                    <View style={{ gap: spacing.sm }}>
+                      <Typography variant="caption" color={pal.muted}>
+                        Adicionais
+                      </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        {selectedService.addOns
+                          .filter((item) => item.active)
+                          .map((addOn) => {
+                            const selected = serviceAddOnIds.includes(addOn.id);
+                            return (
+                              <Pressable
+                                key={addOn.id}
+                                onPress={() => {
+                                  setServiceAddOnIds(
+                                    selected
+                                      ? withoutValue(serviceAddOnIds, addOn.id)
+                                      : [...serviceAddOnIds, addOn.id],
+                                  );
+                                  const currentAmount = parseCurrencyInput(amount) || 0;
+                                  setAmount(
+                                    currencyInput(
+                                      Math.max(
+                                        0,
+                                        currentAmount +
+                                          (selected ? -addOn.price : addOn.price),
+                                      ),
+                                    ),
+                                  );
+                                  setDurationMinutes((current) =>
+                                    String(
+                                      Math.max(
+                                        5,
+                                        (Number.parseInt(current, 10) || 0) +
+                                          (selected
+                                            ? -addOn.durationMinutes
+                                            : addOn.durationMinutes),
+                                      ),
+                                    ),
+                                  );
+                                }}
+                                style={{
+                                  minHeight: 44,
+                                  justifyContent: "center",
+                                  paddingHorizontal: spacing.md,
+                                  borderRadius: radii.full,
+                                  borderWidth: 1,
+                                  borderColor: selected
+                                    ? theme.colors.primary
+                                    : pal.border,
+                                  backgroundColor: selected
+                                    ? theme.colors.primaryBg
+                                    : pal.surface,
+                                }}
+                              >
+                                <Typography variant="caption">
+                                  {addOn.name} · +{currencyInput(addOn.price)}
+                                </Typography>
+                              </Pressable>
+                            );
+                          })}
+                      </View>
+                    </View>
+                  ) : null}
+                  {packagePurchases.length > 0 ? (
+                    <View style={{ gap: spacing.sm }}>
+                      <Typography variant="caption" color={pal.muted}>
+                        Usar sessão de pacote
+                      </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        <Pressable
+                          onPress={() => setServicePackagePurchaseId(null)}
+                          style={{
+                            minHeight: 44,
+                            justifyContent: "center",
+                            paddingHorizontal: spacing.md,
+                            borderRadius: radii.full,
+                            borderWidth: 1,
+                            borderColor:
+                              servicePackagePurchaseId === null
+                                ? theme.colors.primary
+                                : pal.border,
+                            backgroundColor:
+                              servicePackagePurchaseId === null
+                                ? theme.colors.primaryBg
+                                : pal.surface,
+                          }}
+                        >
+                          <Typography variant="caption">Cobrança avulsa</Typography>
+                        </Pressable>
+                        {packagePurchases
+                          .filter(
+                            (purchase) =>
+                              purchase.status === "active" &&
+                              (!clientId || purchase.clientId === clientId),
+                          )
+                          .map((purchase) => (
+                            <Pressable
+                              key={purchase.id}
+                              onPress={() => {
+                                setServicePackagePurchaseId(purchase.id);
+                                setClientId(purchase.clientId);
+                                setClientName(purchase.clientName);
+                              }}
+                              style={{
+                                minHeight: 44,
+                                justifyContent: "center",
+                                paddingHorizontal: spacing.md,
+                                borderRadius: radii.full,
+                                borderWidth: 1,
+                                borderColor:
+                                  servicePackagePurchaseId === purchase.id
+                                    ? theme.colors.primary
+                                    : pal.border,
+                                backgroundColor:
+                                  servicePackagePurchaseId === purchase.id
+                                    ? theme.colors.primaryBg
+                                    : pal.surface,
+                              }}
+                            >
+                              <Typography variant="caption">
+                                {purchase.clientName} ·{" "}
+                                {purchase.sessionsTotal - purchase.sessionsUsed} sessões
+                              </Typography>
+                            </Pressable>
+                          ))}
+                      </View>
+                    </View>
+                  ) : null}
+                  {serviceId ? (
+                    <View style={{ gap: spacing.sm }}>
+                      <Typography variant="caption" color={pal.muted}>
+                        Duração do atendimento
+                      </Typography>
+                      <View style={compactField}>
+                        <Field
+                          icon="time-outline"
+                          placeholder="Duração em minutos"
+                          value={durationMinutes}
+                          onChangeText={(value) =>
+                            setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+                          }
+                          keyboardType="number-pad"
+                        />
+                      </View>
+                      <Typography variant="caption" color={pal.muted}>
+                        Local do atendimento
+                        {isAppointment ? (
+                          <Typography variant="bodyBold" color={theme.colors.primary}>
+                            {" "}
+                            *
+                          </Typography>
+                        ) : null}
+                      </Typography>
+                      <ValidationField {...formValidation.field("locationMode")}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            flexWrap: "wrap",
+                            gap: spacing.sm,
+                          }}
+                        >
+                          {[
+                            { label: "Meu espaço", value: "business" as const },
+                            { label: "Cliente", value: "client" as const },
+                            { label: "Online", value: "online" as const },
+                          ].map((option) => (
+                            <Pressable
+                              key={option.value}
+                              onPress={() => setLocationMode(option.value)}
+                              style={{
+                                minHeight: 44,
+                                justifyContent: "center",
+                                paddingHorizontal: spacing.md,
+                                borderRadius: radii.full,
+                                borderWidth: 1,
+                                borderColor:
+                                  locationMode === option.value
+                                    ? theme.colors.primary
+                                    : pal.border,
+                                backgroundColor:
+                                  locationMode === option.value
+                                    ? theme.colors.primaryBg
+                                    : pal.surface,
+                              }}
+                            >
+                              <Typography variant="caption">{option.label}</Typography>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </ValidationField>
+                      <Field
+                        icon="location-outline"
+                        placeholder={
+                          locationMode === "online"
+                            ? "Link da chamada (opcional)"
+                            : "Detalhes do local (opcional)"
+                        }
+                        value={locationDetails}
+                        onChangeText={setLocationDetails}
+                      />
+                    </View>
+                  ) : null}
+                  {!isAppointment ? (
                     <View
                       style={{
-                        flexDirection: isDesktop ? "row" : "column",
-                        alignItems: "stretch",
-                        gap: spacing.sm,
+                        gap: spacing.md,
+                        padding: spacing.md,
+                        borderRadius: radii.lg,
+                        backgroundColor: pal.subtleFill,
+                        borderWidth: 1,
+                        borderColor: pal.border,
                       }}
                     >
-                      <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-                        <ValidationField {...serviceValidation.field("newServiceName")}>
-                          <Field
-                            icon="add-circle-outline"
-                            placeholder="Nome do serviço"
-                            value={newServiceName}
-                            onChangeText={setNewServiceName}
-                          />
-                        </ValidationField>
+                      <View>
+                        <Typography variant="bodyBold" color={theme.colors.text}>
+                          Cadastrar serviço rápido
+                        </Typography>
+                        <Typography variant="caption" color={pal.muted}>
+                          Se a opção ainda não estiver na lista, informe nome e duração.
+                        </Typography>
                       </View>
-                      <View style={isDesktop ? { width: 152, flexShrink: 0 } : undefined}>
-                        <ValidationField
-                          {...serviceValidation.field("newServiceDuration")}
-                        >
-                          <Field
-                            icon="time-outline"
-                            placeholder="Minutos"
-                            value={newServiceDuration}
-                            onChangeText={(value) =>
-                              setNewServiceDuration(value.replace(/\D/g, "").slice(0, 4))
-                            }
-                            keyboardType="number-pad"
-                          />
-                        </ValidationField>
-                      </View>
-                      <Pressable
-                        onPress={() => void handleCreateService()}
-                        disabled={createService.isPending}
-                        accessibilityRole="button"
-                        style={({ pressed }) => ({
-                          minHeight: 58,
-                          minWidth: isDesktop ? 176 : undefined,
-                          justifyContent: "center",
-                          alignItems: "center",
-                          paddingHorizontal: spacing.lg,
-                          borderRadius: radii.lg,
-                          borderWidth: 1,
-                          borderColor: theme.colors.primary,
-                          backgroundColor: theme.colors.surfaceElevated,
-                          opacity: pressed || createService.isPending ? 0.72 : 1,
-                        })}
+                      <View
+                        style={{
+                          flexDirection: isDesktop ? "row" : "column",
+                          alignItems: "stretch",
+                          gap: spacing.sm,
+                        }}
                       >
-                        {createService.isPending ? (
-                          <ActivityIndicator color={theme.colors.primaryStrong} />
-                        ) : (
-                          <Typography
-                            variant="bodyBold"
-                            color={theme.colors.primaryStrong}
-                            numberOfLines={1}
+                        <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+                          <ValidationField {...serviceValidation.field("newServiceName")}>
+                            <Field
+                              icon="add-circle-outline"
+                              placeholder="Nome do serviço"
+                              value={newServiceName}
+                              onChangeText={setNewServiceName}
+                            />
+                          </ValidationField>
+                        </View>
+                        <View
+                          style={isDesktop ? { width: 152, flexShrink: 0 } : undefined}
+                        >
+                          <ValidationField
+                            {...serviceValidation.field("newServiceDuration")}
                           >
-                            Cadastrar serviço
-                          </Typography>
-                        )}
-                      </Pressable>
+                            <Field
+                              icon="time-outline"
+                              placeholder="Minutos"
+                              value={newServiceDuration}
+                              onChangeText={(value) =>
+                                setNewServiceDuration(
+                                  value.replace(/\D/g, "").slice(0, 4),
+                                )
+                              }
+                              keyboardType="number-pad"
+                            />
+                          </ValidationField>
+                        </View>
+                        <Pressable
+                          onPress={() => void handleCreateService()}
+                          disabled={createService.isPending}
+                          accessibilityRole="button"
+                          style={({ pressed }) => ({
+                            minHeight: 58,
+                            minWidth: isDesktop ? 176 : undefined,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            paddingHorizontal: spacing.lg,
+                            borderRadius: radii.lg,
+                            borderWidth: 1,
+                            borderColor: theme.colors.primary,
+                            backgroundColor: theme.colors.surfaceElevated,
+                            opacity: pressed || createService.isPending ? 0.72 : 1,
+                          })}
+                        >
+                          {createService.isPending ? (
+                            <ActivityIndicator color={theme.colors.primaryStrong} />
+                          ) : (
+                            <Typography
+                              variant="bodyBold"
+                              color={theme.colors.primaryStrong}
+                              numberOfLines={1}
+                            >
+                              Cadastrar serviço
+                            </Typography>
+                          )}
+                        </Pressable>
+                      </View>
                     </View>
-                  </View>
-                ) : null}
-              </View>
-            </ValidationField>
-          </View>
+                  ) : null}
+                </View>
+              </ValidationField>
+            </View>
 
-          <View style={{ height: 1, backgroundColor: pal.border }} />
-
-          <View
-            style={{
-              flexDirection: isDesktop ? "row" : "column",
-              gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
-            }}
-          >
-            {!isAppointment ? (
-              <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
-                <Typography variant="h3" color={theme.colors.text}>
-                  O que é? ({experienceCopy.orderNoun}){" "}
-                  <Typography variant="bodyBold" color={theme.colors.primary}>
-                    *
-                  </Typography>
-                </Typography>
-                <ValidationField {...formValidation.field("title")}>
-                  <Field
-                    icon="cube-outline"
-                    placeholder={`Ex: ${experienceCopy.productExample}`}
-                    value={title}
-                    onChangeText={setTitle}
-                    autoFocus={!isEditing}
-                  />
-                </ValidationField>
-              </View>
-            ) : null}
+            <View style={{ height: 1, backgroundColor: pal.border }} />
 
             <View
               style={{
-                flex: isCompactPwa ? undefined : 1,
-                gap: spacing.sm,
-                justifyContent: "flex-end",
+                flexDirection: isDesktop ? "row" : "column",
+                gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
               }}
             >
-              <Typography variant="h3" color={theme.colors.text}>
-                Cliente (opcional)
-              </Typography>
-              <ClientField
-                clientName={clientName}
-                onPress={() => setShowClientPicker(true)}
-                onClear={() => {
-                  setClientId(undefined);
-                  setClientName("");
+              {!isAppointment ? (
+                <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
+                  <Typography variant="h3" color={theme.colors.text}>
+                    O que é? ({experienceCopy.orderNoun}){" "}
+                    <Typography variant="bodyBold" color={theme.colors.primary}>
+                      *
+                    </Typography>
+                  </Typography>
+                  <ValidationField {...formValidation.field("title")}>
+                    <Field
+                      icon="cube-outline"
+                      placeholder={`Ex: ${experienceCopy.productExample}`}
+                      value={title}
+                      onChangeText={setTitle}
+                      autoFocus={!isEditing}
+                    />
+                  </ValidationField>
+                </View>
+              ) : null}
+
+              <View
+                style={{
+                  flex: isCompactPwa ? undefined : 1,
+                  gap: spacing.sm,
+                  justifyContent: "flex-end",
                 }}
-              />
-              <ClientPickerModal
-                visible={showClientPicker}
-                onClose={() => setShowClientPicker(false)}
-                onSelect={(client) => {
-                  setClientId(client?.id);
-                  setClientName(client?.name ?? "");
-                }}
-              />
+              >
+                <Typography variant="h3" color={theme.colors.text}>
+                  Cliente (opcional)
+                </Typography>
+                <ClientField
+                  clientName={clientName}
+                  onPress={() => setShowClientPicker(true)}
+                  onClear={() => {
+                    setClientId(undefined);
+                    setClientName("");
+                  }}
+                />
+                <ClientPickerModal
+                  visible={showClientPicker}
+                  onClose={() => setShowClientPicker(false)}
+                  onSelect={(client) => {
+                    setClientId(client?.id);
+                    setClientName(client?.name ?? "");
+                  }}
+                />
+              </View>
             </View>
           </View>
-
           <View
-            style={{
-              flexDirection: isDesktop ? "row" : "column",
-              gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
-            }}
+            style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
+            accessibilityElementsHidden={formStep !== 2}
+            importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
           >
-            <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
-              <Typography variant="h3" color={theme.colors.text}>
-                {isAppointment ? "Data do atendimento" : "Data de entrega"}{" "}
-                <Typography variant="bodyBold" color={theme.colors.primary}>
-                  *
-                </Typography>
-              </Typography>
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                {[
-                  {
-                    label: "Hoje",
-                    value: offsetIsoBr(0),
-                    icon: "calendar-outline" as const,
-                  },
-                  {
-                    label: "Amanhã",
-                    value: offsetIsoBr(1),
-                    icon: "sunny-outline" as const,
-                  },
-                ].map((chip) => {
-                  const active = dateText === chip.value;
-                  return (
-                    <Pressable
-                      key={chip.label}
-                      onPress={() => setDateText(chip.value)}
-                      style={{
-                        minHeight: 48,
-                        borderRadius: radii.full,
-                        paddingHorizontal: spacing.lg,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "row",
-                        gap: spacing.sm,
-                        backgroundColor: active ? theme.colors.primary : pal.surface,
-                      }}
-                    >
-                      <AppIcon
-                        name={chip.icon}
-                        size={21}
-                        color={active ? theme.colors.textOnPrimary : pal.muted}
-                      />
-                      <Typography
-                        variant="bodyBold"
-                        color={active ? theme.colors.textOnPrimary : pal.muted}
-                      >
-                        {chip.label}
-                      </Typography>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <ValidationField {...formValidation.field("dateText")}>
-                <Field
-                  icon="calendar-outline"
-                  trailingIcon="calendar-outline"
-                  trailingLabel="Abrir calendário"
-                  onTrailingPress={openDatePicker}
-                  value={dateText}
-                  onChangeText={(v) => setDateText(maskDateBR(v))}
-                  keyboardType="number-pad"
-                  placeholder="DD/MM/AAAA"
-                />
-              </ValidationField>
-              <CalendarModal
-                visible={showDatePicker}
-                value={dateText}
-                onSelect={setDateText}
-                onClose={() => setShowDatePicker(false)}
-              />
-            </View>
-
-            <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
-              <Typography variant="h3" color={theme.colors.text}>
-                Horário{isAppointment ? "" : " (opcional)"}
-                {isAppointment ? (
+            <View
+              style={{
+                flexDirection: isDesktop ? "row" : "column",
+                gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
+              }}
+            >
+              <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
+                <Typography variant="h3" color={theme.colors.text}>
+                  {isAppointment ? "Data do atendimento" : "Data de entrega"}{" "}
                   <Typography variant="bodyBold" color={theme.colors.primary}>
-                    {" "}
                     *
                   </Typography>
-                ) : null}
-              </Typography>
-              <ValidationField {...formValidation.field("time")}>
-                <Field
-                  icon="time-outline"
-                  placeholder="Ex: 14:30"
-                  value={time}
-                  onChangeText={(v) => setTime(maskTimeBR(v))}
-                  keyboardType="number-pad"
-                  maxLength={5}
+                </Typography>
+                <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                  {[
+                    {
+                      label: "Hoje",
+                      value: offsetIsoBr(0),
+                      icon: "calendar-outline" as const,
+                    },
+                    {
+                      label: "Amanhã",
+                      value: offsetIsoBr(1),
+                      icon: "sunny-outline" as const,
+                    },
+                  ].map((chip) => {
+                    const active = dateText === chip.value;
+                    return (
+                      <Pressable
+                        key={chip.label}
+                        onPress={() => setDateText(chip.value)}
+                        style={{
+                          minHeight: 48,
+                          borderRadius: radii.full,
+                          paddingHorizontal: spacing.lg,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexDirection: "row",
+                          gap: spacing.sm,
+                          backgroundColor: active ? theme.colors.primary : pal.surface,
+                        }}
+                      >
+                        <AppIcon
+                          name={chip.icon}
+                          size={21}
+                          color={active ? theme.colors.textOnPrimary : pal.muted}
+                        />
+                        <Typography
+                          variant="bodyBold"
+                          color={active ? theme.colors.textOnPrimary : pal.muted}
+                        >
+                          {chip.label}
+                        </Typography>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <ValidationField {...formValidation.field("dateText")}>
+                  <Field
+                    icon="calendar-outline"
+                    trailingIcon="calendar-outline"
+                    trailingLabel="Abrir calendário"
+                    onTrailingPress={openDatePicker}
+                    value={dateText}
+                    onChangeText={(v) => setDateText(maskDateBR(v))}
+                    keyboardType="number-pad"
+                    placeholder="DD/MM/AAAA"
+                  />
+                </ValidationField>
+                <CalendarModal
+                  visible={showDatePicker}
+                  value={dateText}
+                  onSelect={setDateText}
+                  onClose={() => setShowDatePicker(false)}
                 />
-              </ValidationField>
+              </View>
+
+              <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
+                <Typography variant="h3" color={theme.colors.text}>
+                  Horário{isAppointment ? "" : " (opcional)"}
+                  {isAppointment ? (
+                    <Typography variant="bodyBold" color={theme.colors.primary}>
+                      {" "}
+                      *
+                    </Typography>
+                  ) : null}
+                </Typography>
+                <ValidationField {...formValidation.field("time")}>
+                  <Field
+                    icon="time-outline"
+                    placeholder="Ex: 14:30"
+                    value={time}
+                    onChangeText={(v) => setTime(maskTimeBR(v))}
+                    keyboardType="number-pad"
+                    maxLength={5}
+                  />
+                </ValidationField>
+              </View>
+            </View>
+
+            <View
+              style={{
+                flexDirection: isDesktop ? "row" : "column",
+                gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
+                flexWrap: isDesktop ? "wrap" : undefined,
+              }}
+            >
+              <View
+                style={[
+                  { gap: spacing.sm },
+                  isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
+                ]}
+              >
+                <Typography variant="h3" color={theme.colors.text}>
+                  Valor combinado (opcional)
+                </Typography>
+                <Field
+                  icon="cash-outline"
+                  placeholder="Ex: 120,00"
+                  value={amount}
+                  onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View
+                style={[
+                  { gap: spacing.sm },
+                  isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
+                ]}
+              >
+                <Typography variant="h3" color={theme.colors.text}>
+                  Sinal recebido (opcional)
+                </Typography>
+                <Field
+                  icon="wallet-outline"
+                  placeholder="Ex: 60,00, entrada já paga"
+                  value={deposit}
+                  onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+                  keyboardType="numeric"
+                />
+              </View>
             </View>
           </View>
-
           <View
-            style={{
-              flexDirection: isDesktop ? "row" : "column",
-              gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
-              flexWrap: isDesktop ? "wrap" : undefined,
-            }}
+            style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
+            accessibilityElementsHidden={formStep !== 3}
+            importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
           >
-            <View
-              style={[
-                { gap: spacing.sm },
-                isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
-              ]}
-            >
+            {!isAppointment ? (
+              <FormSection
+                title="Personalização"
+                subtitle={`Tema, homenageado e cores para ${experienceCopy.orderNounPlural}`}
+                icon="sparkles-outline"
+                initiallyOpen={!!(orderTheme || honoree || colors)}
+              >
+                <PersonalizationFields
+                  orderTheme={orderTheme}
+                  setOrderTheme={setOrderTheme}
+                  honoree={honoree}
+                  setHonoree={setHonoree}
+                  colors={colors}
+                  setColors={setColors}
+                />
+              </FormSection>
+            ) : null}
+
+            <View style={{ gap: spacing.sm }}>
               <Typography variant="h3" color={theme.colors.text}>
-                Valor combinado (opcional)
+                Observações (opcional)
               </Typography>
               <Field
-                icon="cash-outline"
-                placeholder="Ex: 120,00"
-                value={amount}
-                onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-                keyboardType="numeric"
+                icon="document-text-outline"
+                placeholder={
+                  isAppointment
+                    ? "Anotações sobre o atendimento..."
+                    : `Anotações: ${experienceCopy.orderNoun}...`
+                }
+                value={notes}
+                onChangeText={(value) => setNotes(value.slice(0, 500))}
+                multiline
+                numberOfLines={3}
               />
             </View>
-
-            <View
-              style={[
-                { gap: spacing.sm },
-                isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
-              ]}
-            >
-              <Typography variant="h3" color={theme.colors.text}>
-                Sinal recebido (opcional)
-              </Typography>
-              <Field
-                icon="wallet-outline"
-                placeholder="Ex: 60,00, entrada já paga"
-                value={deposit}
-                onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-
-          {!isAppointment ? (
-            <FormSection
-              title="Personalização"
-              subtitle={`Tema, homenageado e cores para ${experienceCopy.orderNounPlural}`}
-              icon="sparkles-outline"
-              initiallyOpen={!!(orderTheme || honoree || colors)}
-            >
-              <PersonalizationFields
-                orderTheme={orderTheme}
-                setOrderTheme={setOrderTheme}
-                honoree={honoree}
-                setHonoree={setHonoree}
-                colors={colors}
-                setColors={setColors}
-              />
-            </FormSection>
-          ) : null}
-
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              Observações (opcional)
-            </Typography>
-            <Field
-              icon="document-text-outline"
-              placeholder={
-                isAppointment
-                  ? "Anotações sobre o atendimento..."
-                  : `Anotações: ${experienceCopy.orderNoun}...`
-              }
-              value={notes}
-              onChangeText={(value) => setNotes(value.slice(0, 500))}
-              multiline
-              numberOfLines={3}
-            />
           </View>
         </View>
 

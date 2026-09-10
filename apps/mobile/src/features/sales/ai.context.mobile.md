@@ -206,3 +206,7 @@ Na etapa de produtos, mobile e desktop oferecem “Venda rápida no dinheiro” 
 Totais individuais de vendas usam tinta neutra; verde fica reservado a sucesso, entradas financeiras e lucro identificado. “Cancelar venda” usa a variante de alerta.
 
 - 2026-09-09: quantidade selecionada pulsa por 260 ms, com onda de 360 ms, apenas ao aumentar; a confirmação usa `sale-success` com check de 420 ms e ondas de 650 ms somente após `mutateAsync` resolver. Sem atraso de toques nem mudança no recibo, falhas ou persistência. Movimento reduzido desliga os efeitos.
+
+## Padrão de progresso — 2026-09-09
+
+A nova venda usa o componente compartilhado de etapas para cliente, produtos, pagamento e revisão. O componente anuncia a etapa atual e permite retornar a etapas concluídas sem perder o carrinho.

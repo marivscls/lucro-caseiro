@@ -153,3 +153,7 @@ const pricing = calculateServicePricing({
 Orientação específica inicia ServiceForm existente, respeitando validações/permissões. Lista vazia omite resumos/filtros sem dados. service_created é emitido somente após sucesso.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Cadastro em etapas — 2026-09-09
+
+Criar e editar serviço usa três etapas: serviço e agenda; opções, adicionais e pacotes; custos e preço sugerido. O avanço valida os campos obrigatórios da etapa atual e permite voltar às etapas concluídas sem perder dados.

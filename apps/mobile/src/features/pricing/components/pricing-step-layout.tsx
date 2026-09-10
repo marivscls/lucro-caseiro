@@ -1,14 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import {
-  AccessibilityInfo,
-  Keyboard,
-  Pressable,
-  View,
-  type ScrollView,
-} from "react-native";
-import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { AccessibilityInfo, Keyboard, View, type ScrollView } from "react-native";
+import { Button, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import { pageGutter } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import type { PricingStep } from "../use-pricing-draft";
@@ -61,36 +56,13 @@ export function PricingStepLayout({
           gap: spacing.sm,
         }}
       >
-        <Typography variant="caption">Etapa {step} de 3</Typography>
-        <View style={{ flexDirection: "row", gap: spacing.sm }}>
-          {STEPS.map((item, index) => (
-            <Pressable
-              key={item.short}
-              accessibilityRole="button"
-              accessibilityLabel={`Etapa ${index + 1}: ${item.title}`}
-              accessibilityState={{
-                selected: step === index + 1,
-                disabled: saving || index + 1 >= step,
-              }}
-              disabled={saving || index + 1 >= step}
-              onPress={() => onStepChange((index + 1) as PricingStep)}
-              style={{
-                flex: 1,
-                minHeight: 44,
-                justifyContent: "center",
-                borderTopWidth: 3,
-                borderTopColor: index + 1 <= step ? palette.wine : theme.colors.border,
-              }}
-            >
-              <Typography
-                variant={step === index + 1 ? "captionBold" : "caption"}
-                color={step === index + 1 ? palette.wine : theme.colors.textSecondary}
-              >
-                {item.short}
-              </Typography>
-            </Pressable>
-          ))}
-        </View>
+        <FormStepProgress
+          current={step}
+          steps={STEPS.map((item) => ({ label: item.short, title: item.title }))}
+          onStepPress={
+            saving ? undefined : (target) => onStepChange(target as PricingStep)
+          }
+        />
       </View>
       <KeyboardAwareScrollView
         scrollRef={scroll}

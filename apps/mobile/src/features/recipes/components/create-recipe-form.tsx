@@ -1,12 +1,12 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { AppIcon } from "../../../shared/components/app-icon";
-import React, { useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { Button, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormStepProgress } from "../../../shared/components/form-step-progress";
 import {
   desktopAction,
   desktopCompactField,
@@ -41,6 +41,12 @@ interface CreateRecipeFormProps {
   readonly onSuccess?: () => void;
 }
 
+const RECIPE_FORM_STEPS = [
+  { label: "Receita", title: "Informações da receita" },
+  { label: "Rendimento", title: "Rendimento da receita" },
+  { label: "Insumos", title: "Ingredientes e custo" },
+] as const;
+
 export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFormProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -56,12 +62,17 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   const [lines, setLines] = useState<RecipeLine[]>([emptyLine()]);
   const { imageUri, showPicker } = useImagePicker();
   const [uploading, setUploading] = useState(false);
+  const [formStep, setFormStep] = useState(1);
 
   const createRecipe = useCreateRecipe();
   const { data: recipesData } = useRecipes();
   const { checkAndBlock: checkRecipeLimit } = useLimitCheck("recipes");
   const showPaywall = usePaywall((s) => s.show);
   const loading = createRecipe.isPending || uploading;
+
+  useEffect(() => {
+    if (visible) setFormStep(1);
+  }, [visible]);
 
   const formValidation = useFormValidation(
     {
@@ -86,7 +97,13 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   );
 
   async function handleSubmit() {
-    if (!formValidation.validate()) return;
+    if (!formValidation.validate()) {
+      if (!name.trim() || !category.trim()) setFormStep(1);
+      else if (!yieldUnit.trim() || Number(yieldQuantity.replace(",", ".")) <= 0)
+        setFormStep(2);
+      else setFormStep(3);
+      return;
+    }
     if (checkRecipeLimit()) return;
     if (!name.trim()) {
       alertValidation(`Informe o nome da ${experienceCopy.formulaNoun}`);
@@ -174,6 +191,13 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     }
   }
 
+  let primaryActionLabel = "Continuar";
+  if (formStep === RECIPE_FORM_STEPS.length) {
+    primaryActionLabel = uploading
+      ? "Enviando foto..."
+      : `Salvar ${experienceCopy.formulaNoun}`;
+  }
+
   return (
     <StandardModal
       title={`Nova ${experienceCopy.formulaNoun}`}
@@ -183,130 +207,155 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
         <View
           style={{
             flexDirection: "row",
+            gap: spacing.md,
             justifyContent: isDesktop ? "flex-end" : undefined,
             width: "100%",
           }}
         >
-          <Pressable
+          {formStep > 1 ? (
+            <Button
+              title="Voltar"
+              variant="ghost"
+              onPress={() => setFormStep(formStep - 1)}
+            />
+          ) : null}
+          <Button
+            title={primaryActionLabel}
             onPress={() => {
-              void handleSubmit();
+              if (formStep === 1) {
+                if (!name.trim() || !category.trim()) {
+                  alertValidation("Informe o nome e a categoria antes de continuar.");
+                  return;
+                }
+                setFormStep(2);
+              } else if (formStep === 2) {
+                if (Number(yieldQuantity.replace(",", ".")) <= 0 || !yieldUnit.trim()) {
+                  alertValidation("Informe o rendimento e a unidade antes de continuar.");
+                  return;
+                }
+                setFormStep(3);
+              } else void handleSubmit();
             }}
+            loading={loading}
             disabled={loading}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              {
-                minHeight: 48,
-                borderRadius: radii.md,
-                backgroundColor: theme.colors.primaryInteractive,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: spacing.sm,
-                opacity: pressed || loading ? 0.85 : 1,
-              },
-              isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 },
-            ]}
-          >
-            {loading ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
-              <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
-            )}
-            <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-              {uploading ? "Enviando foto..." : `Salvar ${experienceCopy.formulaNoun}`}
-            </Typography>
-          </Pressable>
+            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
+          />
         </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.xl }}>
-        <Typography
-          variant="body"
-          color={theme.colors.textSecondary}
-          style={{ marginTop: -spacing.sm }}
+        <FormStepProgress
+          current={formStep}
+          steps={RECIPE_FORM_STEPS}
+          onStepPress={setFormStep}
+        />
+        <View
+          style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.xl }}
+          accessibilityElementsHidden={formStep !== 1}
+          importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
         >
-          {`Preencha os detalhes da sua ${experienceCopy.formulaNoun}`}
-        </Typography>
+          <Typography
+            variant="body"
+            color={theme.colors.textSecondary}
+            style={{ marginTop: -spacing.sm }}
+          >
+            {`Preencha os detalhes da sua ${experienceCopy.formulaNoun}`}
+          </Typography>
 
-        <FieldRow
-          icon="document-text-outline"
-          label={`Nome da ${experienceCopy.formulaNoun}`}
-        >
-          <ValidationField {...formValidation.field("name")}>
-            <TextBox
-              accessibilityLabel={`Nome da ${experienceCopy.formulaNoun}`}
-              value={name}
-              onChangeText={setName}
-              placeholder={`Ex: ${experienceCopy.productExample}`}
-              autoFocus
-            />
-          </ValidationField>
-        </FieldRow>
+          <FieldRow
+            icon="document-text-outline"
+            label={`Nome da ${experienceCopy.formulaNoun}`}
+          >
+            <ValidationField {...formValidation.field("name")}>
+              <TextBox
+                accessibilityLabel={`Nome da ${experienceCopy.formulaNoun}`}
+                value={name}
+                onChangeText={setName}
+                placeholder={`Ex: ${experienceCopy.productExample}`}
+                autoFocus
+              />
+            </ValidationField>
+          </FieldRow>
 
-        <FieldRow icon="grid-outline" label="Categoria">
-          <ValidationField {...formValidation.field("category")}>
-            <CategoryField value={category} onChange={setCategory} />
-          </ValidationField>
-        </FieldRow>
+          <FieldRow icon="grid-outline" label="Categoria">
+            <ValidationField {...formValidation.field("category")}>
+              <CategoryField value={category} onChange={setCategory} />
+            </ValidationField>
+          </FieldRow>
 
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="bodyBold" color={theme.colors.text}>
-            {`Foto da ${experienceCopy.formulaNoun}`}{" "}
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              (opcional)
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="bodyBold" color={theme.colors.text}>
+              {`Foto da ${experienceCopy.formulaNoun}`}{" "}
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                (opcional)
+              </Typography>
             </Typography>
-          </Typography>
-          <RecipePhotoField imageUri={imageUri} onPick={showPicker} />
-        </View>
-
-        <FieldRow
-          icon="document-text-outline"
-          label="Etapas ou observações"
-          optional
-          align="top"
-        >
-          <InstructionsField value={instructions} onChange={setInstructions} />
-        </FieldRow>
-
-        <View style={{ gap: spacing.sm }}>
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <View style={[{ flex: 1, gap: spacing.sm }, desktopCompactField(isDesktop)]}>
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                {experienceCopy.quantityLabel}
-              </Typography>
-              <ValidationField {...formValidation.field("yieldQuantity")}>
-                <TextBox
-                  accessibilityLabel={experienceCopy.quantityLabel}
-                  value={yieldQuantity}
-                  onChangeText={setYieldQuantity}
-                  placeholder="Ex: 30 ou 1,5"
-                  keyboardType="decimal-pad"
-                />
-              </ValidationField>
-            </View>
-            <View style={{ flex: 1, gap: spacing.sm }}>
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                Unidade
-              </Typography>
-              <ValidationField {...formValidation.field("yieldUnit")}>
-                <TextBox
-                  accessibilityLabel="Unidade da quantidade final"
-                  value={yieldUnit}
-                  onChangeText={setYieldUnit}
-                  placeholder="Ex: unidades"
-                />
-              </ValidationField>
-            </View>
+            <RecipePhotoField imageUri={imageUri} onPick={showPicker} />
           </View>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Ex: 30 unidades ou 1,5 kg
-          </Typography>
-          <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
+
+          <FieldRow
+            icon="document-text-outline"
+            label="Etapas ou observações"
+            optional
+            align="top"
+          >
+            <InstructionsField value={instructions} onChange={setInstructions} />
+          </FieldRow>
         </View>
 
-        <ValidationField {...formValidation.field("lines")}>
-          <RecipeMaterialsEditor lines={lines} onChange={setLines} />
-        </ValidationField>
+        <View
+          style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.xl }}
+          accessibilityElementsHidden={formStep !== 2}
+          importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
+        >
+          <View style={{ gap: spacing.sm }}>
+            <View style={{ flexDirection: "row", gap: spacing.md }}>
+              <View
+                style={[{ flex: 1, gap: spacing.sm }, desktopCompactField(isDesktop)]}
+              >
+                <Typography variant="bodyBold" color={theme.colors.text}>
+                  {experienceCopy.quantityLabel}
+                </Typography>
+                <ValidationField {...formValidation.field("yieldQuantity")}>
+                  <TextBox
+                    accessibilityLabel={experienceCopy.quantityLabel}
+                    value={yieldQuantity}
+                    onChangeText={setYieldQuantity}
+                    placeholder="Ex: 30 ou 1,5"
+                    keyboardType="decimal-pad"
+                  />
+                </ValidationField>
+              </View>
+              <View style={{ flex: 1, gap: spacing.sm }}>
+                <Typography variant="bodyBold" color={theme.colors.text}>
+                  Unidade
+                </Typography>
+                <ValidationField {...formValidation.field("yieldUnit")}>
+                  <TextBox
+                    accessibilityLabel="Unidade da quantidade final"
+                    value={yieldUnit}
+                    onChangeText={setYieldUnit}
+                    placeholder="Ex: unidades"
+                  />
+                </ValidationField>
+              </View>
+            </View>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Ex: 30 unidades ou 1,5 kg
+            </Typography>
+            <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
+          </View>
+        </View>
+
+        <View
+          style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.xl }}
+          accessibilityElementsHidden={formStep !== 3}
+          importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
+        >
+          <ValidationField {...formValidation.field("lines")}>
+            <RecipeMaterialsEditor lines={lines} onChange={setLines} />
+          </ValidationField>
+        </View>
       </View>
     </StandardModal>
   );
