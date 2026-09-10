@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem chute e sem retrabalho”, demonstra o produto, oferece uma calculadora interativa com explicações de custo, preço e lucro, publica conteúdo educativo, mantém páginas legais/suporte e leva a pessoa para o Google Play.
+Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem chute e sem retrabalho”, demonstra o produto, oferece uma calculadora interativa com explicações de custo, preço e lucro, publica conteúdo educativo, mantém páginas legais/suporte e leva a pessoa para o app no navegador ou no Google Play.
 
 ## Non-goals
 
@@ -34,7 +34,7 @@ Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem c
 
 ## Components
 
-- `LandingPage` — cabeçalho em fluxo sobre faixa vinho, hero com conta ilustrativa (custos, subtotal, preço e sobra), faixa de benefícios, problema, fluxo em quatro passos, duas telas do app lado a lado, recursos, públicos, planos, guias, FAQ, CTA final e rodapé
+- `LandingPage` — cabeçalho em fluxo sobre faixa vinho, hero com conta ilustrativa (custos, subtotal, preço e sobra), faixa de benefícios, problema, jornada única de preço → produto → catálogo com três capturas, recursos, públicos, planos, guias, FAQ, CTA final e rodapé
 - `SiteHeader` — aceita `tone="wine"` (barra em fluxo dentro da faixa vinho, usada só na landing) ou `paper` (barra flutuante das páginas internas); navegação compacta em `details` nativo, sem JavaScript de cliente
 - `PriceCalculator` — ficha de preço com quatro grupos de campos (produto, tempo, fixos, lucro/taxas), exemplo identificado e ação para limpar/restaurar. O resumo separa custo, taxas e sobra; estado inválido oculta o resultado. Links para o resultado no celular e FAQ com `details`. As antigas prévias simuladas foram substituídas pelo link aos recursos reais da landing.
 - `PublicPage` — estrutura reutilizada por guias, suporte, privacidade, termos e exclusão
@@ -43,7 +43,7 @@ Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem c
 
 ## Hooks & State
 
-A calculadora usa apenas estado local (`useState`) para editar valores, recalcular e restaurar/limpar o exemplo; nada é persistido ou enviado. Usa `useId` para ligar labels, ajuda e erros aos campos. As demais páginas são estáticas e renderizadas no servidor. O FAQ usa `details` nativo. Analytics é carregado apenas quando `NEXT_PUBLIC_GA_ID` estiver configurado.
+A calculadora usa apenas estado local (`useState`) para editar valores, recalcular e restaurar/limpar o exemplo; os valores não são persistidos nem enviados. Quando configurado, o Analytics mede edição e resultado válido sem os valores. Usa `useId` para ligar labels, ajuda e erros aos campos. As demais páginas são estáticas e renderizadas no servidor. O FAQ usa `details` nativo. Analytics é carregado apenas quando `NEXT_PUBLIC_GA_ID` estiver configurado.
 
 ```yaml
 feature: landing
@@ -71,7 +71,7 @@ Não há carregamento de dados. Links externos apontam para Google Play, políti
 - JavaScript de cliente restrito à calculadora, `LandingMotion`, `PointerFeedback` e analytics opcional; GSAP/ScrollTrigger usado na jornada do produto
 - Assets locais servidos pelo Next Image
 - Movimento em CSS, Web Animations API e GSAP/ScrollTrigger; `IntersectionObserver` dispara entradas uma vez. Conteúdo visível sem JavaScript; redução de movimento, foco e teclado interrompem as entradas.
-- Efeitos externos adaptados localmente: onda de clique do Magic UI (MIT) nos CTAs e botão de exemplo; sublinhado de navegação inspirado em Tobias Ahlin. Fontes, adaptações e licença em `EFFECTS-SOURCES.md`. Não há carregamento de scripts externos.
+- Efeitos externos adaptados localmente: onda de clique do Magic UI (MIT) nos CTAs e botão de exemplo; sublinhado de navegação inspirado em Tobias Ahlin. Fontes, adaptações e licença em `EFFECTS-SOURCES.md`. O único script externo da landing é o Google Analytics quando um ID real está configurado.
 - Sem imagens remotas
 
 ## Test matrix
@@ -80,7 +80,7 @@ Não há carregamento de dados. Links externos apontam para Google Play, políti
 - CTAs apontam para o package Android canônico
 - Visual responsivo em desktop, tablet e celular
 - FAQ navegável por teclado com elemento semântico nativo
-- Metadados permitem indexação apenas nesta rota pública
+- Metadados permitem indexação nas nove páginas públicas
 - Calculadora usa a mesma fórmula testada pelo mobile e pela API
 - Calculadora mantém o resultado do exemplo: custo R$ 49,50, preço R$ 74,25 e lucro R$ 24,75; com taxa de 10%, preço R$ 82,50 e taxa R$ 8,25
 - Campos inválidos e produção zero com custos fixos não apresentam preço; limpar/restaurar exemplo funciona
@@ -97,7 +97,7 @@ Não há carregamento de dados. Links externos apontam para Google Play, políti
 - Preservar o fluxo narrativo: precificação → produto → catálogo ou venda.
 - A landing segue a identidade do app, sem mundo visual próprio (`apps/web/PRODUCT.md`, `docs/designs/design-system/DESIGN.md`, ADR-0008): Manrope única; vinho `#4A2332` para marca e títulos; rose `#B65F72` só em botões e texto grande (em texto corrido sobre creme usar `--rose-fill #A85A67`, que fecha AA); lima `#DCE86A` só no pingo do logo, no destaque do hero/CTA final e no rótulo do hero; superfícies opacas, hairline, raios largos, sem gradiente, glass ou sombra pesada.
 - Nenhum texto abaixo de 16px e nenhuma alegação de popularidade ou uso ("mais escolhido", números de clientes) sem fonte em `docs/marketing/provas-e-alegacoes.md`.
-- Movimento: após considerar as versões anteriores básicas e rápidas, a dona do produto pediu referências de React Bits, 21st, Universe, GSAP, Unlumen, GetLayers e MotionSites. A jornada atual ocupa 340svh, com palco sticky e 3 capturas reais em pilha, animadas pela rolagem (GSAP ScrollTrigger, scrub 1.6), com pausas de leitura. Título em linhas com 1600ms, traço com 1800ms; entradas secundárias com 1400ms. Teclado/redução de movimento desfazem a cena para leitura linear; telas abaixo de 700px de altura usam o layout linear. Fontes em `EFFECTS-SOURCES.md`.
+- Movimento: após considerar as versões anteriores básicas e rápidas, a dona do produto pediu referências de React Bits, 21st, Universe, GSAP, Unlumen, GetLayers e MotionSites. A jornada atual ocupa 240svh em telas a partir de 900px de largura, com palco sticky e 3 capturas reais em pilha, animadas pela rolagem (GSAP ScrollTrigger, scrub 1.6), com pausas de leitura. Título em linhas com 1600ms, traço com 1800ms; entradas secundárias com 1400ms. Teclado/redução de movimento desfazem a cena para leitura linear; telas abaixo de 900px de largura ou 700px de altura usam o layout linear. Fontes em `EFFECTS-SOURCES.md`.
 
 ## Change log / Decisions
 
@@ -117,3 +117,12 @@ Rota `/landing/calculadora` ganhou composição própria com o cabeçalho/rodap�
 ### 2026-09-04 — Jornada do produto controlada pela rolagem
 
 `product-journey-motion.ts` registra GSAP ScrollTrigger e usa matchMedia para montar/desmontar o palco. Animações têm escopo local e limpeza de estilos/eventos; rolagem nativa, sem snap ou captura de wheel. A antiga dupla de screenshots foi substituída por precificação, produtos e catálogo, mantendo as capturas atuais. Somente a rota landing carrega GSAP.
+
+## Atualização de conteúdo e descoberta — 2026-09-10
+
+- URL principal canônica `/`; `/landing` e o host `www` redirecionam permanentemente em hosts públicos. A raiz da Central continua privada. Parâmetros são preservados no redirecionamento/rewrite.
+- Robots libera raiz exata, páginas públicas e assets de renderização; sitemap usa datas editoriais por página.
+- `public-metadata.ts` compartilha OG/Twitter com imagem própria em `landing/opengraph-image.tsx`.
+- Planos importam preços e limites do contracts. Catálogo personalizado no Essencial/Profissional; mão de obra, rateio por produção e taxas manuais em todos os planos.
+- Guias revisados com exemplos fechados, diferença entre markup e margem, fontes e links relacionados.
+- `analytics-events.ts` diferencia exemplo inicial de resultado editado válido. Eventos sem valores financeiros; ID GA precisa ser configurado no build e validado na propriedade.

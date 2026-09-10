@@ -54,11 +54,28 @@ export function proxy(request: NextRequest) {
     request.headers.get("host"),
     request.nextUrl.hostname,
   );
-  const response = shouldServePublicSiteAtRoot(hostname, request.nextUrl.pathname)
-    ? NextResponse.rewrite(new URL("/landing", request.url), {
-        request: { headers: requestHeaders },
-      })
-    : NextResponse.next({ request: { headers: requestHeaders } });
+  const destination = new URL(request.url);
+  const canonicalRedirect =
+    PUBLIC_SITE_HOSTS.has(hostname) &&
+    (hostname.startsWith("www.") || destination.pathname === "/landing");
+  if (canonicalRedirect) {
+    destination.protocol = "https:";
+    destination.host = "lucrocaseiro.com.br";
+    destination.port = "";
+    if (destination.pathname === "/landing") destination.pathname = "/";
+  } else if (shouldServePublicSiteAtRoot(hostname, destination.pathname)) {
+    destination.pathname = "/landing";
+  }
+  let response;
+  if (canonicalRedirect) {
+    response = NextResponse.redirect(destination, 308);
+  } else if (shouldServePublicSiteAtRoot(hostname, request.nextUrl.pathname)) {
+    response = NextResponse.rewrite(destination, {
+      request: { headers: requestHeaders },
+    });
+  } else {
+    response = NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Content-Type-Options", "nosniff");

@@ -1,13 +1,14 @@
+import { publicMetadata } from "@/features/landing/public-metadata";
 import type { Metadata } from "next";
 
 import { PublicPage, publicPageStyles as styles } from "@/features/landing/public-page";
 import { SUPPORT_EMAIL } from "@/features/landing/site-constants";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicMetadata({
   title: "Termos de Uso",
   description: "Condições para criação de conta, uso e assinatura do Lucro Caseiro.",
   alternates: { canonical: "/landing/termos" },
-};
+});
 
 export default function TermsPage() {
   return (

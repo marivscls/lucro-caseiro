@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
+import { PLAN_LIMITS, PLAN_PRICING } from "@lucro-caseiro/contracts";
 
 import styles from "./landing-page.module.css";
 import { LandingMotion } from "./landing-motion";
@@ -41,25 +42,6 @@ const problems = [
   },
 ] as const;
 
-const flowSteps = [
-  {
-    title: "Coloque o que você gasta",
-    text: "Ingredientes, materiais, embalagem, seu tempo, custos fixos e taxas entram na conta.",
-  },
-  {
-    title: "Descubra o preço certo",
-    text: "Veja o custo real, o preço recomendado e quanto vai sobrar em cada venda.",
-  },
-  {
-    title: "Crie o produto uma vez",
-    text: "Use a mesma precificação para deixar o produto pronto, sem digitar tudo novamente.",
-  },
-  {
-    title: "Publique ou venda",
-    text: "Compartilhe seu catálogo no WhatsApp ou registre a venda e acompanhe seu resultado.",
-  },
-] as const;
-
 type FeatureTile = {
   readonly title: string;
   readonly text: string;
@@ -74,29 +56,6 @@ type FeatureTile = {
 };
 
 const featureTiles: readonly FeatureTile[] = [
-  {
-    title: "Precificação completa",
-    icon: Calculator,
-    plan: "Profissional",
-    text: "Inclua cada custo e o valor do seu tempo para parar de cobrar no chute.",
-    image: {
-      src: "/landing/current-pricing.png",
-      alt: "Tela de precificação do Lucro Caseiro com preço sugerido e lucro por unidade",
-      crop: "phone",
-    },
-    span: "hero",
-  },
-  {
-    title: "Catálogo online",
-    icon: Store,
-    text: "Tenha uma vitrine com seus produtos e receba pedidos direto no WhatsApp.",
-    image: {
-      src: "/landing/current-catalog.png",
-      alt: "Tela de catálogo online do Lucro Caseiro pronta para compartilhar",
-      crop: "screen",
-    },
-    span: "shot",
-  },
   {
     title: "Vendas organizadas",
     icon: ReceiptText,
@@ -135,22 +94,32 @@ const audiences = [
   { name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
 ] as const;
 
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
 const plans = [
   {
     name: "Gratuito",
     price: "R$ 0",
     period: "para começar",
     description: "Calcule, organize e faça suas primeiras vendas.",
-    features: ["30 vendas por mês", "15 produtos", "Catálogo online básico"],
+    features: [
+      `${PLAN_LIMITS.free.maxSalesPerMonth} vendas por mês`,
+      `${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes`,
+      "Cálculo com materiais, trabalho, gastos fixos e taxas",
+      "Catálogo com até 3 produtos publicados",
+    ],
+    annual: null,
     featured: false,
   },
   {
     name: "Essencial",
-    price: "R$ 29,90",
+    price: money.format(PLAN_PRICING.essential.monthly),
+    annual: money.format(PLAN_PRICING.essential.annual),
     period: "por mês",
     description: "Para usar no dia a dia sem limites de volume.",
     features: [
       "Vendas, clientes e produtos ilimitados",
+      "Catálogo completo e personalizado, com mais fotos",
       "Agenda, fiado e financeiro",
       "Resumo mensal em PDF",
     ],
@@ -158,19 +127,47 @@ const plans = [
   },
   {
     name: "Profissional",
-    price: "R$ 69,90",
+    price: money.format(PLAN_PRICING.professional.monthly),
+    annual: money.format(PLAN_PRICING.professional.annual),
     period: "por mês",
-    description: "Para ganhar tempo e apresentar melhor seu negócio.",
+    description: "Para automatizar custos e aprofundar o controle do negócio.",
     features: [
-      "Catálogo personalizado",
+      "Tudo do Essencial",
+      "Rateio por faturamento e perfis salvos de taxas",
       "Relatórios e exportações avançadas",
-      "Compras, rótulos e orçamentos",
+      "Compras, gastos recorrentes, rótulos e orçamentos",
+      "Produtos compostos e kits",
     ],
     featured: false,
   },
 ] as const;
 
 const faqs = [
+  {
+    question: "Posso usar no computador ou no iPhone?",
+    answer:
+      "Sim. Abra o Lucro Caseiro no navegador do computador, iPhone ou Android. No Android, você também pode instalar pela Google Play. Entre com a mesma conta para acessar seus dados.",
+  },
+  {
+    question: "O que está incluído no Gratuito?",
+    answer:
+      "Você pode registrar até 30 vendas por mês, cadastrar 15 produtos e 20 clientes e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.",
+  },
+  {
+    question: "Preciso do Profissional para calcular mão de obra e taxas?",
+    answer:
+      "Não. Esses valores podem ser informados em todos os planos. O Profissional acrescenta rateio de custos por faturamento e perfis salvos de taxas, além de relatórios, exportações e outras ferramentas de gestão.",
+  },
+  {
+    question: "Em qual plano posso personalizar o catálogo?",
+    answer:
+      "No Essencial e no Profissional. Ambos liberam catálogo completo, personalização visual e mais fotos dos produtos. O Gratuito permite publicar até 3 produtos.",
+  },
+  {
+    question: "Como gerencio minha assinatura?",
+    answer:
+      "No app, acesse a área de planos. Compras realizadas pela Google Play são gerenciadas na Google Play; para assinaturas contratadas no navegador, consulte o canal indicado na conta ou fale com nosso suporte. Se precisar de ajuda, consulte nosso suporte.",
+  },
   {
     question: "Preciso entender de administração para usar?",
     answer:
@@ -196,7 +193,7 @@ const faqs = [
 const guides = [
   {
     title: "Como calcular o preço de venda",
-    text: "O passo a passo completo para somar custos, margem e taxas.",
+    text: "O passo a passo completo para somar custos, lucro sobre o custo e taxas.",
     href: "/landing/guias/como-calcular-preco-de-venda",
   },
   {
@@ -237,13 +234,13 @@ export function LandingPage() {
             <div className={styles.heroCopy}>
               <h1>
                 <span className={styles.heroLine}>
-                  <span>Quanto sobra</span>
+                  <span>Saiba quanto cobrar</span>
                 </span>{" "}
                 <span className={styles.heroLine}>
-                  <span>de cada venda?</span>
+                  <span>e o que sobra</span>
                 </span>{" "}
                 <em className={styles.markedHeadline}>
-                  Agora você sabe.
+                  de cada venda.
                   <svg
                     className={styles.headlineStroke}
                     viewBox="0 0 500 24"
@@ -261,8 +258,8 @@ export function LandingPage() {
                 </em>
               </h1>
               <p className={styles.heroText}>
-                Descubra quanto cobrar, valorize seu tempo e organize suas vendas. Tudo no
-                mesmo app, sem cadastrar de novo.
+                Para quem produz, vende ou presta serviços. Some seus custos, valorize seu
+                trabalho e transforme a conta em produto, catálogo ou venda no mesmo app.
               </p>
               <div className={styles.heroActions}>
                 <a
@@ -324,12 +321,13 @@ export function LandingPage() {
                   <p className={styles.cardPrice}>R$ 30,49</p>
                 </div>
                 <div className={styles.cardChip}>
-                  <span>Sobra por unidade</span>
+                  <span>Sobra por caixa</span>
                   <strong>R$ 7,39</strong>
                 </div>
               </div>
               <p className={styles.cardFootnote}>
-                Seu tempo de trabalho já está nessa conta.
+                Seu trabalho já está no custo. Exemplo com 32% sobre o custo, sem taxas de
+                venda.
               </p>
             </aside>
           </div>
@@ -368,25 +366,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className={styles.flowSection} id="como-funciona">
-          <h2>Da primeira conta à próxima venda.</h2>
-          <p className={styles.lede}>
-            A informação anda com você: o que começa na precificação vira produto,
-            catálogo ou venda.
-          </p>
-          <ol className={styles.flowTrack}>
-            {flowSteps.map((step, index) => (
-              <li
-                key={step.title}
-                data-landing-reveal={index * 80}
-                data-motion-kind="step"
-              >
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <div id="como-funciona" />
 
         <section
           className={styles.journey}
@@ -398,9 +378,9 @@ export function LandingPage() {
             <div className={styles.journeyCopy}>
               <p className={styles.journeyKicker}>Do preço ao pedido</p>
               <h2 id="journey-title">
-                Uma conta.
+                Do custo ao pedido.
                 <br />
-                Muitas possibilidades.
+                Sem começar de novo.
               </h2>
               <div className={styles.journeyChapters}>
                 {[
@@ -482,7 +462,7 @@ export function LandingPage() {
         </section>
 
         <section className={styles.featuresSection} id="recursos">
-          <h2>O essencial do seu negócio, direto do celular.</h2>
+          <h2>Depois da venda, mantenha tudo em ordem.</h2>
           <p className={styles.lede}>
             Ferramentas práticas para organizar sem transformar seu dia em trabalho de
             escritório.
@@ -558,6 +538,11 @@ export function LandingPage() {
                   {plan.price}
                   <small>{plan.period}</small>
                 </p>
+                <p className={styles.planAnnual}>
+                  {plan.annual
+                    ? `ou ${plan.annual} por ano, em cobrança única`
+                    : "Continue grátis dentro dos limites do plano."}
+                </p>
                 <ul>
                   {plan.features.map((feature) => (
                     <li key={feature}>
@@ -567,18 +552,26 @@ export function LandingPage() {
                   ))}
                 </ul>
                 <a
-                  href={PLAY_STORE_URL}
-                  data-analytics={`play_store_plan_${plan.name.toLowerCase()}`}
+                  href={PWA_URL}
+                  data-analytics={`pwa_plan_${plan.name.toLowerCase()}`}
                   data-pointer-ripple
                 >
-                  {plan.name === "Gratuito" ? "Começar grátis" : "Baixar o app"}
+                  Começar no navegador
                   <CtaArrow />
+                </a>
+                <a
+                  className={styles.planAndroid}
+                  href={PLAY_STORE_URL}
+                  data-analytics={`play_store_plan_${plan.name.toLowerCase()}`}
+                >
+                  Baixar no Google Play
                 </a>
               </article>
             ))}
           </div>
           <p className={styles.pricingNote}>
-            Escolha seu plano no aplicativo. Planos anuais com dois meses de economia.
+            Escolha o plano e o período dentro do app ou no navegador. O anual equivale a
+            10 mensalidades, com cobrança única. Confira as condições na contratação.
           </p>
         </section>
 

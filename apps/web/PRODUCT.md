@@ -18,7 +18,7 @@ A landing pública fala com o mercado amplo (qualquer autônoma ou MEI que produ
 
 ## Product Purpose
 
-App de gestão (Android hoje; web e iOS previstos) que transforma custo em preço, preço em produto e catálogo, e catálogo em venda, sem chute e sem retrabalho. Sucesso é o "negócio ativado": a pessoa conclui a precificação de um produto, transforma o cálculo em produto e publica no catálogo ou registra uma venda com os mesmos dados. A métrica principal é negócios ativados, não downloads.
+App de gestão (Android e navegador disponíveis; app nativo iOS não confirmado) que transforma custo em preço, preço em produto e catálogo, e catálogo em venda, sem chute e sem retrabalho. Sucesso é o "negócio ativado": a pessoa conclui a precificação de um produto, transforma o cálculo em produto e publica no catálogo ou registra uma venda com os mesmos dados. A métrica principal é negócios ativados, não downloads.
 
 ## Positioning
 
@@ -30,17 +30,17 @@ Um único fluxo em que a informação anda com a pessoa: o que ela digita na pre
 - Pedidos chegam e são combinados no WhatsApp; o catálogo público (`catalogo.lucrocaseiro.com.br/c/<slug>`) inicia o pedido pelo WhatsApp.
 - Custos sensíveis por segmento: ingredientes/materiais fracionados, embalagem, gás e energia, tempo de produção, taxas de cartão/app, perdas e refação.
 - Funciona offline com sincronização posterior.
-- Fórmula de preço compartilhada por app, API e web em `@lucro-caseiro/contracts` (`pricing-calculator.ts`): custo = insumos + embalagem + mão de obra (minutos × valor da hora) + rateio de fixos; preço sugerido = custo × (1 + margem); taxas com gross-up.
+- Fórmula de preço compartilhada por app, API e web em `@lucro-caseiro/contracts` (`pricing-calculator.ts`): custo = insumos + embalagem + mão de obra (minutos × valor da hora) + rateio de fixos; preço sugerido = custo × (1 + lucro sobre o custo); taxas com gross-up.
 
 ## Capabilities and Constraints
 
 Confirmado e publicado: precificação completa com histórico; produtos com foto, preço, custo e estoque; receitas com custo automático; embalagens e rótulos; catálogo online com link e pedido pelo WhatsApp; vendas com status (pago, pendente, cancelado); clientes com aniversário e histórico; agenda de encomendas; fiado; financeiro com entradas, saídas e resumo mensal; alertas de estoque e cobrança; offline.
 
-Planos (fonte: `docs/planos-comerciais.md`): Gratuito R$ 0 (30 vendas/mês, 20 clientes, 15 produtos, 5 receitas, 3 embalagens, catálogo básico); Essencial R$ 29,90/mês ou R$ 299/ano (vendas, clientes e produtos ilimitados, agenda, fiado, financeiro, resumo em PDF); Profissional R$ 69,90/mês ou R$ 699/ano (catálogo personalizado, relatórios e exportações avançadas, compras, fornecedores, orçamentos, rótulos, kits). Nunca chamar o tier pago de "Premium".
+Planos (fonte: `docs/planos-comerciais.md`): Gratuito R$ 0 (30 vendas/mês, 20 clientes, 15 produtos, 5 receitas, 3 embalagens, catálogo básico); Essencial R$ 29,90/mês ou R$ 299/ano (vendas, clientes e produtos ilimitados, agenda, fiado, financeiro, resumo em PDF, catálogo completo e personalizado); Profissional R$ 69,90/mês ou R$ 699/ano (tudo do Essencial, rateio por faturamento e perfis salvos de taxas, relatórios e exportações avançadas, compras, fornecedores, orçamentos, rótulos, kits). Nunca chamar o tier pago de "Premium".
 
-Constraints da web: Next.js App Router, `next/image`, CSS Modules, sem biblioteca de animação até hoje; rotas, âncoras (`#como-funciona`, `#planos`, `#duvidas`), slugs de guias e `data-analytics` existentes devem ser preservados; calculadora pública em `/landing/calculadora` usa as funções puras do contracts e não envia dados. App em português brasileiro; código em inglês. Acessibilidade: fontes mínimas 16px, alvos 48px, contraste AA, ícone sempre com texto, linguagem sem jargão.
+Constraints da web: Next.js App Router, `next/image`, CSS Modules, CSS, Web Animations e GSAP/ScrollTrigger na demonstração; rotas, âncoras (`#como-funciona`, `#planos`, `#duvidas`), slugs de guias e `data-analytics` existentes devem ser preservados; calculadora pública em `/landing/calculadora` usa as funções puras do contracts e não envia dados. App em português brasileiro; código em inglês. Acessibilidade: fontes mínimas 16px, alvos 48px, contraste AA, ícone sempre com texto, linguagem sem jargão.
 
-Undecided: lançamento web/iOS; multiusuário.
+Undecided: app nativo iOS; multiusuário.
 
 ## Brand Commitments
 
@@ -53,7 +53,7 @@ Undecided: lançamento web/iOS; multiusuário.
 
 - Telas reais do app e artes da Play Store: `apps/web/public/landing/` (`poster-precificacao.png`, `poster-financeiro.png`, `app-inicio.png`, `app-catalogo.png`, `app-financeiro.png`, `app-precificacao.png`, `app-produtos.png`).
 - Preços e limites confirmados em `docs/planos-comerciais.md`.
-- Exemplo ilustrativo aprovado para ensino: brigadeiro gourmet, insumos R$ 10, embalagem R$ 2, tempo R$ 8,10, fixos R$ 3, preço sugerido R$ 30,60, sobra R$ 7,50 (rotular sempre como exemplo).
+- Exemplo ilustrativo aprovado para ensino: brigadeiro gourmet, insumos R$ 10, embalagem R$ 2, tempo R$ 8,10, fixos R$ 3, preço sugerido R$ 30,49, sobra R$ 7,39 (32% sobre o custo, sem taxas) (rotular sempre como exemplo).
 - Ausente hoje, não fabricar: depoimentos, avaliações citáveis, números de downloads ou negócios ativos, catálogo real de cliente com autorização. Confirmado em 2026-09-02.
 
 ## Product Principles

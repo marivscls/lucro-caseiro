@@ -1,13 +1,14 @@
+import { publicMetadata } from "@/features/landing/public-metadata";
 import type { Metadata } from "next";
 
 import { PublicPage, publicPageStyles as styles } from "@/features/landing/public-page";
 import { SUPPORT_EMAIL } from "@/features/landing/site-constants";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicMetadata({
   title: "Como excluir sua conta",
   description: "Instruções para excluir a conta e os dados associados no Lucro Caseiro.",
   alternates: { canonical: "/landing/excluir-conta" },
-};
+});
 
 export default function DeleteAccountPage() {
   return (

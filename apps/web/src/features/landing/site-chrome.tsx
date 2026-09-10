@@ -31,14 +31,14 @@ export function SiteHeader({ tone = "paper" }: SiteHeaderProps) {
         Ir para o conteúdo
       </a>
       <header className={onWine ? styles.headerWine : styles.header}>
-        <Link className={styles.brand} href="/landing" aria-label="Lucro Caseiro, início">
+        <Link className={styles.brand} href="/" aria-label="Lucro Caseiro, início">
           <Image src="/landing/logo.png" width={40} height={40} alt="" priority />
           <span>lucro caseiro</span>
         </Link>
         <nav className={styles.nav} aria-label="Navegação principal">
-          <Link href="/landing#como-funciona">Como funciona</Link>
+          <Link href="/#como-funciona">Como funciona</Link>
           <Link href="/landing/calculadora">Calculadora</Link>
-          <Link href="/landing#planos">Planos</Link>
+          <Link href="/#planos">Planos</Link>
           <Link href="/landing/suporte">Ajuda</Link>
           <a href={PWA_URL} data-analytics="pwa_header">
             Usar no navegador
@@ -49,9 +49,9 @@ export function SiteHeader({ tone = "paper" }: SiteHeaderProps) {
             Menu <ChevronDown aria-hidden="true" size={18} />
           </summary>
           <nav aria-label="Navegação no celular">
-            <Link href="/landing#como-funciona">Como funciona</Link>
+            <Link href="/#como-funciona">Como funciona</Link>
             <Link href="/landing/calculadora">Calculadora</Link>
-            <Link href="/landing#planos">Planos</Link>
+            <Link href="/#planos">Planos</Link>
             <Link href="/landing/suporte">Ajuda</Link>
             <a href={PWA_URL} data-analytics="pwa_mobile_menu">
               Usar no navegador
@@ -91,7 +91,7 @@ export function SiteFooter() {
         <Link href="/landing/excluir-conta">Excluir conta</Link>
         <a href={`mailto:${SUPPORT_EMAIL}`}>Contato</a>
       </div>
-      <p>© {new Date().getFullYear()} Lucro Caseiro.</p>
+      <p>© {new Date().getFullYear()} Lucro Caseiro · ORIONSEVEN SOFTWARE.</p>
     </footer>
   );
 }

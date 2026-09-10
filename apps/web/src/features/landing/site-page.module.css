@@ -17,7 +17,7 @@
 .eyebrow {
   margin: 0 0 18px;
   color: var(--primary-strong);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -40,7 +40,7 @@
 .updated {
   margin: 18px 0 0;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .content {
@@ -173,6 +173,25 @@
   padding: clamp(26px, 6vw, 64px);
 }
 
+.article h2:not(:first-child) {
+  margin-top: 36px;
+}
+.article .breadcrumb {
+  margin-bottom: 18px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.article .byline {
+  margin-bottom: 28px;
+}
+.articleCta h2 {
+  margin-top: 0 !important;
+}
+.article,
+.document {
+  overflow-wrap: anywhere;
+}
+
 .articleLead {
   margin-bottom: 42px !important;
   color: var(--text) !important;
@@ -227,7 +246,7 @@
   }
 
   .hero h1 {
-    font-size: 46px;
+    font-size: clamp(32px, 7vw, 46px);
   }
 
   .description {

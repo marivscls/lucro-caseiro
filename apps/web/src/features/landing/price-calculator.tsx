@@ -15,8 +15,10 @@ import {
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
-import { useId, useState } from "react";
-import { PLAY_STORE_URL } from "./site-constants";
+import { useEffect, useId, useState } from "react";
+import { PLAY_STORE_URL, PWA_URL } from "./site-constants";
+import { createCalculatorTracking } from "./analytics-events";
+import { trackLandingEvent } from "./site-analytics";
 import styles from "./price-calculator.module.css";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -92,6 +94,7 @@ export function PriceCalculator() {
   const [values, setValues] = useState<Values>(EXAMPLE);
   const [edited, setEdited] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [tracking] = useState(() => createCalculatorTracking(trackLandingEvent));
   const errors: Partial<Record<FieldKey, string>> = {};
   for (const key of Object.keys(values) as FieldKey[]) {
     const value = Number(values[key]);
@@ -112,6 +115,10 @@ export function PriceCalculator() {
   const { finalPrice, feesAmount } = finalPriceWithFees(basePrice, number("fees"));
   const profit = profitPerUnit(basePrice, cost);
   const ready = !hasErrors && cost > 0;
+  useEffect(() => {
+    const timer = window.setTimeout(() => tracking.result(ready), 800);
+    return () => window.clearTimeout(timer);
+  }, [ready, values, tracking]);
   let resultNote = "Para cobrir os custos e o lucro que você definiu.";
   if (cost <= 0) resultNote = "Preencha pelo menos um custo para começar.";
   if (hasErrors) resultNote = "Confira os campos indicados para ver o resultado.";
@@ -127,6 +134,7 @@ export function PriceCalculator() {
         max={LIMITS[key]}
         error={errors[key]}
         onChange={(value) => {
+          tracking.edit();
           setValues((previous) => ({ ...previous, [key]: value }));
           setEdited(true);
         }}
@@ -134,6 +142,7 @@ export function PriceCalculator() {
     );
   }
   function reset(clear: boolean) {
+    tracking.example();
     setValues(
       clear
         ? (Object.fromEntries(Object.keys(EXAMPLE).map((key) => [key, ""])) as Values)
@@ -249,7 +258,8 @@ export function PriceCalculator() {
           </fieldset>
           <p className={styles.privacyNote}>
             <ShieldCheck size={20} aria-hidden="true" />
-            Os valores ficam só nesta página. Nada é enviado ou salvo.
+            Os valores da simulação ficam só nesta página. Eles não são enviados nem
+            salvos.
           </p>
           <a className={styles.resultJump} href="#resultado">
             Ver meu preço <ArrowDown size={18} aria-hidden="true" />
@@ -318,14 +328,15 @@ export function PriceCalculator() {
           </div>
           <div className={styles.resultCta}>
             <p>Leve essa organização para o dia a dia.</p>
-            <a
-              href={PLAY_STORE_URL}
-              data-pointer-ripple
-              data-analytics="play_store_calculator_result"
-            >
-              Baixar o Lucro Caseiro <ArrowRight size={19} aria-hidden="true" />
+            <a href={PWA_URL} data-pointer-ripple data-analytics="pwa_calculator_result">
+              Começar grátis no navegador <ArrowRight size={19} aria-hidden="true" />
             </a>
-            <small>Disponível para Android · Plano gratuito</small>
+            <a href={PLAY_STORE_URL} data-analytics="play_store_calculator_result">
+              Baixar no Google Play <ArrowRight size={19} aria-hidden="true" />
+            </a>
+            <small>
+              Plano gratuito no navegador e no Android. A simulação não é transferida.
+            </small>
           </div>
           <p className={styles.srOnly} role="status" aria-atomic="true">
             {ready
@@ -388,7 +399,7 @@ export function PriceCalculator() {
           <h2>A conta é só o começo.</h2>
           <p>Conheça os produtos, as vendas e o catálogo do Lucro Caseiro.</p>
         </div>
-        <a href="/landing#recursos" data-analytics="calculator_view_features">
+        <a href="/#recursos" data-analytics="calculator_view_features">
           Ver recursos do app <ArrowRight size={20} aria-hidden="true" />
         </a>
       </div>

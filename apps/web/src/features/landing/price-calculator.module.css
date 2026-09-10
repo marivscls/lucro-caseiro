@@ -403,6 +403,15 @@
 .resultCta a:hover {
   background: var(--wine);
 }
+.resultCta a + a {
+  margin-top: 12px;
+  color: var(--wine);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+.resultCta a + a:hover {
+  background: var(--rose-soft);
+}
 .resultCta small {
   display: block;
   margin-top: 12px;

@@ -9,7 +9,7 @@ export function createProductJourney(root: HTMLElement) {
   if (!journey) return () => media.revert();
 
   media.add(
-    "(min-height: 700px) and (prefers-reduced-motion: no-preference)",
+    "(min-width: 900px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)",
     () => {
       const screens = Array.from(
         journey.querySelectorAll<HTMLElement>("[data-journey-screen]"),

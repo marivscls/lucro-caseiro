@@ -1,13 +1,14 @@
+import { publicMetadata } from "@/features/landing/public-metadata";
 import type { Metadata } from "next";
 
 import { PublicPage, publicPageStyles as styles } from "@/features/landing/public-page";
 import { SUPPORT_EMAIL } from "@/features/landing/site-constants";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicMetadata({
   title: "Política de Privacidade",
   description: "Saiba como o Lucro Caseiro coleta, usa, protege e exclui dados.",
   alternates: { canonical: "/landing/privacidade" },
-};
+});
 
 export default function PrivacyPage() {
   return (
@@ -15,14 +16,15 @@ export default function PrivacyPage() {
       eyebrow="Privacidade e segurança"
       title="Política de Privacidade"
       description="Transparência sobre os dados necessários para o aplicativo funcionar e melhorar."
-      updatedAt="16 de julho de 2026"
+      updatedAt="10 de setembro de 2026"
     >
       <article className={styles.document}>
         <section>
           <p>
             Esta política descreve como o aplicativo e o site Lucro Caseiro tratam dados
-            pessoais. Para exercer seus direitos, escreva para{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+            pessoais. O serviço é operado pela ORIONSEVEN SOFTWARE. Para exercer seus
+            direitos, escreva para <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+            .
           </p>
         </section>
 
@@ -74,9 +76,13 @@ export default function PrivacyPage() {
           <p>
             O site pode registrar dados técnicos básicos, como página acessada, horário e
             tipo de dispositivo. Quando o Google Analytics estiver habilitado, ele será
-            usado para medir visitas e cliques na loja de aplicativos com anonimização de
-            IP. Não usamos esses eventos para armazenar o conteúdo inserido na calculadora
-            pública.
+            usado para medir visitas, visualização dos planos, interação com a calculadora
+            e cliques para abrir o aplicativo no navegador ou na Google Play. O Google
+            Analytics pode usar cookies e identificadores do navegador para essas
+            métricas. Sinais do Google e personalização de anúncios ficam desativados na
+            configuração do site. Os eventos próprios não incluem valores da calculadora,
+            nomes, e-mails ou dados de clientes. Os valores da simulação são processados
+            apenas no seu navegador.
           </p>
         </section>
 

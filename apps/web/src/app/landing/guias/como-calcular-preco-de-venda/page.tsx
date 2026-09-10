@@ -1,3 +1,4 @@
+import { publicMetadata } from "@/features/landing/public-metadata";
 import type { Metadata } from "next";
 
 import { GuidePage } from "@/features/landing/guide-page";
@@ -5,13 +6,13 @@ import { publicPageStyles as styles } from "@/features/landing/public-page";
 
 const title = "Como calcular o preço de venda sem trabalhar no prejuízo";
 const description =
-  "Um passo a passo simples para somar custos, valorizar seu tempo, escolher uma margem e incluir taxas.";
+  "Aprenda a somar custos, incluir mão de obra e taxas e diferenciar lucro sobre o custo de margem sobre a venda, com exemplos completos.";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicMetadata({
   title,
   description,
   alternates: { canonical: "/landing/guias/como-calcular-preco-de-venda" },
-};
+});
 
 export default function SellingPriceGuidePage() {
   return (
@@ -51,18 +52,60 @@ export default function SellingPriceGuidePage() {
       <div className={styles.formula}>
         Custo fixo por unidade = custos fixos mensais ÷ produção mensal
       </div>
-      <h2>5. Aplique a margem desejada</h2>
+      <h2>5. Defina o lucro sobre o custo</h2>
       <p>
-        Depois de encontrar o custo total, aplique uma margem coerente com seu negócio.
-        Uma margem de 50% sobre um custo de R$ 20 adiciona R$ 10, formando um preço-base
-        de R$ 30.
+        Depois de encontrar o custo total, escolha quanto quer acrescentar sobre ele. Um
+        acréscimo de 50% sobre um custo de R$ 20 adiciona R$ 10, formando um preço-base de
+        R$ 30. Esse percentual sobre o custo é chamado de markup percentual.
       </p>
-      <div className={styles.formula}>Preço-base = custo total × (1 + margem ÷ 100)</div>
+      <div className={styles.formula}>
+        Preço-base = custo total × (1 + lucro sobre o custo ÷ 100)
+      </div>
+      <p>
+        A margem sobre a venda usa outra base: lucro dividido pelo preço de venda. Nesse
+        exemplo sem taxas, R$ 10 ÷ R$ 30 = 33,3%. Portanto, acrescentar 50% ao custo não
+        gera uma margem de 50% sobre a venda. Na calculadora do Lucro Caseiro, o campo
+        “Lucro sobre o custo” usa a primeira conta.
+      </p>
       <h2>6. Não esqueça as taxas sobre a venda</h2>
       <p>
         Cartão, marketplace e comissão costumam descontar uma porcentagem do preço
         cobrado. Para preservar o valor líquido, a taxa precisa ser calculada sobre o
         preço final, não apenas somada ao custo.
+      </p>
+      <div className={styles.formula}>Preço final = preço-base ÷ (1 − taxas ÷ 100)</div>
+      <p>
+        Se o preço-base é R$ 30 e a taxa é 10%, a conta é R$ 30 ÷ 0,90 = R$ 33,33 após
+        arredondar. A taxa fica próxima de R$ 3,33 e restam R$ 30: R$ 20 de custo e R$ 10
+        de lucro. Somar apenas 10% daria R$ 33; após a taxa de R$ 3,30, sobrariam R$
+        29,70, abaixo do valor-base planejado.
+      </p>
+      <h2>Um exemplo completo para conferir na calculadora</h2>
+      <p>
+        Considere uma peça artesanal. Os valores são ilustrativos, não uma referência de
+        preço para o seu mercado. Materiais custam R$ 12,50 e a embalagem, R$ 3. A
+        produção leva 90 minutos, com hora de trabalho de R$ 20: são R$ 30 de mão de obra.
+        Os gastos fixos do negócio são R$ 400 por mês para 100 peças, ou R$ 4 por peça.
+      </p>
+      <ul>
+        <li>Custo por peça: R$ 12,50 + R$ 3 + R$ 30 + R$ 4 = R$ 49,50.</li>
+        <li>Lucro escolhido: 50% sobre R$ 49,50 = R$ 24,75.</li>
+        <li>Preço sem taxas: R$ 49,50 + R$ 24,75 = R$ 74,25.</li>
+        <li>Com taxa de 10%: R$ 74,25 ÷ 0,90 = R$ 82,50.</li>
+        <li>Conferência: R$ 82,50 − R$ 8,25 de taxa − R$ 49,50 de custo = R$ 24,75.</li>
+      </ul>
+      <p>
+        Esses são os valores iniciais da calculadora, com taxa zero. Altere a taxa para
+        10% e confira a segunda situação. O pagamento do seu trabalho já faz parte do
+        custo; os R$ 24,75 representam a sobra além dele, considerando apenas os gastos
+        informados.
+      </p>
+      <h2>Evite contar o mesmo gasto duas vezes</h2>
+      <p>
+        Inclua apenas a parcela dos gastos da casa usada pelo negócio. Se o gás de uma
+        receita já entrou no custo direto, não some o mesmo consumo novamente no rateio. A
+        divisão por unidades é uma aproximação útil quando os produtos consomem recursos
+        parecidos; produtos muito diferentes podem exigir critérios específicos.
       </p>
       <h2>Revise antes de publicar</h2>
       <ul>
@@ -71,6 +114,16 @@ export default function SellingPriceGuidePage() {
         <li>Atualize a conta quando materiais ou taxas mudarem.</li>
         <li>Evite descontos que eliminem o lucro calculado.</li>
       </ul>
+      <h2>Referências para aprofundar</h2>
+      <p>
+        O Sebrae explica a{" "}
+        <a href="https://blog.rn.sebrae.com.br/markup/">formação de preços pelo markup</a>{" "}
+        e a diferença de base no cálculo da{" "}
+        <a href="https://sebrae.com.br/sites/PortalSebrae/artigos/entenda-e-calcule-corretamente-a-margem-de-lucro,f2bbca017749e410VgnVCM1000003b74010aRCRD">
+          margem de lucro
+        </a>
+        . Os exemplos numéricos desta página foram elaborados pela equipe Lucro Caseiro.
+      </p>
     </GuidePage>
   );
 }

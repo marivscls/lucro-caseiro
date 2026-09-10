@@ -1,3 +1,4 @@
+import { publicMetadata } from "@/features/landing/public-metadata";
 import type { Metadata } from "next";
 
 import { PriceCalculator } from "@/features/landing/price-calculator";
@@ -5,12 +6,12 @@ import { SiteFooter, SiteHeader } from "@/features/landing/site-chrome";
 import landingStyles from "@/features/landing/landing-page.module.css";
 import styles from "@/features/landing/price-calculator.module.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicMetadata({
   title: "Calculadora gratuita de preço de venda",
   description:
     "Calcule seu preço de venda com materiais, embalagem, seu tempo e custos fixos. Veja quanto sobra por unidade, com as taxas incluídas. Grátis e sem cadastro.",
   alternates: { canonical: "/landing/calculadora" },
-};
+});
 
 export default function CalculatorPage() {
   return (
@@ -20,9 +21,9 @@ export default function CalculatorPage() {
         <header className={styles.hero}>
           <p className={styles.eyebrow}>Calculadora de preço de venda</p>
           <h1>
-            Seu trabalho tem valor.
+            Calcule seu preço de venda.
             <br />
-            <span>Coloque ele na conta.</span>
+            <span>Inclua o seu trabalho.</span>
           </h1>
           <div className={styles.heroBottom}>
             <p>
