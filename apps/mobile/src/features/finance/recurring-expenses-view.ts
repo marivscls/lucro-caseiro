@@ -1,4 +1,5 @@
 import type { RecurringExpense } from "@lucro-caseiro/contracts";
+import { displayIngredientName } from "../../shared/ingredient-image/resolve";
 
 export type RecurringSortDirection = "asc" | "desc";
 
@@ -16,24 +17,37 @@ export function sortRecurringExpenses(
 
 export function nextRecurringExpense(
   items: readonly RecurringExpense[],
+  referenceDate = new Date(),
 ): RecurringExpense | null {
   const activeItems = items.filter((item) => item.active);
   if (activeItems.length === 0) return null;
 
+  const referenceDay = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate(),
+  );
+  function nextOccurrence(item: RecurringExpense): number {
+    const currentMonth = new Date(
+      referenceDay.getFullYear(),
+      referenceDay.getMonth(),
+      item.dayOfMonth,
+    );
+    if (currentMonth >= referenceDay) return currentMonth.getTime();
+    return new Date(
+      referenceDay.getFullYear(),
+      referenceDay.getMonth() + 1,
+      item.dayOfMonth,
+    ).getTime();
+  }
+
   return [...activeItems].sort(
     (left, right) =>
-      left.dayOfMonth - right.dayOfMonth ||
+      nextOccurrence(left) - nextOccurrence(right) ||
       left.description.localeCompare(right.description, "pt-BR"),
   )[0];
 }
 
-export function upcomingRecurringDays(
-  items: readonly RecurringExpense[],
-  limit = 5,
-): number[] {
-  const uniqueDays = [
-    ...new Set(items.filter((item) => item.active).map((item) => item.dayOfMonth)),
-  ];
-  uniqueDays.sort((left, right) => left - right);
-  return uniqueDays.slice(0, limit);
+export function displayRecurringExpenseName(name: string): string {
+  return displayIngredientName(name);
 }

@@ -18,17 +18,9 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import fixedExpensesCalendar from "../assets/fixed-expenses-calendar.png";
 import { useBusinessCopy } from "../features/subscription/business-copy";
 import {
   useCreateRecurring,
@@ -37,9 +29,9 @@ import {
   useUpdateRecurring,
 } from "../features/finance/hooks";
 import {
+  displayRecurringExpenseName,
   nextRecurringExpense,
   sortRecurringExpenses,
-  upcomingRecurringDays,
   type RecurringSortDirection,
 } from "../features/finance/recurring-expenses-view";
 import { useProfile } from "../features/subscription/hooks";
@@ -115,7 +107,6 @@ export default function RecurringExpensesScreen() {
   const { theme, styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
-  const { width: viewportWidth } = useWindowDimensions();
   const router = useRouter();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
@@ -135,7 +126,6 @@ export default function RecurringExpensesScreen() {
     [items, sortDirection],
   );
   const nextExpense = useMemo(() => nextRecurringExpense(items ?? []), [items]);
-  const timelineDays = useMemo(() => upcomingRecurringDays(items ?? []), [items]);
   const total = useMemo(
     () => (items ?? []).reduce((sum, item) => sum + item.amount, 0),
     [items],
@@ -193,7 +183,7 @@ export default function RecurringExpensesScreen() {
           title="Gastos fixos"
           subtitle="Organize o que se repete todo mês."
           onBack={handleBack}
-          onAdd={handleAddPress}
+          onAdd={isDesktop ? handleAddPress : undefined}
           isDesktop={isDesktop}
         />
 
@@ -215,19 +205,8 @@ export default function RecurringExpensesScreen() {
           showsVerticalScrollIndicator={false}
         >
           <MonthlyCommitmentsCard
-            compact={viewportWidth <= 360}
             count={recurringItems.length}
-            imageSize={Math.min(
-              160,
-              Math.max(
-                96,
-                (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
-                  (viewportWidth <= 360 ? 0.4 : 0.44) *
-                  0.92,
-              ),
-            )}
             nextDay={nextExpense?.dayOfMonth ?? null}
-            timelineDays={timelineDays}
             total={total}
           />
 
@@ -259,7 +238,7 @@ export default function RecurringExpensesScreen() {
                     color={palette.wine}
                   />
                   <Typography variant="captionBold" color={palette.wine}>
-                    Data {sortDirection === "asc" ? "↑" : "↓"}
+                    {sortDirection === "asc" ? "Mais próximos" : "Mais distantes"}
                   </Typography>
                 </Pressable>
               </View>
@@ -295,7 +274,10 @@ export default function RecurringExpensesScreen() {
                   item={selectedExpense}
                   onClose={() => setSelectedExpense(null)}
                   onDelete={() =>
-                    confirmDelete(selectedExpense.id, selectedExpense.description)
+                    confirmDelete(
+                      selectedExpense.id,
+                      displayRecurringExpenseName(selectedExpense.description),
+                    )
                   }
                   onEdit={() => {
                     setEditingExpense(selectedExpense);
@@ -307,7 +289,7 @@ export default function RecurringExpensesScreen() {
           )}
         </ScrollView>
 
-        {canUseRecurringExpenses && recurringItems.length > 0 ? (
+        {canUseRecurringExpenses ? (
           <ScreenCreateBar title="+ Novo gasto fixo" onPress={handleAddPress} />
         ) : null}
       </View>
@@ -395,87 +377,50 @@ function RecurringHeader({
 }
 
 function MonthlyCommitmentsCard({
-  compact,
   count,
-  imageSize,
   nextDay,
-  timelineDays,
   total,
 }: Readonly<{
-  compact: boolean;
   count: number;
-  imageSize: number;
   nextDay: number | null;
-  timelineDays: readonly number[];
   total: number;
 }>) {
   const { styles, palette } = useRecurringTheme();
 
   return (
-    <View style={[styles.commitmentCard, compact && styles.commitmentCardCompact]}>
-      <View style={styles.commitmentUpper}>
-        <View style={[styles.commitmentCopy, compact && styles.commitmentCopyCompact]}>
-          <Typography variant="body" color={palette.onWine}>
-            Compromissos do mês
+    <View style={styles.commitmentCard}>
+      <View style={styles.commitmentHeader}>
+        <Typography variant="body" color="rgba(255,255,255,0.88)">
+          Total previsto por mês
+        </Typography>
+        <View style={styles.commitmentCountBadge}>
+          <Typography variant="captionBold" color={palette.onWine}>
+            {count} {count === 1 ? "gasto" : "gastos"}
           </Typography>
-          <Typography
-            variant="moneyHero"
-            color={palette.onWine}
-            adjustsFontSizeToFit
-            minimumFontScale={0.62}
-            numberOfLines={1}
-          >
-            {formatCurrency(total)}
-          </Typography>
-          <Typography variant="caption" color="rgba(255,255,255,0.9)">
-            {count} {count === 1 ? "gasto cadastrado" : "gastos cadastrados"}
-          </Typography>
-        </View>
-
-        <View
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-          pointerEvents="none"
-          style={[styles.commitmentVisual, compact && styles.commitmentVisualCompact]}
-        >
-          <View style={styles.commitmentBlob} />
-          <Image
-            accessibilityIgnoresInvertColors
-            accessible={false}
-            resizeMode="contain"
-            source={fixedExpensesCalendar}
-            style={[styles.commitmentImage, { height: imageSize, width: imageSize }]}
-          />
         </View>
       </View>
-
-      <View style={styles.timeline}>
-        {timelineDays.length > 1 ? <View style={styles.timelineLine} /> : null}
-        {timelineDays.length > 0 ? (
-          timelineDays.map((day) => {
-            const highlighted = day === nextDay;
-            return (
-              <View key={day} style={styles.timelineItem}>
-                <View
-                  style={[
-                    styles.timelineDot,
-                    highlighted && styles.timelineDotHighlighted,
-                  ]}
-                />
-                <Typography
-                  variant="caption"
-                  color={highlighted ? palette.lime : "rgba(255,255,255,0.9)"}
-                >
-                  {day}
-                </Typography>
-              </View>
-            );
-          })
-        ) : (
+      <Typography
+        variant="moneyHero"
+        color={palette.onWine}
+        adjustsFontSizeToFit
+        minimumFontScale={0.72}
+        numberOfLines={1}
+      >
+        {formatCurrency(total)}
+      </Typography>
+      <View style={styles.commitmentDivider} />
+      <View style={styles.nextDueRow}>
+        <View style={styles.nextDueIcon}>
+          <AppIcon name="calendar-outline" size={iconSizes.xs} color={palette.wine} />
+        </View>
+        <View style={{ flex: 1 }}>
           <Typography variant="caption" color="rgba(255,255,255,0.72)">
-            Seus próximos vencimentos aparecerão aqui
+            Próximo vencimento
           </Typography>
-        )}
+          <Typography variant="bodyBold" color={palette.onWine}>
+            {nextDay === null ? "Nenhum gasto ativo" : `Todo dia ${nextDay}`}
+          </Typography>
+        </View>
       </View>
     </View>
   );
@@ -504,7 +449,7 @@ function ExpenseRow({
   return (
     <Pressable
       accessibilityHint="Abre os detalhes e a edição deste gasto"
-      accessibilityLabel={`${item.description}, ${categoryLabel(
+      accessibilityLabel={`${displayRecurringExpenseName(item.description)}, ${categoryLabel(
         item.category,
         materialNoun,
         packagingNoun,
@@ -529,7 +474,7 @@ function ExpenseRow({
       </View>
       <View style={styles.expenseInfo}>
         <Typography variant="bodyBold" numberOfLines={2}>
-          {item.description}
+          {displayRecurringExpenseName(item.description)}
         </Typography>
         <Typography numberOfLines={2}>
           {categoryLabel(item.category, materialNoun, packagingNoun)} · dia{" "}
@@ -566,7 +511,9 @@ function RecurringFormModal({
   const experienceCopy = useBusinessCopy();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
-  const [description, setDescription] = useState(item?.description ?? "");
+  const [description, setDescription] = useState(
+    item ? displayRecurringExpenseName(item.description) : "",
+  );
   const [amount, setAmount] = useState(item ? moneyInputValue(item.amount) : "");
   const [category, setCategory] = useState<ExpenseCategory>(item?.category ?? "utility");
   const [day, setDay] = useState(item ? String(item.dayOfMonth) : "");
@@ -815,7 +762,9 @@ function RecurringDetails({
         </Pressable>
       </View>
 
-      <Typography variant="h3">{item.description}</Typography>
+      <Typography variant="h3">
+        {displayRecurringExpenseName(item.description)}
+      </Typography>
 
       <View style={styles.detailGrid}>
         <DetailItem
@@ -1000,61 +949,27 @@ function createStyles(theme: Theme) {
       borderColor: palette.wine,
       borderWidth: 1.5,
     },
-    commitmentBlob: {
-      backgroundColor: theme.colors.primaryBg,
-      borderRadius: radii.full,
-      height: "82%",
-      position: "absolute",
-      right: -spacing.sm,
-      top: spacing.md,
-      transform: [{ rotate: "-9deg" }],
-      width: "112%",
-    },
     commitmentCard: {
       backgroundColor: palette.wineFill,
       borderRadius: radii.lg,
-      height: 216,
-      overflow: "hidden",
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
+      gap: spacing.md,
+      padding: spacing.lg,
     },
-    commitmentCardCompact: {
-      height: 204,
+    commitmentCountBadge: {
+      backgroundColor: "rgba(255,255,255,0.14)",
+      borderRadius: radii.full,
       paddingHorizontal: spacing.md,
-      paddingTop: spacing.md,
+      paddingVertical: spacing.xs,
     },
-    commitmentCopy: {
-      gap: spacing.xs,
-      justifyContent: "center",
-      maxWidth: "55%",
-      minWidth: 0,
-      paddingBottom: spacing.sm,
-      width: "55%",
-      zIndex: 2,
+    commitmentDivider: {
+      backgroundColor: "rgba(255,255,255,0.22)",
+      height: StyleSheet.hairlineWidth,
     },
-    commitmentCopyCompact: {
-      maxWidth: "60%",
-      width: "60%",
-    },
-    commitmentImage: {
-      zIndex: 2,
-    },
-    commitmentUpper: {
-      flex: 1,
-      flexDirection: "row",
-      minHeight: 0,
-    },
-    commitmentVisual: {
+    commitmentHeader: {
       alignItems: "center",
-      bottom: spacing.xs,
-      justifyContent: "center",
-      position: "absolute",
-      right: 0,
-      top: -spacing.sm,
-      width: "44%",
-    },
-    commitmentVisualCompact: {
-      width: "40%",
+      flexDirection: "row",
+      gap: spacing.md,
+      justifyContent: "space-between",
     },
     content: {
       gap: spacing.xl,
@@ -1121,6 +1036,19 @@ function createStyles(theme: Theme) {
       height: 44,
       justifyContent: "center",
       width: 44,
+    },
+    nextDueIcon: {
+      alignItems: "center",
+      backgroundColor: theme.colors.primaryBg,
+      borderRadius: radii.md,
+      height: 40,
+      justifyContent: "center",
+      width: 40,
+    },
+    nextDueRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: spacing.md,
     },
     expenseInfo: {
       flex: 1,
@@ -1275,41 +1203,6 @@ function createStyles(theme: Theme) {
       gap: spacing.sm,
       minHeight: 44,
       paddingHorizontal: spacing.md,
-    },
-    timeline: {
-      alignItems: "flex-start",
-      flexDirection: "row",
-      height: 48,
-      justifyContent: "space-between",
-      paddingHorizontal: spacing.xs,
-      position: "relative",
-    },
-    timelineDot: {
-      backgroundColor: palette.wineFill,
-      borderColor: "rgba(255,255,255,0.8)",
-      borderRadius: radii.full,
-      borderWidth: 1.5,
-      height: 11,
-      width: 11,
-      zIndex: 2,
-    },
-    timelineDotHighlighted: {
-      backgroundColor: palette.lime,
-      borderColor: palette.onWine,
-    },
-    timelineItem: {
-      alignItems: "center",
-      flex: 1,
-      gap: spacing.xs,
-      zIndex: 2,
-    },
-    timelineLine: {
-      backgroundColor: "rgba(255,255,255,0.5)",
-      height: StyleSheet.hairlineWidth,
-      left: "10%",
-      position: "absolute",
-      right: "10%",
-      top: 5,
     },
   });
 }

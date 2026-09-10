@@ -2,9 +2,9 @@ import type { RecurringExpense } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
+  displayRecurringExpenseName,
   nextRecurringExpense,
   sortRecurringExpenses,
-  upcomingRecurringDays,
 } from "./recurring-expenses-view";
 
 function expense(
@@ -45,12 +45,16 @@ describe("recurring expenses presentation", () => {
       expense("dia-28", 28),
     ];
 
-    expect(nextRecurringExpense(candidates)?.id).toBe("dia-8");
-    expect(upcomingRecurringDays(candidates)).toEqual([8, 28]);
+    expect(nextRecurringExpense(candidates, new Date(2026, 8, 9))?.id).toBe("dia-28");
   });
 
-  it("limita a timeline aos cinco vencimentos mais próximos", () => {
-    const candidates = [2, 4, 6, 8, 10, 12].map((day) => expense(String(day), day));
-    expect(upcomingRecurringDays(candidates)).toEqual([2, 4, 6, 8, 10]);
+  it("considera o próximo mês quando todos os dias deste mês já passaram", () => {
+    expect(nextRecurringExpense(items, new Date(2026, 8, 25))?.id).toBe("dia-8");
+  });
+
+  it("remove prefixos técnicos do nome exibido", () => {
+    expect(displayRecurringExpenseName("[massa] Energia elétrica")).toBe(
+      "Energia elétrica",
+    );
   });
 });

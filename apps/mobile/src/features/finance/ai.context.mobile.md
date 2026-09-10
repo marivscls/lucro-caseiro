@@ -110,6 +110,12 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 ## Change log / Decisions
 
+- 2026-09-09: **Gastos fixos com leitura mais direta** — o resumo mensal deixou de usar
+  ilustração e linha de pontos por dia; agora mostra total, quantidade e próximo vencimento
+  em um card compacto. A lista remove prefixos técnicos como `[massa]`, explicita a ordenação
+  e mantém um único CTA de cadastro no mobile. O próximo vencimento considera a data atual e
+  avança para o mês seguinte quando os dias deste mês já passaram.
+
 - 2026-08-31: os ícones +/− do lançamento ganham padding no card e a
   linha divisória vai de ponta a ponta, para não colar no círculo.
 
