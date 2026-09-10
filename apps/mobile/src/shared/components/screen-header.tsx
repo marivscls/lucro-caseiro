@@ -22,6 +22,8 @@ export type ScreenHeaderProps = Readonly<{
   backLabel?: string;
   /** Ações à direita (busca, histórico, filtros…). */
   right?: React.ReactNode;
+  /** Ajuda fornecida por ScreenGuidance em cabeçalhos personalizados. */
+  help?: React.ReactNode;
   hideBack?: boolean;
   backButtonStyle?: ViewStyle;
   style?: ViewStyle;
@@ -44,6 +46,7 @@ export function ScreenHeader({
   fallbackRoute = "/tabs/more",
   backLabel = "Voltar",
   right,
+  help,
   hideBack = false,
   backButtonStyle,
   style,
@@ -67,75 +70,89 @@ export function ScreenHeader({
     router.replace(fallbackRoute);
   }
 
-  return (
-    <>
-      <View
-        testID="screen-header"
-        style={[
-          {
+  const renderHeader = (helpButton: React.ReactNode) => (
+    <View
+      testID="screen-header"
+      style={[
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+          paddingHorizontal: isDesktop ? 0 : spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+          position: "relative",
+          zIndex: 10,
+        },
+        style,
+        isDesktop ? desktopHeaderStyle : undefined,
+      ]}
+    >
+      {!hideBack && !isDesktop ? (
+        <Pressable
+          onPress={handleBack}
+          accessibilityRole="button"
+          accessibilityLabel={backLabel}
+          hitSlop={10}
+          style={[
+            {
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              zIndex: 11,
+            },
+            backButtonStyle,
+          ]}
+        >
+          <AppIcon name="chevron-back" size={iconSizes.md} color={theme.colors.text} />
+        </Pressable>
+      ) : null}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          variant="screenTitle"
+          color={theme.colors.text}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+          style={[
+            titleStyle,
+            isDesktop ? { fontSize: 20, lineHeight: 26, letterSpacing: -0.2 } : undefined,
+          ]}
+        >
+          {title}
+        </Typography>
+        {subtitle ? (
+          <Typography
+            variant="caption"
+            numberOfLines={subtitleNumberOfLines}
+            ellipsizeMode="tail"
+            style={[subtitleStyle, { fontSize: 13, lineHeight: 18, marginTop: 2 }]}
+          >
+            {subtitle}
+          </Typography>
+        ) : null}
+      </View>
+      {helpButton ? (
+        <View
+          style={{
             flexDirection: "row",
             alignItems: "center",
-            gap: spacing.md,
-            paddingHorizontal: isDesktop ? 0 : spacing.lg,
-            paddingTop: hideBack ? spacing.xl : spacing.sm,
-            paddingBottom: spacing.sm,
-            position: "relative",
-            zIndex: 10,
-          },
-          style,
-          isDesktop ? desktopHeaderStyle : undefined,
-        ]}
-      >
-        {!hideBack && !isDesktop ? (
-          <Pressable
-            onPress={handleBack}
-            accessibilityRole="button"
-            accessibilityLabel={backLabel}
-            hitSlop={10}
-            style={[
-              {
-                width: 44,
-                height: 44,
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                zIndex: 11,
-              },
-              backButtonStyle,
-            ]}
-          >
-            <AppIcon name="chevron-back" size={iconSizes.md} color={theme.colors.text} />
-          </Pressable>
-        ) : null}
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            variant="screenTitle"
-            color={theme.colors.text}
-            numberOfLines={2}
-            ellipsizeMode="tail"
-            style={[
-              titleStyle,
-              isDesktop
-                ? { fontSize: 20, lineHeight: 26, letterSpacing: -0.2 }
-                : undefined,
-            ]}
-          >
-            {title}
-          </Typography>
-          {subtitle ? (
-            <Typography
-              variant="caption"
-              numberOfLines={subtitleNumberOfLines}
-              ellipsizeMode="tail"
-              style={[subtitleStyle, { fontSize: 13, lineHeight: 18, marginTop: 2 }]}
-            >
-              {subtitle}
-            </Typography>
-          ) : null}
+            gap: spacing.xs,
+            flexShrink: 0,
+          }}
+        >
+          {helpButton}
+          {right}
         </View>
-        {right}
-      </View>
-      {guidance ? <ScreenGuidance {...guidance} /> : null}
-    </>
+      ) : (
+        right
+      )}
+    </View>
+  );
+  return guidance ? (
+    <ScreenGuidance {...guidance} renderHeader={renderHeader} />
+  ) : (
+    renderHeader(help)
   );
 }

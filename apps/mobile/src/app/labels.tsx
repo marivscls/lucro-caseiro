@@ -304,7 +304,8 @@ function LabelDetailModal({
       <>
         <Button
           title="Excluir etiqueta"
-          variant="secondary"
+          variant="ghost"
+          icon={<AppIcon name="trash-outline" size={18} color={theme.colors.alert} />}
           onPress={handleDelete}
           loading={deleteLabel.isPending}
           style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
@@ -331,7 +332,7 @@ function LabelDetailModal({
   const footer = footerButtons ? (
     <View
       style={{
-        flex: 1,
+        width: "100%",
         flexDirection: isDesktop ? "row" : "column",
         gap: spacing.md,
       }}
@@ -353,7 +354,16 @@ function LabelDetailModal({
       wide
       right={
         label && !editing ? (
-          <Pressable onPress={() => startEditing(label)} hitSlop={8}>
+          <Pressable
+            onPress={() => startEditing(label)}
+            accessibilityRole="button"
+            accessibilityLabel="Editar etiqueta"
+            style={{
+              minHeight: 44,
+              justifyContent: "center",
+              paddingHorizontal: spacing.sm,
+            }}
+          >
             <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Editar
             </Typography>

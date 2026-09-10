@@ -1,6 +1,7 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import {
   CenteredTextInput,
+  controlSizes,
   Chip,
   FilterChipRow,
   fonts,
@@ -158,13 +159,13 @@ function ActionSheetRow({
 }
 
 function StatusBadge({ timing }: Readonly<{ timing: FiadoTiming }>) {
-  const { colors, styles } = useFiadoScreen();
+  const { theme, colors, styles } = useFiadoScreen();
   const isOverdue = timing.kind === "overdue";
   const isUpcoming = timing.kind === "upcoming";
   let backgroundColor: string = colors.neutral;
   if (isOverdue) backgroundColor = colors.softRose;
   if (isUpcoming) backgroundColor = `${colors.lime}57`;
-  const color = isOverdue ? colors.rose : colors.muted;
+  const color = isOverdue ? theme.colors.primaryStrong : colors.muted;
   const dotColor = isUpcoming ? colors.lime : color;
 
   return (
@@ -188,12 +189,14 @@ function StatusBadge({ timing }: Readonly<{ timing: FiadoTiming }>) {
 function CardAction({
   icon,
   label,
+  accessibilityLabel = label,
   filled = false,
   flex = 1,
   onPress,
 }: Readonly<{
   icon: AppIconName;
   label: string;
+  accessibilityLabel?: string;
   filled?: boolean;
   flex?: number;
   onPress: () => void;
@@ -204,7 +207,7 @@ function CardAction({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.cardAction,
         { flex },
@@ -231,13 +234,11 @@ function CardAction({
 function OpenSaleRow({
   sale,
   isLast,
-  isNarrow,
   onCharge,
   onMarkPaid,
 }: Readonly<{
   sale: Sale;
   isLast: boolean;
-  isNarrow: boolean;
   onCharge: () => void;
   onMarkPaid: (saleId: string) => void;
 }>) {
@@ -257,23 +258,26 @@ function OpenSaleRow({
             {month}
           </Typography>
         </View>
-        <Typography
-          variant="h3"
-          color={colors.ink}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.85}
-          style={styles.saleAmount}
-        >
-          {formatCurrency(amount)}
-        </Typography>
-        <StatusBadge timing={timing} />
+        <View style={styles.saleDetails}>
+          <Typography
+            variant="money"
+            color={colors.ink}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+            style={styles.saleAmount}
+          >
+            {formatCurrency(amount)}
+          </Typography>
+          <StatusBadge timing={timing} />
+        </View>
       </View>
 
-      <View style={[styles.actionRow, isNarrow && styles.actionRowNarrow]}>
+      <View style={styles.actionRow}>
         <CardAction
           icon="checkmark-circle-outline"
-          label={COPY.markReceived}
+          label="Recebi"
+          accessibilityLabel={COPY.markReceived}
           flex={1.55}
           onPress={() => onMarkPaid(sale.id)}
         />
@@ -332,7 +336,12 @@ function FiadoGroupCard({
         </View>
 
         <View style={styles.clientInfo}>
-          <Typography variant="h3" color={colors.ink} style={styles.clientName}>
+          <Typography
+            variant="h3"
+            color={colors.ink}
+            style={styles.clientName}
+            numberOfLines={2}
+          >
             {group.clientName}
           </Typography>
           <Typography variant="caption" color={colors.muted}>
@@ -370,7 +379,6 @@ function FiadoGroupCard({
           key={sale.id}
           sale={sale}
           isLast={index === orderedSales.length - 1}
-          isNarrow={isNarrow}
           onCharge={() => onCharge(group)}
           onMarkPaid={onMarkPaid}
         />
@@ -739,6 +747,12 @@ export default function FiadoScreen() {
             selected={statusFilter === "upcoming"}
             onPress={() => setStatusFilter("upcoming")}
           />
+        </FilterChipRow>
+
+        <View style={styles.listHeading}>
+          <Typography variant="h3" color={colors.wine}>
+            Cobranças
+          </Typography>
           <Pressable
             onPress={() =>
               setSortOrder((current) => (current === "oldest" ? "newest" : "oldest"))
@@ -748,7 +762,7 @@ export default function FiadoScreen() {
             style={({ pressed }) => [styles.sortButton, pressed && styles.pressed]}
           >
             <Typography
-              variant="body"
+              variant="caption"
               color={colors.wine}
               numberOfLines={1}
               style={styles.sortText}
@@ -761,15 +775,6 @@ export default function FiadoScreen() {
               color={colors.wine}
             />
           </Pressable>
-        </FilterChipRow>
-
-        <View style={styles.listHeading}>
-          <Typography variant="h3" color={colors.wine}>
-            Cobranças
-          </Typography>
-          <Typography variant="body" color={colors.muted} style={styles.openLabel}>
-            Total em aberto
-          </Typography>
         </View>
 
         {renderCharges()}
@@ -955,8 +960,8 @@ function createStyles(theme: Theme) {
 
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: colors.background },
-    navbar: { paddingBottom: spacing.md, backgroundColor: colors.background },
-    navActions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    navbar: { paddingBottom: spacing.sm, backgroundColor: colors.background },
+    navActions: { flexDirection: "row", alignItems: "center", gap: 0 },
     navButton: {
       width: 44,
       height: 44,
@@ -967,47 +972,48 @@ function createStyles(theme: Theme) {
     navButtonActive: { backgroundColor: colors.softRose },
     body: { flex: 1, minHeight: 0 },
     contentScroll: { flex: 1, minHeight: 0 },
-    content: { paddingTop: spacing.sm, gap: spacing.xl },
+    content: { paddingTop: spacing.sm, gap: spacing.md },
     summaryCard: {
-      minHeight: 188,
-      borderRadius: radii.sm,
+      minHeight: 144,
+      flexShrink: 0,
+      borderRadius: radii.lg,
       backgroundColor: colors.wineFill,
       overflow: "hidden",
-      padding: spacing["2xl"],
+      padding: spacing.lg,
       justifyContent: "center",
     },
-    summaryCardCompact: { minHeight: 188, padding: spacing.xl },
-    summaryCardNarrow: { minHeight: 176, padding: spacing.xl },
+    summaryCardCompact: { minHeight: 136, padding: spacing.lg },
+    summaryCardNarrow: { minHeight: 136, padding: spacing.md },
     summaryCopy: { width: "61%", gap: spacing.sm, zIndex: 1 },
     summaryCopyCompact: { width: "68%", gap: spacing.xs },
     summaryCopyNarrow: { width: "75%" },
-    summaryLabel: { fontFamily: fonts.semiBold, fontSize: 16, lineHeight: 22 },
+    summaryLabel: { fontFamily: fonts.semiBold, fontSize: 14, lineHeight: 20 },
     summaryMeta: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
     summaryArt: {
       position: "absolute",
       right: spacing.xl,
       width: "38%",
-      height: "82%",
+      height: 112,
+      maxWidth: 180,
     },
-    summaryArtCompact: { right: spacing.md, width: "31%", height: "72%" },
-    summaryArtNarrow: { right: spacing.sm, width: "25%", height: "64%" },
+    summaryArtCompact: { right: spacing.md, width: "31%", height: 104 },
+    summaryArtNarrow: { right: spacing.sm, width: "25%", height: 88 },
     sortButton: {
       minHeight: 44,
       flexShrink: 0,
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-      paddingHorizontal: spacing.md,
+      paddingHorizontal: spacing.xs,
     },
     sortText: { fontFamily: fonts.semiBold },
     listHeading: {
       flexDirection: "row",
-      alignItems: "flex-end",
+      alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.md,
     },
-    openLabel: { flexShrink: 1, textAlign: "right" },
-    cardsGrid: { gap: spacing.lg },
+    cardsGrid: { gap: spacing.md },
     cardsGridDesktop: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -1016,35 +1022,33 @@ function createStyles(theme: Theme) {
     cardColumn: { width: "100%" },
     cardColumnDesktop: { width: "48%", flexGrow: 1, minWidth: 340 },
     chargeCard: {
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.softRose,
+      borderRadius: radii.xl,
       backgroundColor: colors.white,
-      padding: spacing.lg,
-      shadowColor: colors.wineFill,
+      padding: spacing.md,
+      shadowColor: "#000000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.07,
-      shadowRadius: 8,
+      shadowOpacity: 0.06,
+      shadowRadius: 4,
       elevation: 2,
     },
     cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     avatar: {
-      width: 48,
-      height: 48,
+      width: controlSizes.avatar,
+      height: controlSizes.avatar,
       flexShrink: 0,
       borderRadius: radii.full,
       backgroundColor: colors.softRose,
       alignItems: "center",
       justifyContent: "center",
     },
-    avatarText: { fontSize: 18, lineHeight: 24 },
+    avatarText: { fontSize: 14, lineHeight: 20 },
     clientInfo: { flex: 1, minWidth: 0, gap: 2 },
     clientName: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
     groupTotal: {
       flexShrink: 1,
       textAlign: "right",
       fontFamily: fonts.bold,
-      fontSize: 17,
+      fontSize: 16,
     },
     groupTotalNarrow: {
       alignSelf: "flex-end",
@@ -1063,9 +1067,9 @@ function createStyles(theme: Theme) {
     cardDivider: {
       height: 1,
       backgroundColor: colors.neutral,
-      marginTop: spacing.lg,
+      marginTop: spacing.sm,
     },
-    saleBlock: { paddingTop: spacing.md, gap: spacing.md },
+    saleBlock: { paddingTop: spacing.sm, gap: spacing.sm },
     saleDivider: {
       borderBottomWidth: 1,
       borderBottomColor: colors.neutral,
@@ -1076,25 +1080,24 @@ function createStyles(theme: Theme) {
       alignItems: "center",
       gap: spacing.sm,
     },
+    saleDetails: { flex: 1, minWidth: 0, gap: spacing.xs, alignItems: "flex-start" },
     dateBadge: {
-      width: 54,
-      minHeight: 54,
+      width: controlSizes.regular,
+      minHeight: controlSizes.large,
       borderRadius: radii.sm,
       backgroundColor: colors.softRose,
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: spacing.xs,
     },
-    dateDay: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 23 },
+    dateDay: { fontFamily: fonts.bold, fontSize: 18, lineHeight: 22 },
     dateMonth: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 17 },
     saleAmount: {
-      flex: 1,
-      minWidth: 0,
       fontFamily: fonts.semiBold,
-      fontSize: 20,
+      fontSize: 16,
     },
     statusBadge: {
-      minHeight: 38,
+      minHeight: 24,
       maxWidth: "100%",
       borderRadius: radii.full,
       paddingHorizontal: spacing.sm,
@@ -1103,12 +1106,11 @@ function createStyles(theme: Theme) {
       flexShrink: 0,
       gap: spacing.xs,
     },
-    statusDot: { width: 8, height: 8, borderRadius: radii.full, flexShrink: 0 },
+    statusDot: { width: 6, height: 6, borderRadius: radii.full, flexShrink: 0 },
     statusText: { flexShrink: 0, fontFamily: fonts.medium },
     actionRow: { flexDirection: "row", gap: spacing.sm },
-    actionRowNarrow: { flexDirection: "column" },
     cardAction: {
-      minHeight: 48,
+      minHeight: controlSizes.regular,
       borderRadius: radii.sm,
       borderWidth: 1,
       flexDirection: "row",
@@ -1117,7 +1119,10 @@ function createStyles(theme: Theme) {
       gap: spacing.sm,
       paddingHorizontal: spacing.sm,
     },
-    cardActionOutlined: { backgroundColor: colors.white, borderColor: colors.rose },
+    cardActionOutlined: {
+      backgroundColor: colors.white,
+      borderColor: theme.colors.border,
+    },
     cardActionFilled: { backgroundColor: colors.rose, borderColor: colors.rose },
     cardActionText: { fontFamily: fonts.semiBold, fontSize: 13, textAlign: "center" },
     modalBackdrop: {
@@ -1206,7 +1211,7 @@ function createStyles(theme: Theme) {
     },
     centerText: { textAlign: "center" },
     clearButton: {
-      minHeight: 48,
+      minHeight: controlSizes.regular,
       borderRadius: radii.sm,
       borderWidth: 1,
       borderColor: colors.rose,

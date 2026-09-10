@@ -1,5 +1,6 @@
 import type { GuidanceArea } from "./guidance.domain";
 export interface GuidanceContent {
+  helpTitle: string;
   title: string;
   description: string;
   action: string;
@@ -8,6 +9,7 @@ export interface GuidanceContent {
 }
 export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
   home: {
+    helpTitle: "Ajuda com o início",
     title: "O que você quer resolver agora?",
     description:
       "Escolha uma tarefa do seu negócio. Você pode conhecer as outras ferramentas depois.",
@@ -20,6 +22,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Retome sua prioridade ou confira o próximo compromisso.",
   },
   products: {
+    helpTitle: "Ajuda com produtos",
     title: "Cadastre o que você vende",
     description:
       "Informe nome, categoria e preço. Fotos, código e estoque podem ficar para depois.",
@@ -32,6 +35,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Calcule os custos ou use o produto em uma venda.",
   },
   services: {
+    helpTitle: "Ajuda com serviços",
     title: "Prepare seu primeiro atendimento",
     description: "Informe o serviço e sua duração. Você pode definir o preço depois.",
     action: "Cadastrar serviço",
@@ -43,6 +47,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Agende um atendimento para colocar o serviço na sua rotina.",
   },
   sales: {
+    helpTitle: "Ajuda com vendas",
     title: "Acompanhe o que você vendeu",
     description: "Registre uma venda para consultar os itens, o pagamento e o recibo.",
     action: "Registrar primeira venda",
@@ -54,6 +59,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Confira o recebimento e o resultado do período.",
   },
   new_sale: {
+    helpTitle: "Ajuda com nova venda",
     title: "Registre a venda passo a passo",
     description:
       "O cliente é opcional. Depois escolha os produtos, informe o pagamento e revise.",
@@ -66,6 +72,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Abra Vendas para consultar o registro e preparar o recibo.",
   },
   agenda: {
+    helpTitle: "Ajuda com a agenda",
     title: "Organize seus próximos compromissos",
     description:
       "Informe título e data. Para atendimentos, escolha também serviço, horário e local. O cliente é opcional.",
@@ -78,6 +85,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Consulte a agenda para acompanhar o compromisso.",
   },
   clients: {
+    helpTitle: "Ajuda com clientes",
     title: "Guarde seus contatos de trabalho",
     description: "Comece pelo nome. Telefone, endereço e observações são opcionais.",
     action: "Cadastrar cliente",
@@ -89,6 +97,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Vincule o contato à próxima venda ou atendimento.",
   },
   pricing: {
+    helpTitle: "Ajuda com preços",
     title: "Descubra um preço com os custos que conhece",
     description:
       "Informe o custo por unidade e quanto deseja ganhar. Você pode calcular sem cadastrar uma ficha.",
@@ -101,6 +110,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Confira as premissas antes de aplicar o preço ao seu produto ou serviço.",
   },
   finance: {
+    helpTitle: "Ajuda com o financeiro",
     title: "Comece pelos movimentos do seu negócio",
     description: "Registre uma entrada ou uma despesa para acompanhar o período.",
     action: "Registrar entrada",
@@ -112,6 +122,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Confira os movimentos e acrescente os gastos que ainda faltam.",
   },
   recurring_expenses: {
+    helpTitle: "Ajuda com gastos fixos",
     title: "Lembre dos custos que se repetem",
     description:
       "Cadastre valor e vencimento mensal de um gasto fixo, conforme os recursos do seu plano.",
@@ -124,6 +135,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Considere esses custos ao analisar o resultado e formar preços.",
   },
   materials: {
+    helpTitle: "Ajuda com materiais",
     title: "Organize o que você utiliza no trabalho",
     description:
       "Cadastre um material e sua unidade de medida. Estoque e custo podem ser completados depois.",
@@ -136,6 +148,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Monte a composição de um produto ou serviço com os materiais utilizados.",
   },
   recipes: {
+    helpTitle: "Ajuda com receitas",
     title: "Entenda o custo de uma produção",
     description:
       "Reúna os materiais consumidos e o rendimento. Se faltar um material, cadastre e continue a ficha.",
@@ -148,6 +161,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Leve o custo apurado para a precificação.",
   },
   packaging: {
+    helpTitle: "Ajuda com embalagens",
     title: "Inclua embalagem e acabamento na conta",
     description:
       "Cadastre o que acompanha cada unidade vendida para reutilizar esse custo no preço.",
@@ -160,6 +174,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Confira o custo total antes de definir seu preço.",
   },
   suppliers: {
+    helpTitle: "Ajuda com fornecedores",
     title: "Tenha seus fornecedores à mão",
     description:
       "Comece pelo nome de quem abastece seu negócio. Contatos e imagem são opcionais.",
@@ -172,6 +187,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Registre uma compra e acompanhe se ela já foi paga.",
   },
   purchases: {
+    helpTitle: "Ajuda com compras",
     title: "Acompanhe suas compras e pagamentos",
     description: "Informe o que comprou e o valor. O fornecedor é opcional.",
     action: "Registrar compra",
@@ -183,6 +199,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Acompanhe as despesas no financeiro.",
   },
   fiado: {
+    helpTitle: "Ajuda com fiado",
     title: "Saiba o que ainda falta receber",
     description:
       "As vendas com saldo em aberto aparecem aqui. Comece registrando a venda a prazo.",
@@ -195,6 +212,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Confira se o saldo restante corresponde ao combinado.",
   },
   quotes: {
+    helpTitle: "Ajuda com orçamentos",
     title: "Prepare uma proposta para seu cliente",
     description:
       "Adicione itens e preços, mesmo sem produtos cadastrados. O cliente é opcional.",
@@ -207,6 +225,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Acompanhe a resposta e transforme a proposta aprovada em pedido.",
   },
   catalog: {
+    helpTitle: "Ajuda com o catálogo",
     title: "Prepare sua vitrine para os clientes",
     description:
       "Escolha produtos ou serviços e confira o contato. Um link publicado pode ainda estar sem conteúdo.",
@@ -219,6 +238,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Compartilhe quando a oferta e o contato estiverem conferidos.",
   },
   labels: {
+    helpTitle: "Ajuda com etiquetas",
     title: "Identifique seus produtos",
     description:
       "Escolha um produto e um modelo de etiqueta. Se faltar o produto, cadastre e retome aqui.",
@@ -231,6 +251,7 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
     next: "Salve para reutilizar a etiqueta nas próximas impressões.",
   },
   insights: {
+    helpTitle: "Ajuda com resultados",
     title: "Entenda seus resultados com registros reais",
     description:
       "Registre suas vendas para acompanhar os gráficos. Sem registros, ainda não há um resultado para analisar.",

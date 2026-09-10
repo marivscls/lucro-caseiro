@@ -1,7 +1,6 @@
 import type { Quote, QuoteStatusType } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
-  Badge,
   Button,
   Card,
   Chip,
@@ -18,12 +17,13 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Image, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import quotesDocument3d from "../assets/orcamentos-documento-3d.png";
 import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useClient } from "../features/clients/hooks";
+import { QuoteDetailContent } from "../features/quotes/components/quote-detail-content";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ContentTransition } from "../shared/components/motion-feedback";
@@ -495,7 +495,6 @@ function QuoteDetail({
   const removeQuote = useDeleteQuote();
   const [convertVisible, setConvertVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const meta = quoteStatusMeta(quote.status);
   const businessName = profile?.businessName ?? profile?.name ?? "Meu negócio";
 
   async function handleWhatsApp() {
@@ -594,201 +593,102 @@ function QuoteDetail({
   }
 
   return (
-    <View style={{ flexShrink: 1, gap: spacing.lg }}>
-      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-        <ContentTransition transitionKey={quote.status} duration={220}>
-          <Badge label={meta.label} variant={meta.variant} />
-        </ContentTransition>
-      </View>
-      {quote.clientName && (
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Cliente: {quote.clientName}
-        </Typography>
-      )}
-
-      <Card>
-        <View style={{ gap: spacing.sm }}>
-          {quote.items.map((item, index) => (
-            <View
-              key={index}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: spacing.md,
-              }}
-            >
-              <Typography variant="body" style={{ flex: 1 }}>
-                {Number.isInteger(item.quantity)
-                  ? item.quantity
-                  : String(item.quantity).replace(".", ",")}
-                x {item.description}
-              </Typography>
-              <Typography variant="bodyBold">
-                {formatCurrency(item.quantity * item.unitPrice)}
-              </Typography>
-            </View>
-          ))}
-          {quote.discount > 0 ? (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  paddingTop: spacing.sm,
-                }}
-              >
-                <Typography variant="body">Subtotal</Typography>
-                <Typography variant="bodyBold">
-                  {formatCurrency(quote.subtotal)}
-                </Typography>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Typography variant="body">Desconto</Typography>
-                <Typography variant="bodyBold" color={theme.colors.success}>
-                  − {formatCurrency(quote.discount)}
-                </Typography>
-              </View>
-            </>
-          ) : null}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              borderTopWidth: 1,
-              borderTopColor: theme.colors.border,
-              paddingTop: spacing.sm,
-              marginTop: spacing.xs,
-            }}
-          >
-            <Typography variant="bodyBold">Total</Typography>
-            <Typography variant="h3" color={theme.colors.success}>
-              {formatCurrency(quote.total)}
-            </Typography>
-          </View>
-        </View>
-      </Card>
-
-      <Card variant="surface">
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="bodyBold">Rentabilidade interna</Typography>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Não aparece no PDF nem no WhatsApp do cliente.
-          </Typography>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="body">Custo estimado</Typography>
-            <Typography variant="bodyBold">
-              {formatCurrency(quote.estimatedCost)}
-            </Typography>
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="body">Ganho estimado</Typography>
-            <Typography
-              variant="bodyBold"
-              color={quote.estimatedGain >= 0 ? theme.colors.success : theme.colors.alert}
-            >
-              {formatCurrency(quote.estimatedGain)}
-            </Typography>
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="body">Margem estimada</Typography>
-            <Typography variant="bodyBold">
-              {quote.estimatedMargin.toFixed(1).replace(".", ",")}%
-            </Typography>
-          </View>
-        </View>
-      </Card>
-
-      {quote.validUntil && (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-          <AppIcon name="calendar-outline" size={16} color={theme.colors.textSecondary} />
-          <Typography variant="caption">
-            Válido até {quote.validUntil.split("-").reverse().join("/")}
-          </Typography>
-        </View>
-      )}
-      {quote.notes && (
-        <Card variant="surface">
-          <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <AppIcon
-              name="chatbubble-ellipses-outline"
-              size={18}
-              color={theme.colors.textSecondary}
+    <>
+      <StandardModal
+        title="Orçamento"
+        visible={!convertVisible}
+        onClose={onClose}
+        right={
+          quote.status === "pending" ? (
+            <Button
+              title="Editar"
+              variant="text"
+              onPress={onEdit}
+              icon={
+                <AppIcon
+                  name="create-outline"
+                  size={16}
+                  color={theme.colors.primaryStrong}
+                />
+              }
             />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Observações
-              </Typography>
-              <Typography variant="body" color={theme.colors.text}>
-                {quote.notes}
-              </Typography>
-            </View>
-          </View>
-        </Card>
-      )}
-
-      {/* Ação primária + ações relevantes por status; o resto vai no menu "Mais ações". */}
-      <View style={{ gap: spacing.md }}>
-        <Button
-          title="Enviar no WhatsApp"
-          variant="successOutline"
-          size="lg"
-          icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />}
-          onPress={() => {
-            void handleWhatsApp();
-          }}
-        />
-        {quote.status === "pending" && (
-          <Button
-            title="Aprovado! Criar encomenda"
-            size="lg"
-            icon={
-              <AppIcon
-                name="checkmark-circle"
-                size={20}
-                color={theme.colors.textOnPrimary}
+          ) : undefined
+        }
+        footer={
+          <View style={{ flex: 1, gap: spacing.sm }}>
+            {quote.status === "pending" && (
+              <Button
+                title="Aprovar e criar encomenda"
+                size="lg"
+                icon={
+                  <AppIcon
+                    name="checkmark-circle"
+                    size={20}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
+                onPress={() => setConvertVisible(true)}
               />
-            }
-            onPress={() => setConvertVisible(true)}
-          />
-        )}
-        {quote.orderId && (
-          <Button
-            title="Ver encomenda na agenda"
-            variant="outline"
-            size="lg"
-            onPress={() => {
-              onClose();
-              router.push("/tabs/agenda");
-            }}
-          />
-        )}
-        <Button
-          title="Mais ações"
-          variant="ghost"
-          size="lg"
-          icon={
-            <AppIcon
-              name="ellipsis-horizontal"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          }
-          onPress={openMoreActions}
+            )}
+            {quote.orderId && (
+              <Button
+                title="Ver encomenda na agenda"
+                size="lg"
+                onPress={() => {
+                  onClose();
+                  router.push("/tabs/agenda");
+                }}
+              />
+            )}
+            <View style={{ flexDirection: "row", gap: spacing.sm }}>
+              <Button
+                title="Enviar no WhatsApp"
+                variant="successOutline"
+                size="lg"
+                style={{ flex: 1 }}
+                icon={
+                  <AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />
+                }
+                onPress={() => {
+                  void handleWhatsApp();
+                }}
+              />
+              <Button
+                title="Mais"
+                accessibilityLabel="Mais ações do orçamento"
+                variant="ghost"
+                size="lg"
+                compact
+                loading={exporting}
+                icon={
+                  <AppIcon
+                    name="ellipsis-horizontal"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                }
+                onPress={openMoreActions}
+              />
+            </View>
+          </View>
+        }
+      >
+        <QuoteDetailContent
+          quote={quote}
+          status={<QuoteStatusChip status={quote.status} />}
         />
-      </View>
-
+      </StandardModal>
       <ConvertModal
         quote={quote}
         visible={convertVisible}
         onClose={() => setConvertVisible(false)}
         onDone={() => setConvertVisible(false)}
       />
-    </View>
+    </>
   );
 }
 
 export default function QuotesScreen() {
-  const { theme } = useTheme();
   const pal = useBrandScreenPalette();
   const router = useRouter();
   const isDesktop = useDesktopLayout();
@@ -991,30 +891,11 @@ export default function QuotesScreen() {
 
       {/* Detalhe */}
       {selected && !editing ? (
-        <StandardModal
-          title={selected.title}
-          visible
-          onClose={() => {
-            setSelectedId(null);
-            setEditing(false);
-          }}
-          wide
-          right={
-            selected.status === "pending" ? (
-              <Pressable onPress={() => setEditing(true)} hitSlop={8}>
-                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                  Editar
-                </Typography>
-              </Pressable>
-            ) : undefined
-          }
-        >
-          <QuoteDetail
-            quote={selected}
-            onClose={() => setSelectedId(null)}
-            onEdit={() => setEditing(true)}
-          />
-        </StandardModal>
+        <QuoteDetail
+          quote={selected}
+          onClose={() => setSelectedId(null)}
+          onEdit={() => setEditing(true)}
+        />
       ) : null}
 
       {/* Editar */}

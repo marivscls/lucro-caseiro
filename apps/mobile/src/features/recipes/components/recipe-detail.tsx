@@ -20,6 +20,7 @@ import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
+  readonly onClose?: () => void;
   readonly onDuplicate?: () => void;
   readonly onEdit?: () => void;
   readonly onDeleted?: () => void;
@@ -29,6 +30,7 @@ const SCALE_OPTIONS = [0.5, 1, 1.5, 2, 3, 5];
 
 export function RecipeDetail({
   recipeId,
+  onClose,
   onDuplicate,
   onEdit,
   onDeleted,
@@ -282,6 +284,7 @@ export function RecipeDetail({
           />
         }
         onPress={() => {
+          onClose?.();
           router.push({
             pathname: "/pricing",
             params: {

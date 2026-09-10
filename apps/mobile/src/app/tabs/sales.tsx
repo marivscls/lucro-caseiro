@@ -302,6 +302,7 @@ function AvatarCircle({ name }: Readonly<{ name: string }>) {
 }
 
 function SalesHeader({
+  help,
   count,
   isDesktop,
   name,
@@ -311,6 +312,7 @@ function SalesHeader({
   isDesktop: boolean;
   name: string;
   receivedTotal: number;
+  help: React.ReactNode;
 }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
@@ -323,6 +325,7 @@ function SalesHeader({
   if (isDesktop)
     return (
       <ScreenHeader
+        help={help}
         title="Vendas"
         subtitle="Acompanhe seus pedidos e recebimentos"
         hideBack
@@ -352,6 +355,7 @@ function SalesHeader({
           <Typography variant="screenTitle">Vendas</Typography>
           <Typography variant="caption">Pedidos e recebimentos</Typography>
         </View>
+        {help}
         <AvatarCircle name={name} />
       </View>
       <View
@@ -1306,11 +1310,21 @@ export default function SalesScreen() {
         backgroundColor: palette.background,
       }}
     >
-      <SalesHeader
-        count={filteredItems?.length ?? 0}
-        isDesktop={isDesktop}
-        name={profile?.name ?? "Maria"}
-        receivedTotal={receivedTotal}
+      <ScreenGuidance
+        renderHeader={(helpButton) => (
+          <SalesHeader
+            help={helpButton}
+            count={filteredItems?.length ?? 0}
+            isDesktop={isDesktop}
+            name={profile?.name ?? "Maria"}
+            receivedTotal={receivedTotal}
+          />
+        )}
+        area="sales"
+        onStart={() => router.push("/tabs/new-sale")}
+        hasRecords={(data?.total ?? 0) > 0}
+        loading={isLoading || !!error}
+        suspended={showFilters || !!selectedSaleId}
       />
       <View
         style={{
@@ -1349,13 +1363,6 @@ export default function SalesScreen() {
             </View>
           ) : null}
 
-          <ScreenGuidance
-            area="sales"
-            onStart={() => router.push("/tabs/new-sale")}
-            hasRecords={(data?.total ?? 0) > 0}
-            loading={isLoading || !!error}
-            suspended={showFilters || !!selectedSaleId}
-          />
           {isDesktop ? (
             <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
           ) : null}

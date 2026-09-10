@@ -10,16 +10,20 @@ import {
   Card,
   Chip,
   Typography,
+  radii,
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useRef, useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError } from "../../../shared/utils/alerts";
+import { isoToBR } from "../../../shared/utils/date";
 import { formatCurrency } from "../../../shared/utils/format";
+import { maskPhoneBR } from "../../../shared/utils/phone";
 import { openWhatsApp } from "../../../shared/utils/whatsapp";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import {
@@ -56,6 +60,7 @@ export function ServiceDashboardModal({
   onNewAppointment,
 }: ServiceDashboardModalProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const insights = useServiceInsights(service.id);
   const bookings = useServiceBookingRequests(service.id);
   const purchases = useServicePackagePurchases(service.id);
@@ -65,14 +70,8 @@ export function ServiceDashboardModal({
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [packagePaymentMethod, setPackagePaymentMethod] = useState<PaymentMethod>("pix");
   const [showClientPicker, setShowClientPicker] = useState(false);
-  const bookingStatusChipStyle = {
-    flexBasis: 96,
-    flexGrow: 1,
-    minWidth: 96,
-    paddingHorizontal: spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  };
+  const profitColor =
+    (insights.data?.profit ?? 0) < 0 ? theme.colors.alert : theme.colors.success;
 
   async function sellPackage(client: Pick<Client, "id" | "name"> | null) {
     if (!client || !selectedPackageId) return;
@@ -105,88 +104,153 @@ export function ServiceDashboardModal({
         visible={visible}
         onClose={onClose}
         title={service.name}
-        subtitle="Atendimentos, resultados, agenda, solicitações e pacotes"
         wide
         footer={
-          <>
-            <Button title="Editar serviço" variant="secondary" onPress={onEdit} />
-            <Button title="Novo atendimento" onPress={onNewAppointment} />
-          </>
+          <View style={[styles.footer, isDesktop && { maxWidth: 440 }]}>
+            <Button
+              title="Editar serviço"
+              variant="outline"
+              style={styles.editButton}
+              onPress={onEdit}
+            />
+            <Button
+              title="Novo atendimento"
+              icon={<AppIcon name="add" size={18} color={theme.colors.textOnPrimary} />}
+              style={styles.createButton}
+              onPress={onNewAppointment}
+            />
+          </View>
         }
       >
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-          {[
-            {
-              label: "Atendimentos",
-              value: String(insights.data?.completedAppointments ?? 0),
-            },
-            {
-              label: "Faturamento",
-              value: formatCurrency(insights.data?.revenue ?? 0),
-            },
-            {
-              label: "Lucro",
-              value: formatCurrency(insights.data?.profit ?? 0),
-            },
-            {
-              label: "Lucro por hora",
-              value: formatCurrency(insights.data?.profitPerHour ?? 0),
-            },
-          ].map((metric) => (
-            <Card
-              key={metric.label}
-              variant="elevated"
-              style={{ flex: 1, minWidth: 150, gap: spacing.xs }}
-            >
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {metric.label}
-              </Typography>
-              <Typography variant="h3">{metric.value}</Typography>
-            </Card>
-          ))}
+        <View style={styles.section}>
+          <Typography variant="bodyBold">Resumo do serviço</Typography>
+          <View style={styles.metrics}>
+            {[
+              {
+                label: "Atendimentos",
+                value: String(insights.data?.completedAppointments ?? 0),
+              },
+              {
+                label: "Faturamento",
+                value: formatCurrency(insights.data?.revenue ?? 0),
+              },
+              {
+                label: "Lucro",
+                value: formatCurrency(insights.data?.profit ?? 0),
+                color: profitColor,
+              },
+              {
+                label: "Lucro por hora",
+                value: formatCurrency(insights.data?.profitPerHour ?? 0),
+              },
+            ].map((metric) => (
+              <View
+                key={metric.label}
+                style={[
+                  styles.metric,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    flexBasis: isDesktop ? "22%" : "45%",
+                  },
+                ]}
+              >
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {metric.label}
+                </Typography>
+                <Typography
+                  variant="money"
+                  color={metric.color ?? theme.colors.text}
+                  style={styles.metricValue}
+                >
+                  {insights.isPending ? "—" : metric.value}
+                </Typography>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={{ gap: spacing.sm }}>
-          <Typography variant="h3">Solicitações de horário</Typography>
+          <View style={styles.sectionHeading}>
+            <Typography variant="bodyBold" style={styles.headingText}>
+              Solicitações de horário
+            </Typography>
+            {bookings.data?.length ? (
+              <Badge label={String(bookings.data.length)} variant="neutral" />
+            ) : null}
+          </View>
           {(bookings.data ?? []).length === 0 ? (
             <Typography variant="body" color={theme.colors.textSecondary}>
               Nenhuma solicitação recebida para este serviço.
             </Typography>
           ) : (
             bookings.data?.map((booking) => (
-              <Card key={booking.id} style={{ gap: spacing.sm }}>
+              <Card
+                key={booking.id}
+                padding="md"
+                variant="elevated"
+                style={styles.bookingCard}
+              >
                 <View
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
-                    gap: spacing.md,
+                    alignItems: "flex-start",
+                    gap: spacing.sm,
                   }}
                 >
-                  <View style={{ flex: 1 }}>
+                  <View style={styles.clientDetails}>
                     <Typography variant="bodyBold">{booking.clientName}</Typography>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      {booking.desiredDate}
-                      {booking.desiredTime ? ` · ${booking.desiredTime}` : ""}
-                      {" · "}
-                      {booking.phone}
-                    </Typography>
                   </View>
                   <Badge
                     label={BOOKING_STATUS[booking.status].label}
                     variant={BOOKING_STATUS[booking.status].variant}
                   />
                 </View>
+                <View style={styles.bookingDetails}>
+                  <View style={styles.detailRow}>
+                    <AppIcon
+                      name="calendar-outline"
+                      size={16}
+                      color={theme.colors.textSecondary}
+                    />
+                    <Typography
+                      variant="caption"
+                      color={theme.colors.text}
+                      style={styles.headingText}
+                    >
+                      {isoToBR(booking.desiredDate)}
+                      {booking.desiredTime
+                        ? ` às ${booking.desiredTime.slice(0, 5)}`
+                        : " · Horário a combinar"}
+                    </Typography>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <AppIcon
+                      name="call-outline"
+                      size={16}
+                      color={theme.colors.textSecondary}
+                    />
+                    <Typography variant="caption" style={styles.headingText}>
+                      {/^\d{10,11}$/.test(booking.phone)
+                        ? maskPhoneBR(booking.phone)
+                        : booking.phone}
+                    </Typography>
+                  </View>
+                </View>
                 {booking.notes ? (
-                  <Typography variant="caption">{booking.notes}</Typography>
+                  <View style={[styles.notes, { borderLeftColor: theme.colors.border }]}>
+                    <Typography variant="caption">{booking.notes}</Typography>
+                  </View>
                 ) : null}
-                <View style={{ gap: spacing.md }}>
+                <View style={{ gap: spacing.sm }}>
                   <Button
-                    title="Chamar no WhatsApp"
+                    title="WhatsApp"
                     variant="successOutline"
+                    style={{ borderRadius: radii.sm, minHeight: 44 }}
                     icon={
                       <AppIcon
                         name="logo-whatsapp"
-                        size={20}
+                        size={18}
                         color={theme.colors.success}
                       />
                     }
@@ -199,9 +263,6 @@ export function ServiceDashboardModal({
                     }}
                   />
                   <View style={{ gap: spacing.xs }}>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Atualizar status
-                    </Typography>
                     <View
                       style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
                     >
@@ -210,7 +271,7 @@ export function ServiceDashboardModal({
                         variant="info"
                         selected={booking.status === "contacted"}
                         disabled={updateBooking.isPending}
-                        style={bookingStatusChipStyle}
+                        style={styles.bookingStatusChip}
                         onPress={() => void changeBookingStatus(booking.id, "contacted")}
                       />
                       <Chip
@@ -218,7 +279,7 @@ export function ServiceDashboardModal({
                         variant="success"
                         selected={booking.status === "confirmed"}
                         disabled={updateBooking.isPending}
-                        style={bookingStatusChipStyle}
+                        style={styles.bookingStatusChip}
                         onPress={() => void changeBookingStatus(booking.id, "confirmed")}
                       />
                       <Chip
@@ -226,11 +287,12 @@ export function ServiceDashboardModal({
                         variant="danger"
                         selected={booking.status === "declined"}
                         disabled={updateBooking.isPending}
-                        style={bookingStatusChipStyle}
+                        style={styles.bookingStatusChip}
                         onPress={() => void changeBookingStatus(booking.id, "declined")}
                       />
                     </View>
-                    {updateBooking.isPending ? (
+                    {updateBooking.isPending &&
+                    updatingBookingIdRef.current === booking.id ? (
                       <Typography variant="caption" color={theme.colors.textSecondary}>
                         Salvando status...
                       </Typography>
@@ -244,7 +306,7 @@ export function ServiceDashboardModal({
 
         {service.packages.length > 0 ? (
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3">Vender pacote</Typography>
+            <Typography variant="bodyBold">Vender pacote</Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
               A venda entra no financeiro; se for fiado, fica pendente para cobrança.
             </Typography>
@@ -288,7 +350,7 @@ export function ServiceDashboardModal({
         ) : null}
 
         <View style={{ gap: spacing.sm }}>
-          <Typography variant="h3">Pacotes ativos</Typography>
+          <Typography variant="bodyBold">Pacotes ativos</Typography>
           {(purchases.data ?? []).filter((item) => item.status === "active").length ===
           0 ? (
             <Typography variant="body" color={theme.colors.textSecondary}>
@@ -310,7 +372,7 @@ export function ServiceDashboardModal({
         </View>
 
         <View style={{ gap: spacing.sm }}>
-          <Typography variant="h3">Histórico recente</Typography>
+          <Typography variant="bodyBold">Histórico recente</Typography>
           {(insights.data?.recentAppointments ?? []).length === 0 ? (
             <Typography variant="body" color={theme.colors.textSecondary}>
               Os atendimentos concluídos aparecerão aqui com valor, custo e cliente.
@@ -328,7 +390,7 @@ export function ServiceDashboardModal({
                   <View style={{ flex: 1 }}>
                     <Typography variant="bodyBold">{appointment.clientName}</Typography>
                     <Typography variant="caption" color={theme.colors.textSecondary}>
-                      {appointment.deliveryDate}
+                      {isoToBR(appointment.deliveryDate)}
                       {appointment.deliveryTime ? ` · ${appointment.deliveryTime}` : ""}
                     </Typography>
                   </View>
@@ -350,3 +412,38 @@ export function ServiceDashboardModal({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  section: { gap: spacing.sm },
+  sectionHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  headingText: { flexShrink: 1, minWidth: 0 },
+  metrics: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  metric: {
+    flexGrow: 1,
+    minWidth: 0,
+    padding: spacing.md,
+    borderRadius: radii.md,
+    gap: spacing.xs,
+  },
+  metricValue: { fontVariant: ["tabular-nums"] },
+  bookingCard: { gap: spacing.sm, borderRadius: radii.lg },
+  clientDetails: { flex: 1, minWidth: 0 },
+  bookingDetails: { gap: spacing.xs },
+  detailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  notes: { borderLeftWidth: 2, paddingLeft: spacing.sm },
+  bookingStatusChip: {
+    flexBasis: 100,
+    flexGrow: 1,
+    minWidth: 100,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.sm,
+  },
+  footer: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  editButton: { flexGrow: 1, flexBasis: 112, minWidth: 112 },
+  createButton: { flexGrow: 2, flexBasis: 164, minWidth: 164 },
+});

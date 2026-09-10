@@ -274,11 +274,11 @@ export function CreateLabelForm({
         footer={
           <View
             style={{
-              flex: 1,
+              width: "100%",
               flexDirection: isDesktop ? "row" : "column",
               gap: spacing.md,
               alignItems: isDesktop ? "center" : "stretch",
-              justifyContent: isDesktop ? "flex-start" : undefined,
+              justifyContent: isDesktop ? "flex-end" : undefined,
               flexWrap: "wrap",
             }}
           >
@@ -307,7 +307,7 @@ export function CreateLabelForm({
                   }
                   setFormStep(formStep + 1);
                 }}
-                style={isDesktop ? { minWidth: 220 } : { alignSelf: "stretch" }}
+                style={isDesktop ? { minWidth: 220 } : { width: "100%" }}
               />
             ) : (
               <>
@@ -348,7 +348,7 @@ export function CreateLabelForm({
           </View>
         }
       >
-        <View style={[{ width: "100%", minWidth: 0 }, split.outer]}>
+        <View style={[{ width: "100%", minWidth: 0, gap: spacing.xl }, split.outer]}>
           <FormStepProgress
             current={formStep}
             steps={LABEL_FORM_STEPS}
@@ -371,13 +371,13 @@ export function CreateLabelForm({
                 {
                   minWidth: 0,
                   alignSelf: "stretch",
-                  gap: isDesktop ? spacing["3xl"] : spacing["2xl"],
+                  gap: spacing.xl,
                 },
                 isDesktop ? split.main : { width: "100%" },
               ]}
             >
               <View
-                style={{ display: formStep === 1 ? "flex" : "none", gap: spacing["2xl"] }}
+                style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.xl }}
                 accessibilityElementsHidden={formStep !== 1}
                 importantForAccessibility={
                   formStep === 1 ? "auto" : "no-hide-descendants"

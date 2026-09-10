@@ -69,6 +69,8 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   const { checkAndBlock: checkRecipeLimit } = useLimitCheck("recipes");
   const showPaywall = usePaywall((s) => s.show);
   const loading = createRecipe.isPending || uploading;
+  const parsedYield = Number(yieldQuantity.replace(",", "."));
+  const isYieldValid = Number.isFinite(parsedYield) && parsedYield > 0;
 
   useEffect(() => {
     if (visible) setFormStep(1);
@@ -78,10 +80,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     {
       name: !name.trim() && "Informe o nome da receita.",
       category: !category.trim() && "Selecione ou informe uma categoria.",
-      yieldQuantity:
-        (!Number.isFinite(Number(yieldQuantity.replace(",", "."))) ||
-          Number(yieldQuantity.replace(",", ".")) <= 0) &&
-        "Informe uma quantidade final maior que zero.",
+      yieldQuantity: !isYieldValid && "Informe uma quantidade final maior que zero.",
       yieldUnit: !yieldUnit.trim() && "Informe a unidade da quantidade final.",
       lines:
         (!lines.some((line) => line.materialId) ||
@@ -99,8 +98,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   async function handleSubmit() {
     if (!formValidation.validate()) {
       if (!name.trim() || !category.trim()) setFormStep(1);
-      else if (!yieldUnit.trim() || Number(yieldQuantity.replace(",", ".")) <= 0)
-        setFormStep(2);
+      else if (!yieldUnit.trim() || !isYieldValid) setFormStep(2);
       else setFormStep(3);
       return;
     }
@@ -113,8 +111,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
       alertValidation("Escolha uma categoria");
       return;
     }
-    const parsedYield = parseFloat(yieldQuantity.replace(",", "."));
-    if (isNaN(parsedYield) || parsedYield <= 0) {
+    if (!isYieldValid) {
       alertValidation(`Informe ${experienceCopy.quantityLabel.toLowerCase()}`);
       return;
     }
@@ -229,7 +226,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
                 }
                 setFormStep(2);
               } else if (formStep === 2) {
-                if (Number(yieldQuantity.replace(",", ".")) <= 0 || !yieldUnit.trim()) {
+                if (!isYieldValid || !yieldUnit.trim()) {
                   alertValidation("Informe o rendimento e a unidade antes de continuar.");
                   return;
                 }
@@ -254,14 +251,6 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           accessibilityElementsHidden={formStep !== 1}
           importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
         >
-          <Typography
-            variant="body"
-            color={theme.colors.textSecondary}
-            style={{ marginTop: -spacing.sm }}
-          >
-            {`Preencha os detalhes da sua ${experienceCopy.formulaNoun}`}
-          </Typography>
-
           <FieldRow
             icon="document-text-outline"
             label={`Nome da ${experienceCopy.formulaNoun}`}

@@ -348,6 +348,7 @@ function LineItemCard({
           label="Qtd."
           value={line.quantity}
           keyboardType="decimal-pad"
+          numericMode="decimal"
           onChangeText={(quantity) => onChange({ ...line, quantity })}
           containerStyle={{ flex: 0.7 }}
         />
@@ -355,6 +356,7 @@ function LineItemCard({
           label="Custo un."
           value={line.unitCost}
           keyboardType="decimal-pad"
+          numericMode="decimal"
           onChangeText={(unitCost) => onChange({ ...line, unitCost })}
           containerStyle={{ flex: 1 }}
         />
@@ -362,6 +364,7 @@ function LineItemCard({
           label="Preço un."
           value={line.unitPrice}
           keyboardType="decimal-pad"
+          numericMode="decimal"
           onChangeText={(unitPrice) => onChange({ ...line, unitPrice })}
           containerStyle={{ flex: 1 }}
         />
@@ -927,6 +930,7 @@ export default function OperationsScreen() {
                 value={numberOne}
                 onChangeText={setNumberOne}
                 keyboardType="decimal-pad"
+                numericMode="decimal"
                 containerStyle={{ flex: 1 }}
               />
             ) : null}
@@ -936,6 +940,7 @@ export default function OperationsScreen() {
                 value={numberTwo}
                 onChangeText={setNumberTwo}
                 keyboardType="decimal-pad"
+                numericMode="decimal"
                 containerStyle={{ flex: 1 }}
               />
             ) : null}
@@ -946,6 +951,7 @@ export default function OperationsScreen() {
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
+              numericMode="decimal"
               containerStyle={{ flex: 1 }}
             />
             <Input
@@ -953,6 +959,7 @@ export default function OperationsScreen() {
               value={cost}
               onChangeText={setCost}
               keyboardType="decimal-pad"
+              numericMode="decimal"
               containerStyle={{ flex: 1 }}
             />
           </View>

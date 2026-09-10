@@ -10,6 +10,7 @@ export {
   lineHeights,
   spacing,
   radii,
+  controlSizes,
   iconSizes,
   buildThemes,
 } from "./theme";
@@ -34,6 +35,7 @@ export {
   useFieldValidationError,
 } from "./components/validation-context";
 export { CenteredTextInput } from "./components/centered-text-input";
+export type { CenteredTextInputProps } from "./components/centered-text-input";
 export { Typography } from "./components/typography";
 export { IconButton } from "./components/icon-button";
 export { Badge } from "./components/badge";

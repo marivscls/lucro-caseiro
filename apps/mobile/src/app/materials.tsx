@@ -18,7 +18,6 @@ import {
   ScrollView,
   View,
   type ImageStyle,
-  type ViewStyle,
   useWindowDimensions,
   TextInput,
 } from "react-native";
@@ -102,40 +101,51 @@ function SummaryMetric({
       style={{
         flex: 1,
         minWidth: 0,
-        alignItems: "flex-start",
-        gap: compact ? 2 : spacing.xs,
+        gap: spacing.xs,
       }}
     >
       <View
         style={{
-          width: compact ? 22 : 26,
-          height: compact ? 22 : 26,
-          borderRadius: radii.full,
-          backgroundColor: background,
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
+          gap: spacing.sm,
         }}
       >
-        <AppIcon
-          name={icon}
-          size={compact ? 14 : 16}
-          color={foreground}
-          strokeWidth={2.4}
-        />
+        <View
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: radii.full,
+            backgroundColor: background,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <AppIcon
+            name={icon}
+            size={compact ? 14 : 16}
+            color={foreground}
+            strokeWidth={2}
+          />
+        </View>
+        <Typography
+          variant="h3"
+          color={palette.onWine}
+          numberOfLines={1}
+          style={{
+            fontSize: compact ? 18 : 20,
+            lineHeight: 26,
+            fontVariant: ["tabular-nums"],
+          }}
+        >
+          {count}
+        </Typography>
       </View>
-      <Typography
-        variant="h3"
-        color={palette.onWine}
-        numberOfLines={1}
-        style={{ fontSize: compact ? 14 : 16, lineHeight: compact ? 18 : 20 }}
-      >
-        {count}
-      </Typography>
       <Typography
         variant="caption"
         color={palette.onWine}
         numberOfLines={1}
-        style={{ fontSize: compact ? 10 : 11, lineHeight: compact ? 13 : 14 }}
+        style={{ fontSize: compact ? 11 : 12, lineHeight: 18, opacity: 0.8 }}
       >
         {label}
       </Typography>
@@ -148,10 +158,8 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
   const palette = brandScreenPalette(theme);
   const { width } = useWindowDimensions();
   const narrow = width < 360;
-  const imageWidth = width >= 1024 ? 248 : Math.min(196, Math.max(150, width * 0.36));
-  const artReserve = Math.round(imageWidth * 0.64);
-  let cardHeight = narrow ? 312 : 328;
-  if (width >= 1024) cardHeight = 308;
+  let imageWidth = narrow ? 120 : 148;
+  if (width >= 1024) imageWidth = 160;
   const counts = items.reduce(
     (acc, material) => {
       acc[getStockStatus(material)] += 1;
@@ -169,37 +177,32 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
       style={{
         position: "relative",
         overflow: "hidden",
-        minHeight: cardHeight,
+        flexShrink: 0,
         borderRadius: radii["2xl"],
         backgroundColor: palette.wineFill,
-        padding: narrow ? spacing.lg : spacing.xl,
       }}
     >
       <View
         style={{
-          position: "relative",
-          zIndex: 2,
-          flexDirection: "row",
-          alignItems: "flex-start",
+          minHeight: width >= 1024 ? 180 : 158,
+          justifyContent: "center",
+          padding: narrow ? spacing.lg : spacing.xl,
+          paddingRight: imageWidth - spacing.sm,
         }}
       >
         <View
           style={{
-            flex: 1,
             minWidth: 0,
-            paddingRight: spacing.sm,
-            gap: spacing.md,
+            zIndex: 2,
+            gap: spacing.xs,
           }}
         >
-          <Typography variant="h3" color={palette.onWine} numberOfLines={1}>
-            Seu estoque hoje
+          <Typography variant="caption" color={palette.onWine} style={{ opacity: 0.8 }}>
+            Valor em estoque
           </Typography>
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "baseline",
-              flexWrap: "wrap",
-              columnGap: spacing.md,
+              alignItems: "flex-start",
             }}
           >
             <Typography
@@ -208,78 +211,63 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.72}
+              style={{
+                fontSize: narrow ? 28 : 32,
+                lineHeight: 42,
+                letterSpacing: -1,
+                fontVariant: ["tabular-nums"],
+              }}
             >
               {moneyFormatter.format(totalValue)}
-            </Typography>
-            <Typography
-              variant="caption"
-              color={palette.onWine}
-              style={{ fontSize: narrow ? 11 : 12 }}
-            >
-              em estoque
             </Typography>
           </View>
           <Typography
             variant="body"
             color={palette.onWine}
-            style={{ fontSize: narrow ? 12 : fontSizes.sm }}
+            style={{ fontSize: 12, lineHeight: 18, opacity: 0.8, marginTop: spacing.xs }}
           >
             {items.length}{" "}
             {items.length === 1 ? "material cadastrado" : "materiais cadastrados"}
           </Typography>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "flex-start",
-              gap: narrow ? spacing.xs : spacing.sm,
-              marginTop: spacing.sm,
-              maxWidth: "100%",
-            }}
-          >
-            <SummaryMetric
-              count={counts.ok}
-              label="em dia"
-              status="ok"
-              compact={narrow}
-            />
-            <SummaryMetric
-              count={counts.attention}
-              label="atenção"
-              status="attention"
-              compact={narrow}
-            />
-            <SummaryMetric
-              count={counts.low}
-              label="baixo"
-              status="low"
-              compact={narrow}
-            />
-          </View>
         </View>
-        <View pointerEvents="none" style={{ width: artReserve, flexShrink: 0 }} />
-      </View>
-      <View
-        pointerEvents="none"
-        style={
-          {
+        <View
+          pointerEvents="none"
+          style={{
             position: "absolute",
-            right: -18,
-            bottom: -Math.round(imageWidth * 0.16),
+            right: -spacing.sm,
+            bottom: -spacing.md,
             width: imageWidth,
             height: imageWidth * (1328 / 1184),
-            objectFit: "contain",
-            zIndex: 1,
-            userSelect: "none",
-          } as ViewStyle & { userSelect: "none" }
-        }
+          }}
+        >
+          <Image
+            source={pantryIllustration}
+            resizeMode="contain"
+            accessibilityLabel="Sacola com farinha, leite e chocolate"
+            accessibilityIgnoresInvertColors
+            style={{ width: "100%", height: "100%" } as ImageStyle}
+          />
+        </View>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: spacing.md,
+          paddingHorizontal: narrow ? spacing.lg : spacing.xl,
+          paddingVertical: spacing.md,
+          borderTopWidth: 1,
+          borderTopColor: "rgba(255, 255, 255, 0.12)",
+          backgroundColor: palette.wineFill,
+        }}
       >
-        <Image
-          source={pantryIllustration}
-          resizeMode="contain"
-          accessibilityLabel="Sacola com farinha, leite e chocolate"
-          accessibilityIgnoresInvertColors
-          style={{ width: "100%", height: "100%" } as ImageStyle}
+        <SummaryMetric count={counts.ok} label="em dia" status="ok" compact={narrow} />
+        <SummaryMetric
+          count={counts.attention}
+          label="atenção"
+          status="attention"
+          compact={narrow}
         />
+        <SummaryMetric count={counts.low} label="baixo" status="low" compact={narrow} />
       </View>
     </View>
   );
@@ -311,7 +299,8 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
       accessibilityRole="button"
       accessibilityLabel="Ver lista de compras de materiais"
       style={({ pressed }) => ({
-        minHeight: 78,
+        minHeight: 96,
+        flexShrink: 0,
         borderRadius: radii.xl,
         borderWidth: 1,
         borderColor: palette.border,
@@ -321,44 +310,41 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.md,
-        opacity: pressed ? 0.72 : 1,
+        opacity: pressed ? 0.88 : 1,
+        transform: [{ scale: pressed ? 0.96 : 1 }],
       })}
     >
       <View
         style={{
-          width: 44,
-          height: 44,
+          width: 36,
+          height: 36,
+          flexShrink: 0,
           borderRadius: radii.full,
-          backgroundColor: palette.rose,
+          backgroundColor: palette.white,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <AppIcon name="warning-outline" size={23} color={palette.onRose} />
+        <AppIcon name="warning-outline" size={20} color={palette.wine} />
       </View>
       <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-        <Typography
-          variant="bodyBold"
-          color={palette.ink}
-          numberOfLines={2}
-          style={{ fontSize: 14 }}
-        >
+        <Typography variant="bodyBold" color={palette.ink} style={{ fontSize: 14 }}>
           {title}
         </Typography>
         <Typography variant="caption" color={palette.muted} style={{ fontSize: 12 }}>
           {lowItems.length} {lowItems.length === 1 ? "item precisa" : "itens precisam"} de
           reposição
         </Typography>
+        <Typography
+          variant="bodyBold"
+          color={palette.wine}
+          numberOfLines={1}
+          style={{ fontSize: 12, marginTop: spacing.xs }}
+        >
+          Ver lista de compras
+        </Typography>
       </View>
-      <Typography
-        variant="bodyBold"
-        color={palette.rose}
-        numberOfLines={1}
-        style={{ fontSize: 13 }}
-      >
-        Ver lista
-      </Typography>
-      <AppIcon name="chevron-forward" size={22} color={palette.rose} />
+      <AppIcon name="chevron-forward" size={20} color={palette.wine} />
     </Pressable>
   );
 }
@@ -405,8 +391,8 @@ function PantrySkeleton() {
   const palette = brandScreenPalette(theme);
   return (
     <View style={{ gap: spacing.lg }}>
-      <Skeleton height={224} borderRadius={radii["2xl"]} />
-      <Skeleton height={78} borderRadius={radii.xl} />
+      <Skeleton height={234} borderRadius={radii["2xl"]} />
+      <Skeleton height={106} borderRadius={radii.xl} />
       <Skeleton height={58} borderRadius={radii.xl} />
       <View style={{ flexDirection: "row", gap: spacing.sm }}>
         <Skeleton width={106} height={44} borderRadius={radii.full} />
@@ -735,31 +721,17 @@ function MaterialsScreenContent() {
             >
               <AppIcon name="options-outline" size={24} color={palette.rose} />
             </Pressable>
-            <FAB
-              icon="add"
-              header
-              accessibilityLabel="Novo material"
-              onPress={() => setShowCreate(true)}
-            />
+            {isDesktop ? (
+              <FAB
+                icon="add"
+                header
+                accessibilityLabel="Novo material"
+                onPress={() => setShowCreate(true)}
+              />
+            ) : null}
           </View>
         }
       />
-      {!isDesktop ? (
-        <Typography
-          variant="caption"
-          color={palette.muted}
-          numberOfLines={1}
-          style={{
-            paddingLeft: (compactHeader ? spacing.md : spacing.xl) + 44 + spacing.md,
-            paddingRight: compactHeader ? spacing.md : spacing.xl,
-            paddingBottom: spacing.md,
-            fontSize: compactHeader ? 11 : 12,
-          }}
-        >
-          Saiba o que tem, o que falta e o que repor.
-        </Typography>
-      ) : null}
-
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
@@ -772,6 +744,11 @@ function MaterialsScreenContent() {
           gap: spacing.lg,
         }}
       >
+        {!isDesktop ? (
+          <Typography variant="caption" color={palette.muted}>
+            Saiba o que tem, o que falta e o que repor.
+          </Typography>
+        ) : null}
         {renderBody()}
       </ScrollView>
 

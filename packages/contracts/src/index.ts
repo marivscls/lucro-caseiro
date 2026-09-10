@@ -1,4 +1,5 @@
 export * from "./schemas/common";
+export * from "./user-errors";
 export * from "./schemas/product";
 export * from "./schemas/client";
 export * from "./schemas/sale";

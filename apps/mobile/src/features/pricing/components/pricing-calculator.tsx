@@ -1,3 +1,4 @@
+import { ScreenHeader } from "../../../shared/components/screen-header";
 import { ScreenGuidance } from "../../../shared/guidance/screen-guidance";
 import type { PricingChannelFee } from "@lucro-caseiro/contracts";
 import { formatCurrency } from "../../../shared/utils/format";
@@ -830,6 +831,9 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   return (
     <>
       <ScreenGuidance
+        renderHeader={(helpButton) => (
+          <ScreenHeader title="Precificação" hideBack help={helpButton} />
+        )}
         area="pricing"
         onStart={() => {
           setGuidanceStarted(true);
@@ -1418,6 +1422,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                       else if (t === "") setMarginPercent(0);
                     }}
                     keyboardType="numeric"
+                    numericMode="integer"
                     style={{ flex: 1, color: theme.colors.text, fontSize: 16 }}
                   />
                   <Typography variant="body" color={theme.colors.textSecondary}>
@@ -1535,6 +1540,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                         })
                       }
                       keyboardType="decimal-pad"
+                      numericMode="decimal"
                       style={{ flex: 1, color: theme.colors.text }}
                     />
                     <Typography variant="caption" color={theme.colors.textSecondary}>

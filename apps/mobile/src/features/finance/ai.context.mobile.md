@@ -110,6 +110,11 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 ## Change log / Decisions
 
+- 2026-09-10: modal de criação/edição de gastos fixos (`app/recurring-expenses`)
+  tem descrição, valor e dia agrupados, categorias em duas colunas com estado
+  selecionado acessível na web, resumo da recorrência e uma ação principal fixa.
+  Mantém máscara monetária, limite de dia entre 1 e 28 e contratos de salvamento.
+
 - 2026-09-09: **Gastos fixos com leitura mais direta** — o resumo mensal preserva o card vinho
   com a ilustração de calendário e a linha de vencimentos, pois esse conjunto dá identidade e
   contexto à tela. A lista remove prefixos técnicos como `[massa]`, coloca o próximo vencimento

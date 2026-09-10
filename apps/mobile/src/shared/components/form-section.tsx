@@ -42,8 +42,8 @@ export function FormSection({
   return (
     <View
       style={{
-        borderRadius: radii.xl,
-        borderWidth: 1,
+        borderRadius: collapsible ? radii.xl : 0,
+        borderWidth: collapsible ? 1 : 0,
         borderColor: theme.colors.border,
         backgroundColor: theme.colors.surfaceElevated,
         overflow: "hidden",
@@ -61,7 +61,7 @@ export function FormSection({
             alignItems: "center",
             gap: spacing.md,
             minHeight: 52,
-            paddingHorizontal: spacing.lg,
+            paddingHorizontal: collapsible ? spacing.lg : 0,
             paddingVertical: spacing.md,
             opacity: pressed ? 0.85 : 1,
           },
@@ -90,8 +90,8 @@ export function FormSection({
       <AnimatedDisclosure
         open={expanded}
         style={{
-          paddingHorizontal: spacing.lg,
-          paddingBottom: spacing.lg,
+          paddingHorizontal: collapsible ? spacing.lg : 0,
+          paddingBottom: collapsible ? spacing.lg : 0,
           gap: spacing.md,
         }}
       >

@@ -1,4 +1,3 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
@@ -27,7 +26,6 @@ import {
   RefreshControl,
   ScrollView,
   View,
-  type TextInputProps,
   type ViewStyle,
   useWindowDimensions,
 } from "react-native";
@@ -50,16 +48,16 @@ import { LimitBanner } from "../../features/subscription/components/limit-banner
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
-import { brToIso, maskDateBR } from "../../shared/utils/date";
+import { brToIso } from "../../shared/utils/date";
 import { phoneDuplicateKey } from "../../shared/utils/duplicates";
-import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
+import { isValidBrazilPhone } from "../../shared/utils/phone";
 import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { FAB } from "../../shared/components/fab";
 import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
-import { CalendarModal } from "../../shared/components/calendar-modal";
+import { ClientFormFields } from "../../features/clients/components/client-form-fields";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
 import {
   desktopStretch,
@@ -847,70 +845,74 @@ function ClientsListScreen({
           }}
         >
           <View style={{ gap: isDesktop ? 0 : spacing.xl }}>
-            {isDesktop ? (
-              <ScreenHeader
-                title="Clientes"
-                subtitle={clientsSubtitle}
-                hideBack
-                right={
-                  <FAB
-                    icon="add"
-                    header
-                    accessibilityLabel="Novo cliente"
-                    onPress={onCreatePress}
+            <ScreenGuidance
+              renderHeader={(helpButton) =>
+                isDesktop ? (
+                  <ScreenHeader
+                    help={helpButton}
+                    title="Clientes"
+                    subtitle={clientsSubtitle}
+                    hideBack
+                    right={
+                      <FAB
+                        icon="add"
+                        header
+                        accessibilityLabel="Novo cliente"
+                        onPress={onCreatePress}
+                      />
+                    }
                   />
-                }
-              />
-            ) : (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: isDesktop ? spacing.md : spacing.sm,
-                }}
-              >
-                {!isDesktop ? (
-                  <Pressable
-                    onPress={onBack}
-                    accessibilityRole="button"
-                    accessibilityLabel="Voltar"
-                    hitSlop={10}
+                ) : (
+                  <View
                     style={{
-                      width: 44,
-                      height: 44,
-                      alignItems: "flex-start",
-                      justifyContent: "center",
-                      flexShrink: 0,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: isDesktop ? spacing.md : spacing.sm,
                     }}
                   >
-                    <AppIcon name="chevron-back" size={28} color={pal.wine} />
-                  </Pressable>
-                ) : null}
-                <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                  <Typography variant="screenTitle" color={pal.wine} numberOfLines={1}>
-                    Clientes
-                  </Typography>
-                  <Typography variant="body" color={pal.muted} numberOfLines={1}>
-                    {clientsSubtitle}
-                  </Typography>
-                </View>
+                    {!isDesktop ? (
+                      <Pressable
+                        onPress={onBack}
+                        accessibilityRole="button"
+                        accessibilityLabel="Voltar"
+                        hitSlop={10}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          alignItems: "flex-start",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <AppIcon name="chevron-back" size={28} color={pal.wine} />
+                      </Pressable>
+                    ) : null}
+                    <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                      <Typography
+                        variant="screenTitle"
+                        color={pal.wine}
+                        numberOfLines={1}
+                      >
+                        Clientes
+                      </Typography>
+                      <Typography variant="body" color={pal.muted} numberOfLines={1}>
+                        {clientsSubtitle}
+                      </Typography>
+                    </View>
 
-                <FAB
-                  icon="add"
-                  accessibilityLabel="Novo cliente"
-                  onPress={onCreatePress}
-                  style={{
-                    width: 52,
-                    height: 52,
-                    minWidth: 52,
-                    backgroundColor: pal.rose,
-                  }}
-                />
-              </View>
-            )}
-
-            <ScreenGuidance
+                    {helpButton}
+                    <FAB
+                      icon="add"
+                      accessibilityLabel="Novo cliente"
+                      onPress={onCreatePress}
+                      style={{
+                        backgroundColor: pal.rose,
+                      }}
+                    />
+                  </View>
+                )
+              }
               area="clients"
               onStart={onCreatePress}
               hasRecords={totalClients > 0}
@@ -1033,110 +1035,6 @@ function ClientsListScreen({
   );
 }
 
-interface NewClientFieldProps extends TextInputProps {
-  icon: AppIconName;
-  label: string;
-  required?: boolean;
-  trailingIcon?: AppIconName;
-  trailingLabel?: string;
-  onTrailingPress?: () => void;
-  tall?: boolean;
-  count?: string;
-}
-
-function NewClientField({
-  icon,
-  label,
-  required = false,
-  trailingIcon,
-  trailingLabel,
-  onTrailingPress,
-  tall,
-  count,
-  style,
-  ...inputProps
-}: Readonly<NewClientFieldProps>) {
-  const { theme } = useTheme();
-  const pal = useBrandScreenPalette();
-
-  return (
-    <View
-      style={[
-        surfaceStyle(pal, {
-          minHeight: tall ? 108 : 72,
-          borderRadius: radii.xl,
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
-          flexDirection: "row",
-          gap: spacing.md,
-        }),
-      ]}
-    >
-      <View
-        style={{
-          width: 42,
-          height: 48,
-          borderRadius: radii.xl,
-          backgroundColor: pal.surface,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <AppIcon name={icon} size={24} color={pal.muted} />
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          variant="bodyBold"
-          color={pal.ink}
-          style={{ fontSize: fontSizes.md, marginBottom: 0 }}
-        >
-          {label}
-          {required ? (
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              {" *"}
-            </Typography>
-          ) : null}
-        </Typography>
-        <CenteredTextInput
-          placeholderTextColor={pal.muted}
-          style={[
-            {
-              color: pal.ink,
-              fontSize: fontSizes.md,
-              lineHeight: 22,
-              padding: 0,
-              minHeight: tall ? 50 : 24,
-              textAlignVertical: "center",
-            },
-            style,
-          ]}
-          {...inputProps}
-        />
-      </View>
-      {trailingIcon ? (
-        <Pressable
-          onPress={onTrailingPress}
-          disabled={!onTrailingPress}
-          accessibilityLabel={trailingLabel}
-          hitSlop={10}
-          style={{ alignSelf: "center", opacity: onTrailingPress ? 1 : 0.9 }}
-        >
-          <AppIcon name={trailingIcon} size={23} color={pal.muted} />
-        </Pressable>
-      ) : null}
-      {count ? (
-        <Typography
-          variant="caption"
-          color={pal.muted}
-          style={{ position: "absolute", right: spacing.lg, bottom: spacing.sm }}
-        >
-          {count}
-        </Typography>
-      ) : null}
-    </View>
-  );
-}
-
 interface NewClientModalProps {
   visible: boolean;
   onClose: () => void;
@@ -1144,13 +1042,11 @@ interface NewClientModalProps {
 
 function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const { theme } = useTheme();
-  const pal = useBrandScreenPalette();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [birthday, setBirthday] = useState("");
   const [notes, setNotes] = useState("");
-  const [calendarVisible, setCalendarVisible] = useState(false);
   const submittingRef = useRef(false);
   const createClient = useCreateClient();
   const { checkAndBlock: checkClientLimit } = useLimitCheck("clients");
@@ -1269,141 +1165,46 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   }
 
   return (
-    <>
-      <StandardModal
-        title="Novo cliente"
-        visible={visible}
-        onClose={close}
-        footer={
-          <Button
-            title="Cadastrar cliente"
-            size="lg"
-            onPress={() => {
-              void handleCreate();
-            }}
-            disabled={createClient.isPending}
-            loading={createClient.isPending}
-            icon={
-              <AppIcon
-                name="person-add-outline"
-                size={20}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            style={{ flex: 1 }}
-          />
-        }
-      >
-        <View style={{ flexShrink: 1, gap: spacing.md }}>
-          <View
-            style={[
-              surfaceStyle(pal, {
-                borderRadius: radii.lg,
-                minHeight: 74,
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.md,
-                borderLeftWidth: 3,
-                borderLeftColor: pal.wine,
-                marginTop: spacing.sm,
-              }),
-            ]}
-          >
-            <View
-              style={{
-                width: 42,
-                height: 48,
-                borderRadius: radii.xl,
-                backgroundColor: pal.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="person-add-outline" size={24} color={pal.muted} />
-            </View>
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Typography
-                variant="bodyBold"
-                color={pal.ink}
-                style={{ fontSize: fontSizes.md }}
-              >
-                Preencha os dados do cliente.
-              </Typography>
-              <Typography
-                variant="body"
-                color={pal.muted}
-                style={{ fontSize: fontSizes.sm }}
-              >
-                Campos opcionais ajudam a personalizar o cadastro.
-              </Typography>
-            </View>
-          </View>
-
-          <ValidationField {...formValidation.field("name")}>
-            <NewClientField
-              icon="person-outline"
-              label="Nome do cliente"
-              required
-              placeholder="Ex: Maria Silva, João Pereira..."
-              value={name}
-              onChangeText={setName}
-              autoFocus
+    <StandardModal
+      title="Novo cliente"
+      subtitle="Só o nome é obrigatório. Complete o restante quando quiser."
+      visible={visible}
+      onClose={close}
+      dismissDisabled={createClient.isPending}
+      footer={
+        <Button
+          title="Cadastrar cliente"
+          size="lg"
+          onPress={() => {
+            void handleCreate();
+          }}
+          disabled={createClient.isPending}
+          loading={createClient.isPending}
+          icon={
+            <AppIcon
+              name="person-add-outline"
+              size={20}
+              color={theme.colors.textOnPrimary}
             />
-          </ValidationField>
-          <NewClientField
-            icon="call-outline"
-            label="Telefone (opcional)"
-            placeholder="Ex: (11) 99999-9999"
-            value={phone}
-            onChangeText={(value) => setPhone(maskPhoneBR(value))}
-            keyboardType="phone-pad"
-          />
-          <NewClientField
-            icon="location-outline"
-            label="Endereço (opcional)"
-            placeholder="Ex: Rua das Flores, 123"
-            value={address}
-            onChangeText={setAddress}
-          />
-          <NewClientField
-            icon="calendar-outline"
-            label="Data de nascimento (opcional)"
-            placeholder="DD/MM/AAAA"
-            value={birthday}
-            onChangeText={(value) => setBirthday(maskDateBR(value))}
-            keyboardType="number-pad"
-            trailingIcon="calendar-outline"
-            trailingLabel="Abrir calendário"
-            onTrailingPress={() => setCalendarVisible(true)}
-          />
-          <NewClientField
-            icon="document-text-outline"
-            label="Observações (opcional)"
-            placeholder="Anotações sobre o cliente..."
-            value={notes}
-            onChangeText={(value) => setNotes(value.slice(0, 200))}
-            multiline
-            tall
-            maxLength={200}
-            count={`${notes.length}/200`}
-          />
-          <Typography variant="body" color={pal.muted} style={{ fontSize: fontSizes.sm }}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              *
-            </Typography>{" "}
-            Campos obrigatórios
-          </Typography>
-        </View>
-      </StandardModal>
-      <CalendarModal
-        visible={calendarVisible}
-        value={birthday}
-        onClose={() => setCalendarVisible(false)}
-        onSelect={setBirthday}
+          }
+          style={{ flex: 1 }}
+        />
+      }
+    >
+      <ClientFormFields
+        name={name}
+        phone={phone}
+        address={address}
+        birthday={birthday}
+        notes={notes}
+        onNameChange={setName}
+        onPhoneChange={setPhone}
+        onAddressChange={setAddress}
+        onBirthdayChange={setBirthday}
+        onNotesChange={setNotes}
+        nameValidation={formValidation.field("name")}
       />
-    </>
+    </StandardModal>
   );
 }
 

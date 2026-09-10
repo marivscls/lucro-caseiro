@@ -1,18 +1,11 @@
 import React from "react";
-import {
-  Platform,
-  Text,
-  View,
-  type TextInputProps,
-  type TextStyle,
-  type ViewStyle,
-} from "react-native";
+import { Platform, Text, View, type TextStyle, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes, radii, spacing } from "../theme";
-import { CenteredTextInput } from "./centered-text-input";
+import { controlSizes, fonts, fontSizes, radii, spacing } from "../theme";
+import { CenteredTextInput, type CenteredTextInputProps } from "./centered-text-input";
 
-interface InputProps extends TextInputProps {
+interface InputProps extends CenteredTextInputProps {
   label?: string;
   error?: string;
   icon?: React.ReactNode;
@@ -45,7 +38,7 @@ export function Input({
         <Text
           style={{
             fontSize: fontSizes.sm,
-            color: theme.colors.textSecondary,
+            color: theme.colors.text,
             fontFamily: fonts.semiBold,
           }}
         >
@@ -66,17 +59,13 @@ export function Input({
       >
         {icon}
         <CenteredTextInput
-          placeholderTextColor={
-            theme.mode === "dark"
-              ? theme.colors.textSecondary
-              : theme.colors.textSecondary + "80"
-          }
+          placeholderTextColor={theme.colors.textSecondary}
           multiline={multiline}
           style={[
             {
               flex: 1,
               // Denso sem sacrificar o alvo de toque recomendado.
-              height: 48,
+              height: controlSizes.large,
               fontSize: fontSizes.md,
               fontFamily: fonts.regular,
               color: theme.colors.text,

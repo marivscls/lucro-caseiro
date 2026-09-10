@@ -81,6 +81,7 @@ export function VariationEditor({
             label="Estoque"
             placeholder="0"
             keyboardType="number-pad"
+            numericMode="integer"
             value={
               variation.stockQuantity === undefined ? "" : String(variation.stockQuantity)
             }

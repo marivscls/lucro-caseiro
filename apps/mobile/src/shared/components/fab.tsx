@@ -10,12 +10,19 @@ import {
   type ViewStyle,
 } from "react-native";
 
-import { iconSizes, radii, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
+import {
+  controlSizes,
+  iconSizes,
+  radii,
+  spacing,
+  Typography,
+  useTheme,
+} from "@lucro-caseiro/ui";
 
 export type FABProps = Readonly<
   {
     icon: AppIconName;
-    /** Texto do FAB estendido; sem label vira o círculo clássico de 56px. */
+    /** Texto do FAB estendido; sem label vira um círculo de 44px. */
     label?: string;
     /** Variante compacta para a área de ações do ScreenHeader. */
     header?: boolean;
@@ -26,7 +33,7 @@ export type FABProps = Readonly<
 
 /**
  * FAB canônico do app: fundo `primaryInteractive` (AA), sombra
- * `theme.shadows.md`, ícone `iconSizes.md`, 56px de altura. Use no lugar dos
+ * `theme.shadows.md`, 44px de altura (40px no cabeçalho). Use no lugar dos
  * botões flutuantes montados à mão em cada tela.
  */
 export const FAB = React.forwardRef<View, FABProps>(function FAB(
@@ -44,10 +51,11 @@ export const FAB = React.forwardRef<View, FABProps>(function FAB(
       ref={ref}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      hitSlop={4}
       style={({ pressed }) => [
         {
-          height: header ? 44 : 52,
-          minWidth: header ? 44 : 52,
+          height: header ? controlSizes.compact : controlSizes.regular,
+          minWidth: header ? controlSizes.compact : controlSizes.regular,
           paddingHorizontal: horizontalPadding,
           borderRadius: radii.full,
           backgroundColor: theme.colors.primaryInteractive,
@@ -74,7 +82,11 @@ export const FAB = React.forwardRef<View, FABProps>(function FAB(
       ]}
       {...props}
     >
-      <AppIcon name={icon} size={iconSizes.md} color={theme.colors.textOnPrimary} />
+      <AppIcon
+        name={icon}
+        size={isDesktop ? iconSizes.md : 20}
+        color={theme.colors.textOnPrimary}
+      />
       {displayLabel ? (
         <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           {displayLabel}

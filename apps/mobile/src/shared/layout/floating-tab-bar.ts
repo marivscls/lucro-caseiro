@@ -2,9 +2,9 @@ import { spacing } from "@lucro-caseiro/ui";
 import { Platform } from "react-native";
 
 export const FLOATING_TAB_BAR_HEIGHT = Platform.select({
-  ios: 88,
-  web: 72,
-  default: 76,
+  ios: 80,
+  web: 64,
+  default: 68,
 });
 
 export function floatingTabBarBottomOffset(bottomInset: number): number {

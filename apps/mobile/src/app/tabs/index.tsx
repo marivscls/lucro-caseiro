@@ -973,41 +973,46 @@ export default function HomeScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {isDesktop ? (
-          <ScreenHeader
-            title={`Olá, ${firstName}!`}
-            subtitle={formattedDate()}
-            hideBack
-          />
-        ) : (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Typography
-                variant="homeTitle"
-                color={brand.id === "lucro-caseiro" ? colors.wine : theme.colors.text}
-              >
-                Olá, {firstName}!
-              </Typography>
-              <Typography variant="homeBody" style={{ marginTop: 2 }}>
-                {formattedDate()}
-              </Typography>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Minha conta"
-              hitSlop={8}
-              onPress={() => router.push("/settings")}
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <AvatarCircle
-                name={profile?.name ?? firstName}
-                avatarUrl={profile?.avatarUrl}
-              />
-            </Pressable>
-          </View>
-        )}
-
         <ScreenGuidance
+          renderHeader={(helpButton) =>
+            isDesktop ? (
+              <ScreenHeader
+                help={helpButton}
+                title={`Olá, ${firstName}!`}
+                subtitle={formattedDate()}
+                hideBack
+              />
+            ) : (
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}
+              >
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    variant="homeTitle"
+                    color={brand.id === "lucro-caseiro" ? colors.wine : theme.colors.text}
+                  >
+                    Olá, {firstName}!
+                  </Typography>
+                  <Typography variant="homeBody" style={{ marginTop: 2 }}>
+                    {formattedDate()}
+                  </Typography>
+                </View>
+                {helpButton}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Minha conta"
+                  hitSlop={8}
+                  onPress={() => router.push("/settings")}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                >
+                  <AvatarCircle
+                    name={profile?.name ?? firstName}
+                    avatarUrl={profile?.avatarUrl}
+                  />
+                </Pressable>
+              </View>
+            )
+          }
           area="home"
           onStart={() =>
             router.push(

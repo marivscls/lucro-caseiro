@@ -31,6 +31,7 @@ export function PricingField({
         accessibilityLabel={label}
         value={value}
         keyboardType="decimal-pad"
+        numericMode={money ? undefined : "decimal"}
         placeholder="0"
         onChangeText={(text) =>
           onChange(money ? maskCurrencyInput(text) : text.replace(/[^0-9,.]/g, ""))

@@ -351,6 +351,7 @@ export function RecipeMaterialsEditor({
                     value={line.quantity}
                     onChangeText={(v) => updateLine(index, { quantity: v })}
                     keyboardType="decimal-pad"
+                    numericMode="decimal"
                   />
                 </View>
                 <View style={{ paddingBottom: spacing.md }}>

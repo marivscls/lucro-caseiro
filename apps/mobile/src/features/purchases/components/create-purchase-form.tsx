@@ -121,7 +121,9 @@ export function CreatePurchaseForm({
   const [supplierId, setSupplierId] = useState<string | null>(source?.supplierId ?? null);
   const [description, setDescription] = useState(source?.description ?? "");
   const [amount, setAmount] = useState(
-    source && source.items.length === 0 ? currencyInput(source.amount) : "",
+    source && (!stockPurchaseEnabled || source.items.length === 0)
+      ? currencyInput(source.amount)
+      : "",
   );
   const [category, setCategory] = useState<PurchaseCategoryValue>(
     (source?.category as PurchaseCategoryValue | undefined) ?? "material",
@@ -129,9 +131,11 @@ export function CreatePurchaseForm({
   const [date, setDate] = useState(purchase ? isoToBR(purchase.purchasedAt) : todayBR());
   const [alreadyPaid, setAlreadyPaid] = useState(false);
   const [formStep, setFormStep] = useState(1);
-  const [receiveStock, setReceiveStock] = useState(
+  const [stockRequested, setReceiveStock] = useState(
     source ? source.items.length > 0 : stockPurchaseEnabled,
   );
+  const receiveStock = stockPurchaseEnabled && stockRequested;
+  const incompatibleEdit = !!purchase?.items.length && !stockPurchaseEnabled;
   const [items, setItems] = useState<PurchaseItemDraft[]>(() =>
     purchaseItemDrafts(source),
   );
@@ -207,6 +211,7 @@ export function CreatePurchaseForm({
   });
 
   async function handleSubmit() {
+    if (incompatibleEdit) return;
     if (!description.trim()) setFormStep(1);
     else if (
       (!receiveStock && parseCurrencyInput(amount) <= 0) ||
@@ -297,6 +302,22 @@ export function CreatePurchaseForm({
     }
   }
 
+  if (incompatibleEdit) {
+    return (
+      <StandardModal
+        title="Compra com estoque"
+        visible={visible}
+        onClose={onClose}
+        footer={<Button title="Voltar" onPress={onClose} />}
+      >
+        <Typography variant="body">
+          A edição desta compra com estoque não está disponível nesta versão do
+          aplicativo. Os dados da compra foram preservados.
+        </Typography>
+      </StandardModal>
+    );
+  }
+
   return (
     <StandardModal
       title={isEditing ? "Editar compra" : "Nova compra"}
@@ -355,14 +376,20 @@ export function CreatePurchaseForm({
         steps={PURCHASE_FORM_STEPS}
         onStepPress={setFormStep}
       />
+      {!stockPurchaseEnabled && !!prefill?.items.length ? (
+        <Typography variant="body" style={{ marginBottom: spacing.md }}>
+          Esta nova compra será registrada somente como despesa, sem alterar o estoque.
+          Confira o valor antes de registrar.
+        </Typography>
+      ) : null}
       <View
         style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.lg }}
         accessibilityElementsHidden={formStep !== 1}
         importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
       >
         <View>
-          <Typography variant="label" style={{ marginBottom: spacing.xs }}>
-            FORNECEDOR (OPCIONAL)
+          <Typography variant="bodyBold" style={{ marginBottom: spacing.sm }}>
+            Fornecedor <Typography variant="caption">(opcional)</Typography>
           </Typography>
           <SupplierSelector value={supplierId} onChange={setSupplierId} />
         </View>
@@ -476,6 +503,7 @@ export function CreatePurchaseForm({
                         label="Quantidade"
                         value={item.quantity}
                         keyboardType="number-pad"
+                        numericMode="integer"
                         onChangeText={(quantity) => updateItem(index, { quantity })}
                       />
                     </ValidationField>

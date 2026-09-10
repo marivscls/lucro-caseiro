@@ -1,9 +1,11 @@
-import { ValidationField } from "@lucro-caseiro/ui";
+import { Typography, useTheme } from "@lucro-caseiro/ui";
+import { ClientFormFields } from "./client-form-fields";
+import { AppIcon } from "../../../shared/components/app-icon";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button, Input, spacing } from "@lucro-caseiro/ui";
 import React, { useRef, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { phoneDuplicateKey } from "../../../shared/utils/duplicates";
@@ -33,8 +35,12 @@ export function EditClientForm({
   onSuccess,
 }: Readonly<EditClientFormProps>) {
   const isDesktop = useDesktopLayout();
+  const { theme } = useTheme();
+  const [contactExpanded, setContactExpanded] = useState(
+    !!(client.nextContactAt || client.nextContactReason || client.nextContactNotes),
+  );
   const [name, setName] = useState(client.name);
-  const [phone, setPhone] = useState(client.phone ?? "");
+  const [phone, setPhone] = useState(maskPhoneBR(client.phone ?? ""));
   const [address, setAddress] = useState(client.address ?? "");
   const [birthday, setBirthday] = useState(isoToBR(client.birthday));
   const [notes, setNotes] = useState(client.notes ?? "");
@@ -140,6 +146,8 @@ export function EditClientForm({
   return (
     <StandardModal
       title="Editar cliente"
+      subtitle="Só o nome é obrigatório. Mantenha os dados sempre por perto."
+      dismissDisabled={updateClient.isPending}
       visible={visible}
       onClose={onClose}
       footer={
@@ -157,99 +165,106 @@ export function EditClientForm({
               void handleSubmit();
             }}
             loading={updateClient.isPending}
+            disabled={updateClient.isPending}
+            icon={
+              <AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />
+            }
             style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
           />
         </View>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.md }}>
-        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <ValidationField {...formValidation.field("name")}>
+      <View style={{ gap: spacing.xl }}>
+        <ClientFormFields
+          name={name}
+          phone={phone}
+          address={address}
+          birthday={birthday}
+          notes={notes}
+          onNameChange={setName}
+          onPhoneChange={setPhone}
+          onAddressChange={setAddress}
+          onBirthdayChange={setBirthday}
+          onNotesChange={setNotes}
+          nameValidation={formValidation.field("name")}
+        />
+        <View
+          style={{
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+            paddingTop: spacing.md,
+            gap: spacing.md,
+          }}
+        >
+          <Pressable
+            onPress={() => setContactExpanded((value) => !value)}
+            accessibilityRole="button"
+            accessibilityLabel="Próximo contato"
+            accessibilityState={{ expanded: contactExpanded }}
+            style={({ pressed }) => ({
+              minHeight: 48,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.md,
+              opacity: pressed ? 0.65 : 1,
+            })}
+          >
+            <AppIcon
+              name="calendar-outline"
+              size={20}
+              color={theme.colors.primaryStrong}
+            />
+            <View style={{ flex: 1, gap: spacing.xs }}>
+              <Typography variant="bodyBold">Próximo contato</Typography>
+              <Typography variant="caption">
+                Combine uma data para falar com o cliente.
+              </Typography>
+            </View>
+            <AppIcon
+              name={contactExpanded ? "chevron-up" : "chevron-down"}
+              size={20}
+              color={theme.colors.textSecondary}
+            />
+          </Pressable>
+          {contactExpanded && (
+            <View style={{ gap: spacing.lg }}>
+              <View
+                style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}
+              >
+                <View style={desktopCompactField(isDesktop)}>
+                  <Input
+                    label="Próximo contato (opcional)"
+                    placeholder="DD/MM/AAAA"
+                    value={nextContactAt}
+                    onChangeText={(value) => setNextContactAt(maskDateBR(value))}
+                    keyboardType="number-pad"
+                  />
+                </View>
+
+                <View style={isDesktop ? { flex: 1 } : undefined}>
+                  <Input
+                    label="Motivo do próximo contato"
+                    placeholder="Ex.: confirmar encomenda"
+                    value={nextContactReason}
+                    onChangeText={setNextContactReason}
+                    maxLength={200}
+                  />
+                </View>
+              </View>
+
               <Input
-                label="Nome do cliente"
-                placeholder="Ex: Maria Silva, João Pereira..."
-                value={name}
-                onChangeText={setName}
-                autoFocus
+                label="Nota para o contato"
+                placeholder="Ex.: perguntar quantidade final"
+                value={nextContactNotes}
+                onChangeText={setNextContactNotes}
+                maxLength={500}
+                multiline
+                numberOfLines={2}
+                style={{ height: 78, textAlignVertical: "center" }}
               />
-            </ValidationField>
-          </View>
-
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <Input
-              label="Telefone (opcional)"
-              placeholder="Ex: (11) 99999-9999"
-              value={phone}
-              onChangeText={(v) => setPhone(maskPhoneBR(v))}
-              keyboardType="phone-pad"
-            />
-          </View>
+            </View>
+          )}
         </View>
-
-        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <Input
-              label="Endereço (opcional)"
-              placeholder="Ex: Rua das Flores, 123"
-              value={address}
-              onChangeText={setAddress}
-            />
-          </View>
-
-          <View style={desktopCompactField(isDesktop)}>
-            <Input
-              label="Data de nascimento (opcional)"
-              placeholder="DD/MM/AAAA"
-              value={birthday}
-              onChangeText={(v) => setBirthday(maskDateBR(v))}
-              keyboardType="number-pad"
-            />
-          </View>
-        </View>
-
-        <Input
-          label="Observações (opcional)"
-          placeholder="Anotações sobre o cliente..."
-          value={notes}
-          onChangeText={(value) => setNotes(value.slice(0, 200))}
-          multiline
-          numberOfLines={2}
-          style={{ height: 78, textAlignVertical: "center" }}
-        />
-
-        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
-          <View style={desktopCompactField(isDesktop)}>
-            <Input
-              label="Próximo contato (opcional)"
-              placeholder="DD/MM/AAAA"
-              value={nextContactAt}
-              onChangeText={(value) => setNextContactAt(maskDateBR(value))}
-              keyboardType="number-pad"
-            />
-          </View>
-
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <Input
-              label="Motivo do próximo contato"
-              placeholder="Ex.: confirmar encomenda"
-              value={nextContactReason}
-              onChangeText={setNextContactReason}
-              maxLength={200}
-            />
-          </View>
-        </View>
-
-        <Input
-          label="Nota para o contato"
-          placeholder="Ex.: perguntar quantidade final"
-          value={nextContactNotes}
-          onChangeText={setNextContactNotes}
-          maxLength={500}
-          multiline
-          numberOfLines={2}
-          style={{ height: 78, textAlignVertical: "center" }}
-        />
       </View>
     </StandardModal>
   );

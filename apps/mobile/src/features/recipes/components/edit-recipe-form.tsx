@@ -89,16 +89,14 @@ export function EditRecipeForm({
   const deleteRecipe = useDeleteRecipe();
   const saving = updateRecipe.isPending || uploading;
 
-  const parsedYield = parseFloat(yieldQuantity.replace(",", ".")) || 0;
-  const costPerUnit = parsedYield > 0 ? totalCost / parsedYield : 0;
+  const parsedYield = Number(yieldQuantity.replace(",", "."));
+  const isYieldValid = Number.isFinite(parsedYield) && parsedYield > 0;
+  const costPerUnit = isYieldValid ? totalCost / parsedYield : 0;
 
   const formValidation = useFormValidation(
     {
       name: !name.trim() && "Informe o nome da receita.",
-      yieldQuantity:
-        (!Number.isFinite(Number(yieldQuantity.replace(",", "."))) ||
-          Number(yieldQuantity.replace(",", ".")) <= 0) &&
-        "Informe uma quantidade final maior que zero.",
+      yieldQuantity: !isYieldValid && "Informe uma quantidade final maior que zero.",
       yieldUnit: !yieldUnit.trim() && "Informe a unidade da quantidade final.",
       lines:
         (!lines.some((line) => line.materialId) ||
@@ -116,8 +114,7 @@ export function EditRecipeForm({
   async function handleSubmit() {
     if (!formValidation.validate()) {
       if (!name.trim()) setFormStep(1);
-      else if (!yieldUnit.trim() || Number(yieldQuantity.replace(",", ".")) <= 0)
-        setFormStep(2);
+      else if (!yieldUnit.trim() || !isYieldValid) setFormStep(2);
       else setFormStep(3);
       return;
     }
@@ -125,8 +122,7 @@ export function EditRecipeForm({
       alertValidation("Informe o nome da receita");
       return;
     }
-    const validYield = parseFloat(yieldQuantity.replace(",", "."));
-    if (isNaN(validYield) || validYield <= 0) {
+    if (!isYieldValid) {
       alertValidation(`Informe ${experienceCopy.quantityLabel.toLowerCase()}`);
       return;
     }
@@ -173,7 +169,7 @@ export function EditRecipeForm({
           name: name.trim(),
           category: category.trim(),
           instructions: instructions.trim() || undefined,
-          yieldQuantity: validYield,
+          yieldQuantity: parsedYield,
           yieldUnit: yieldUnit.trim(),
           photoUrl,
           ingredients: validLines.map((l) => ({
@@ -272,10 +268,7 @@ export function EditRecipeForm({
                   alertValidation("Informe o nome da receita antes de continuar.");
                   return;
                 }
-                if (
-                  formStep === 2 &&
-                  (Number(yieldQuantity.replace(",", ".")) <= 0 || !yieldUnit.trim())
-                ) {
+                if (formStep === 2 && (!isYieldValid || !yieldUnit.trim())) {
                   alertValidation("Informe o rendimento e a unidade antes de continuar.");
                   return;
                 }

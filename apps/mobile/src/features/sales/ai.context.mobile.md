@@ -210,3 +210,9 @@ Totais individuais de vendas usam tinta neutra; verde fica reservado a sucesso, 
 ## Padrão de progresso — 2026-09-09
 
 A nova venda usa o componente compartilhado de etapas para cliente, produtos, pagamento e revisão. O componente anuncia a etapa atual e permite retornar a etapas concluídas sem perder o carrinho.
+
+## Detalhes da venda — 2026-09-10
+
+O detalhe destaca total neutro, status e data no topo. Cliente e pagamento usam linhas com ícones; itens compartilham uma superfície com separadores, nomes completos e valores que se acomodam em telas estreitas. Descontos preservam subtotal, desconto e total. Observações ficam abaixo dos itens. WhatsApp é a ação principal para vendas pagas; pendentes priorizam marcar como pago. PDF usa contorno neutro, e editar/cancelar ficam em um grupo separado. Vendas canceladas não exibem ações. Tokens e componentes compartilhados preservam tema escuro e movimento reduzido.
+
+- 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).

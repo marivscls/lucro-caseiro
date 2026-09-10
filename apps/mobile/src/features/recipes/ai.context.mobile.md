@@ -53,7 +53,7 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 
 ### `RecipeDetail`
 
-- **Props:** `{ recipeId: string; onDuplicate?: () => void; onEdit?: () => void; onDeleted?: () => void }`
+- **Props:** `{ recipeId: string; onClose?: () => void; onDuplicate?: () => void; onEdit?: () => void; onDeleted?: () => void }`
 - Exibe nome, categoria, modo de preparo (Card), custo total e custo por unidade.
 - Seletor de escala (0.5x, 1x, 1.5x, 2x, 3x, 5x) via chips.
 - Tabela de ingredientes com nome, quantidade, unidade e custo.
@@ -66,7 +66,7 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 
 - **Props:** `{ onSuccess?: () => void }`
 - Campos: nome (obrigatorio), categoria (obrigatorio), modo de preparo, rendimento (quantidade + unidade), ingredientes dinamicos (nome, quantidade, unidade).
-- Rendimento aceita decimais (`keyboardType="decimal-pad"`, parse vírgula->ponto).
+- Rendimento aceita decimais (`keyboardType="decimal-pad"`, `numericMode="decimal"`, parse vírgula->ponto). Letras e múltiplos separadores são rejeitados ao digitar ou colar; valor finito e maior que zero é exigido ao avançar e salvar, em criação e edição.
 - Unidade de rendimento tem chips de atalho (`YIELD_UNIT_PRESETS`: unidades · fatias · porções · kg · g) + input livre.
 - Adicionar/remover ingredientes.
 - Checa limite freemium via `useLimitCheck("recipes")`.
@@ -191,8 +191,14 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 
 ## Atalho para precificar — 2026-09-09
 
-O detalhe oferece “Precificar com esta receita”. Abre `/pricing` com o custo por unidade da escala exibida (`soma dos ingredientes ÷ rendimento`), nome visível e categoria; esses dados podem pré-preencher o produto criado depois do cálculo.
+O detalhe oferece “Precificar com esta receita”. Fecha o modal via `onClose` antes de abrir `/pricing`, evitando que o detalhe fique sobre a calculadora. Envia o custo por unidade da escala exibida (`soma dos ingredientes ÷ rendimento`), nome visível e categoria; esses dados podem pré-preencher o produto criado depois do cálculo. Regressão coberta em `src/test/recipes-screen.test.tsx` nas escalas 1x e 2x.
 
 ## Cadastro em etapas — 2026-09-09
 
 Criar e editar receita usa três etapas: informações da receita; rendimento; ingredientes e custo. Nome/categoria e rendimento são validados ao avançar; ingredientes e custo ficam juntos na etapa final.
+
+## Estatísticas — 2026-09-10
+
+`RecipeStatisticsModal` usa métricas compactas e ranking com nomes completos, lucro e margem em linhas separadas. O primeiro resultado positivo recebe destaque; prejuízos e margem média negativa usam a cor de alerta, e percentuais usam vírgula decimal. O título acompanha o vocabulário do negócio. Os cálculos e a seleção do produto ativo de maior lucro permanecem em `statistics.ts`. Verificação visual local com dados simulados: `scripts/recipe-statistics-ui-smoke.cjs`.
+
+- 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).

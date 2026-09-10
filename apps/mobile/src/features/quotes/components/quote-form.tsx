@@ -463,6 +463,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                           value={item.quantity}
                           onChangeText={(v) => setItem(index, { quantity: v })}
                           keyboardType="decimal-pad"
+                          numericMode="decimal"
                         />
                       </ValidationField>
                     </View>
@@ -555,6 +556,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                       value={discountValue}
                       onChangeText={setDiscountValue}
                       keyboardType="decimal-pad"
+                      numericMode="decimal"
                     />
                   </View>
                 ) : null}

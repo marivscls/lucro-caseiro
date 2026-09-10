@@ -2,11 +2,11 @@ import React from "react";
 import { Pressable, type PressableProps, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { radii } from "../theme";
+import { controlSizes, radii } from "../theme";
 
 interface IconButtonProps extends Omit<PressableProps, "style"> {
   icon: React.ReactNode;
-  /** Diametro do botao (use passos de 4; 48 ja garante alvo de toque >= 44). */
+  /** Diametro do botao (use passos de 4; 44 ja garante alvo de toque >= 44). */
   size?: number;
   variant?: "surface" | "primary";
   style?: ViewStyle;
@@ -15,7 +15,7 @@ interface IconButtonProps extends Omit<PressableProps, "style"> {
 /** Botão circular só-ícone, alinhado aos tokens (superfície hairline / primário AA). */
 export function IconButton({
   icon,
-  size = 48,
+  size = controlSizes.regular,
   variant = "surface",
   style,
   ...props
@@ -23,7 +23,9 @@ export function IconButton({
   const { theme } = useTheme();
 
   const bg =
-    variant === "primary" ? theme.colors.primaryInteractive : theme.colors.surfaceElevated;
+    variant === "primary"
+      ? theme.colors.primaryInteractive
+      : theme.colors.surfaceElevated;
 
   return (
     <Pressable

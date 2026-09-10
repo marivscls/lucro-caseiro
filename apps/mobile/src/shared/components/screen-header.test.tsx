@@ -1,4 +1,10 @@
-vi.mock("../guidance/screen-guidance", () => ({ ScreenGuidance: () => null }));
+vi.mock("../guidance/screen-guidance", () => ({
+  ScreenGuidance: ({
+    renderHeader,
+  }: {
+    renderHeader: (help: React.ReactNode) => React.ReactNode;
+  }) => renderHeader(<button type="button" aria-label="Ajuda com serviços" />),
+}));
 import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -120,5 +126,24 @@ describe("ScreenHeader", () => {
 
     expect(screen.getByText("Insumos")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Buscar" })).toBeTruthy();
+  });
+
+  it("mantém voltar, título e cadastro com a ajuda no cabeçalho", () => {
+    const create = vi.fn();
+    render(
+      <ScreenHeader
+        title="Serviços"
+        guidance={{ area: "services", onStart: create }}
+        right={<button onClick={create}>Novo serviço</button>}
+      />,
+    );
+    expect(screen.getByText("Serviços")).toBeTruthy();
+    expect(
+      screen
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-label") || button.textContent),
+    ).toEqual(["Voltar", "Ajuda com serviços", "Novo serviço"]);
+    fireEvent.click(screen.getByRole("button", { name: "Novo serviço" }));
+    expect(create).toHaveBeenCalledOnce();
   });
 });

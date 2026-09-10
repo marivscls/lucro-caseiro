@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Recibo A3C0350D · Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente </title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+
+  :root {
+    --ink: #30251f;
+    --muted: #756359;
+    --accent: #79513e;
+    --line: #ded5cf;
+    --paper: #ffffff;
+    --surface: #f5f1ed;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  @page { size: A5 portrait; margin: 12mm; }
+  html { background: var(--paper); }
+  body { font-family: "Manrope", Arial, sans-serif; color: var(--ink); font-size: 12px; line-height: 1.5; }
+  .quote-page, .receipt-page, .recipe-page { width: 100%; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; border-bottom: 2px solid var(--accent); padding-bottom: 20px; }
+  .brand { flex: 1; min-width: 0; }
+  .brand h1 { font-size: 23px; line-height: 1.2; font-weight: 800; letter-spacing: -0.7px; overflow-wrap: anywhere; }
+  .contact { margin-top: 7px; font-size: 11px; color: var(--muted); }
+  .doc { flex: 0 0 138px; text-align: right; font-variant-numeric: tabular-nums; }
+  .doc .kind { display: inline-block; border: 1px solid var(--line); border-radius: 4px; padding: 3px 7px; color: var(--accent); font-size: 9px; font-weight: 800; letter-spacing: 1.1px; text-transform: uppercase; }
+  .doc .num { margin-top: 6px; font-size: 13px; font-weight: 800; }
+  .doc .date { margin-top: 3px; font-size: 10px; color: var(--muted); }
+  .document-heading { margin: 24px 0 18px; }
+  .eyebrow, .section-title { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+  h2, .title { margin-top: 5px; font-size: 22px; line-height: 1.25; letter-spacing: -0.5px; font-weight: 800; overflow-wrap: anywhere; }
+  .meta { display: flex; gap: 20px; margin: 18px 0 22px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .meta:empty { display: none; }
+  .meta-row { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .meta-row span { color: var(--muted); font-size: 10px; }
+  .meta-row strong { font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  caption { text-align: left; margin-bottom: 10px; color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+  thead { display: table-header-group; }
+  th { padding: 9px 7px; background: var(--surface); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 9px; font-weight: 800; text-align: left; }
+  td { padding: 12px 7px; border-bottom: 1px solid var(--line); font-size: 11px; vertical-align: top; }
+  td:first-child { overflow-wrap: anywhere; }
+  .qty, .price, .subtotal, td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .qty, .price, .subtotal, td.num { white-space: nowrap; }
+  .subtotal { font-weight: 800; }
+  .item-name { font-weight: 700; }
+  .item-detail { margin-top: 3px; color: var(--muted); font-size: 10px; }
+  .summary { margin-top: 20px; break-inside: avoid; page-break-inside: avoid; }
+  .adjustments { margin: 0 0 12px auto; max-width: 260px; }
+  .adjustments .meta-row { flex-direction: row; justify-content: space-between; gap: 12px; margin-top: 5px; }
+  .adjustments .meta-row span { font-size: 11px; }
+  .total { display: flex; justify-content: space-between; align-items: center; gap: 14px; background: var(--ink); color: white; border: 1px solid var(--ink); border-radius: 8px; padding: 17px 18px; }
+  .total .label { font-size: 12px; font-weight: 600; }
+  .total .value { font-size: 27px; line-height: 1.2; font-weight: 800; letter-spacing: -0.7px; font-variant-numeric: tabular-nums; }
+  .notes { margin-top: 22px; padding-left: 13px; border-left: 2px solid var(--line); }
+  .notes p { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .badge { display: inline-block; margin-top: 12px; padding: 5px 10px; border-radius: 4px; font-size: 10px; font-weight: 800; }
+  .badge.paid { background: #edf5ef; color: #28613d; }
+  .badge.pending { background: #fff4df; color: #805614; }
+  footer { margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 9px; line-height: 1.6; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+  footer p { max-width: 60%; }
+  .brand-footer a { color: var(--accent); text-decoration: none; font-weight: 700; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .section { margin-top: 24px; }
+  .section-title { margin-bottom: 10px; break-after: avoid; }
+  .totals { display: flex; gap: 14px; break-inside: avoid; }
+  .total-box { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  .total-box:last-child { background: var(--surface); }
+  .total-label { font-size: 11px; color: var(--muted); }
+  .total-value { margin-top: 6px; font-size: 25px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .instructions { font-size: 12px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+  @media screen {
+    html { min-height: 100%; background: #ece8e4; }
+    body { padding: 32px 20px; }
+    .quote-page, .receipt-page, .recipe-page { max-width: 680px; margin: 0 auto; padding: 42px; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 2px 5px #00000005, 0 16px 48px #0000000a; }
+    .brand h1 { font-size: 28px; }
+    h2, .title { font-size: 27px; }
+    td, .meta-row strong { font-size: 13px; }
+    .notes p, .instructions { font-size: 13px; }
+  }
+  @media screen and (max-width: 600px) {
+    html { background: white; }
+    body { padding: 0; }
+    .quote-page, .receipt-page, .recipe-page { padding: 26px 20px; border: 0; border-radius: 0; box-shadow: none; }
+    .head { gap: 16px; }
+    .brand h1 { font-size: 23px; }
+    .doc { flex-basis: 125px; }
+    h2, .title { font-size: 24px; }
+    td { font-size: 12px; padding: 12px 5px; }
+    th { padding: 9px 5px; }
+    .total .value { font-size: 26px; }
+  }
+  @media screen and (max-width: 380px) {
+    .quote-page, .receipt-page, .recipe-page { padding: 22px 14px; }
+    .head { gap: 10px; }
+    .brand h1 { font-size: 20px; }
+    .doc { flex-basis: 112px; }
+    td { font-size: 10px; padding-left: 3px; padding-right: 3px; }
+    .total { flex-wrap: wrap; }
+    .totals { flex-direction: column; }
+    footer { flex-direction: column; gap: 6px; }
+    footer p { max-width: 100%; }
+  }
+  @media print {
+    html, body { background: white; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .quote-page, .receipt-page, .recipe-page { max-width: none; padding: 0; border: 0; border-radius: 0; box-shadow: none; }
+    .head, .document-heading, .meta, tr, .total, footer { break-inside: avoid; page-break-inside: avoid; }
+    .head, .document-heading, .meta { break-after: avoid; }
+    p { orphans: 3; widows: 3; }
+  }
+
+  @media print {
+    .receipt-page .head { padding-bottom: 14px; }
+    .receipt-page .brand h1 { font-size: 20px; }
+    .receipt-page .document-heading { margin: 14px 0 10px; }
+    .receipt-page .meta { margin: 12px 0 14px; padding-bottom: 12px; }
+    .receipt-page td { padding-top: 10px; padding-bottom: 10px; }
+    .receipt-page .summary { margin-top: 16px; }
+    .receipt-page footer { margin-top: 12px; padding-top: 10px; }
+  }
+</style>
+</head>
+<body>
+<main class="receipt-page">
+  <header class="head">
+    <div class="brand">
+      <h1>Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente </h1>
+      <div class="contact">(11) 98765-4321</div>
+    </div>
+    <div class="doc">
+      <div class="kind">Recibo</div>
+      <div class="num">Nº A3C0350D</div>
+      <div class="date">11 de agosto de 2026</div>
+    </div>
+  </header>
+
+  <div class="document-heading">
+    <div class="eyebrow">Resumo da venda</div>
+    <h2>Recibo de venda</h2>
+  </div>
+  <div class="meta">
+    <div class="meta-row"><span>Cliente</span><strong>Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente </strong></div>
+    <div class="meta-row"><span>Forma de pagamento</span><strong>Pix</strong></div>
+  </div>
+
+  <table>
+    <caption>Itens da venda</caption>
+    <thead>
+      <tr><th scope="col">Item / Qtd. × preço</th><th scope="col" class="subtotal">Subtotal</th></tr>
+    </thead>
+    <tbody><tr>
+        <td class="item">
+          <div class="item-name">Item 1 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 2 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 3 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 4 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 5 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 6 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 7 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 8 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 9 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 10 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 11 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 12 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 13 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 14 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 15 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 16 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 17 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 18 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 19 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 20 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 21 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 22 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 23 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 24 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 25 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 26 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 27 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 28 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 29 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 30 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 31 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 32 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 33 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 34 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 35 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 36 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 37 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 38 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 39 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 40 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 41 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 42 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 43 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 44 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr><tr>
+        <td class="item">
+          <div class="item-name">Item 45 - Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente Encomenda personalizada com acabamento artesanal e embalagem especial para presente</div>
+          <div class="item-detail">12 × R$ 125,75</div>
+        </td>
+        <td class="subtotal">R$ 1509,00</td>
+      </tr></tbody>
+  </table>
+
+  <section class="summary" aria-label="Resumo da venda">
+  <div class="adjustments">
+    <div class="meta-row"><span>Subtotal</span> <strong>R$ 67905,00</strong></div>
+    <div class="meta-row"><span>Desconto</span> <strong>- R$ 905,00</strong></div>
+  </div>
+  <div class="total">
+    <span class="label">Total</span>
+    <span class="value">R$ 67000,00</span>
+  </div>
+  <span class="badge pending">Pagamento pendente</span>
+  </section>
+
+  <footer>
+    <p>Recibo sem valor fiscal</p>
+    <div class="brand-footer"><a href="https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&referrer=utm_source%3Dpdf">Feito com Lucro Caseiro</a></div>
+  </footer>
+</main>
+</body>
+</html>

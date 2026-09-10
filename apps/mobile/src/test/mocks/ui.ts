@@ -5,6 +5,7 @@ export {
   ValidationScrollContext,
   useFieldValidationError,
 } from "../../../../../packages/ui/src/components/validation-context";
+export { controlSizes } from "../../../../../packages/ui/src/theme";
 export const CenteredTextInput = () => null;
 
 export const Button = ({ children }: { children?: React.ReactNode }) => children;

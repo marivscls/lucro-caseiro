@@ -1,7 +1,7 @@
 import type { SupplierOverviewItem } from "@lucro-caseiro/contracts";
 import { Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Pressable, useWindowDimensions, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -58,8 +58,8 @@ function StatusChip({
       style={{
         borderRadius: radii.sm,
         backgroundColor: colors.background,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
       }}
     >
       <Typography
@@ -76,9 +76,7 @@ function StatusChip({
 export function SupplierCard(props: Readonly<SupplierCardProps>) {
   const { supplier } = props;
   const { theme } = useTheme();
-  const { width } = useWindowDimensions();
   const [menuOpen, setMenuOpen] = useState(false);
-  const compactFooter = width <= 430;
   const canWhatsApp = supplier.hasWhatsApp && !!supplier.phone;
   let footerAction: React.ReactNode = null;
   if (supplier.lastPurchase) {
@@ -116,7 +114,7 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <AppIcon name="logo-whatsapp" size={24} color={theme.colors.primaryStrong} />
+        <AppIcon name="logo-whatsapp" size={20} color={theme.colors.primaryStrong} />
       </Pressable>
     );
   }
@@ -126,7 +124,7 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
       <View
         style={[
           {
-            borderRadius: radii.xl,
+            borderRadius: radii.lg,
             borderWidth: 1,
             borderColor: theme.colors.border,
             backgroundColor: theme.colors.surfaceElevated,
@@ -138,14 +136,14 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
           onPress={props.onPress}
           accessibilityRole="button"
           accessibilityLabel={`Ver fornecedor ${supplier.name}`}
-          style={({ pressed }) => ({ padding: spacing.lg, opacity: pressed ? 0.82 : 1 })}
+          style={({ pressed }) => ({ padding: spacing.md, opacity: pressed ? 0.82 : 1 })}
         >
           <View
             style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}
           >
-            <SupplierAvatar supplier={supplier} size={64} />
+            <SupplierAvatar supplier={supplier} size={44} />
             <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-              <Typography variant="h3" numberOfLines={1}>
+              <Typography variant="bodyBold" numberOfLines={2}>
                 {supplier.name}
               </Typography>
               <Typography
@@ -162,15 +160,17 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
                 }
                 style={{ fontFamily: fonts.bold }}
               >
-                {SUPPLIER_CATEGORY_LABELS[supplier.category].toLocaleUpperCase("pt-BR")}
+                {SUPPLIER_CATEGORY_LABELS[supplier.category]}
               </Typography>
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                numberOfLines={2}
-              >
-                {supplier.purchaseDescription || "Sem descrição do que é comprado"}
-              </Typography>
+              {supplier.purchaseDescription ? (
+                <Typography
+                  variant="caption"
+                  color={theme.colors.textSecondary}
+                  numberOfLines={1}
+                >
+                  {supplier.purchaseDescription}
+                </Typography>
+              ) : null}
             </View>
             <Pressable
               onPress={(event) => {
@@ -191,7 +191,7 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
                 opacity: pressed ? 0.55 : 1,
               })}
             >
-              <AppIcon name="ellipsis-vertical" size={22} color={theme.colors.text} />
+              <AppIcon name="ellipsis-vertical" size={18} color={theme.colors.text} />
             </Pressable>
           </View>
 
@@ -203,8 +203,8 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
               style={{
                 flexDirection: "row",
                 flexWrap: "wrap",
-                gap: spacing.sm,
-                marginLeft: 64 + spacing.md,
+                gap: 4,
+                marginLeft: 44 + spacing.md,
                 marginTop: spacing.sm,
               }}
             >
@@ -226,55 +226,52 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
 
         <View
           style={{
-            minHeight: 56,
+            minHeight: 52,
             borderTopWidth: 1,
             borderTopColor: theme.colors.border,
-            paddingHorizontal: spacing.lg,
+            paddingHorizontal: spacing.md,
             paddingVertical: spacing.sm,
-            flexDirection: compactFooter ? "column" : "row",
-            alignItems: compactFooter ? "stretch" : "center",
+            flexDirection: "row",
+            alignItems: "center",
             gap: spacing.sm,
           }}
         >
           <View
             style={{
               flex: 1,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.sm,
+              minWidth: 0,
+              gap: 4,
             }}
           >
-            <AppIcon
-              name="calendar-outline"
-              size={18}
-              color={theme.colors.textSecondary}
-            />
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ flex: 1 }}
-              numberOfLines={1}
-            >
-              {supplier.lastPurchase
-                ? `Última compra: ${formatShortDate(supplier.lastPurchase.purchasedAt)}`
-                : "Sem compras recentes"}
-            </Typography>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: compactFooter ? "space-between" : "flex-end",
-              gap: spacing.md,
-            }}
-          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <AppIcon
+                name="calendar-outline"
+                size={14}
+                color={theme.colors.textSecondary}
+              />
+              <Typography
+                variant="caption"
+                color={theme.colors.textSecondary}
+                style={{ flex: 1 }}
+                numberOfLines={1}
+                accessibilityLabel={
+                  supplier.lastPurchase
+                    ? `Última compra: ${formatShortDate(supplier.lastPurchase.purchasedAt)}`
+                    : undefined
+                }
+              >
+                {supplier.lastPurchase
+                  ? formatShortDate(supplier.lastPurchase.purchasedAt)
+                  : "Sem compras recentes"}
+              </Typography>
+            </View>
             {supplier.lastPurchase ? (
-              <Typography variant="money" color={theme.colors.text}>
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 {formatCurrency(supplier.lastPurchase.amount)}
               </Typography>
             ) : null}
-            {footerAction}
           </View>
+          {footerAction}
         </View>
       </View>
       <SupplierOptionsModal

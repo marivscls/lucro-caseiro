@@ -208,6 +208,15 @@ export const radii = {
   full: 9999,
 } as const;
 
+/** Shared control dimensions in dp; compact visuals retain a 44dp touch target. */
+export const controlSizes = {
+  compact: 40,
+  regular: 44,
+  large: 48,
+  badge: 20,
+  avatar: 36,
+} as const;
+
 /** Tamanhos canonicos de icone — nunca use valores fora desta escala. */
 export const iconSizes = {
   xs: 16,

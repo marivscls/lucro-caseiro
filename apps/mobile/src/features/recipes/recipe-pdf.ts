@@ -5,10 +5,8 @@ import { getBrandDisplayName } from "../../shared/brand-name";
 import { displayIngredientName } from "../../shared/ingredient-image/resolve";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { formatCurrency } from "../../shared/utils/format";
-import {
-  MANROPE_CSS_FONT_FAMILY,
-  MANROPE_HTML_HEAD,
-} from "../../shared/utils/manrope-html";
+import { MANROPE_HTML_HEAD } from "../../shared/utils/manrope-html";
+import { DOCUMENT_PDF_CSS } from "../../shared/utils/document-pdf";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
 export interface RecipePdfCopy {
@@ -71,44 +69,24 @@ export function buildRecipeHtml(
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${escapeHtml(displayIngredientName(recipe.name))} · ${escapeHtml(copy.formulaNoun)}</title>
 ${MANROPE_HTML_HEAD}
 <style>
-    * { box-sizing: border-box; }
-    @page { size: A4; margin: 16mm; }
-    body {
-      margin: 0;
-      font-family: ${MANROPE_CSS_FONT_FAMILY};
-      color: #1f2937;
-      background: #ffffff;
-    }
-    .header { border-bottom: 3px solid #16a34a; padding-bottom: 12px; margin-bottom: 16px; }
-    .title { font-size: 26px; font-weight: 700; margin: 0; }
-    .category { font-size: 14px; color: #6b7280; margin-top: 4px; }
-    .yield { font-size: 14px; color: #374151; margin-top: 6px; }
-    .section { margin-bottom: 20px; }
-    .section-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 8px 6px; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
-    th { font-size: 12px; color: #6b7280; text-transform: uppercase; }
-    td.num, th.num { text-align: right; white-space: nowrap; }
-    .totals { display: flex; gap: 24px; margin-top: 12px; }
-    .total-box { flex: 1; background: #f3f4f6; border-radius: 12px; padding: 12px 16px; }
-    .total-label { font-size: 12px; color: #6b7280; }
-    .total-value { font-size: 20px; font-weight: 700; }
-    .total-value.cost { color: #dc2626; }
-    .total-value.unit { color: #16a34a; }
-    .instructions { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
-    .brand-footer { margin-top: 28px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
-    .brand-footer a { color: #9ca3af; text-decoration: none; }
-  </style>
+${DOCUMENT_PDF_CSS}
+@page { size: A4 portrait; margin: 16mm; }
+</style>
 </head>
 <body>
-  <div class="header">
+<main class="recipe-page">
+  <header class="head">
+    <div class="brand">
+      <div class="eyebrow">${escapeHtml(copy.formulaNoun)}</div>
     <h1 class="title">${escapeHtml(displayIngredientName(recipe.name))}</h1>
-    <div class="category">${escapeHtml(recipe.category)}</div>
-    <div class="yield">${escapeHtml(copy.quantityLabel)}: ${formatQuantity(recipe.yieldQuantity)} ${escapeHtml(
-      recipe.yieldUnit,
-    )}</div>
+    </div>
+  </header>
+  <div class="meta">
+    <div class="meta-row"><span>Categoria</span><strong>${escapeHtml(recipe.category)}</strong></div>
+    <div class="meta-row"><span>${escapeHtml(copy.quantityLabel)}</span><strong>${formatQuantity(recipe.yieldQuantity)} ${escapeHtml(recipe.yieldUnit)}</strong></div>
   </div>
 
   <div class="section">
@@ -117,7 +95,7 @@ ${MANROPE_HTML_HEAD}
     )}</div>
     <table>
       <thead>
-        <tr><th>${escapeHtml(copy.materialNoun)}</th><th class="num">Quantidade</th><th class="num">Custo</th></tr>
+        <tr><th scope="col">${escapeHtml(copy.materialNoun)}</th><th scope="col" class="num">Quantidade</th><th scope="col" class="num">Custo</th></tr>
       </thead>
       <tbody>${ingredientRows}</tbody>
     </table>
@@ -138,7 +116,11 @@ ${MANROPE_HTML_HEAD}
 
   ${instructions}
 
-  <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com ${escapeHtml(brandName)}</a></div>
+  <footer>
+    <p>${escapeHtml(copy.formulaNoun.replace(/^./, (letter) => letter.toUpperCase()))}</p>
+    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com ${escapeHtml(brandName)}</a></div>
+  </footer>
+</main>
 </body>
 </html>`;
 }

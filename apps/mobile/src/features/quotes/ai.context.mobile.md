@@ -119,3 +119,7 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Cadastro em etapas — 2026-09-09
 
 Orçamentos usam três etapas antes da confirmação existente: orçamento e cliente; itens, valores e desconto; prazo e observações. A revisão continua sendo a confirmação final antes de salvar.
+
+- 2026-09-10: detalhe usa cabeçalho compacto, título completo no conteúdo, total em destaque com validade, itens com quantidade e preço unitário e rentabilidade privada. `QuoteDetailContent` concentra a apresentação; `QuoteDetail` mantém as ações em rodapé fixo de `StandardModal` (largura padrão no desktop). O detalhe é ocultado enquanto o modal de conversão está aberto, evitando dois diálogos ativos.
+
+- 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).

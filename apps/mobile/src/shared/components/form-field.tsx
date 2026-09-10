@@ -1,5 +1,6 @@
 import {
   CenteredTextInput,
+  type CenteredTextInputProps,
   Typography,
   useTheme,
   fontSizes,
@@ -11,13 +12,7 @@ import {
 import { AppIcon } from "./app-icon";
 import type { AppIconName } from "./app-icon";
 import React from "react";
-import {
-  View,
-  type StyleProp,
-  type TextInputProps,
-  type TextStyle,
-  TextInput,
-} from "react-native";
+import { View, type StyleProp, type TextStyle, TextInput } from "react-native";
 
 /** Cores derivadas do tema para os campos de formulário (claro e escuro). */
 export function useFieldPalette() {
@@ -25,7 +20,7 @@ export function useFieldPalette() {
   return {
     border: theme.colors.border,
     fieldBg: theme.colors.surface,
-    placeholder: theme.colors.textSecondary + "B3",
+    placeholder: theme.colors.textSecondary,
     sheetBg: theme.colors.surfaceElevated,
   };
 }
@@ -65,7 +60,7 @@ export type TextFieldCardProps = Readonly<{
   inputRef?: React.Ref<TextInput>;
   inputStyle?: StyleProp<TextStyle>;
 }> &
-  TextInputProps;
+  CenteredTextInputProps;
 
 /** Campo de texto com ícone rosa à esquerda, no estilo dos formulários do app.
  *  Mesmas métricas canônicas do `Input` do ui (48px, radii.lg, borda do tema). */
@@ -79,13 +74,14 @@ export function TextFieldCard({
 }: TextFieldCardProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
+  const [focused, setFocused] = React.useState(false);
   return (
     <View
       style={{
         minHeight: 48,
         borderRadius: radii.lg,
         borderWidth: 1,
-        borderColor: pal.border,
+        borderColor: focused ? theme.colors.primary : pal.border,
         backgroundColor: pal.fieldBg,
         flexDirection: "row",
         alignItems: "center",
@@ -140,6 +136,14 @@ export function TextFieldCard({
             inputStyle,
           ]}
           {...inputProps}
+          onFocus={(event) => {
+            setFocused(true);
+            inputProps.onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            inputProps.onBlur?.(event);
+          }}
         />
       </View>
     </View>

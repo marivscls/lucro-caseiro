@@ -54,7 +54,7 @@ export function FieldRow({
   icon,
   label,
   optional,
-  align = "center",
+  align: _align = "center",
   children,
 }: Readonly<{
   icon: AppIconName;
@@ -67,15 +67,11 @@ export function FieldRow({
   return (
     <View
       style={{
-        flexDirection: "row",
-        gap: spacing.md,
-        alignItems: align === "top" ? "flex-start" : "center",
+        gap: spacing.sm,
       }}
     >
-      <View style={{ paddingTop: align === "top" ? 26 : 0 }}>
-        <IconBadge icon={icon} />
-      </View>
-      <View style={{ flex: 1, gap: spacing.sm }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <AppIcon name={icon} size={18} color={theme.colors.primary} />
         <Typography variant="bodyBold" color={theme.colors.text}>
           {label}
           {optional ? (
@@ -85,8 +81,8 @@ export function FieldRow({
             </Typography>
           ) : null}
         </Typography>
-        {children}
       </View>
+      {children}
     </View>
   );
 }
@@ -113,7 +109,7 @@ export function TextBox({
   return (
     <View
       style={{
-        minHeight: maxLength ? 64 : 56,
+        minHeight: 48,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: pal.border,
@@ -129,6 +125,7 @@ export function TextBox({
         placeholder={placeholder}
         placeholderTextColor={pal.placeholder}
         keyboardType={keyboardType}
+        numericMode={keyboardType === "decimal-pad" ? "decimal" : undefined}
         autoFocus={autoFocus}
         accessibilityLabel={accessibilityLabel ?? placeholder}
         maxLength={maxLength}
@@ -186,7 +183,7 @@ export function CategoryField({
         accessibilityRole="button"
         accessibilityLabel="Escolher categoria"
         style={{
-          minHeight: 56,
+          minHeight: 48,
           borderRadius: radii.lg,
           borderWidth: 1,
           borderColor: pal.border,

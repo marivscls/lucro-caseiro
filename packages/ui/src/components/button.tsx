@@ -10,7 +10,7 @@ import {
 
 import { useTheme } from "../theme-context";
 import { useReducedMotion } from "../use-reduced-motion";
-import { fonts, fontSizes, radii, spacing } from "../theme";
+import { controlSizes, fonts, fontSizes, radii, spacing } from "../theme";
 
 type ButtonVariant =
   | "primary"
@@ -32,6 +32,8 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   loading?: boolean;
   icon?: React.ReactNode;
   compact?: boolean;
+  /** Disable press scaling on surfaces where motion would distract. */
+  static?: boolean;
   /** When false, the label keeps the size of `size` instead of shrinking to fit. */
   fitTitle?: boolean;
   style?: ViewStyle;
@@ -44,9 +46,9 @@ const sizeStyles: Record<
   ButtonSize,
   { minHeight: number; fontSize: number; px: number }
 > = {
-  sm: { minHeight: 40, fontSize: fontSizes.xs, px: spacing.md },
-  md: { minHeight: 44, fontSize: fontSizes.sm, px: spacing.lg },
-  lg: { minHeight: 48, fontSize: fontSizes.sm, px: spacing.xl },
+  sm: { minHeight: controlSizes.compact, fontSize: fontSizes.xs, px: spacing.md },
+  md: { minHeight: controlSizes.regular, fontSize: fontSizes.sm, px: spacing.lg },
+  lg: { minHeight: controlSizes.large, fontSize: fontSizes.sm, px: spacing.xl },
 };
 
 export function Button({
@@ -57,6 +59,7 @@ export function Button({
   loading = false,
   icon,
   compact = false,
+  static: staticMotion = false,
   fitTitle = true,
   disabled,
   style,
@@ -116,11 +119,11 @@ export function Button({
       disabled={isDisabled}
       hitSlop={hitSlop ?? (size === "sm" ? 2 : undefined)}
       onPressIn={(e) => {
-        if (!reduced && !isDisabled) animateTo(0.97);
+        if (!reduced && !staticMotion && !isDisabled) animateTo(0.96);
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        if (!reduced) animateTo(1);
+        if (!reduced && !staticMotion) animateTo(1);
         onPressOut?.(e);
       }}
       style={[

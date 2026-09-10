@@ -140,12 +140,13 @@ function FieldLabel({
 type TextFieldCardProps = Readonly<{
   icon: AppIconName;
   isDesktop?: boolean;
+  numericMode?: React.ComponentProps<typeof CenteredTextInput>["numericMode"];
 }> &
   TextInputProps;
 
 function TextFieldCard({
   icon,
-  isDesktop = false,
+  isDesktop: _isDesktop = false,
   inputRef,
   ...inputProps
 }: TextFieldCardProps & { inputRef?: React.Ref<TextInput> }) {
@@ -154,7 +155,7 @@ function TextFieldCard({
   return (
     <View
       style={{
-        minHeight: isDesktop ? 48 : 60,
+        minHeight: 48,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: pal.border,
@@ -175,7 +176,7 @@ function TextFieldCard({
           color: theme.colors.text,
           fontFamily: fonts.regular,
           fontSize: fontSizes.md,
-          paddingVertical: isDesktop ? spacing.sm : spacing.md,
+          paddingVertical: spacing.sm,
         }}
         {...inputProps}
       />
@@ -1272,6 +1273,7 @@ export function CreateProductForm({
                     value={stockQuantity}
                     onChangeText={setStockQuantity}
                     keyboardType="number-pad"
+                    numericMode="integer"
                     isDesktop={isDesktop}
                   />
                 </View>
@@ -1284,6 +1286,7 @@ export function CreateProductForm({
                     value={stockAlert}
                     onChangeText={setStockAlert}
                     keyboardType="number-pad"
+                    numericMode="integer"
                     isDesktop={isDesktop}
                   />
                 </View>
@@ -1298,6 +1301,7 @@ export function CreateProductForm({
                   value={stockAlert}
                   onChangeText={setStockAlert}
                   keyboardType="number-pad"
+                  numericMode="integer"
                   isDesktop={isDesktop}
                 />
               </View>

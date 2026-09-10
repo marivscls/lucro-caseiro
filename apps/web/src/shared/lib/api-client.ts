@@ -1,4 +1,5 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
+import { apiErrorMessage, USER_ERROR_MESSAGES } from "@lucro-caseiro/contracts";
 
 import { getSupabase } from "./supabase";
 
@@ -44,8 +45,12 @@ export async function apiClient<T>(
       });
     }
     if (method === "GET") {
-      const cached = window.localStorage.getItem(cacheKey);
-      if (cached) return JSON.parse(cached) as T;
+      try {
+        const cached = window.localStorage.getItem(cacheKey);
+        if (cached) return JSON.parse(cached) as T;
+      } catch {
+        // Cache ausente, corrompido ou bloqueado não deve esconder a falha de rede.
+      }
     }
     throw new Error(
       "Não foi possível conectar à Central agora. Verifique sua internet e tente novamente.",
@@ -53,14 +58,23 @@ export async function apiClient<T>(
     );
   }
   if (!response.ok) {
-    const problem = (await response
-      .json()
-      .catch(() => ({ message: response.statusText }))) as { message?: string };
-    throw new Error(problem.message ?? "Não foi possível concluir a operação");
+    const problem: unknown = await response.json().catch(() => null);
+    throw new Error(apiErrorMessage(response.status, problem));
   }
   if (response.status === 204) return undefined as T;
-  const result = (await response.json()) as T;
-  if (method === "GET") window.localStorage.setItem(cacheKey, JSON.stringify(result));
+  let result: T;
+  try {
+    result = (await response.json()) as T;
+  } catch {
+    throw new Error(USER_ERROR_MESSAGES.response);
+  }
+  if (method === "GET") {
+    try {
+      window.localStorage.setItem(cacheKey, JSON.stringify(result));
+    } catch {
+      // Cache é opcional: uma resposta válida continua sendo sucesso.
+    }
+  }
   return result;
 }
 

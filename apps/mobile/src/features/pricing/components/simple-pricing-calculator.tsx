@@ -1,3 +1,4 @@
+import { ScreenHeader } from "../../../shared/components/screen-header";
 import { ScreenGuidance } from "../../../shared/guidance/screen-guidance";
 import type { Packaging, Product } from "@lucro-caseiro/contracts";
 import {
@@ -851,6 +852,9 @@ export function SimplePricingCalculator({
   return (
     <>
       <ScreenGuidance
+        renderHeader={(helpButton) => (
+          <ScreenHeader title="Precificação" hideBack help={helpButton} />
+        )}
         area="pricing"
         onStart={() => {
           setGuidanceStarted(true);

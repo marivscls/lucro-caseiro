@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { userErrorMessage } from "@lucro-caseiro/contracts";
 
 export interface AppAlertButton {
   text: string;
@@ -27,5 +28,14 @@ export const useAppAlert = create<AppAlertState>((set) => ({
 
 /** Abre o popup do app a partir de qualquer lugar (inclusive fora do React). */
 export function showAlert(options: AppAlertOptions) {
-  useAppAlert.getState().show(options);
+  const isError = /^erro(?:\b|$)/i.test(options.title);
+  useAppAlert.getState().show(
+    isError
+      ? {
+          ...options,
+          title: options.title === "Erro" ? "Não foi possível concluir" : options.title,
+          message: userErrorMessage(options.message),
+        }
+      : options,
+  );
 }

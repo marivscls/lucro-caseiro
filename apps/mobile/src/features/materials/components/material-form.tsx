@@ -3,6 +3,7 @@ import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Material } from "@lucro-caseiro/contracts";
 import {
   CenteredTextInput,
+  Button,
   Typography,
   useTheme,
   spacing,
@@ -11,7 +12,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
@@ -491,43 +492,21 @@ export function MaterialForm({
               </Typography>
             </Pressable>
           ) : null}
-          <Pressable
+          <Button
+            title={
+              isEditing ? "Salvar alterações" : `Salvar ${experienceCopy.materialNoun}`
+            }
             onPress={() => {
               void handleSave();
             }}
             disabled={saving}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              {
-                minHeight: 48,
-                borderRadius: radii.md,
-                backgroundColor: theme.colors.primaryInteractive,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: spacing.sm,
-                opacity: pressed || saving ? 0.85 : 1,
-              },
-              isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 },
-            ]}
-          >
-            {saving ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
-              <AppIcon
-                name="checkmark-circle-outline"
-                size={24}
-                color={theme.colors.textOnPrimary}
-              />
-            )}
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.textOnPrimary}
-              style={{ fontSize: 16 }}
-            >
-              {isEditing ? "Salvar alterações" : `Salvar ${experienceCopy.materialNoun}`}
-            </Typography>
-          </Pressable>
+            loading={saving}
+            size="lg"
+            icon={
+              <AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />
+            }
+            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
+          />
         </View>
       }
     >
@@ -537,7 +516,7 @@ export function MaterialForm({
         ) : (
           <>
             <Typography
-              variant="body"
+              variant="caption"
               color={theme.colors.textSecondary}
               style={{ marginTop: -spacing.sm }}
             >
@@ -558,11 +537,6 @@ export function MaterialForm({
             </View>
           </>
         )}
-
-        <View>
-          <FieldLabel label="Ícone (opcional)" />
-          <MaterialIconField name={name} value={icon} onChange={setIcon} />
-        </View>
 
         <View>
           <View
@@ -594,7 +568,7 @@ export function MaterialForm({
               </Typography>
             )}
           </View>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }}>
             {unitOptions.map((u) => {
               const active = unit === u;
               return (
@@ -606,19 +580,19 @@ export function MaterialForm({
                   accessibilityLabel={u}
                   style={{
                     flex: 1,
-                    minWidth: 48,
+                    minWidth: 44,
                     minHeight: 46,
                     alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: radii.full,
+                    borderRadius: radii.md,
                     borderWidth: 1,
-                    borderColor: active ? theme.colors.primary : pal.border,
-                    backgroundColor: active ? theme.colors.primary : pal.fieldBg,
+                    borderColor: active ? theme.colors.primaryStrong : pal.border,
+                    backgroundColor: active ? theme.colors.primaryBg : pal.fieldBg,
                   }}
                 >
                   <Typography
                     variant="bodyBold"
-                    color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                    color={active ? theme.colors.primaryStrong : theme.colors.text}
                   >
                     {u}
                   </Typography>
@@ -647,26 +621,28 @@ export function MaterialForm({
           ) : null}
         </View>
 
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
+        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.lg }}>
           <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
-            <FieldLabel label="Quantidade em estoque" />
+            <FieldLabel label="Estoque atual" />
             <TextFieldCard
               icon="cube-outline"
               placeholder="Ex: 10"
               value={stock}
               onChangeText={setStock}
               keyboardType="decimal-pad"
+              numericMode="decimal"
             />
             <SubLabel>Quantidade atual disponível.</SubLabel>
           </View>
           <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
-            <FieldLabel label="Alerta de estoque baixo (opcional)" />
+            <FieldLabel label="Avisar quando chegar a (opcional)" />
             <TextFieldCard
               icon="notifications-outline"
               placeholder="Ex: 3"
               value={alertThreshold}
               onChangeText={setAlertThreshold}
               keyboardType="decimal-pad"
+              numericMode="decimal"
             />
             <SubLabel>Quando atingir, você será avisado.</SubLabel>
           </View>
@@ -682,6 +658,11 @@ export function MaterialForm({
             keyboardType="numeric"
           />
           <SubLabel>Valor gasto para adquirir 1 unidade.</SubLabel>
+        </View>
+
+        <View>
+          <FieldLabel label="Ícone (opcional)" />
+          <MaterialIconField name={name} value={icon} onChange={setIcon} />
         </View>
 
         <View>
@@ -730,6 +711,7 @@ export function MaterialForm({
                   value={contentPerUnit}
                   onChangeText={setContentPerUnit}
                   keyboardType="decimal-pad"
+                  numericMode="decimal"
                 />
               </ValidationField>
             </View>

@@ -5,7 +5,7 @@ import {
 } from "@lucro-caseiro/brands";
 import type { RequestHandler } from "express";
 
-import { ForbiddenError, ValidationError } from "../errors";
+import { FeatureUnavailableError, ValidationError } from "../errors";
 
 export function requireBrandFeature(feature: keyof BrandFeatures): RequestHandler {
   return (req, _res, next) => {
@@ -15,14 +15,16 @@ export function requireBrandFeature(feature: keyof BrandFeatures): RequestHandle
       // `feature` is constrained to the BrandFeatures contract, not request input.
       // eslint-disable-next-line security/detect-object-injection
       if (!brand.features[feature]) {
-        next(
-          new ForbiddenError(`Recurso ${String(feature)} desativado para esta marca.`),
-        );
+        next(new FeatureUnavailableError());
         return;
       }
       next();
     } catch {
-      next(new ValidationError([`Marca desconhecida: ${id}`]));
+      next(
+        new ValidationError([
+          "Não foi possível identificar o aplicativo. Atualize a página e tente novamente.",
+        ]),
+      );
     }
   };
 }

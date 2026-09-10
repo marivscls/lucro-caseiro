@@ -683,6 +683,7 @@ export default function RetailScreen() {
           value={quantities[key] ?? "1"}
           onChangeText={(value) => setQuantities({ ...quantities, [key]: value })}
           keyboardType="number-pad"
+          numericMode="integer"
         />
       );
     });
@@ -745,6 +746,7 @@ export default function RetailScreen() {
             value={secondaryAmount}
             onChangeText={setSecondaryAmount}
             keyboardType="numeric"
+            numericMode="decimal"
           />
           {secondaryAmount ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
@@ -783,6 +785,7 @@ export default function RetailScreen() {
                 value={counted[key] ?? ""}
                 onChangeText={(value) => setCounted({ ...counted, [key]: value })}
                 keyboardType="number-pad"
+                numericMode="integer"
               />
             );
           })}
@@ -813,6 +816,7 @@ export default function RetailScreen() {
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
+              numericMode="decimal"
             />
           </ValidationField>
           <Input label="Especificações" value={detail} onChangeText={setDetail} />
@@ -832,6 +836,7 @@ export default function RetailScreen() {
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
+              numericMode="decimal"
             />
           </ValidationField>
           {renderProductPicker()}
@@ -847,6 +852,7 @@ export default function RetailScreen() {
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
+              numericMode="signed-decimal"
             />
           </ValidationField>
           {renderProductPicker()}
@@ -883,6 +889,7 @@ export default function RetailScreen() {
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"
+            numericMode="decimal"
           />
         </ValidationField>
         <Input
@@ -890,6 +897,7 @@ export default function RetailScreen() {
           value={detail}
           onChangeText={setDetail}
           keyboardType="numeric"
+          numericMode="decimal"
         />
         {renderClientPicker()}
       </View>
@@ -923,6 +931,7 @@ export default function RetailScreen() {
                     value={amount}
                     onChangeText={setAmount}
                     keyboardType="numeric"
+                    numericMode="decimal"
                   />
                 </ValidationField>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
@@ -975,6 +984,7 @@ export default function RetailScreen() {
                     value={amount}
                     onChangeText={setAmount}
                     keyboardType="numeric"
+                    numericMode="decimal"
                   />
                 </ValidationField>
                 <Button

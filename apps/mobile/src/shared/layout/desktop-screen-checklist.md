@@ -6,7 +6,7 @@ Aplicável ao app autenticado no navegador a partir de 1024 px. A identidade vis
 
 - `DesktopShell`: navegação de 240 px; margens laterais de 32 px; conteúdo de até 1280 px.
 - `ScreenHeader`: título de 20/26 px, subtítulo de 13/18 px, respiro vertical de 24 px e ações à direita. As páginas compartilham o mesmo eixo horizontal.
-- `ScreenGuidance`: orientação ocupa a largura da página; explicação e ações ficam lado a lado quando cabem.
+- `ScreenGuidance`: ajuda `?` nas ações do cabeçalho, antes da ação principal; o painel abre sob demanda. A introdução só ocupa a largura da página enquanto a tela está vazia e a orientação não foi dispensada ou concluída; explicação e ações ficam lado a lado quando cabem. Cabeçalhos próprios recebem o botão por `renderHeader`.
 - `FAB`: no desktop, botão com texto e altura de 44 px; no mobile, mantém o formato anterior.
 - `ScreenCreateBar` e rodapés de `StandardModal`: ações alinhadas à direita no desktop.
 - `desktopSplitLayout`: campos flexíveis, intervalo de 24 px e resumo de 30% da largura, limitado a 280–360 px. O resumo permanece visível ao rolar.

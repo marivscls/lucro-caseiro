@@ -37,6 +37,7 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 - Na marca com `comprasComEstoque`, alterna entre **Entrada de estoque** e **Somente despesa**.
 - Entrada de estoque seleciona produtos, variação, quantidade e custo unitário; o total é calculado e o backend repõe o estoque.
 - Somente despesa preserva fornecedor, descrição, valor, categoria, data e pagamento.
+- Sem suporte a estoque, uma recompra com itens abre como despesa com o total preenchido e aviso antes de salvar. A edição de compras existentes com estoque fica bloqueada, preservando seus itens e movimentos.
 
 ### `PurchaseCard`
 

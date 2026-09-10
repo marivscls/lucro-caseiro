@@ -9,6 +9,8 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import React from "react";
+import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
+import { maskPhoneBR } from "../../../shared/utils/phone";
 import { ScrollView, View } from "react-native";
 
 import {
@@ -43,7 +45,9 @@ function InfoRow({
   label,
   value,
   theme,
+  icon,
 }: Readonly<{
+  icon: AppIconName;
   label: string;
   value: string;
   theme: { colors: Record<string, string> };
@@ -67,15 +71,16 @@ function InfoRow({
           justifyContent: "center",
         }}
       >
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          {({ Telefone: "T", Endereço: "E", Aniversário: "A" } as Record<string, string>)[
-            label
-          ] ?? "N"}
-        </Typography>
+        <AppIcon
+          name={icon}
+          size={18}
+          strokeWidth={1.5}
+          color={theme.colors.textSecondary}
+        />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Typography variant="caption">{label}</Typography>
-        <Typography variant="bodyBold">{value}</Typography>
+        <Typography variant="body">{value}</Typography>
       </View>
     </View>
   );
@@ -85,7 +90,11 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const { data: client, isLoading, error } = useClient(clientId);
-  const { data: salesData } = useSales({ clientId });
+  const {
+    data: salesData,
+    isLoading: salesLoading,
+    error: salesError,
+  } = useSales({ clientId });
 
   if (isLoading) {
     return (
@@ -115,70 +124,78 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
       contentContainerStyle={[
         {
           paddingBottom: isDesktop ? spacing["3xl"] : floatingTabBarContentPadding(0),
-          gap: spacing.xl,
+          gap: spacing.lg,
           ...pageGutter(isDesktop, spacing.xl),
         },
-        desktopStretch(isDesktop, desktopWidths.data),
+        desktopStretch(isDesktop, desktopWidths.standard),
       ]}
     >
-      {/* Avatar and name header */}
       <View
         style={{
-          alignItems: isDesktop ? "flex-start" : "center",
-          gap: spacing.md,
-          paddingTop: spacing.lg,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.lg,
+          paddingVertical: spacing.lg,
         }}
       >
         <View
           style={{
-            width: 80,
-            height: 80,
+            width: 64,
+            height: 64,
             borderRadius: radii.full,
             backgroundColor: pastel.bg,
-            borderWidth: 1,
-            borderColor: pastel.bg,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Typography variant="display" color={pastel.fg}>
+          <Typography variant="h1" color={pastel.fg}>
             {initial}
           </Typography>
         </View>
-        <View
-          style={{ alignItems: isDesktop ? "flex-start" : "center", gap: spacing.xs }}
-        >
-          <Typography variant="h3">{client.name}</Typography>
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+          <Typography variant="h2">{client.name}</Typography>
           <Typography variant="caption">
-            cliente desde{" "}
+            Cliente desde{" "}
             {client.createdAt ? new Date(client.createdAt).getFullYear() : "hoje"}
           </Typography>
+          {client.tags.length > 0 && (
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: spacing.xs,
+                marginTop: spacing.xs,
+              }}
+            >
+              {client.tags.map((tag) => (
+                <Badge key={tag} label={tag} variant="lavender" />
+              ))}
+            </View>
+          )}
         </View>
-
-        {client.tags.length > 0 && (
-          <View
-            style={{
-              flexDirection: "row",
-              gap: spacing.sm,
-              flexWrap: "wrap",
-              justifyContent: isDesktop ? "flex-start" : "center",
-            }}
-          >
-            {client.tags.map((tag) => (
-              <Badge key={tag} label={tag} variant="lavender" />
-            ))}
-          </View>
-        )}
       </View>
 
       {/* Contact actions */}
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
+      <View
+        style={{
+          flexDirection: "row",
+          gap: spacing.md,
+          maxWidth: isDesktop ? 420 : undefined,
+        }}
+      >
         <View style={{ flex: 1 }}>
           <Button
             title="Editar cliente"
             variant="secondary"
             size="sm"
             onPress={onEditPress ?? (() => {})}
+            icon={
+              <AppIcon
+                name="pencil-outline"
+                size={18}
+                color={theme.colors.primaryStrong}
+              />
+            }
             style={{ borderRadius: radii.md }}
           />
         </View>
@@ -186,6 +203,13 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
           <View style={{ flex: 1 }}>
             <Button
               title="WhatsApp"
+              icon={
+                <AppIcon
+                  name="logo-whatsapp"
+                  size={18}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
               variant="success"
               size="sm"
               onPress={() => {
@@ -212,52 +236,69 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
           />
         )}
 
-      {/* Phone display */}
-      {client.phone && (
-        <Card>
+      <Card variant="elevated" padding="lg">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: spacing.md,
+          }}
+        >
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption">Total em compras</Typography>
+            <Typography variant="moneyLg">{formatCurrency(client.totalSpent)}</Typography>
+          </View>
           <View
             style={{
-              flexDirection: "row",
+              width: 44,
+              height: 44,
+              borderRadius: radii.full,
+              backgroundColor: theme.colors.successBg,
               alignItems: "center",
-              justifyContent: "space-between",
+              justifyContent: "center",
             }}
           >
-            <Typography variant="body">{client.phone}</Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              WhatsApp
-            </Typography>
+            <AppIcon name="bag-handle-outline" size={22} color={theme.colors.success} />
           </View>
-        </Card>
-      )}
-
-      {/* Total spent */}
-      <Card variant="elevated">
-        <View
-          style={{ alignItems: "center", paddingVertical: spacing.md, gap: spacing.xs }}
-        >
-          <Typography variant="label">TOTAL GASTO</Typography>
-          <Typography variant="moneyLg">{formatCurrency(client.totalSpent)}</Typography>
         </View>
       </Card>
 
       {/* Info card */}
-      <Card>
+      <Card variant="elevated" padding="lg">
         <View style={{ gap: spacing.sm }}>
+          <Typography variant="bodyBold">Dados do cliente</Typography>
           {client.phone && (
-            <InfoRow label="Telefone" value={client.phone} theme={theme} />
+            <InfoRow
+              icon="call-outline"
+              label="Telefone"
+              value={maskPhoneBR(client.phone)}
+              theme={theme}
+            />
           )}
           {client.address && (
-            <InfoRow label="Endereço" value={client.address} theme={theme} />
+            <InfoRow
+              icon="location-outline"
+              label="Endereço"
+              value={client.address}
+              theme={theme}
+            />
           )}
           {client.birthday && (
             <InfoRow
+              icon="gift-outline"
               label="Aniversário"
               value={formatDate(client.birthday)}
               theme={theme}
             />
           )}
           {client.notes && (
-            <InfoRow label="Observações" value={client.notes} theme={theme} />
+            <InfoRow
+              icon="document-text-outline"
+              label="Observações"
+              value={client.notes}
+              theme={theme}
+            />
           )}
           {!client.phone && !client.address && !client.birthday && !client.notes && (
             <Typography variant="caption">
@@ -268,15 +309,23 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
       </Card>
 
       {/* Purchase history */}
-      <Card>
+      <Card variant="elevated" padding="lg">
         <View style={{ gap: spacing.md }}>
           <Typography variant="h3">Histórico de compras</Typography>
-          {!salesData?.items.length ? (
+          {salesLoading && <SkeletonList rows={2} variant="sale" />}
+          {!salesLoading && !!salesError && (
+            <Typography variant="caption">
+              Não foi possível carregar as compras. Tente novamente mais tarde.
+            </Typography>
+          )}
+          {!salesLoading && !salesError && !salesData?.items.length && (
             <Typography variant="caption">
               Este cliente ainda não fez nenhuma compra.
             </Typography>
-          ) : (
-            salesData.items.slice(0, 10).map((sale) => (
+          )}
+          {!salesLoading &&
+            !salesError &&
+            salesData?.items.slice(0, 10).map((sale) => (
               <View
                 key={sale.id}
                 style={{
@@ -285,7 +334,8 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
                   alignItems: "center",
                   paddingVertical: spacing.sm,
                   borderBottomWidth: 1,
-                  borderBottomColor: theme.colors.surface,
+                  borderBottomColor: theme.colors.border,
+                  gap: spacing.md,
                 }}
               >
                 <View style={{ flex: 1, gap: 2 }}>
@@ -327,8 +377,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
                   />
                 </View>
               </View>
-            ))
-          )}
+            ))}
         </View>
       </Card>
     </ScrollView>

@@ -1,0 +1,173 @@
+{
+  "checks": [
+    {
+      "name": "orcamento",
+      "width": 320,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "orcamento",
+      "width": 390,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "orcamento",
+      "width": 500,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "orcamento",
+      "width": 768,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "recibo",
+      "width": 320,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "recibo",
+      "width": 390,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "recibo",
+      "width": 500,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "recibo",
+      "width": 768,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 3
+    },
+    {
+      "name": "ficha",
+      "width": 320,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 6
+    },
+    {
+      "name": "ficha",
+      "width": 390,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 6
+    },
+    {
+      "name": "ficha",
+      "width": 500,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 6
+    },
+    {
+      "name": "ficha",
+      "width": 768,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 6
+    },
+    {
+      "name": "orcamento-longo",
+      "width": 320,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "orcamento-longo",
+      "width": 390,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "orcamento-longo",
+      "width": 500,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "orcamento-longo",
+      "width": 768,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "recibo-longo",
+      "width": 320,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "recibo-longo",
+      "width": 390,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "recibo-longo",
+      "width": 500,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "recibo-longo",
+      "width": 768,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "ficha-longa",
+      "width": 320,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "ficha-longa",
+      "width": 390,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "ficha-longa",
+      "width": 500,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    },
+    {
+      "name": "ficha-longa",
+      "width": 768,
+      "overflow": false,
+      "nestedMain": false,
+      "rows": 45
+    }
+  ],
+  "offlineFallback": "passed"
+}

@@ -134,6 +134,7 @@ function RecipesContent() {
         >
           <RecipeDetail
             recipeId={modal.recipeId}
+            onClose={closeModal}
             onEdit={() => setModal({ type: "edit", recipeId: modal.recipeId })}
             onDeleted={closeModal}
           />

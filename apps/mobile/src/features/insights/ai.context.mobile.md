@@ -38,16 +38,16 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 - **MonthlyBars** (`{ series: MonthlyRevenue[] }`): barras verticais do faturamento, altura
   proporcional ao máximo da série; mês sem venda **não desenha barra** (altura 0, sem
   preenchimento — evita faixa branca vazia). Eixo X sempre com abreviações de mês
-  (janela de 12 mostra mês sim, mês não, terminando no mais recente). O tooltip do mês
-  focado fica **sobre o gráfico** (não dentro da coluna da barra), com o valor em uma
-  linha (`R$` + número sem quebra). Só aparece quando o mês tem faturamento > 0.
-  Altura das barras anima no driver JS (`useNativeDriver: false`); fade/opacity usa o
-  mesmo driver para não misturar native+JS no mesmo `Animated.View`. Alturas do gráfico
-  são numéricas (não `%`), porque `%` em `height` dispara aviso no nativo.
+  (janela de 12 alterna rótulos e inclui o mês selecionado). O detalhe do mês fica
+  abaixo do gráfico, sem sobrepor as barras, com valor exato, ano e número de vendas.
+  Meses zerados também podem ser selecionados. Barras estáticas com altura numérica
+  proporcional ao eixo Y; seleção tem destaque de cor, rótulo e estado acessível.
+  O total e as datas ficam acima do seletor explícito de 3/6/12 meses.
 - **RankBars** (`{ rows: RankRow[]; color }`): lista ranqueada com barra de preenchimento
   horizontal proporcional ao maior valor. `RankRow = { key, label, caption, value }`.
   Altura da barra e do brilho são valores em px (não `%`).
-- **StatCard / WindowSelector** (locais na tela): cards de resumo e pills 3/6/12 meses.
+- **StatPanel / WindowSelector** (em `monthly-bars.tsx`): cards de resumo independentes
+  e botões 3/6/12 meses. A média mensal considera somente meses com vendas, conforme legenda.
 
 ## Hooks
 
@@ -95,6 +95,11 @@ const { data } = useInsights(6);
 ```
 
 ## Change log / Decisions
+
+- 2026-09-09: refinamento better-ui: total separado do filtro, períodos explícitos,
+  gráfico sem tooltip sobreposto e cards de resumo independentes. A contagem de vendas
+  e as datas substituem a comparação ambígua entre metades da janela no cabeçalho;
+  a variação mês a mês continua no resumo. Barras sem animação de entrada.
 
 - Criação inicial: tela de Insights com faturamento mensal, mais vendidos e melhores clientes.
 - Decisão: gráficos em `View` (barras) em vez de lib de chart nativa, para manter o dev build

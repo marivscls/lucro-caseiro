@@ -7,7 +7,6 @@ import { StandardModal } from "../../../shared/components/standard-modal";
 import { SkeletonCard } from "../../../shared/components/skeleton";
 import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
 import { formatCurrency } from "../../../shared/utils/format";
-import { RankBars, type RankRow } from "../../insights/components/rank-bars";
 import { useAllProducts } from "../../products/hooks";
 import { useAllRecipes } from "../hooks";
 import { calculateRecipeStatistics } from "../statistics";
@@ -17,39 +16,60 @@ function MetricCard({
   label,
   value,
   icon,
+  description,
+  tone = "neutral",
 }: Readonly<{
   label: string;
   value: string;
-  icon: "calculator-outline" | "trending-up-outline";
+  description: string;
+  tone?: "neutral" | "positive" | "negative";
+  icon: "calculator-outline" | "trending-up-outline" | "trending-down-outline";
 }>) {
   const { theme } = useTheme();
+  const color = {
+    neutral: theme.colors.text,
+    positive: theme.colors.success,
+    negative: theme.colors.alert,
+  }[tone];
   return (
-    <Card variant="surface" padding="lg" style={{ flex: 1, gap: spacing.sm }}>
+    <Card
+      variant="surface"
+      padding="md"
+      style={{ flex: 1, minWidth: 0, gap: spacing.md, borderRadius: radii.lg }}
+    >
       <View
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: radii.full,
-          backgroundColor: theme.colors.blueBg,
+          flexDirection: "row",
+          flexWrap: "wrap",
           alignItems: "center",
-          justifyContent: "center",
+          gap: spacing.xs,
         }}
       >
-        <AppIcon name={icon} size={20} color={theme.colors.blue} />
+        <AppIcon name={icon} size={16} color={theme.colors.textSecondary} />
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {label}
+        </Typography>
       </View>
-      <Typography variant="caption" color={theme.colors.textSecondary}>
-        {label}
-      </Typography>
-      <Typography
-        variant="moneyLg"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.65}
-      >
-        {value}
-      </Typography>
+      <View style={{ gap: spacing.xs, marginTop: "auto" }}>
+        <Typography
+          variant="moneyLg"
+          color={color}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.65}
+        >
+          {value}
+        </Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {description}
+        </Typography>
+      </View>
     </Card>
   );
+}
+
+function formatPercent(value: number) {
+  return `${value.toFixed(1).replace(".", ",")}%`;
 }
 
 export function RecipeStatisticsModal({
@@ -71,12 +91,11 @@ export function RecipeStatisticsModal({
   const loading = loadingRecipes || loadingProducts;
   const failed = recipesError || productsError;
   const statistics = calculateRecipeStatistics(recipes ?? [], products ?? []);
-  const ranking: RankRow[] = statistics.profitability.slice(0, 5).map((item) => ({
-    key: item.recipeId,
-    label: displayIngredientName(item.recipeName),
-    caption: `${formatCurrency(item.profitPerUnit)} · ${item.marginPercent.toFixed(1)}%`,
-    value: item.profitPerUnit,
-  }));
+  const ranking = statistics.profitability.slice(0, 5);
+  const margin = statistics.averageMarginPercent;
+  const marginTone = margin !== null && margin < 0 ? "negative" : "neutral";
+  const marginDescription =
+    margin === null ? "Sem dados de venda" : "Sobre o preço de venda";
 
   let content: React.ReactNode;
   if (loading) {
@@ -98,38 +117,147 @@ export function RecipeStatisticsModal({
   } else {
     content = (
       <>
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <MetricCard
-            label={`CUSTO MÉDIO / ${experienceCopy.formulaNoun.toUpperCase()}`}
-            value={formatCurrency(statistics.averageRecipeCost)}
-            icon="calculator-outline"
-          />
-          <MetricCard
-            label="MARGEM MÉDIA"
-            value={
-              statistics.averageMarginPercent === null
-                ? "—"
-                : `${statistics.averageMarginPercent.toFixed(1)}%`
-            }
-            icon="trending-up-outline"
-          />
+        <View style={{ gap: spacing.md }}>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <MetricCard
+              label="Custo médio"
+              description={`Por ${experienceCopy.formulaNoun}`}
+              value={formatCurrency(statistics.averageRecipeCost)}
+              icon="calculator-outline"
+            />
+            <MetricCard
+              label="Margem média"
+              description={
+                margin !== null && margin < 0 ? "Margem negativa" : marginDescription
+              }
+              value={margin === null ? "—" : formatPercent(margin)}
+              tone={margin !== null && margin > 0 ? "positive" : marginTone}
+              icon={
+                margin !== null && margin < 0
+                  ? "trending-down-outline"
+                  : "trending-up-outline"
+              }
+            />
+          </View>
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm }}
+          >
+            <AppIcon
+              name="information-circle-outline"
+              size={16}
+              color={theme.colors.textSecondary}
+            />
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ flex: 1 }}
+            >
+              Margem disponível em {statistics.profitability.length} de{" "}
+              {recipes?.length ?? 0} {experienceCopy.formulaNounPlural}.
+            </Typography>
+          </View>
         </View>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Margem calculada em {statistics.profitability.length} de {recipes?.length ?? 0}{" "}
-          {experienceCopy.formulaNounPlural} vinculadas a produtos ativos.
-        </Typography>
 
         {ranking.length ? (
-          <Card variant="surface" padding="xl" style={{ gap: spacing.lg }}>
+          <View style={{ gap: spacing.lg }}>
             <View style={{ gap: spacing.xs }}>
-              <Typography variant="h3">Mais lucrativas</Typography>
+              <Typography variant="h3">
+                {ranking[0].profitPerUnit > 0
+                  ? "Mais lucrativas"
+                  : `Resultado por ${experienceCopy.formulaNoun}`}
+              </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
-                Lucro por unidade de rendimento e margem sobre o preço de venda. Quando há
-                mais de um produto, considera o de maior lucro.
+                Em ordem de lucro por unidade de rendimento.
               </Typography>
             </View>
-            <RankBars rows={ranking} color={theme.colors.success} />
-          </Card>
+            <View style={{ gap: spacing.xs }}>
+              {ranking.map((item, index) => {
+                const isLeader = index === 0 && item.profitPerUnit > 0;
+                const marginColor = isLeader
+                  ? theme.colors.success
+                  : theme.colors.textSecondary;
+                let resultColor = theme.colors.text;
+                if (item.profitPerUnit < 0) resultColor = theme.colors.alert;
+                if (item.profitPerUnit > 0) resultColor = theme.colors.success;
+                return (
+                  <View
+                    key={item.recipeId}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-start",
+                      gap: spacing.md,
+                      padding: spacing.md,
+                      borderRadius: radii.xl,
+                      backgroundColor: isLeader ? theme.colors.successBg : "transparent",
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: radii.sm,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: isLeader
+                          ? theme.colors.surfaceElevated
+                          : theme.colors.surface,
+                      }}
+                    >
+                      <Typography
+                        variant="captionBold"
+                        color={
+                          isLeader ? theme.colors.success : theme.colors.textSecondary
+                        }
+                      >
+                        {index + 1}
+                      </Typography>
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                      <Typography variant="bodyBold" style={{ paddingTop: spacing.xs }}>
+                        {displayIngredientName(item.recipeName)}
+                      </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          alignItems: "baseline",
+                          columnGap: spacing.md,
+                          rowGap: spacing.xs,
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Typography variant="money" color={resultColor}>
+                          {formatCurrency(item.profitPerUnit)}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color={
+                            item.marginPercent < 0 ? theme.colors.alert : marginColor
+                          }
+                          style={{ fontVariant: ["tabular-nums"] }}
+                        >
+                          {formatPercent(item.marginPercent)} de margem
+                        </Typography>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+            <View
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: theme.colors.border,
+                paddingTop: spacing.md,
+              }}
+            >
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Considera produtos ativos com preço de venda. Se houver mais de um produto
+                por {experienceCopy.formulaNoun}, usa o de maior lucro. A margem é
+                calculada sobre o preço de venda.
+              </Typography>
+            </View>
+          </View>
         ) : (
           <Card variant="surface" padding="xl" style={{ gap: spacing.sm }}>
             <Typography variant="h3">Margem ainda indisponível</Typography>
@@ -147,8 +275,8 @@ export function RecipeStatisticsModal({
     <StandardModal
       visible={visible}
       onClose={onClose}
-      title="Estatísticas de receitas"
-      subtitle="Custos e margens dos produtos vinculados"
+      title={`Estatísticas de ${experienceCopy.formulaNounPlural}`}
+      subtitle="Acompanhe seus custos e margens"
     >
       {content}
     </StandardModal>

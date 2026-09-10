@@ -76,6 +76,13 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 
 ## Change log / Decisions
 
+- 2026-09-09: detalhes usam identificação compacta, contatos com divisórias e observações
+  separadas. O formulário agrupa identificação, contato e compras; os seis presets ficam
+  em grade de três colunas, com upload visível abaixo e estados adaptados ao tema escuro.
+  Rodapé fixo e rolagem continuam sob responsabilidade do `StandardModal`.
+- Cards da lista usam avatar de 44 px, nome em `bodyBold`, descrição opcional em
+  uma linha e rodapé com data/valor à esquerda e ação à direita. Sem descrição,
+  o espaço é omitido; os alvos de toque das ações continuam com 44 px.
 - 2026-08-18: tela completa baseada na referência e no PNG oficial.
 - Presets ficam em registro vetorial local com seis opções por categoria.
 - Upload só é definitivo no submit, reutiliza o pipeline existente e confere os bytes reais de

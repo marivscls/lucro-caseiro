@@ -255,11 +255,7 @@ function InsightsContent({
         <View
           style={{
             flexDirection: "row",
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            borderRadius: radii.xl,
-            backgroundColor: theme.colors.surface,
-            overflow: "hidden",
+            gap: spacing.md,
           }}
         >
           <StatPanel
@@ -270,18 +266,11 @@ function InsightsContent({
             tint={theme.colors.primary}
             theme={theme}
           />
-          <View
-            style={{
-              width: 1,
-              marginVertical: spacing.md,
-              backgroundColor: theme.colors.border,
-            }}
-          />
           <StatPanel
             icon="trending-up-outline"
             label="Média mensal"
             value={formatMoneyShort(average)}
-            caption={`Últimos ${months} meses`}
+            caption="Por mês com vendas"
             tint={theme.colors.success}
             theme={theme}
           />
@@ -319,12 +308,9 @@ function InsightsContent({
         <>
           {actionable.length > 0 && (
             <Card variant="surface" padding="lg">
-              <SectionTitle
-                icon="sparkles-outline"
-                title="O que fazer agora"
-                tint={theme.colors.primaryBg}
-                iconColor={theme.colors.primaryStrong}
-              />
+              <Typography variant="h3" style={{ fontSize: 17, marginBottom: spacing.md }}>
+                O que fazer agora
+              </Typography>
               <View style={{ gap: spacing.md }}>
                 {actionable.map((action) => (
                   <Pressable

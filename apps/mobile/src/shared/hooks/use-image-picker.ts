@@ -2,6 +2,7 @@ import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 
 import { showAlert } from "../components/alert-store";
+import { alertError } from "../utils/alerts";
 
 export type PickImageOptions = Readonly<{
   allowsEditing?: boolean;
@@ -76,13 +77,21 @@ export function useImagePicker() {
         {
           text: "Tirar foto",
           onPress: () => {
-            takePhoto().catch(() => {});
+            takePhoto().catch(() =>
+              alertError(
+                "Não foi possível abrir a câmera. Confira a permissão e tente novamente.",
+              ),
+            );
           },
         },
         {
           text: "Escolher da galeria",
           onPress: () => {
-            pickFromGallery().catch(() => {});
+            pickFromGallery().catch(() =>
+              alertError(
+                "Não foi possível abrir a galeria. Tente selecionar a foto novamente.",
+              ),
+            );
           },
         },
         { text: "Cancelar", style: "cancel" },

@@ -1,9 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
+import { userErrorMessage, USER_ERROR_MESSAGES } from "@lucro-caseiro/contracts";
 
 import {
   ConflictError,
   ForbiddenError,
+  FeatureUnavailableError,
   LimitExceededError,
   NotFoundError,
   ServiceUnavailableError,
@@ -16,6 +18,12 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
+  if ((err as Error & { type?: string }).type === "entity.parse.failed") {
+    res
+      .status(400)
+      .json({ error: "VALIDATION_ERROR", message: USER_ERROR_MESSAGES.validation });
+    return;
+  }
   if ((err as Error & { type?: string }).type === "entity.too.large") {
     res.status(413).json({
       error: "PAYLOAD_TOO_LARGE",
@@ -24,10 +32,16 @@ export function errorHandler(
     return;
   }
   if (err instanceof ZodError) {
+    const validation = err.flatten((issue) =>
+      userErrorMessage(issue.message, USER_ERROR_MESSAGES.validation),
+    );
     res.status(400).json({
       error: "VALIDATION_ERROR",
       message: "Dados invalidos",
-      details: err.flatten().fieldErrors,
+      details: {
+        ...validation.fieldErrors,
+        ...(validation.formErrors.length ? { _form: validation.formErrors } : {}),
+      },
     });
     return;
   }
@@ -59,7 +73,7 @@ export function errorHandler(
 
   if (err instanceof ForbiddenError) {
     res.status(403).json({
-      error: "FORBIDDEN",
+      error: err instanceof FeatureUnavailableError ? "FEATURE_UNAVAILABLE" : "FORBIDDEN",
       message: err.message,
     });
     return;

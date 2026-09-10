@@ -132,6 +132,15 @@ Importados de `@lucro-caseiro/contracts`.
 
 ## Change log / Decisions
 
+- 2026-09-10: cadastro e edição compartilham `components/client-form-fields.tsx`:
+  rótulos acima dos campos, telefone com máscara, calendário de aniversário e
+  contador de observações. Somente o nome é obrigatório; ações ficam no rodapé
+  do `StandardModal`. Edição agrupa próximo contato numa seção expansível,
+  aberta inicialmente quando já existem dados e preservada ao recolher.
+- 2026-09-10: perfil compacto com avatar ao lado do nome, telefone exibido uma
+  única vez, ícones de contato, total em compras e histórico com estados de
+  carregamento, erro e vazio separados. Conteúdo limitado a 720 px no desktop.
+
 - Historico de compras no detalhe do cliente importa `useSales` da feature `sales` (cross-feature via hook, nao via arquivo interno).
 - Tags limitadas a 10 por cliente para manter UX simples.
 - 2026-06-15: `useBirthdayNotifier(isPremium)` — notificacao local quando um cliente faz aniversario hoje (1x/dia via AsyncStorage). Recurso **Premium**, respeita a preferencia (`notification-prefs`, tipo `CLIENT_BIRTHDAY`). Helper puro `isBirthdayToday` coberto por teste. Montado no `app/_layout.tsx`.

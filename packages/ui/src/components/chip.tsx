@@ -2,11 +2,8 @@ import React from "react";
 import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes, radii, spacing } from "../theme";
-import {
-  useSemanticVariantColors,
-  type SemanticVariant,
-} from "./semantic-variant";
+import { controlSizes, fonts, fontSizes, radii, spacing } from "../theme";
+import { useSemanticVariantColors, type SemanticVariant } from "./semantic-variant";
 
 // Mesma taxonomia semantica do Badge — nao crie nomes locais de variante.
 export type ChipVariant = SemanticVariant;
@@ -73,15 +70,15 @@ export function Chip({
       hitSlop={8}
       style={({ pressed }) => [
         {
-          minHeight: 44,
+          minHeight: controlSizes.regular,
           flexGrow: 0,
           flexShrink: 0,
           alignSelf: "flex-start",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
+          gap: spacing.xs,
+          paddingHorizontal: spacing.sm,
           borderRadius: radii.full,
           borderWidth: 1,
           borderColor,
@@ -106,10 +103,10 @@ export function Chip({
       {showCount ? (
         <View
           style={{
-            minWidth: 22,
-            height: 22,
-            borderRadius: 11,
-            paddingHorizontal: 6,
+            minWidth: controlSizes.badge,
+            height: controlSizes.badge,
+            borderRadius: radii.full,
+            paddingHorizontal: spacing.xs,
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: badgeBg,

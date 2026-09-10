@@ -1,4 +1,5 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
+import { apiErrorMessage, USER_ERROR_MESSAGES } from "@lucro-caseiro/contracts";
 
 import { supabase } from "./supabase";
 
@@ -47,11 +48,16 @@ export async function apiClient<T>(
       headers["Authorization"] = `Bearer ${currentToken}`;
     }
 
-    const response = await fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}${path}`, {
+        method,
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+    } catch {
+      throw new ApiError(USER_ERROR_MESSAGES.network, 0, "NETWORK_ERROR");
+    }
 
     // Ao voltar para um PWA que ficou inativo, a primeira requisição pode sair
     // com o access token antigo antes do auto-refresh do Supabase terminar.
@@ -64,25 +70,35 @@ export async function apiClient<T>(
     }
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: "Erro desconhecido" }));
-      const details = Array.isArray(error.details) ? error.details.join("\n") : null;
-      throw new ApiError(
-        details || error.message || `HTTP ${response.status}`,
-        response.status,
-        error.error,
-      );
+      const error: unknown = await response.json().catch(() => null);
+      const code =
+        error &&
+        typeof error === "object" &&
+        "error" in error &&
+        typeof error.error === "string"
+          ? error.error
+          : undefined;
+      throw new ApiError(apiErrorMessage(response.status, error), response.status, code);
     }
 
     if (response.status === 204) {
       return undefined as T;
     }
 
-    const text = await response.text();
-    if (!text) {
-      return undefined as T;
-    }
+    try {
+      const text = await response.text();
+      if (!text) {
+        return undefined as T;
+      }
 
-    return (responseType === "text" ? text : JSON.parse(text)) as T;
+      return (responseType === "text" ? text : JSON.parse(text)) as T;
+    } catch {
+      throw new ApiError(
+        USER_ERROR_MESSAGES.response,
+        response.status,
+        "INVALID_RESPONSE",
+      );
+    }
   }
 
   return request(token, true);

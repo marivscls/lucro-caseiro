@@ -42,9 +42,11 @@ export function ProductPicker({
       </Typography>
       {isLoading ? (
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
-          <Skeleton width={110} height={36} borderRadius={9999} />
-          <Skeleton width={90} height={36} borderRadius={9999} />
-          <Skeleton width={120} height={36} borderRadius={9999} />
+          {[0, 1, 2].map((index) => (
+            <View key={index} style={{ flex: 1, minWidth: 0 }}>
+              <Skeleton width="100%" height={44} borderRadius={radii.md} />
+            </View>
+          ))}
         </View>
       ) : (
         <View style={{ gap: spacing.sm }}>

@@ -1,15 +1,13 @@
-import { fonts, fontSizes, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useSegments } from "expo-router";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { brandScreenPalette } from "../brand-palette";
 import { desktopStretch, desktopWidths, pageGutter } from "../layout/desktop-density";
 import { screenCreateBarBottomPadding } from "../layout/floating-tab-bar";
 import { useDesktopLayout } from "../layout/use-desktop-layout";
-
-const CREATE_CTA_HEIGHT = 48;
 
 export function ScreenCreateBar({
   title,
@@ -49,36 +47,20 @@ export function ScreenCreateBar({
         borderTopColor: theme.colors.border,
       }}
     >
-      <Pressable
+      <Button
+        title={title}
         onPress={onPress}
         disabled={disabled}
-        accessibilityRole="button"
         accessibilityLabel={accessibilityLabel ?? title}
         accessibilityState={{ disabled }}
-        style={({ pressed }) => {
-          let opacity = 1;
-          if (disabled) opacity = 0.5;
-          else if (pressed) opacity = 0.88;
-          return {
-            minHeight: isDesktop ? 44 : CREATE_CTA_HEIGHT,
-            height: isDesktop ? 44 : CREATE_CTA_HEIGHT,
-            minWidth: isDesktop ? 220 : undefined,
-            paddingHorizontal: isDesktop ? spacing.xl : undefined,
-            borderRadius: isDesktop ? 12 : 14,
-            backgroundColor: palette.rose,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity,
-          };
+        size="md"
+        fitTitle={false}
+        titleLines={2}
+        style={{
+          minWidth: isDesktop ? 220 : undefined,
+          paddingHorizontal: spacing.lg,
         }}
-      >
-        <Typography
-          color={palette.onRose}
-          style={{ fontFamily: fonts.bold, fontSize: fontSizes.sm }}
-        >
-          {title}
-        </Typography>
-      </Pressable>
+      />
     </View>
   );
 }

@@ -326,7 +326,6 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       visible={visible}
       onClose={onClose}
       title={service ? "Editar serviço" : "Novo serviço"}
-      subtitle="Organize o que você oferece, o tempo e o preço"
       wide
       footer={
         <>
@@ -366,6 +365,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       }
     >
       <FormStepProgress
+        compact
         current={formStep}
         steps={SERVICE_FORM_STEPS}
         onStepPress={setFormStep}
@@ -375,29 +375,10 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         accessibilityElementsHidden={formStep !== 1}
         importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
       >
-        <Card
-          variant="elevated"
-          style={{
-            backgroundColor: theme.colors.surface,
-          }}
-        >
-          <View style={{ flex: 1, gap: spacing.xs }}>
-            <Typography variant="bodyBold">
-              Serve para diferentes tipos de trabalho
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Cadastre atendimentos presenciais, online ou no endereço do cliente:
-              consultas, aulas, beleza, manutenção, instalação, criação e outros.
-            </Typography>
-          </View>
-        </Card>
-
-        <FormSection
-          title="Como o serviço funciona"
-          subtitle="O que a pessoa recebe, quanto tempo leva e quanto custa"
-          icon="briefcase-outline"
-          initiallyOpen
-        >
+        <View style={{ gap: spacing.md }}>
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            Dados do serviço
+          </Typography>
           <ValidationField {...formValidation.field("name")}>
             <Input
               label="Nome do serviço"
@@ -415,15 +396,16 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             maxLength={500}
             multiline
             textAlignVertical="center"
-            style={{ height: 88, paddingVertical: spacing.md }}
+            style={{ height: 72, paddingVertical: spacing.sm }}
           />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
             <ValidationField
               {...formValidation.field("durationMinutes")}
-              style={{ flex: 1, minWidth: 180 }}
+              style={{ flex: 1, minWidth: 130 }}
             >
               <Input
-                label="Duração em minutos"
+                label="Duração (min)"
+                style={{ minWidth: 0 }}
                 placeholder="60"
                 value={durationMinutes}
                 onChangeText={(value) =>
@@ -433,12 +415,13 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               />
             </ValidationField>
             <Input
-              label="Preço cobrado (opcional)"
+              label="Preço (opcional)"
+              style={{ minWidth: 0 }}
               placeholder="R$ 0,00"
               value={defaultPrice}
               onChangeText={(value) => setDefaultPrice(maskCurrencyInput(value))}
               keyboardType="numeric"
-              containerStyle={{ flex: 1, minWidth: 180 }}
+              containerStyle={{ flex: 1, minWidth: 130 }}
             />
           </View>
           <View style={{ gap: spacing.sm }}>
@@ -457,23 +440,20 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             </View>
           </View>
           <Typography variant="caption" color={theme.colors.textSecondary}>
-            Se o preço variar conforme o atendimento, deixe em branco e combine o valor ao
-            criar o agendamento.
+            Preço variável? Combine o valor ao agendar.
           </Typography>
-          <Typography variant="bodyBold">Disponibilidade</Typography>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Serviços disponíveis aparecem para novos agendamentos. Pausar preserva o
-            histórico.
+          <Typography variant="bodyBold" style={{ marginTop: spacing.sm }}>
+            Disponibilidade
           </Typography>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
             <Chip label="Disponível" selected={active} onPress={() => setActive(true)} />
             <Chip label="Pausado" selected={!active} onPress={() => setActive(false)} />
           </View>
-        </FormSection>
+        </View>
 
         <FormSection
           title="Agenda"
-          subtitle="Defina onde acontece e o respiro entre horários"
+          subtitle="Local e intervalo entre atendimentos"
           icon="calendar-outline"
           initiallyOpen
         >

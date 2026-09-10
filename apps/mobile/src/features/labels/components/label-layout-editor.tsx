@@ -87,6 +87,7 @@ export function LabelLayoutEditor({
           onChangeText={setWidth}
           onBlur={() => commitDraft(true)}
           keyboardType="decimal-pad"
+          numericMode="decimal"
           inputMode="decimal"
           error={
             widthValid
@@ -101,6 +102,7 @@ export function LabelLayoutEditor({
           onChangeText={setHeight}
           onBlur={() => commitDraft(true)}
           keyboardType="decimal-pad"
+          numericMode="decimal"
           inputMode="decimal"
           error={
             heightValid

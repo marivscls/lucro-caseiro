@@ -91,6 +91,37 @@ describe("buildReceiptHtml", () => {
     expect(html).toContain("0,5 kg");
   });
 
+  it("mantem quantidade, preco unitario e subtotal associados ao item", () => {
+    const doc = new DOMParser().parseFromString(
+      buildReceiptHtml(makeSale(), business),
+      "text/html",
+    );
+    const rows = doc.querySelectorAll("tbody tr");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.textContent).toContain("Bolo de Pote");
+    expect(rows[0]?.textContent).toContain("2 × R$ 12,50");
+    expect(rows[0]?.textContent).toContain("R$ 25,00");
+    expect(rows[1]?.textContent).toContain("0,5 kg × R$ 41,00");
+    expect(rows[1]?.textContent).toContain("R$ 20,50");
+  });
+
+  it("apresenta subtotal e desconto antes do total final", () => {
+    const doc = new DOMParser().parseFromString(
+      buildReceiptHtml(makeSale({ discount: 5, total: 40.5 }), business),
+      "text/html",
+    );
+    const adjustments = Array.from(doc.querySelectorAll(".summary .meta-row"));
+    expect(adjustments.map((row) => row.querySelector("span")?.textContent)).toEqual([
+      "Subtotal",
+      "Desconto",
+    ]);
+    expect(adjustments.map((row) => row.querySelector("strong")?.textContent)).toEqual([
+      "R$ 45,50",
+      "- R$ 5,00",
+    ]);
+    expect(doc.querySelector(".total .value")?.textContent).toBe("R$ 40,50");
+  });
+
   it("mostra selo de pago ou pendente conforme o status", () => {
     expect(buildReceiptHtml(makeSale({ status: "paid" }), business)).toContain(
       "Pagamento recebido",
@@ -101,11 +132,14 @@ describe("buildReceiptHtml", () => {
   });
 
   it("escapa HTML nos campos do usuario", () => {
-    const html = buildReceiptHtml(
-      makeSale({ clientName: "<script>x</script>" }),
-      business,
-    );
+    const html = buildReceiptHtml(makeSale({ clientName: "<script>x</script>" }), {
+      name: '<img src="x" onerror="alert(1)">',
+      phone: "<script>phone</script>",
+    });
     expect(html).not.toContain("<script>x</script>");
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    expect(doc.querySelectorAll("script, img")).toHaveLength(0);
+    expect(doc.title).toContain('<img src="x" onerror="alert(1)">');
   });
 
   it("sem cliente, nao renderiza a linha de cliente", () => {

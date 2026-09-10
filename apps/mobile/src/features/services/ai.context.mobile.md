@@ -129,6 +129,14 @@ const pricing = calculateServicePricing({
 
 ## Change log / Decisions
 
+- 2026-09-09: novo/editar serviço adotam progresso compacto com etapas numeradas,
+  sem cartão introdutório e com dados principais fora de um acordeão. Duração e
+  preço compartilham uma linha quando há espaço. O painel reduz a escala dos valores
+  e das solicitações, mantém ações de 44 px e formata o telefone nacional.
+- 2026-09-09: painel de serviço usa indicadores compactos em duas colunas no celular
+  e quatro no desktop, lucro com cor semântica, solicitações com data brasileira e
+  contato em linhas separadas, além de ações de rodapé que quebram em telas estreitas.
+
 - 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
 
 - 2026-07-28: serviços passam a coexistir com produtos e ganham rota de gestão,

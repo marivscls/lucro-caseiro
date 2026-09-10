@@ -794,6 +794,7 @@ function ProductDetailModal({
                       value={stockDelta}
                       onChangeText={setStockDelta}
                       keyboardType="number-pad"
+                      numericMode="integer"
                       placeholder="Ex.: 12"
                     />
                   </ValidationField>
@@ -1137,6 +1138,7 @@ function ProductDetailModal({
                   value={stockQuantity}
                   onChangeText={setStockQuantity}
                   keyboardType="number-pad"
+                  numericMode="integer"
                 />
                 <Input
                   label="Alerta de estoque baixo (opcional)"
@@ -1144,6 +1146,7 @@ function ProductDetailModal({
                   value={stockAlert}
                   onChangeText={setStockAlert}
                   keyboardType="number-pad"
+                  numericMode="integer"
                 />
               </>
             )}
@@ -1154,6 +1157,7 @@ function ProductDetailModal({
                 value={stockAlert}
                 onChangeText={setStockAlert}
                 keyboardType="number-pad"
+                numericMode="integer"
               />
             ) : null}
           </FormSection>

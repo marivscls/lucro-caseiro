@@ -1,6 +1,14 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Badge, Button, Card, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  radii,
+  spacing,
+  Typography,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Image, View } from "react-native";
@@ -30,7 +38,7 @@ function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("pt-BR", {
     day: "2-digit",
-    month: "long",
+    month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
@@ -52,7 +60,7 @@ export function SaleDetail({
   onStatusUpdated,
   onEditPress,
 }: SaleDetailProps) {
-  const { theme } = useTheme();
+  const { theme, mode } = useTheme();
   const updateStatus = useUpdateSaleStatus();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
@@ -142,172 +150,293 @@ export function SaleDetail({
   }
 
   return (
-    <View style={{ flexShrink: 1, gap: 16 }}>
-      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-        <Badge label={status.label} variant={status.variant} />
-      </View>
-
-      <Card>
-        <View style={{ gap: 8 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="caption">Cliente</Typography>
-            <Typography variant="body">{sale.clientName ?? "Cliente avulso"}</Typography>
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="caption">Pagamento</Typography>
-            <Badge label={payment} variant="info" />
-          </View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Typography variant="caption">Data</Typography>
-            <Typography variant="body">{formatDate(sale.soldAt)}</Typography>
-          </View>
-          {sale.notes && (
-            <View style={{ marginTop: 4 }}>
-              <Typography variant="caption">Observações</Typography>
-              <Typography variant="body">{sale.notes}</Typography>
-            </View>
-          )}
-        </View>
-      </Card>
-
-      <Typography variant="h3">Itens</Typography>
-      {sale.items.map((item) => (
-        <Card key={item.id}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 12,
-                overflow: "hidden",
-                backgroundColor: theme.colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {item.productPhotoUrl ? (
-                <Image
-                  source={{ uri: item.productPhotoUrl }}
-                  style={{ width: "100%", height: "100%" }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Typography variant="h3" color={theme.colors.textSecondary}>
-                  {productInitial(item.productName)}
-                </Typography>
-              )}
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Typography variant="body">
-                {displayProductName(item.productName)}
-              </Typography>
-              <Typography variant="caption">
-                {item.quantity}x {formatCurrency(item.unitPrice)}
-              </Typography>
-            </View>
-            <Typography variant="h3" color={theme.colors.text}>
-              {formatCurrency(item.subtotal)}
-            </Typography>
-          </View>
-        </Card>
-      ))}
-
-      <Card style={{ backgroundColor: theme.colors.surface }}>
-        {sale.discount > 0 ? (
-          <>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: spacing.sm,
-              }}
-            >
-              <Typography variant="body">Subtotal</Typography>
-              <Typography variant="bodyBold">{formatCurrency(sale.subtotal)}</Typography>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginBottom: spacing.md,
-              }}
-            >
-              <Typography variant="body">Desconto</Typography>
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                − {formatCurrency(sale.discount)}
-              </Typography>
-            </View>
-          </>
-        ) : null}
+    <View style={{ flexShrink: 1, gap: spacing.xl }}>
+      <View style={{ gap: spacing.sm }}>
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-between",
             alignItems: "center",
+            justifyContent: "space-between",
+            gap: spacing.sm,
           }}
         >
-          <Typography variant="h3">Total</Typography>
-          <Typography variant="moneyLg" color={theme.colors.text}>
-            {formatCurrency(sale.total)}
+          <Typography variant="caption">Total da venda</Typography>
+          <Badge label={status.label} variant={status.variant} />
+        </View>
+        <Typography variant="moneyHero" color={theme.colors.text}>
+          {formatCurrency(sale.total)}
+        </Typography>
+        <Typography variant="caption">{formatDate(sale.soldAt)}</Typography>
+      </View>
+
+      <View
+        style={{
+          gap: spacing.md,
+          paddingVertical: spacing.lg,
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
+          borderColor: theme.colors.border,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <AppIcon name="person-outline" size={18} color={theme.colors.textSecondary} />
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="caption">Cliente</Typography>
+            <Typography variant="bodyBold">
+              {sale.clientName ?? "Cliente avulso"}
+            </Typography>
+          </View>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <AppIcon name="wallet-outline" size={18} color={theme.colors.textSecondary} />
+          <Typography variant="caption" style={{ flex: 1 }}>
+            Pagamento
+          </Typography>
+          <Typography variant="bodyBold" style={{ flexShrink: 1, textAlign: "right" }}>
+            {payment}
           </Typography>
         </View>
-      </Card>
+      </View>
 
-      <View style={{ gap: 12, marginTop: 8 }}>
-        {sale.status !== "cancelled" && (
+      <View style={{ gap: spacing.md }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: spacing.sm,
+          }}
+        >
+          <Typography variant="h3">Itens da venda</Typography>
+          <Typography variant="caption">
+            {sale.items.length} {sale.items.length === 1 ? "item" : "itens"}
+          </Typography>
+        </View>
+        <Card padding="md" style={{ borderRadius: radii.xl }}>
+          {sale.items.length === 0 ? (
+            <Typography variant="body">Nenhum item nesta venda.</Typography>
+          ) : (
+            sale.items.map((item, index) => (
+              <View
+                key={item.id}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.md,
+                  paddingVertical: spacing.sm,
+                  ...(index > 0
+                    ? {
+                        borderTopWidth: 1,
+                        borderTopColor: theme.colors.border,
+                        marginTop: spacing.sm,
+                        paddingTop: spacing.md,
+                      }
+                    : {}),
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: radii.sm,
+                    overflow: "hidden",
+                    backgroundColor: theme.colors.surfaceElevated,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {item.productPhotoUrl ? (
+                    <>
+                      <Image
+                        source={{ uri: item.productPhotoUrl }}
+                        style={{ width: "100%", height: "100%" }}
+                        resizeMode="cover"
+                      />
+                      <View
+                        pointerEvents="none"
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          borderRadius: radii.sm,
+                          borderWidth: 1,
+                          borderColor:
+                            mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Typography variant="bodyBold" color={theme.colors.textSecondary}>
+                      {productInitial(item.productName)}
+                    </Typography>
+                  )}
+                </View>
+                <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                  <Typography variant="bodyBold">
+                    {displayProductName(item.productName)}
+                  </Typography>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "baseline",
+                      justifyContent: "space-between",
+                      columnGap: spacing.sm,
+                      rowGap: spacing.xs,
+                    }}
+                  >
+                    <Typography variant="caption">
+                      {item.quantity.toLocaleString("pt-BR")} ×{" "}
+                      {formatCurrency(item.unitPrice)}
+                    </Typography>
+                    <Typography
+                      variant="bodyBold"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {formatCurrency(item.subtotal)}
+                    </Typography>
+                  </View>
+                </View>
+              </View>
+            ))
+          )}
+          {sale.discount > 0 ? (
+            <View
+              style={{
+                gap: spacing.sm,
+                marginTop: spacing.md,
+                paddingTop: spacing.md,
+                borderTopWidth: 1,
+                borderTopColor: theme.colors.border,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  gap: spacing.sm,
+                }}
+              >
+                <Typography variant="caption">Subtotal</Typography>
+                <Typography variant="body">{formatCurrency(sale.subtotal)}</Typography>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  gap: spacing.sm,
+                }}
+              >
+                <Typography variant="caption">Desconto</Typography>
+                <Typography variant="body">− {formatCurrency(sale.discount)}</Typography>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  gap: spacing.sm,
+                }}
+              >
+                <Typography variant="bodyBold">Total</Typography>
+                <Typography variant="bodyBold">{formatCurrency(sale.total)}</Typography>
+              </View>
+            </View>
+          ) : null}
+        </Card>
+      </View>
+
+      {sale.notes ? (
+        <View style={{ gap: spacing.xs }}>
+          <Typography variant="captionBold">Observações</Typography>
+          <Typography variant="body">{sale.notes}</Typography>
+        </View>
+      ) : null}
+
+      {sale.status !== "cancelled" ? (
+        <View style={{ gap: spacing.md }}>
+          {sale.status === "pending" ? (
+            <Button
+              title="Marcar como pago"
+              size="lg"
+              icon={
+                <AppIcon
+                  name="checkmark-circle-outline"
+                  size={20}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
+              onPress={handleMarkAsPaid}
+              loading={updateStatus.isPending}
+            />
+          ) : null}
           <Button
             title="Enviar recibo no WhatsApp"
-            variant="successOutline"
+            variant={sale.status === "paid" ? "success" : "successOutline"}
             size="lg"
-            icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />}
+            titleLines={2}
+            fitTitle={false}
+            icon={
+              <AppIcon
+                name="logo-whatsapp"
+                size={20}
+                color={
+                  sale.status === "paid"
+                    ? theme.colors.textOnPrimary
+                    : theme.colors.success
+                }
+              />
+            }
             onPress={handleSendReceipt}
           />
-        )}
-        {sale.status !== "cancelled" && (
           <Button
             title="Recibo em PDF"
-            variant="secondary"
+            variant="outline"
             size="lg"
             icon={
-              <AppIcon name="document-text-outline" size={20} color={theme.colors.text} />
+              <AppIcon
+                name="document-text-outline"
+                size={20}
+                color={theme.colors.primaryStrong}
+              />
             }
             onPress={() => void handleReceiptPdf()}
             loading={exporting}
           />
-        )}
-        {sale.status !== "cancelled" && onEditPress && (
-          <Button
-            title="Editar venda"
-            variant="secondary"
-            size="lg"
-            onPress={onEditPress}
-          />
-        )}
-        {sale.status === "pending" && (
-          <Button
-            title="Marcar como pago"
-            size="lg"
-            onPress={handleMarkAsPaid}
-            loading={updateStatus.isPending}
-          />
-        )}
-        {sale.status !== "cancelled" && (
-          <Button
-            title="Cancelar venda"
-            variant="alertOutline"
-            size="lg"
-            onPress={handleCancel}
-            loading={updateStatus.isPending}
-          />
-        )}
-      </View>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: spacing.sm,
+              paddingTop: spacing.md,
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+            }}
+          >
+            {onEditPress ? (
+              <Button
+                title="Editar venda"
+                variant="ghost"
+                icon={
+                  <AppIcon
+                    name="create-outline"
+                    size={18}
+                    color={theme.colors.textSecondary}
+                  />
+                }
+                style={{ flexGrow: 1, flexBasis: 130 }}
+                onPress={onEditPress}
+                disabled={updateStatus.isPending}
+              />
+            ) : null}
+            <Button
+              title="Cancelar venda"
+              variant="alertOutline"
+              style={{ flexGrow: 1, flexBasis: 130 }}
+              onPress={handleCancel}
+              loading={updateStatus.isPending}
+            />
+          </View>
+        </View>
+      ) : null}
 
       <ReceiptPreviewModal
         visible={previewVisible}

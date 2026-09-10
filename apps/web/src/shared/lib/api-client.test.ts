@@ -11,6 +11,29 @@ vi.mock("./supabase", () => ({
 }));
 
 describe("apiClient", () => {
+  it.each([null, { message: "Internal Server Error" }])(
+    "trata respostas inválidas de erro",
+    async (problem) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(new Response(JSON.stringify(problem), { status: 500 })),
+      );
+      await expect(apiClient("/campaigns")).rejects.toThrow(/tente novamente/i);
+    },
+  );
+
+  it("não transforma falha ao gravar cache em falha da operação", async () => {
+    vi.stubGlobal("window", {
+      localStorage: {
+        setItem: () => {
+          throw new Error("QuotaExceededError");
+        },
+      },
+    });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response('{"items":[]}')));
+    await expect(apiClient("/campaigns")).resolves.toEqual({ items: [] });
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });

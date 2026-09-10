@@ -188,15 +188,17 @@ export default function RecurringExpensesScreen() {
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
 
       <View style={styles.screen}>
-        <RecurringHeader
-          title="Gastos fixos"
-          subtitle="Organize o que se repete todo mês."
-          onBack={handleBack}
-          onAdd={isDesktop ? handleAddPress : undefined}
-          isDesktop={isDesktop}
-        />
-
         <ScreenGuidance
+          renderHeader={(helpButton) => (
+            <RecurringHeader
+              help={helpButton}
+              title="Gastos fixos"
+              subtitle="Organize o que se repete todo mês."
+              onBack={handleBack}
+              onAdd={isDesktop ? handleAddPress : undefined}
+              isDesktop={isDesktop}
+            />
+          )}
           area="recurring_expenses"
           onStart={handleAddPress}
           hasRecords={recurringItems.length > 0}
@@ -309,12 +311,14 @@ export default function RecurringExpensesScreen() {
 }
 
 function RecurringHeader({
+  help,
   title,
   subtitle,
   onBack,
   onAdd,
   isDesktop,
 }: Readonly<{
+  help: React.ReactNode;
   title: string;
   subtitle: string;
   onBack: () => void;
@@ -326,6 +330,7 @@ function RecurringHeader({
   if (isDesktop)
     return (
       <ScreenHeader
+        help={help}
         title={title}
         subtitle={subtitle}
         hideBack
@@ -362,6 +367,7 @@ function RecurringHeader({
           {subtitle}
         </Typography>
       </View>
+      {help}
       {onAdd ? (
         <FAB
           icon="add"
@@ -548,7 +554,7 @@ function RecurringFormModal({
 }>) {
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
-  const { styles, palette } = useRecurringTheme();
+  const { theme, styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
@@ -635,139 +641,120 @@ function RecurringFormModal({
     <StandardModal
       visible
       onClose={onClose}
+      dismissDisabled={isSaving}
       title={isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
       subtitle={
         isEditing
-          ? "Atualize os dados deste compromisso mensal."
-          : "Cadastre uma vez e deixe o caixa lembrar todo mês."
+          ? "Atualize sua despesa mensal."
+          : "Cadastre uma vez. O caixa lança todo mês."
       }
       footer={
-        <>
-          <Button
-            disabled={isSaving}
-            onPress={onClose}
-            size="lg"
-            style={styles.cancelAction}
-            title="Cancelar"
-            variant="outline"
-          />
-          <Button
-            disabled={isSaving}
-            loading={isSaving}
-            onPress={() => void handleSave()}
-            size="lg"
-            style={styles.saveAction}
-            title={isEditing ? "Salvar alterações" : "Salvar gasto"}
-          />
-        </>
+        <Button
+          disabled={isSaving}
+          loading={isSaving}
+          onPress={() => void handleSave()}
+          size="lg"
+          style={styles.saveAction}
+          title={isEditing ? "Salvar alterações" : "Salvar gasto"}
+          icon={<AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />}
+        />
       }
     >
-      <ValidationField {...formValidation.field("description")}>
-        <Input
-          accessibilityLabel="Descrição"
-          autoCapitalize="sentences"
-          icon={
-            <AppIcon
-              name="document-text-outline"
-              size={iconSizes.sm}
-              color={palette.wine}
-            />
-          }
-          label="Descrição"
-          maxLength={120}
-          onChangeText={setDescription}
-          placeholder="Ex.: Aluguel da cozinha"
-          returnKeyType="next"
-          style={styles.formInput}
-          value={description}
-        />
-      </ValidationField>
-
-      <ValidationField {...formValidation.field("amount")}>
-        <Input
-          accessibilityLabel="Valor em reais"
-          icon={
-            <AppIcon name="wallet-outline" size={iconSizes.sm} color={palette.wine} />
-          }
-          keyboardType="decimal-pad"
-          label="Valor (R$)"
-          onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-          placeholder="Ex.: 800,00"
-          style={styles.formInput}
-          value={amount}
-        />
-      </ValidationField>
-
-      <View style={styles.fieldBlock}>
-        <Typography variant="captionBold" color={palette.ink}>
-          Categoria
-        </Typography>
-        <View style={styles.categoryGrid}>
-          {categories.map((categoryOption) => {
-            const selected = categoryOption.key === category;
-            return (
-              <Pressable
-                key={categoryOption.key}
-                accessibilityLabel={categoryOption.label}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: selected }}
-                onPress={() => setCategory(categoryOption.key)}
-                style={({ pressed }) => [
-                  styles.categoryOption,
-                  selected && styles.categoryOptionSelected,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppIcon
-                  name={categoryOption.icon}
-                  size={iconSizes.md}
-                  color={selected ? palette.wine : palette.warmGray}
-                />
-                <Typography
-                  variant={selected ? "captionBold" : "caption"}
-                  color={selected ? palette.wine : palette.ink}
-                  numberOfLines={1}
-                >
-                  {categoryOption.label}
-                </Typography>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-
-      <View style={styles.fieldBlock}>
-        <View style={styles.dayLabelRow}>
-          <Typography variant="captionBold" color={palette.ink}>
-            Dia do mês
-          </Typography>
-          <Typography variant="caption">De 1 a 28</Typography>
-        </View>
-        <ValidationField {...formValidation.field("day")}>
+      <View style={{ gap: spacing.lg }}>
+        <ValidationField {...formValidation.field("description")}>
           <Input
-            accessibilityLabel="Dia do mês, de 1 a 28"
-            icon={
-              <AppIcon name="calendar-outline" size={iconSizes.sm} color={palette.wine} />
-            }
-            keyboardType="number-pad"
-            maxLength={2}
-            onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
-            placeholder="Ex.: 8"
+            accessibilityLabel="Descrição"
+            autoCapitalize="sentences"
+            label="Descrição"
+            maxLength={120}
+            onChangeText={setDescription}
+            placeholder="Ex.: Aluguel da cozinha"
+            returnKeyType="next"
             style={styles.formInput}
-            value={day}
+            value={description}
           />
         </ValidationField>
-      </View>
-
-      <View style={styles.recurrenceNotice}>
-        <View style={styles.recurrenceNoticeIcon}>
-          <AppIcon name="calendar-outline" size={iconSizes.md} color={palette.wine} />
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
+          <ValidationField {...formValidation.field("amount")} style={{ flex: 1.3 }}>
+            <Input
+              accessibilityLabel="Valor em reais"
+              keyboardType="decimal-pad"
+              label="Valor mensal (R$)"
+              onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+              placeholder="0,00"
+              style={styles.formInput}
+              value={amount}
+            />
+          </ValidationField>
+          <ValidationField {...formValidation.field("day")} style={{ flex: 1 }}>
+            <Input
+              accessibilityLabel="Dia do mês, de 1 a 28"
+              label="Dia do mês"
+              keyboardType="number-pad"
+              maxLength={2}
+              onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
+              placeholder="De 1 a 28"
+              style={styles.formInput}
+              value={day}
+            />
+          </ValidationField>
         </View>
-        <Typography variant="caption" color={palette.ink}>
-          {validDay
-            ? `Será lançado todo dia ${parsedDay}`
-            : "Informe um dia entre 1 e 28"}
-        </Typography>
+        <View style={styles.fieldBlock}>
+          <Typography variant="captionBold" color={palette.ink}>
+            Categoria
+          </Typography>
+          <View
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Categoria do gasto"
+            style={styles.categoryGrid}
+          >
+            {categories.map((categoryOption) => {
+              const selected = categoryOption.key === category;
+              return (
+                <Pressable
+                  key={categoryOption.key}
+                  accessibilityLabel={categoryOption.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: selected }}
+                  aria-checked={selected}
+                  onPress={() => setCategory(categoryOption.key)}
+                  style={({ pressed }) => [
+                    styles.categoryOption,
+                    selected && styles.categoryOptionSelected,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <AppIcon
+                    name={selected ? "checkmark-circle" : categoryOption.icon}
+                    size={20}
+                    color={selected ? palette.wine : palette.warmGray}
+                    strokeWidth={selected ? 2 : 1.5}
+                  />
+                  <Typography
+                    variant={selected ? "captionBold" : "caption"}
+                    color={selected ? palette.wine : palette.ink}
+                    style={{ flex: 1 }}
+                  >
+                    {categoryOption.label}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+        <View style={styles.recurrenceNotice}>
+          <AppIcon name="repeat-outline" size={20} color={palette.wine} />
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="captionBold" color={palette.wine}>
+              {validDay ? "Todo mês, no dia " + parsedDay : "Repete todo mês"}
+            </Typography>
+            <Typography variant="caption" color={palette.muted}>
+              {validDay
+                ? "O gasto será lançado automaticamente no caixa."
+                : "Escolha um dia de 1 a 28 para o lançamento."}
+            </Typography>
+          </View>
+        </View>
       </View>
     </StandardModal>
   );
@@ -961,14 +948,10 @@ function createStyles(theme: Theme) {
   const palette = brandScreenPalette(theme);
 
   return StyleSheet.create({
-    cancelAction: {
-      borderColor: palette.wine,
-      flex: 1,
-    },
     categoryGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: spacing.md,
+      gap: spacing.sm,
     },
     categoryOption: {
       alignItems: "center",
@@ -976,19 +959,19 @@ function createStyles(theme: Theme) {
       borderColor: palette.border,
       borderRadius: radii.md,
       borderWidth: 1,
-      flexBasis: "30%",
+      flexBasis: "46%",
       flexGrow: 1,
-      gap: spacing.xs,
-      justifyContent: "center",
-      minHeight: 76,
-      minWidth: 84,
-      paddingHorizontal: spacing.xs,
+      flexDirection: "row",
+      gap: spacing.sm,
+      justifyContent: "flex-start",
+      minHeight: 48,
+      minWidth: 0,
+      paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
     },
     categoryOptionSelected: {
       backgroundColor: palette.softRose,
       borderColor: palette.wine,
-      borderWidth: 1.5,
     },
     commitmentBlob: {
       backgroundColor: theme.colors.primaryBg,
@@ -1049,11 +1032,6 @@ function createStyles(theme: Theme) {
     content: {
       gap: spacing.xl,
       paddingTop: spacing.sm,
-    },
-    dayLabelRow: {
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "space-between",
     },
     deleteAction: {
       flex: 1,
@@ -1154,7 +1132,8 @@ function createStyles(theme: Theme) {
       gap: spacing.sm,
     },
     formInput: {
-      height: 54,
+      height: 48,
+      minWidth: 0,
     },
     gateBadge: {
       alignItems: "center",
@@ -1227,21 +1206,13 @@ function createStyles(theme: Theme) {
     },
     recurrenceNotice: {
       alignItems: "center",
-      backgroundColor: palette.softRose,
-      borderRadius: radii.md,
+      backgroundColor: palette.surface,
+      borderRadius: radii.lg,
       flexDirection: "row",
       gap: spacing.md,
       minHeight: 60,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
-    },
-    recurrenceNoticeIcon: {
-      alignItems: "center",
-      backgroundColor: palette.white,
-      borderRadius: radii.md,
-      height: 44,
-      justifyContent: "center",
-      width: 44,
     },
     safeArea: {
       backgroundColor: palette.background,

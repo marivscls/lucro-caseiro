@@ -1,4 +1,3 @@
-import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import type { CatalogSettings, Product, Service } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
@@ -66,12 +65,6 @@ const CATALOG_HERO_WEB_CSS = `
   overflow-x: clip;
 }
 
-@media (min-width: 601px) and (max-width: 1023px) {
-  [data-testid="catalog-scroll-content"] {
-    margin-top: -40px;
-    padding-top: 40px;
-  }
-}
 `;
 const CatalogSwitch = Switch as React.ComponentType<
   React.ComponentProps<typeof Switch> & Readonly<{ activeThumbColor?: string }>
@@ -91,19 +84,6 @@ function useCatalogHeroWebStyles(): void {
   }, []);
 }
 
-function catalogHeroNativeArtFrame(viewportWidth: number): Readonly<{
-  width: number;
-  top: number;
-  right: number;
-}> {
-  let frame = { width: 240, top: 36, right: -4 };
-  if (viewportWidth >= 390) frame = { width: 256, top: 32, right: -2 };
-  if (viewportWidth >= 480) frame = { width: 280, top: 24, right: 4 };
-  if (viewportWidth >= 601) frame = { width: 420, top: -40, right: 12 };
-  if (viewportWidth >= 1024) frame = { width: 470, top: -42, right: 14 };
-  return frame;
-}
-
 function CatalogHero({
   enabled,
   illustration,
@@ -113,35 +93,37 @@ function CatalogHero({
 }>) {
   const { width: viewportWidth } = useWindowDimensions();
   const isDesktop = useDesktopLayout();
-  const heroWidth = isDesktop ? desktopContentWidth(viewportWidth) : viewportWidth;
+  const mobilePageInset = viewportWidth >= 768 ? 52 : 32;
+  const heroWidth = isDesktop
+    ? desktopContentWidth(viewportWidth)
+    : viewportWidth - mobilePageInset;
   const colors = useBrandScreenPalette();
   useCatalogHeroWebStyles();
   const isWideHero = viewportWidth >= 768;
   const isVeryCompact = viewportWidth < 360;
-  const desktopArtWidth = Math.min(340, heroWidth * 0.42);
-  const nativeArtFrame = isDesktop
-    ? {
-        width: desktopArtWidth,
-        top: (300 - desktopArtWidth / CATALOG_HERO_ASPECT_RATIO) / 2,
-        right: 24,
-      }
-    : catalogHeroNativeArtFrame(viewportWidth);
+  const desktopArtWidth = Math.min(300, heroWidth * 0.42);
+  const nativeArtFrame = {
+    width: desktopArtWidth,
+    top: (300 - desktopArtWidth / CATALOG_HERO_ASPECT_RATIO) / 2,
+    right: 24,
+  };
   const artHeight = nativeArtFrame.width / CATALOG_HERO_ASPECT_RATIO;
   const illustrationUri = Asset.fromModule(illustration).uri;
-  let heroHeight = 240;
-  if (isWideHero) heroHeight = 367;
+  const mobileArtWidth = Math.min(184, (viewportWidth - 32) * 0.44);
+  let heroHeight = 252;
+  if (isWideHero) heroHeight = 300;
   if (isDesktop) heroHeight = 300;
   // The wrapper includes its left padding in its measured width on web.
   let textWidth: number | "100%" | "52%" = "100%";
   if (viewportWidth >= 768) textWidth = "52%";
-  if (isWideHero) textWidth = 403;
+  if (isWideHero) textWidth = heroWidth * 0.52;
   if (isDesktop) textWidth = Math.min(403, heroWidth * 0.52);
-  const descriptionWidth = "100%";
+  const descriptionWidth = isWideHero ? "100%" : "54%";
   let copyGap: number = spacing.md;
   if (isVeryCompact) copyGap = 7;
   if (isWideHero) copyGap = 22;
-  const copyLeft = isWideHero ? 43 : 24;
-  const copyTop = isWideHero ? 50 : 24;
+  const copyLeft = isWideHero ? 32 : 24;
+  const copyTop = isWideHero ? 36 : 24;
   const statusHeight = isWideHero ? 42 : 32;
   const statusFontSize = 14;
 
@@ -189,13 +171,28 @@ function CatalogHero({
           paddingLeft: copyLeft,
           paddingTop: copyTop,
           paddingRight: isWideHero ? 0 : 24,
-          paddingBottom: isWideHero ? 0 : spacing.md,
+          paddingBottom: isWideHero ? 0 : spacing.xl,
         }}
       >
-        <Typography variant="h3" color={colors.onWine}>
+        <Typography
+          variant="h3"
+          color={colors.onWine}
+          style={{
+            fontSize: isWideHero ? 24 : 22,
+            lineHeight: isWideHero ? 30 : 28,
+            letterSpacing: -0.5,
+          }}
+        >
           {"Seu negócio,\nem uma vitrine só."}
         </Typography>
-        <Typography variant="body" color="#F7EEF0" style={{ width: descriptionWidth }}>
+        <Typography
+          variant="body"
+          color="#F7EEF0"
+          style={{
+            width: descriptionWidth,
+            ...(!isWideHero ? { fontSize: 13, lineHeight: 20 } : {}),
+          }}
+        >
           Produtos e serviços organizados para seus clientes escolherem.
         </Typography>
         <View
@@ -207,23 +204,20 @@ function CatalogHero({
             alignItems: "center",
             gap: spacing.sm,
             borderRadius: radii.full,
-            paddingHorizontal: isWideHero ? spacing.lg : spacing.md,
+            paddingHorizontal: isWideHero ? spacing.lg : 10,
             backgroundColor: enabled ? colors.lime : colors.softRose,
           }}
         >
-          <View
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: radii.full,
-              backgroundColor: enabled ? colors.rose : colors.warmGray,
-            }}
+          <AppIcon
+            name={enabled ? "checkmark-circle-outline" : "eye-off-outline"}
+            size={14}
+            color={enabled ? colors.onLime : colors.wine}
           />
           <Typography
             style={{
               color: enabled ? colors.onLime : colors.wine,
               fontFamily: fonts.bold,
-              fontSize: statusFontSize,
+              fontSize: isWideHero ? statusFontSize : 12,
               lineHeight: isWideHero ? 22 : 18,
             }}
           >
@@ -282,11 +276,11 @@ function CatalogHero({
           accessible={false}
           accessibilityIgnoresInvertColors
           style={{
-            alignSelf: "center",
-            width: 200,
-            maxWidth: "100%",
-            height: 200 / CATALOG_HERO_ASPECT_RATIO,
-            marginBottom: spacing.lg,
+            position: "absolute",
+            right: 10,
+            bottom: 16,
+            width: mobileArtWidth,
+            height: mobileArtWidth / CATALOG_HERO_ASPECT_RATIO,
           }}
         />
       )}
@@ -358,10 +352,14 @@ function SummaryMetric({
             borderRadius: radii.lg,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: colors.softRose,
+            backgroundColor: highlighted ? colors.lime : colors.softRose,
           }}
         >
-          <AppIcon name={icon} size={metricGlyphSize} color={colors.rose} />
+          <AppIcon
+            name={icon}
+            size={metricGlyphSize}
+            color={highlighted ? colors.onLime : colors.rose}
+          />
         </View>
         <Typography
           style={{
@@ -466,24 +464,6 @@ function CatalogItemVisibility({
           gap: compact ? 6 : spacing.sm,
         }}
       >
-        <View
-          pointerEvents="none"
-          accessible={false}
-          style={{
-            width: compact ? 12 : 16,
-            flexDirection: "row",
-            justifyContent: "center",
-            opacity: 0.7,
-          }}
-        >
-          <AppIcon name="ellipsis-vertical" size={18} color={colors.warmGray} />
-          <AppIcon
-            name="ellipsis-vertical"
-            size={18}
-            color={colors.warmGray}
-            style={{ marginLeft: -11 }}
-          />
-        </View>
         {imageUrl ? (
           <Image
             source={{ uri: imageUrl }}
@@ -510,17 +490,6 @@ function CatalogItemVisibility({
             <AppIcon name={icon} size={23} color={theme.colors.primaryStrong} />
           </View>
         )}
-        <View
-          pointerEvents="none"
-          accessible={false}
-          style={{
-            width: 3,
-            height: imageSize - 8,
-            borderRadius: radii.full,
-            backgroundColor: colors.rose,
-            opacity: 0.8,
-          }}
-        />
         <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
           <Typography
             variant="bodyBold"
@@ -604,7 +573,7 @@ function CatalogContentManager({
   const { width: viewportWidth } = useWindowDimensions();
   const spaciousLayout = viewportWidth >= 768;
   const referencePwaLayout = spaciousLayout && viewportWidth < 1024;
-  let contentSectionInset = 4;
+  let contentSectionInset = 0;
   if (referencePwaLayout) contentSectionInset = 19;
   if (viewportWidth >= 1024) contentSectionInset = 0;
   const listGap = spaciousLayout ? 10 : spacing.sm;
@@ -763,12 +732,12 @@ function CatalogContentManager({
     primaryAction = () => router.push(emptyDestination);
   }
   let readinessMessage =
-    "Conteúdo disponível. Confira contato e condições em Ver como cliente antes de divulgar.";
+    "Antes de divulgar, confira seu contato e as condições em Ver como cliente.";
   if (loadingCounts) readinessMessage = "Conferindo o conteúdo...";
   else if (publishedCount === 0)
     readinessMessage =
       "Seu link ainda está sem itens publicados. Adicione um produto ou serviço e confira o contato antes de divulgar.";
-  const secondaryActionsStacked = viewportWidth < 600;
+  const secondaryActionsStacked = viewportWidth < 360;
   const compactSummary = viewportWidth < 350;
   const identityImages = products
     .map((product) => product.photoUrl)
@@ -782,47 +751,17 @@ function CatalogContentManager({
   if (spaciousLayout) organizeButtonStyle = { minHeight: 52 };
 
   return (
-    <View style={{ gap: spaciousLayout ? spacing["2xl"] : spacing["3xl"], marginTop: 0 }}>
-      <ScreenGuidance
-        area="catalog"
-        hasRecords={visibleProducts + visibleServices > 0}
-        loading={
-          productsQuery.isLoading ||
-          servicesQuery.isLoading ||
-          productsQuery.isError ||
-          servicesQuery.isError
-        }
-        onStart={() =>
-          router.push(
-            products.length + services.length === 0
-              ? "/products?create=getting-started"
-              : "/catalog?editor=1",
-          )
-        }
-        actionLabel={
-          products.length + services.length === 0
-            ? "Cadastrar primeiro produto"
-            : "Escolher conteúdo da vitrine"
-        }
-        secondary={{
-          label: "Ofereço serviços",
-          onPress: () => router.push("/services?create=1"),
-        }}
-      />
-      <View
-        testID="catalog-link-card"
-        style={{ marginHorizontal: 12, position: "relative", zIndex: 5 }}
-      >
+    <View style={{ gap: spacing["2xl"], marginTop: spacing.lg }}>
+      <View testID="catalog-link-card" style={{ position: "relative" }}>
         <Card
           variant="elevated"
-          shadow="md"
+          shadow="sm"
           style={{
-            borderRadius: 28,
+            borderRadius: 24,
             paddingVertical: summaryCardPaddingVertical,
             paddingHorizontal: summaryCardPaddingHorizontal,
             gap: spaciousLayout ? 24 : spacing.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
+            borderWidth: 0,
             backgroundColor: colors.white,
           }}
         >
@@ -842,7 +781,7 @@ function CatalogContentManager({
               }}
             />
             <SummaryMetric
-              icon="notifications-outline"
+              icon="briefcase-outline"
               value={loadingCounts ? null : services.length}
               label="serviços"
               compact={compactSummary}
@@ -874,7 +813,7 @@ function CatalogContentManager({
                 lineHeight: spaciousLayout ? 22 : 18,
               }}
             >
-              LINK DA VITRINE
+              Seu link da vitrine
             </Typography>
             <View
               style={{
@@ -919,6 +858,7 @@ function CatalogContentManager({
 
           <Button
             title={primaryActionLabel}
+            titleLines={2}
             size="lg"
             icon={
               <AppIcon
@@ -932,10 +872,12 @@ function CatalogContentManager({
             style={{
               width: "100%",
               minHeight: spaciousLayout ? 56 : undefined,
-              backgroundColor: colors.rose,
+              backgroundColor: theme.colors.primaryInteractive,
             }}
           />
-          <Typography variant="body">{readinessMessage}</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {readinessMessage}
+          </Typography>
           {publishedCount === 0 && settings.enabled ? (
             <Button
               title="Compartilhar link mesmo assim"
@@ -951,6 +893,7 @@ function CatalogContentManager({
           >
             <Button
               title="Ver como cliente"
+              titleLines={2}
               variant="outline"
               compact
               disabled={!settings.enabled}
@@ -964,12 +907,13 @@ function CatalogContentManager({
               }
               onPress={onPreview}
               style={{
-                flex: secondaryActionsStacked ? undefined : 1,
-                minHeight: spaciousLayout ? 56 : undefined,
+                flex: secondaryActionsStacked ? undefined : 1.2,
+                minHeight: spaciousLayout ? 56 : 48,
               }}
             />
             <Button
               title="Mais opções"
+              titleLines={2}
               variant="outline"
               compact
               fitTitle={false}
@@ -983,7 +927,7 @@ function CatalogContentManager({
               onPress={onMore}
               style={{
                 flex: secondaryActionsStacked ? undefined : 1,
-                minHeight: spaciousLayout ? 56 : undefined,
+                minHeight: spaciousLayout ? 56 : 48,
               }}
             />
           </View>
@@ -999,8 +943,9 @@ function CatalogContentManager({
               gap: compactSummary ? spacing.sm : spacing.md,
             }}
           >
-            <Typography variant="h3">O que aparece na vitrine</Typography>
-            {!compactSummary ? <View style={{ flex: 1 }} /> : null}
+            <Typography variant="h3" style={{ flex: compactSummary ? undefined : 1 }}>
+              Conteúdo da vitrine
+            </Typography>
             <Button
               title={organizing ? "Concluir" : "Organizar"}
               variant="outline"
@@ -1048,7 +993,7 @@ function CatalogContentManager({
                 style={({ pressed }) => ({
                   flex: 1,
                   minHeight: spaciousLayout ? 46 : 42,
-                  borderRadius: 14,
+                  borderRadius: radii.lg - 3,
                   alignItems: "center",
                   justifyContent: "center",
                   opacity: pressed ? 0.86 : 1,
@@ -1359,7 +1304,7 @@ function CatalogForm({
     return <View style={{ flex: 1, minHeight: 0 }}>{customizer}</View>;
   }
   const mobileBottomPadding = spacing["2xl"];
-  let contentPaddingTop = 58;
+  let contentPaddingTop: number = spacing.sm;
   if (referencePwaLayout) contentPaddingTop = 0;
   if (isDesktop) contentPaddingTop = spacing.sm;
   let catalogContentWidth: number | "100%" = Math.max(0, viewportWidth - 32);
@@ -1555,6 +1500,16 @@ function CatalogForm({
 }
 
 export default function CatalogScreen() {
+  const router = useRouter();
+  const productsQuery = useAllProducts();
+  const servicesQuery = useServices();
+  const products = productsQuery.data ?? [];
+  const services = servicesQuery.data ?? [];
+  const visibleProducts = products.filter((product) => product.publicEnabled).length;
+  const visibleServices = services.filter(
+    (service) => service.active && service.publicEnabled,
+  ).length;
+
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
   const { width: viewportWidth } = useWindowDimensions();
@@ -1643,6 +1598,32 @@ export default function CatalogScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       {editorOpen ? null : (
         <ScreenHeader
+          guidance={{
+            area: "catalog",
+            hasRecords: visibleProducts + visibleServices > 0,
+            loading:
+              isLoading ||
+              !settings ||
+              productsQuery.isLoading ||
+              servicesQuery.isLoading ||
+              productsQuery.isError ||
+              servicesQuery.isError,
+            suspended: moreMenuVisible,
+            onStart: () =>
+              router.push(
+                products.length + services.length === 0
+                  ? "/products?create=getting-started"
+                  : "/catalog?editor=1",
+              ),
+            actionLabel:
+              products.length + services.length === 0
+                ? "Cadastrar primeiro produto"
+                : "Escolher conteúdo da vitrine",
+            secondary: {
+              label: "Ofereço serviços",
+              onPress: () => router.push("/services?create=1"),
+            },
+          }}
           title="Catálogo"
           subtitle="Sua vitrine pronta para vender."
           hideBack={isDesktop}

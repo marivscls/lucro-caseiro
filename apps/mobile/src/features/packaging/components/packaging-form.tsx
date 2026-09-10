@@ -86,7 +86,7 @@ function SummaryHero({
         name={name || "Embalagem"}
         type={type}
         photoUrl={photoUrl}
-        size={52}
+        size={40}
       />
       <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
         <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={2}>
@@ -317,7 +317,7 @@ export function PackagingForm({
             style={({ pressed }) => [
               {
                 minHeight: 48,
-                borderRadius: radii.lg,
+                borderRadius: radii.md,
                 borderWidth: 1,
                 borderColor: pal.border,
                 alignItems: "center",
@@ -336,7 +336,7 @@ export function PackagingForm({
             size="lg"
             compact
             icon={
-              <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
+              <AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />
             }
             onPress={() => {
               if (!saving) void handleSave();
@@ -358,7 +358,7 @@ export function PackagingForm({
           />
         ) : (
           <Typography
-            variant="body"
+            variant="caption"
             color={theme.colors.textSecondary}
             style={{ marginTop: -spacing.sm }}
           >
@@ -374,8 +374,8 @@ export function PackagingForm({
                 icon="pricetag-outline"
                 placeholder={
                   experienceCopy.profile === "food"
-                    ? "Ex: Caixa kraft P, Sacola transparente..."
-                    : "Ex: Caixa para envio, sacola, acabamento..."
+                    ? "Ex.: Caixa kraft P"
+                    : "Ex.: Caixa para envio"
                 }
                 value={name}
                 onChangeText={setName}
@@ -399,25 +399,35 @@ export function PackagingForm({
                   accessibilityLabel={t.label}
                   style={({ pressed }) => ({
                     minHeight: 44,
+                    flexBasis: "30%",
+                    flexGrow: 1,
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
                     gap: spacing.xs,
                     paddingHorizontal: spacing.md,
                     paddingVertical: spacing.sm,
-                    borderRadius: radii.full,
+                    borderRadius: radii.md,
                     borderWidth: 1,
                     borderColor: active ? theme.colors.primary : pal.border,
                     backgroundColor: active ? theme.colors.primaryBg : pal.fieldBg,
                     opacity: pressed ? 0.8 : 1,
                   })}
                 >
-                  {active ? (
-                    <AppIcon name="checkmark" size={16} color={theme.colors.primary} />
-                  ) : null}
+                  <View style={{ width: 16 }}>
+                    {active ? (
+                      <AppIcon
+                        name="checkmark"
+                        size={16}
+                        color={theme.colors.primaryStrong}
+                      />
+                    ) : null}
+                  </View>
                   <Typography
-                    variant="bodyBold"
-                    color={active ? theme.colors.text : theme.colors.textSecondary}
+                    variant={active ? "captionBold" : "caption"}
+                    color={
+                      active ? theme.colors.primaryStrong : theme.colors.textSecondary
+                    }
                   >
                     {t.label}
                   </Typography>
@@ -428,13 +438,14 @@ export function PackagingForm({
         </View>
 
         <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="cash-outline" title="Custo" />
+          <SectionHeader icon="cash-outline" title="Custo por unidade" />
           <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
             <ValidationField {...formValidation.field("unitCost")}>
               <IconInputCard
                 icon="cash-outline"
                 iconColor={theme.colors.success}
-                label="Quanto custa uma unidade?"
+                label="Valor em reais"
+                accessibilityLabel="Custo por unidade em reais"
                 placeholder="0,00"
                 value={unitCost}
                 onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}

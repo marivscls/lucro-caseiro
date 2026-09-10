@@ -109,18 +109,18 @@ export function StandardModal({
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.sm,
-            paddingHorizontal: spacing.xl,
-            paddingVertical: spacing.lg,
+            paddingHorizontal: isDesktop ? spacing.xl : spacing.lg,
+            paddingVertical: spacing.md,
             borderBottomWidth: 1,
             borderBottomColor: theme.colors.border,
           }}
         >
-          <View style={{ flex: 1, gap: 2 }}>
-            <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="h3" color={theme.colors.text} numberOfLines={2}>
               {title}
             </Typography>
             {subtitle ? (
-              <Typography variant="caption" numberOfLines={1}>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
                 {subtitle}
               </Typography>
             ) : null}
@@ -142,11 +142,13 @@ export function StandardModal({
                 height: 44,
                 alignItems: "center",
                 justifyContent: "center",
+                borderRadius: 22,
+                backgroundColor: theme.colors.surface,
                 opacity,
               };
             }}
           >
-            <AppIcon name="close" size={24} color={theme.colors.textSecondary} />
+            <AppIcon name="close" size={20} color={theme.colors.textSecondary} />
           </Pressable>
         </View>
 
@@ -158,11 +160,11 @@ export function StandardModal({
           }}
           style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
           contentContainerStyle={{
-            padding: spacing.xl,
-            paddingBottom: footer ? spacing["3xl"] : spacing.xl,
-            gap: spacing.lg,
+            padding: isDesktop ? spacing.xl : spacing.lg,
+            paddingBottom: spacing.xl,
+            gap: spacing.xl,
           }}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.select({
             ios: "interactive",
@@ -183,9 +185,12 @@ export function StandardModal({
           <View
             style={{
               flexDirection: "row",
+              flexShrink: 0,
               gap: spacing.md,
               justifyContent: isDesktop ? "flex-end" : undefined,
-              padding: spacing.xl,
+              paddingHorizontal: isDesktop ? spacing.xl : spacing.lg,
+              paddingVertical: spacing.md,
+              backgroundColor: theme.colors.surfaceElevated,
               borderTopWidth: 1,
               borderTopColor: theme.colors.border,
             }}

@@ -1,0 +1,38 @@
+[
+  {
+    "file": "output\\pdf\\ficha.pdf",
+    "pages": 1,
+    "blankPages": 0,
+    "outOfBoundsWords": 0
+  },
+  {
+    "file": "output\\pdf\\orcamento.pdf",
+    "pages": 1,
+    "blankPages": 0,
+    "outOfBoundsWords": 0
+  },
+  {
+    "file": "output\\pdf\\recibo.pdf",
+    "pages": 1,
+    "blankPages": 0,
+    "outOfBoundsWords": 0
+  },
+  {
+    "file": "docs\\pdf-ui-validation\\ficha-longa.pdf",
+    "pages": 6,
+    "blankPages": 0,
+    "outOfBoundsWords": 0
+  },
+  {
+    "file": "docs\\pdf-ui-validation\\orcamento-longo.pdf",
+    "pages": 13,
+    "blankPages": 0,
+    "outOfBoundsWords": 0
+  },
+  {
+    "file": "docs\\pdf-ui-validation\\recibo-longo.pdf",
+    "pages": 11,
+    "blankPages": 0,
+    "outOfBoundsWords": 0
+  }
+]

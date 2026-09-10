@@ -26,6 +26,13 @@ export class ForbiddenError extends Error {
   }
 }
 
+export class FeatureUnavailableError extends ForbiddenError {
+  constructor() {
+    super("Este recurso não está disponível nesta versão do aplicativo.");
+    this.name = "FeatureUnavailableError";
+  }
+}
+
 export class LimitExceededError extends Error {
   constructor(message: string) {
     super(message);

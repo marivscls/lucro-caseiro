@@ -51,7 +51,12 @@ export function ScreenGuidance({
   suspended = false,
   title,
   description,
-}: Readonly<ScreenGuidanceProps>) {
+  renderHeader,
+}: Readonly<
+  ScreenGuidanceProps & {
+    renderHeader: (helpButton: React.ReactNode) => React.ReactNode;
+  }
+>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
@@ -121,66 +126,113 @@ export function ScreenGuidance({
     if (userId) guidanceEvent(area, "task_started", userId);
     action();
   }
-  if (!userId || suspended) return null;
+  if (!userId || suspended) return <>{renderHeader(null)}</>;
   return (
-    <View
-      testID={`screen-guidance-${area}`}
-      style={{
-        gap: spacing.sm,
-        paddingHorizontal: isDesktop ? 0 : spacing.lg,
-        paddingBottom: spacing.sm,
-        flexShrink: 1,
-        width: "100%",
-        maxWidth: isDesktop ? desktopWidths.data : 720,
-        alignSelf: isDesktop ? "stretch" : "center",
-      }}
-    >
+    <>
+      {renderHeader(
+        <Pressable
+          ref={trigger}
+          accessibilityRole="button"
+          accessibilityLabel={content.helpTitle}
+          accessibilityHint="Abre as orientações desta tela"
+          accessibilityState={{ expanded: helpOpen }}
+          onPress={() => {
+            setHelpFor(identity);
+            guidanceEvent(area, "help_opened", userId);
+          }}
+          style={({ pressed }) => ({
+            width: 44,
+            height: 44,
+            flexShrink: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 22,
+            backgroundColor: pressed ? theme.colors.surface : "transparent",
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <AppIcon
+            name="help-circle-outline"
+            size={22}
+            color={theme.colors.textSecondary}
+          />
+        </Pressable>,
+      )}
       {introduce ? (
-        <Animated.View style={{ opacity }} pointerEvents={dismissing ? "none" : "auto"}>
-          <ScrollView
-            style={{ maxHeight: 360 }}
-            contentContainerStyle={{
-              padding: isDesktop ? spacing.lg : spacing.md,
-              gap: isDesktop ? spacing.xl : spacing.sm,
-              flexDirection: isDesktop ? "row" : "column",
-              flexWrap: isDesktop ? "wrap" : "nowrap",
-              alignItems: isDesktop ? "center" : "stretch",
-              backgroundColor: theme.colors.surface,
-              borderRadius: 16,
-            }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View
-              style={
-                isDesktop
-                  ? { flex: 1, minWidth: 280, gap: spacing.xs }
-                  : { gap: spacing.sm }
-              }
+        <View
+          testID={`screen-guidance-${area}`}
+          style={{
+            gap: spacing.sm,
+            paddingHorizontal: isDesktop ? 0 : spacing.lg,
+            paddingBottom: spacing.sm,
+            flexShrink: 1,
+            width: "100%",
+            maxWidth: isDesktop ? desktopWidths.data : 720,
+            alignSelf: isDesktop ? "stretch" : "center",
+          }}
+        >
+          <Animated.View style={{ opacity }} pointerEvents={dismissing ? "none" : "auto"}>
+            <ScrollView
+              style={{ maxHeight: 360 }}
+              contentContainerStyle={{
+                padding: isDesktop ? spacing.lg : spacing.md,
+                gap: isDesktop ? spacing.xl : spacing.sm,
+                flexDirection: isDesktop ? "row" : "column",
+                flexWrap: isDesktop ? "wrap" : "nowrap",
+                alignItems: isDesktop ? "center" : "stretch",
+                backgroundColor: theme.colors.surface,
+                borderRadius: 16,
+              }}
+              keyboardShouldPersistTaps="handled"
             >
-              <Typography variant="h3" accessibilityRole="header">
-                {title ?? content.title}
-              </Typography>
-              <Typography variant="body">{description ?? content.description}</Typography>
-            </View>
-            <View
-              style={
-                isDesktop
-                  ? { width: 260, maxWidth: "100%", gap: spacing.xs }
-                  : { gap: spacing.sm }
-              }
-            >
-              <Button
-                title={actionLabel ?? content.action}
-                onPress={() => start()}
-                disabled={dismissing}
-                size="lg"
-                fitTitle={false}
-                titleLines={2}
-              />
-              {secondary ? (
+              <View
+                style={
+                  isDesktop
+                    ? { flex: 1, minWidth: 280, gap: spacing.xs }
+                    : { gap: spacing.sm }
+                }
+              >
+                <Typography variant="h3" accessibilityRole="header">
+                  {title ?? content.title}
+                </Typography>
+                <Typography variant="body">
+                  {description ?? content.description}
+                </Typography>
+              </View>
+              <View
+                style={
+                  isDesktop
+                    ? { width: 260, maxWidth: "100%", gap: spacing.xs }
+                    : { gap: spacing.sm }
+                }
+              >
+                <Button
+                  title={actionLabel ?? content.action}
+                  onPress={() => start()}
+                  disabled={dismissing}
+                  size="lg"
+                  fitTitle={false}
+                  titleLines={2}
+                />
+                {secondary ? (
+                  <Pressable
+                    onPress={() => start(secondary.onPress)}
+                    accessibilityRole="button"
+                    disabled={dismissing}
+                    style={{
+                      minHeight: 48,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                      {secondary.label}
+                    </Typography>
+                  </Pressable>
+                ) : null}
                 <Pressable
-                  onPress={() => start(secondary.onPress)}
                   accessibilityRole="button"
+                  onPress={() => setDismissFor(identity)}
                   disabled={dismissing}
                   style={{
                     minHeight: 48,
@@ -188,46 +240,17 @@ export function ScreenGuidance({
                     alignItems: "center",
                   }}
                 >
-                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                    {secondary.label}
-                  </Typography>
+                  <Typography variant="bodyBold">Agora não</Typography>
                 </Pressable>
-              ) : null}
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setDismissFor(identity)}
-                disabled={dismissing}
-                style={{ minHeight: 48, justifyContent: "center", alignItems: "center" }}
-              >
-                <Typography variant="bodyBold">Agora não</Typography>
-              </Pressable>
-            </View>
-          </ScrollView>
-        </Animated.View>
+              </View>
+            </ScrollView>
+          </Animated.View>
+        </View>
       ) : null}
-      <Pressable
-        ref={trigger}
-        accessibilityRole="button"
-        accessibilityLabel={`Como usar: ${content.title}`}
-        onPress={() => {
-          setHelpFor(identity);
-          guidanceEvent(area, "help_opened", userId);
-        }}
-        style={{
-          minHeight: isDesktop ? 36 : 48,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          alignSelf: "flex-start",
-        }}
-      >
-        <AppIcon name="help-circle-outline" size={22} color={theme.colors.text} />
-        <Typography variant="bodyBold">Como usar</Typography>
-      </Pressable>
       <StandardModal
         visible={helpOpen}
         onClose={closeHelp}
-        title="Como usar esta tela"
+        title={content.helpTitle}
         scrollRef={helpScroll}
         footer={
           <View
@@ -268,6 +291,6 @@ export function ScreenGuidance({
           </Typography>
         </Pressable>
       </StandardModal>
-    </View>
+    </>
   );
 }

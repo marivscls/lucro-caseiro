@@ -860,60 +860,63 @@ export default function NewSaleScreen() {
           ...pageZone,
         }}
       >
-        {isDesktop ? (
-          <ScreenHeader
-            title="Nova venda"
-            subtitle="Escolha o cliente, os itens e a forma de pagamento."
-            hideBack
-          />
-        ) : (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingTop: spacing.sm,
-              justifyContent: "space-between",
-            }}
-          >
-            <View
-              style={{
-                flex: 1,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.md,
-              }}
-            >
-              {!isDesktop ? (
-                <Pressable
-                  onPress={() =>
-                    step > 1
-                      ? setStep((s) => (s - 1) as Step)
-                      : router.push("/tabs/sales")
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel="Voltar"
+        <ScreenGuidance
+          renderHeader={(helpButton) =>
+            isDesktop ? (
+              <ScreenHeader
+                help={helpButton}
+                title="Nova venda"
+                subtitle="Escolha o cliente, os itens e a forma de pagamento."
+                hideBack
+              />
+            ) : (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingTop: spacing.sm,
+                  justifyContent: "space-between",
+                }}
+              >
+                <View
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: radii.full,
-                    backgroundColor: theme.colors.surface,
+                    flex: 1,
+                    flexDirection: "row",
                     alignItems: "center",
-                    justifyContent: "center",
+                    gap: spacing.md,
                   }}
                 >
-                  <AppIcon
-                    name="chevron-back"
-                    size={25}
-                    color={theme.colors.textSecondary}
-                  />
-                </Pressable>
-              ) : null}
-              <Typography variant="screenTitle">Nova venda</Typography>
-            </View>
-          </View>
-        )}
-
-        <ScreenGuidance
+                  {!isDesktop ? (
+                    <Pressable
+                      onPress={() =>
+                        step > 1
+                          ? setStep((s) => (s - 1) as Step)
+                          : router.push("/tabs/sales")
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel="Voltar"
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: radii.full,
+                        backgroundColor: theme.colors.surface,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AppIcon
+                        name="chevron-back"
+                        size={25}
+                        color={theme.colors.textSecondary}
+                      />
+                    </Pressable>
+                  ) : null}
+                  <Typography variant="screenTitle">Nova venda</Typography>
+                </View>
+                {helpButton}
+              </View>
+            )
+          }
           area="new_sale"
           onStart={() => {
             if (products.length === 0) setShowCreateProduct(true);
@@ -1621,6 +1624,7 @@ export default function NewSaleScreen() {
                         value={discountInput}
                         onChangeText={setDiscountInput}
                         keyboardType="decimal-pad"
+                        numericMode="decimal"
                         placeholder={
                           discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"
                         }
@@ -2228,6 +2232,7 @@ export default function NewSaleScreen() {
                 value={weightInput}
                 onChangeText={setWeightInput}
                 keyboardType="decimal-pad"
+                numericMode="decimal"
                 autoFocus
               />
               {weightProduct && !isNaN(parseFloat(weightInput.replace(",", "."))) && (
