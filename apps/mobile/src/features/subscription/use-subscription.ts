@@ -9,6 +9,7 @@ import type {
 
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
+import { isMockMode } from "../../shared/mock/mode";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
 import { fetchProfile, syncPlan } from "./api";
@@ -76,6 +77,8 @@ function unavailableIap(): IapHookResult {
 }
 
 function loadIapModule(): IapModule | null {
+  // Modo demonstração: compras na loja desativadas.
+  if (isMockMode) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy native load keeps stale dev builds from crashing on startup.
     return require("react-native-iap") as IapModule;

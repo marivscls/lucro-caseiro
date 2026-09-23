@@ -1,9 +1,11 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
+import { isMockMode } from "../mock/mode";
 import { BrowserNotifications } from "./browser-notifications";
 
 export const BROWSER_PUSH_OWNER = "browser-push-owner";
 export function browserPushSupported(): boolean {
   return (
+    !isMockMode &&
     typeof window !== "undefined" &&
     window.isSecureContext &&
     "Notification" in window &&
