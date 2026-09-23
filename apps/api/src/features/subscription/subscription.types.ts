@@ -50,6 +50,12 @@ export interface ISubscriptionRepo {
     provider: "google-play",
     tokenHash: string,
   ): Promise<boolean>;
+  /** true se este token (hash) ja foi vinculado a este usuario via `claimPurchaseToken`. */
+  hasPurchaseClaim(
+    userId: string,
+    provider: "google-play",
+    tokenHash: string,
+  ): Promise<boolean>;
   claimProfessionalTrialCampaignEmail(
     userId: string,
   ): Promise<ProfessionalTrialCampaignEmailClaim | null>;

@@ -125,6 +125,25 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
     return true;
   }
 
+  async hasPurchaseClaim(
+    userId: string,
+    provider: "google-play",
+    tokenHash: string,
+  ): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: subscriptionPurchaseClaims.id })
+      .from(subscriptionPurchaseClaims)
+      .where(
+        and(
+          eq(subscriptionPurchaseClaims.userId, userId),
+          eq(subscriptionPurchaseClaims.provider, provider),
+          eq(subscriptionPurchaseClaims.tokenHash, tokenHash),
+        ),
+      )
+      .limit(1);
+    return !!row;
+  }
+
   async claimProfessionalTrialCampaignEmail(
     userId: string,
   ): Promise<ProfessionalTrialCampaignEmailClaim | null> {

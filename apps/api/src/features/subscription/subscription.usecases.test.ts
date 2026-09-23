@@ -61,6 +61,7 @@ function makeRepo(overrides: Partial<ISubscriptionRepo> = {}): ISubscriptionRepo
       ),
     getResourceCounts: () => Promise.resolve(makeCounts()),
     claimPurchaseToken: () => Promise.resolve(true),
+    hasPurchaseClaim: () => Promise.resolve(true),
     claimProfessionalTrialCampaignEmail: () => Promise.resolve(null),
     completeProfessionalTrialCampaignEmail: () => Promise.resolve(),
     releaseProfessionalTrialCampaignEmail: () => Promise.resolve(),
