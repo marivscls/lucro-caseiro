@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   emptyBusinessProfile,
   goalsForProfile,
+  profileAnswerSummary,
+  profileQuestion,
   profileRecommendation,
   stagesForProfile,
   toggleProfileChannel,
@@ -79,5 +81,36 @@ describe("recomendações do perfil", () => {
       "/tabs/finance",
     );
     expect(profileRecommendation(emptyBusinessProfile)).toBeUndefined();
+  });
+});
+
+describe("conversa do perfil", () => {
+  const ana = {
+    ...emptyBusinessProfile,
+    name: "Ana Paula",
+    business: "Doces da Ana",
+    segment: "sweets",
+    stage: "selling",
+    goal: "price",
+  };
+
+  it("chama a pessoa pelo primeiro nome na pergunta do negócio", () => {
+    expect(profileQuestion(1, ana)?.title).toBe("Prazer, Ana! O que você faz por aí?");
+    expect(profileQuestion(1, emptyBusinessProfile)?.title).toBe(
+      "O que você faz por aí?",
+    );
+    expect(profileQuestion(5, ana)).toBeUndefined();
+  });
+
+  it("resume cada resposta no balão da pessoa", () => {
+    expect(profileAnswerSummary(0, ana)).toBe("Ana Paula, da Doces da Ana");
+    expect(profileAnswerSummary(0, { ...ana, business: " " })).toBe("Ana Paula");
+    expect(profileAnswerSummary(1, ana)).toBe("Doces e confeitaria");
+    expect(profileAnswerSummary(2, ana)).toBe("Já vendo de vez em quando");
+    expect(profileAnswerSummary(3, ana)).toBe("Ainda não divulgo");
+    expect(profileAnswerSummary(3, { ...ana, channels: ["whatsapp", "referral"] })).toBe(
+      "WhatsApp, Indicação",
+    );
+    expect(profileAnswerSummary(4, ana)).toBe("Saber quanto cobrar");
   });
 });
