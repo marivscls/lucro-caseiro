@@ -15,13 +15,25 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { FlatList, Image, Pressable, View, useWindowDimensions } from "react-native";
+import {
+  FlatList,
+  Image,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import servicesHeroToolkit from "../assets/services-hero-toolkit.png";
 import { OrderForm } from "../features/orders/components/order-form";
 import { ServiceDashboardModal } from "../features/services/components/service-dashboard-modal";
 import { ServiceForm } from "../features/services/components/service-form";
+import {
+  ServiceDesktopCard,
+  ServiceFilterPill,
+  ServicesDesktopEmpty,
+} from "../features/services/components/services-desktop";
 import {
   buildServiceOverview,
   calculateStoredServicePricing,
@@ -41,6 +53,11 @@ import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { desktopWidths } from "../shared/layout/desktop-density";
+import {
+  DesktopGrid,
+  DesktopStatRow,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { formatCurrency } from "../shared/utils/format";
 
@@ -82,6 +99,13 @@ function priceHealthBadge(service: Service): {
 function HeroCard({ count, compact }: Readonly<{ count: number; compact: boolean }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
+  const isDesktop = useDesktopLayout();
+  let bodyVariant: "desktopBody" | "caption" | "body" = compact ? "caption" : "body";
+  let bodyWidth = compact ? 170 : 270;
+  if (isDesktop) {
+    bodyVariant = "desktopBody";
+    bodyWidth = 340;
+  }
   return (
     <View
       style={{
@@ -103,9 +127,11 @@ function HeroCard({ count, compact }: Readonly<{ count: number; compact: boolean
           gap: spacing.sm,
         }}
       >
-        <Typography variant="label" color={palette.lime}>
-          SEU CATÁLOGO
-        </Typography>
+        {isDesktop ? null : (
+          <Typography variant="label" color={palette.lime}>
+            SEU CATÁLOGO
+          </Typography>
+        )}
         <Typography
           variant={compact ? "h2" : "h1"}
           color={palette.onWine}
@@ -114,9 +140,9 @@ function HeroCard({ count, compact }: Readonly<{ count: number; compact: boolean
           {serviceCountLabel(count)}
         </Typography>
         <Typography
-          variant={compact ? "caption" : "body"}
+          variant={bodyVariant}
           color={palette.onWine}
-          style={{ maxWidth: compact ? 170 : 270 }}
+          style={{ maxWidth: bodyWidth }}
         >
           Preços, tempo e custos em um só lugar.
         </Typography>
@@ -584,6 +610,161 @@ export default function ServicesScreen() {
     );
   }
 
+  function emptyCopy(): {
+    title: string;
+    description: string;
+    actionTitle?: string;
+    onAction?: () => void;
+  } {
+    let emptyTitle = "Nenhum serviço disponível";
+    let emptyDescription =
+      "Os serviços pausados continuam guardados e podem ser retomados quando quiser.";
+    let emptyActionTitle: string | undefined;
+    let onEmptyAction: (() => void) | undefined;
+
+    if (services.length === 0) {
+      emptyTitle = "Comece pelo seu primeiro serviço";
+      emptyDescription =
+        "Cadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.";
+      emptyActionTitle = "Cadastrar serviço";
+      onEmptyAction = () => setShowCreate(true);
+    } else if (filter === "active") {
+      emptyActionTitle = "Ver pausados";
+      onEmptyAction = () => setFilter("inactive");
+    } else if (filter === "inactive") {
+      emptyTitle = "Nenhum serviço pausado";
+      emptyDescription = "Seus serviços disponíveis continuam aparecendo normalmente.";
+    } else if (filter === "review") {
+      emptyTitle = "Preços em dia";
+      emptyDescription = "Nenhum serviço disponível precisa de revisão de preço.";
+    }
+    if (search) {
+      emptyTitle = "Nenhum resultado encontrado";
+      emptyDescription = "Tente buscar por outro nome, categoria ou descrição.";
+      emptyActionTitle = undefined;
+      onEmptyAction = undefined;
+    }
+
+    return {
+      title: emptyTitle,
+      description: emptyDescription,
+      actionTitle: emptyActionTitle,
+      onAction: onEmptyAction,
+    };
+  }
+
+  function renderDesktopBody() {
+    const loaded = !servicesQuery.isLoading && !servicesQuery.error;
+    let list: React.ReactNode = null;
+    if (servicesQuery.isLoading) {
+      list = <SkeletonList rows={4} variant="product" />;
+    } else if (servicesQuery.error) {
+      list = (
+        <ServicesDesktopEmpty
+          title="Não foi possível carregar os serviços"
+          description="Verifique sua conexão e tente novamente."
+          actionLabel="Tentar novamente"
+          onAction={() => void servicesQuery.refetch()}
+        />
+      );
+    } else if (visibleServices.length === 0) {
+      const empty = emptyCopy();
+      list = (
+        <ServicesDesktopEmpty
+          title={empty.title}
+          description={empty.description}
+          actionLabel={empty.actionTitle}
+          onAction={empty.onAction}
+        />
+      );
+    } else {
+      list = (
+        <DesktopGrid minColumnWidth={300} maxColumns={3}>
+          {visibleServices.map((service) => (
+            <ServiceDesktopCard
+              key={service.id}
+              service={service}
+              health={priceHealthBadge(service)}
+              durationLabel={durationLabel(service.durationMinutes)}
+              onPress={() => setSelectedService(service)}
+            />
+          ))}
+        </DesktopGrid>
+      );
+    }
+    const hasServices = loaded && services.length > 0;
+    return (
+      <ScrollView
+        contentContainerStyle={desktopPageContent(true)}
+        showsVerticalScrollIndicator={false}
+      >
+        <HeroCard count={overview.activeCount} compact={false} />
+        {hasServices ? (
+          <DesktopStatRow
+            items={[
+              { label: "Preço médio", value: averagePriceLabel },
+              { label: "Duração média", value: averageDurationLabel },
+              {
+                label: "Revisar preço",
+                value: String(overview.attentionCount),
+                color: overview.attentionCount > 0 ? palette.rose : undefined,
+              },
+            ]}
+          />
+        ) : null}
+        {hasServices ? (
+          <View style={{ gap: spacing.lg }}>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: spacing.md,
+              }}
+            >
+              <Input
+                placeholder="Buscar serviço"
+                accessibilityLabel="Buscar serviço por nome, categoria ou descrição"
+                value={search}
+                onChangeText={setSearch}
+                icon={
+                  <AppIcon name="search-outline" size={21} color={palette.warmGray} />
+                }
+                containerStyle={{ flexGrow: 1, flexBasis: 280, minWidth: 280 }}
+              />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {FILTERS.map((item) => (
+                  <ServiceFilterPill
+                    key={item.value}
+                    label={item.label}
+                    count={filterCounts[item.value]}
+                    selected={filter === item.value}
+                    onPress={() => setFilter(item.value)}
+                  />
+                ))}
+              </View>
+            </View>
+            <View
+              style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.md }}
+            >
+              <Typography variant="desktopSection" accessibilityRole="header">
+                Seus serviços
+              </Typography>
+              <Typography variant="desktopMeta">
+                {overview.activeCount} {overview.activeCount === 1 ? "ativo" : "ativos"}{" "}
+                de {overview.totalCount}{" "}
+                {overview.totalCount === 1 ? "cadastrado" : "cadastrados"}
+              </Typography>
+            </View>
+            {list}
+          </View>
+        ) : (
+          list
+        )}
+      </ScrollView>
+    );
+  }
+
   function renderListEmpty() {
     if (servicesQuery.isLoading) {
       return (
@@ -610,42 +791,14 @@ export default function ServicesScreen() {
     }
 
     if (visibleServices.length === 0) {
-      let emptyTitle = "Nenhum serviço disponível";
-      let emptyDescription =
-        "Os serviços pausados continuam guardados e podem ser retomados quando quiser.";
-      let emptyActionTitle: string | undefined;
-      let onEmptyAction: (() => void) | undefined;
-
-      if (services.length === 0) {
-        emptyTitle = "Comece pelo seu primeiro serviço";
-        emptyDescription =
-          "Cadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.";
-        emptyActionTitle = "Cadastrar serviço";
-        onEmptyAction = () => setShowCreate(true);
-      } else if (filter === "active") {
-        emptyActionTitle = "Ver pausados";
-        onEmptyAction = () => setFilter("inactive");
-      } else if (filter === "inactive") {
-        emptyTitle = "Nenhum serviço pausado";
-        emptyDescription = "Seus serviços disponíveis continuam aparecendo normalmente.";
-      } else if (filter === "review") {
-        emptyTitle = "Preços em dia";
-        emptyDescription = "Nenhum serviço disponível precisa de revisão de preço.";
-      }
-      if (search) {
-        emptyTitle = "Nenhum resultado encontrado";
-        emptyDescription = "Tente buscar por outro nome, categoria ou descrição.";
-        emptyActionTitle = undefined;
-        onEmptyAction = undefined;
-      }
-
+      const empty = emptyCopy();
       return (
         <EmptyState
-          title={emptyTitle}
-          description={emptyDescription}
+          title={empty.title}
+          description={empty.description}
           action={
-            emptyActionTitle && onEmptyAction ? (
-              <Button title={emptyActionTitle} onPress={onEmptyAction} />
+            empty.actionTitle && empty.onAction ? (
+              <Button title={empty.actionTitle} onPress={empty.onAction} />
             ) : undefined
           }
         />
@@ -692,30 +845,36 @@ export default function ServicesScreen() {
           subtitleStyle={{ color: palette.warmGray }}
         />
 
-        <FlatList
-          data={servicesQuery.isLoading || servicesQuery.error ? [] : visibleServices}
-          keyExtractor={(service) => service.id}
-          ListHeaderComponent={renderListHeader}
-          ListEmptyComponent={renderListEmpty}
-          renderItem={({ item }) => (
-            <ServiceCard
-              service={item}
-              compact={compact}
-              onPress={() => setSelectedService(item)}
-            />
-          )}
-          contentContainerStyle={{
-            flexGrow: 1,
-            gap: spacing.md,
-            paddingHorizontal: isDesktop ? 0 : spacing.lg,
-            paddingTop: spacing.md,
-            paddingBottom: listBottomClearance,
-          }}
-          showsVerticalScrollIndicator={false}
-        />
+        {isDesktop ? renderDesktopBody() : null}
+        {isDesktop ? null : (
+          <FlatList
+            data={servicesQuery.isLoading || servicesQuery.error ? [] : visibleServices}
+            keyExtractor={(service) => service.id}
+            ListHeaderComponent={renderListHeader}
+            ListEmptyComponent={renderListEmpty}
+            renderItem={({ item }) => (
+              <ServiceCard
+                service={item}
+                compact={compact}
+                onPress={() => setSelectedService(item)}
+              />
+            )}
+            contentContainerStyle={{
+              flexGrow: 1,
+              gap: spacing.md,
+              paddingHorizontal: isDesktop ? 0 : spacing.lg,
+              paddingTop: spacing.md,
+              paddingBottom: listBottomClearance,
+            }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </View>
 
-      {!servicesQuery.isLoading && !servicesQuery.error && services.length > 0 ? (
+      {!isDesktop &&
+      !servicesQuery.isLoading &&
+      !servicesQuery.error &&
+      services.length > 0 ? (
         <ScreenCreateBar
           title="+ Cadastrar serviço"
           onPress={() => setShowCreate(true)}
