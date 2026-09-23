@@ -9,6 +9,7 @@ import { playStoreUrl } from "../../shared/utils/store-link";
 
 import { displayProductName } from "../products/display";
 import { paymentLabel } from "./payment";
+import { formatCurrency } from "../../shared/utils/format";
 
 export interface ReceiptBusiness {
   name: string;
@@ -24,7 +25,7 @@ function escapeHtml(value: string): string {
 }
 
 function money(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
+  return formatCurrency(value);
 }
 
 function quantity(value: number): string {

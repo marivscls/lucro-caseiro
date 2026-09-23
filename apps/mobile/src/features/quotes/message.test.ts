@@ -79,3 +79,13 @@ describe("buildQuoteMessage", () => {
     expect(msg).toContain("• 1,5x Doce a granel: R$ 60,00");
   });
 });
+
+describe("buildQuoteMessage valores", () => {
+  it("usa ponto de milhar no total", () => {
+    const message = buildQuoteMessage(
+      makeQuote({ subtotal: 1500, total: 1500 }),
+      "Doces",
+    );
+    expect(message).toContain("R$ 1.500,00");
+  });
+});
