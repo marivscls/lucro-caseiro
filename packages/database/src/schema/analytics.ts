@@ -3,6 +3,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -96,6 +97,8 @@ export const analyticsEvents = pgTable(
     eventType: text("event_type").notNull(),
     eventName: text("event_name").notNull(),
     durationMs: integer("duration_ms"),
+    /** Contexto opcional de ações; validado pela API (poucas chaves, valores curtos). */
+    props: jsonb("props").$type<Record<string, string | number | boolean>>(),
     appVersion: text("app_version").notNull(),
     appBuild: text("app_build"),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),

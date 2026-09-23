@@ -88,3 +88,21 @@ describe("conclusão confirmada e coleta best effort", () => {
     );
   });
 });
+describe("propriedades de ações", () => {
+  it("envia props só quando informadas", async () => {
+    // Act
+    await trackAnalyticsAction("plan_limit_reached", mocks.token, {
+      resource: "clients",
+    });
+    await trackAnalyticsAction("pricing_started", mocks.token);
+
+    // Assert
+    const events = mocks.record.mock.calls.map(([payload]) => payload.events[0]);
+    expect(events).toContainEqual({
+      type: "action",
+      name: "plan_limit_reached",
+      props: { resource: "clients" },
+    });
+    expect(events).toContainEqual({ type: "action", name: "pricing_started" });
+  });
+});

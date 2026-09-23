@@ -63,7 +63,8 @@ relógio no foreground. Segmentos menores que 250 ms são ignorados e os demais 
 ## Contracts
 
 `AppOpenPayload` limita plataforma a Android, iOS ou web. Telas e ações vêm das allowlists do
-contrato compartilhado; não há metadata nem dados pessoais.
+contrato compartilhado. Ações podem levar `props` curtos (identificadores como recurso, plano e
+tela); nunca texto digitado, nomes, valores ou dados de clientes.
 
 ## Error Handling
 
@@ -119,3 +120,10 @@ registra o evento na primeira identificação de uma conta recém-criada, cobrin
 Na primeira execução o app lê a origem uma única vez e grava o resultado (inclusive "sem origem"),
 para que links abertos depois não troquem a origem original. Toda abertura reenvia esse valor; a
 API só o grava no primeiro registro. O painel mostra "Origem das instalações" em Visão geral.
+
+## Propriedades de ações — 2026-09-23
+
+`trackAnalyticsAction(name, token, props?)`. `screen-tracking.ts` guarda a tela canônica em foco
+(`currentAnalyticsScreen`), atualizada por `useScreenMetrics`. `useLimitCheck` envia
+`plan_limit_reached` com `resource` e `screen`; `usePaywall.show(resource, plan?, trigger?)` envia
+`paid_feature_requested` com `feature`, `trigger`, `screen` e `plan`.

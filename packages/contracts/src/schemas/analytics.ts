@@ -89,9 +89,24 @@ export const ANALYTICS_ACQUISITION_MAX_LENGTH: Record<AnalyticsAcquisitionField,
     referrer: 200,
   };
 
+/**
+ * Contexto pequeno e fechado de uma ação (qual limite, de onde veio o paywall, qual plano).
+ * Valores são identificadores, nunca texto digitado ou dado pessoal.
+ */
+export type AnalyticsEventPropValue = string | number | boolean;
+export type AnalyticsEventProps = Record<string, AnalyticsEventPropValue>;
+export const ANALYTICS_EVENT_PROPS_LIMITS = {
+  maxKeys: 5,
+  /** Chave: `^[a-z][a-z0-9_]*$`. */
+  maxKeyLength: 32,
+  /** Texto: letras, números e `_ . : / ( ) [ ] -`, sem espaços. */
+  maxStringLength: 64,
+  maxAbsNumber: 1_000_000_000,
+} as const;
+
 export type ProductAnalyticsEvent =
   | { type: "screen_view"; name: AnalyticsScreenName; durationMs: number }
-  | { type: "action"; name: AnalyticsActionName };
+  | { type: "action"; name: AnalyticsActionName; props?: AnalyticsEventProps };
 
 export interface ProductAnalyticsDashboard {
   generatedAt: string;

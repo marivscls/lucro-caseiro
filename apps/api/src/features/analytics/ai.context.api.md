@@ -32,6 +32,7 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
 - `packages/database/src/migrations/034_product_analytics.sql`: instalações e atividade.
 - `packages/database/src/migrations/035_analytics_behavior_events.sql`: eventos e segurança.
+- `packages/database/src/migrations/20260923100200_analytics_event_props.sql`: coluna `props`.
 - `packages/database/src/migrations/20260923100100_analytics_installation_acquisition.sql`:
   colunas de origem da instalação.
 - `packages/database/src/migrations/20260923100000_analytics_event_name_format.sql`: troca a
@@ -46,7 +47,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 - `analytics_installation_users`: vínculos muitos-para-muitos entre instalações e contas.
 - `analytics_activity_days`: chave composta instalação + data UTC; no máximo um dia ativo.
 - `analytics_user_activity_days`: chave composta usuário + data UTC para usuários ativos.
-- `analytics_events`: tela ou ação canônica, instalação/conta, versão e timestamp do servidor.
+- `analytics_events`: tela ou ação canônica, instalação/conta, versão, timestamp do servidor e
+  `props` JSONB opcional (só em ações).
 
 ## Invariants
 
@@ -79,7 +81,9 @@ O envelope usa `{ installationId, platform, appVersion, appBuild?, acquisition? 
 `acquisition` é estrito: `utmSource`, `utmMedium`, `utmCampaign`, `utmContent` (1–100) e
 `referrer` (host, 1–200), sem caracteres de controle nem chaves extras. Eventos são uma união
 discriminada: `screen_view` exige nome permitido e duração de 250 ms a 6 h; `action` aceita apenas
-as dez ações do contrato. Metadata arbitrária é rejeitada.
+as ações do contrato e um `props` opcional: de 1 a 5 chaves `^[a-z][a-z0-9_]*$` (até 32),
+valores texto sem espaços `[\w.:/()[\]-]` (até 64), número finito até 1e9 ou booleano. Objetos
+aninhados, arrays, texto livre e props em `screen_view` são rejeitados.
 
 ## Errors
 
@@ -102,7 +106,8 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
 ## Security
 
 - Não persiste IP, e-mail, telefone, Advertising ID ou modelo do aparelho.
-- Os endpoints anônimos não aceitam propriedades arbitrárias nem nomes livres.
+- Os endpoints anônimos não aceitam nomes livres; `props` só aceita identificadores curtos (sem
+  espaços), nunca texto digitado ou dado de cliente.
 - Lista administrativa vazia nega o painel a todas as contas.
 - O rate limit global da API também cobre estas rotas.
 
@@ -169,3 +174,12 @@ substitui a lista por `analytics_events_event_name_format_check` (formato apenas
   (até 20 linhas, `null` = sem origem) com quantas já têm conta vinculada.
 - A web envia os UTM da URL do PWA. No Android a origem fica vazia até existir leitura do Play
   Install Referrer no app, que depende de um módulo nativo ainda não aprovado.
+
+## Propriedades de ações — 2026-09-23
+
+- Coluna `analytics_events.props` (JSONB, anulável). O banco exige objeto, `event_type = 'action'`
+  e no máximo 1 KB (`analytics_events_props_check`); o zod aplica os limites finos de
+  `ANALYTICS_EVENT_PROPS_LIMITS`.
+- Uso atual: `plan_limit_reached` → `resource`, `screen`; `paid_feature_requested` → `feature`,
+  `trigger` (`limit` ou `feature`), `screen`, `plan` recomendado.
+- O relatório ainda não agrega por `props`; a consulta ad hoc lê `props->>'chave'`.

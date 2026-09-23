@@ -13,6 +13,7 @@ const MIGRATIONS = [
   "037_activation_funnel_events.sql",
   "20260923100000_analytics_event_name_format.sql",
   "20260923100100_analytics_installation_acquisition.sql",
+  "20260923100200_analytics_event_props.sql",
 ];
 
 const INSTALLATION = "0cbd1c3e-1755-4f3f-a1bf-40c12b267ac3";
@@ -192,6 +193,52 @@ describe("Analytics persistence in PostgreSQL", () => {
         },
         { source: null, content: null, installations: 1, linked_to_user: 0 },
       ]);
+    });
+  });
+
+  describe("propriedades de ações", () => {
+    it("persiste props da ação e deixa visitas de tela sem props", async () => {
+      // Arrange
+      const occurredAt = new Date("2026-09-20T12:00:00.000Z");
+
+      // Act
+      await repo.recordEvents(USER, {
+        ...ENVELOPE,
+        occurredAt,
+        activityDate: "2026-09-20",
+        events: [
+          { type: "action", name: "plan_limit_reached", props: { resource: "clients" } },
+          { type: "screen_view", name: "clients", durationMs: 1_000 },
+        ],
+      });
+
+      // Assert
+      const { rows } = await pg.query<{ event_name: string; props: unknown }>(
+        "SELECT event_name, props FROM analytics_events ORDER BY id",
+      );
+      expect(rows).toEqual([
+        { event_name: "plan_limit_reached", props: { resource: "clients" } },
+        { event_name: "clients", props: null },
+      ]);
+    });
+
+    it("recusa no banco props em visita de tela ou fora do formato de objeto", async () => {
+      // Arrange
+      await repo.recordOpen(null, {
+        ...ENVELOPE,
+        openedAt: new Date("2026-09-20T12:00:00.000Z"),
+        activityDate: "2026-09-20",
+      });
+      const insert = (type: string, props: string) =>
+        pg.query(
+          `INSERT INTO analytics_events(installation_id, event_type, event_name, duration_ms, app_version, props)
+           VALUES ($1, $2, 'home', $3, '1.2.0', $4::jsonb)`,
+          [INSTALLATION, type, type === "screen_view" ? 1_000 : null, props],
+        );
+
+      // Act / Assert
+      await expect(insert("screen_view", '{"a":"b"}')).rejects.toThrow();
+      await expect(insert("action", '["a"]')).rejects.toThrow();
     });
   });
 

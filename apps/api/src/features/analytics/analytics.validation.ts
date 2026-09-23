@@ -1,6 +1,7 @@
 import {
   ANALYTICS_ACQUISITION_MAX_LENGTH,
   ANALYTICS_ACTION_NAMES,
+  ANALYTICS_EVENT_PROPS_LIMITS as PROPS,
   ANALYTICS_SCREEN_NAMES,
 } from "@lucro-caseiro/contracts";
 import { z } from "zod";
@@ -20,6 +21,24 @@ const AcquisitionDto = z
     referrer: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.referrer),
   })
   .strict();
+
+const PROP_KEY = /^[a-z][a-z0-9_]*$/;
+// Sem espaços: identificadores (recurso, plano, tela, nome de erro), nunca texto livre.
+const PROP_TEXT = /^[\w.:/()[\]-]+$/;
+
+const EventPropsDto = z
+  .record(
+    z.string().max(PROPS.maxKeyLength).regex(PROP_KEY),
+    z.union([
+      z.string().min(1).max(PROPS.maxStringLength).regex(PROP_TEXT),
+      z.number().finite().min(-PROPS.maxAbsNumber).max(PROPS.maxAbsNumber),
+      z.boolean(),
+    ]),
+  )
+  .refine((props) => {
+    const keys = Object.keys(props).length;
+    return keys >= 1 && keys <= PROPS.maxKeys;
+  }, `Use de 1 a ${PROPS.maxKeys} propriedades`);
 
 const RecordOpenDto = z
   .object({
@@ -43,6 +62,7 @@ const AnalyticsEventDto = z.discriminatedUnion("type", [
     .object({
       type: z.literal("action"),
       name: z.enum(ANALYTICS_ACTION_NAMES),
+      props: EventPropsDto.optional(),
     })
     .strict(),
 ]);

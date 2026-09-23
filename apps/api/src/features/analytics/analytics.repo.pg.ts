@@ -245,6 +245,7 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
           eventType: event.type,
           eventName: event.name,
           durationMs: event.type === "screen_view" ? event.durationMs : null,
+          props: event.type === "action" ? (event.props ?? null) : null,
           appVersion: input.appVersion,
           appBuild: input.appBuild ?? null,
           occurredAt: input.occurredAt,

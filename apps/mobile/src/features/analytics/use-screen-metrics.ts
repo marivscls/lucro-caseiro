@@ -4,7 +4,11 @@ import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
 
 import { useAuth } from "../../shared/hooks/use-auth";
-import { activeDurationMs, analyticsScreenForPath } from "./screen-tracking";
+import {
+  activeDurationMs,
+  analyticsScreenForPath,
+  setCurrentAnalyticsScreen,
+} from "./screen-tracking";
 import { trackAnalyticsEvent } from "./tracker";
 
 export function useScreenMetrics(): void {
@@ -30,6 +34,7 @@ export function useScreenMetrics(): void {
   useEffect(() => {
     flush();
     screen.current = analyticsScreenForPath(pathname);
+    setCurrentAnalyticsScreen(screen.current);
     startedAt.current = AppState.currentState === "active" ? Date.now() : null;
   }, [flush, pathname]);
 
