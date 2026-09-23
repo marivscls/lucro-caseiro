@@ -4,6 +4,7 @@ import type { ResourceCounts } from "./subscription.types";
 import {
   buildFreemiumLimits,
   getLimitMessage,
+  hashPurchaseToken,
   isLimitExceeded,
   isPaidPlanActive,
   resolvePlan,
@@ -180,5 +181,20 @@ describe("isPaidPlanActive", () => {
   it("returns false for paid plan with past expiry", () => {
     const past = new Date(Date.now() - 86400000).toISOString();
     expect(isPaidPlanActive("professional", past)).toBe(false);
+  });
+});
+
+describe("hashPurchaseToken", () => {
+  it("returns a stable sha256 hex digest without the raw token", () => {
+    // Arrange
+    const token = "purchase-token";
+
+    // Act
+    const hash = hashPurchaseToken(token);
+
+    // Assert
+    expect(hash).toBe(hashPurchaseToken(token));
+    expect(hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(hash).not.toContain(token);
   });
 });

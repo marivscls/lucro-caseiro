@@ -5,14 +5,17 @@ import type {
   PlanType,
   UserProfile,
 } from "@lucro-caseiro/contracts";
-import { createHash } from "node:crypto";
 
 import {
   ForbiddenError,
   NotFoundError,
   ServiceUnavailableError,
 } from "../../shared/errors";
-import { buildFreemiumLimits, resolvePlan } from "./subscription.domain";
+import {
+  buildFreemiumLimits,
+  hashPurchaseToken,
+  resolvePlan,
+} from "./subscription.domain";
 import type {
   AndroidPurchaseData,
   ISubscriptionRepo,
@@ -206,7 +209,7 @@ export class SubscriptionUseCases {
         throw new ForbiddenError("Esta compra do Google Play nao pertence a esta conta.");
       }
 
-      const tokenHash = createHash("sha256").update(purchase.purchaseToken).digest("hex");
+      const tokenHash = hashPurchaseToken(purchase.purchaseToken);
       const claimed = await this.repo.claimPurchaseToken(
         userId,
         "google-play",

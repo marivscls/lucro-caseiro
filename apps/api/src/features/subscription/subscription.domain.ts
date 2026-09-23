@@ -5,6 +5,7 @@ import {
   resolveActivePlan,
   type LimitResource,
 } from "@lucro-caseiro/contracts";
+import { createHash } from "node:crypto";
 
 import type { ResourceCounts } from "./subscription.types";
 
@@ -87,4 +88,9 @@ const LIMIT_MESSAGES: Record<ResourceType, string> = {
 
 export function getLimitMessage(resourceType: ResourceType): string {
   return LIMIT_MESSAGES[resourceType];
+}
+
+/** Hash persistido no lugar do purchase token bruto (que nunca vai para o banco nem log). */
+export function hashPurchaseToken(purchaseToken: string): string {
+  return createHash("sha256").update(purchaseToken).digest("hex");
 }
