@@ -7,6 +7,7 @@ import { create } from "zustand";
 import { supabase } from "../utils/supabase";
 import { withoutAuthParams } from "../utils/auth-url";
 import { getRecoveryLinkError } from "../utils/password-recovery";
+import { markSignedInOnDevice } from "../utils/returning-user";
 import { useOnboarding } from "./use-onboarding";
 import { stopBrowserPush } from "./browser-push";
 
@@ -147,6 +148,7 @@ interface AuthState {
 
 function setSession(set: (state: Partial<AuthState>) => void, session: Session | null) {
   if (session) {
+    markSignedInOnDevice();
     set({
       token: session.access_token,
       userId: session.user.id,

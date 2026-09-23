@@ -1,5 +1,12 @@
 import React from "react";
-import { Platform, Text, View, type TextStyle, type ViewStyle } from "react-native";
+import {
+  Platform,
+  Text,
+  View,
+  type TextInput,
+  type TextStyle,
+  type ViewStyle,
+} from "react-native";
 
 import { useTheme } from "../theme-context";
 import { controlSizes, fonts, fontSizes, radii, spacing } from "../theme";
@@ -12,6 +19,8 @@ interface InputProps extends CenteredTextInputProps {
   /** Conteúdo à direita dentro da caixa do input (ex.: botão "mostrar senha"). */
   rightIcon?: React.ReactNode;
   containerStyle?: ViewStyle;
+  /** Permite focar o próximo campo ao tocar em "Avançar" no teclado. */
+  ref?: React.Ref<TextInput>;
 }
 
 export function Input({

@@ -11,8 +11,8 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Image, Pressable, type TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
@@ -27,6 +27,7 @@ import { desktopContained } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { brandLogoByMode } from "../../shared/brand-logo";
+import { hasSignedInOnDevice } from "../../shared/utils/returning-user";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -45,6 +46,20 @@ export default function LoginScreen() {
   const [emailError, setEmailError] = useState<string>();
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
+  const passwordRef = useRef<TextInput>(null);
+  // Quem nunca entrou neste aparelho vê primeiro as boas-vindas, com
+  // "Criar conta grátis" em destaque; quem já entrou vai direto ao login.
+  const [mode, setMode] = useState<"loading" | "welcome" | "login">("loading");
+
+  useEffect(() => {
+    let active = true;
+    void hasSignedInOnDevice().then((signedIn) => {
+      if (active) setMode(signedIn ? "login" : "welcome");
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const controlBorder = theme.colors.border;
 
@@ -117,7 +132,7 @@ export default function LoginScreen() {
     if (!emailResult.valid) {
       showAlert({
         title: "Ops!",
-        message: "Digite um e-mail valido para recuperar a senha.",
+        message: "Digite um e-mail válido para recuperar a senha.",
       });
       return;
     }
@@ -181,141 +196,178 @@ export default function LoginScreen() {
             </Typography>
           </View>
 
-          <View style={{ alignItems: "center", gap: spacing.xs }}>
+          <View style={{ alignItems: "center", gap: spacing.sm }}>
             <Typography variant="screenTitle" style={{ textAlign: "center" }}>
-              Que bom te ver!
+              {mode === "welcome"
+                ? "Anote suas vendas e descubra seu lucro"
+                : "Que bom te ver!"}
             </Typography>
+            {mode === "welcome" ? (
+              <Typography
+                variant="body"
+                color={theme.colors.textSecondary}
+                style={{ textAlign: "center" }}
+              >
+                Grátis para começar, com vendas ilimitadas.
+              </Typography>
+            ) : null}
           </View>
         </View>
 
-        <View style={{ gap: spacing.lg }}>
-          <Button
-            title="Entrar com Google"
-            variant="outline"
-            size="lg"
-            icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
-            onPress={() => {
-              void handleGoogleLogin();
-            }}
-            loading={googleLoading}
-            disabled={emailLoading || googleLoading}
-            style={{
-              width: "100%",
-              backgroundColor: theme.colors.surfaceElevated,
-              borderColor: controlBorder,
-            }}
-          />
-
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
-            <Typography variant="caption">ou</Typography>
-            <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
-          </View>
-
-          <ValidationField {...formValidation.field("email")}>
-            <Input
-              label="E-mail"
-              placeholder="seu@email.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                if (emailError) setEmailError(undefined);
-                if (emailSuggestion) setEmailSuggestion(undefined);
-              }}
-              onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-              error={emailError}
+        {mode === "welcome" ? (
+          <View style={{ gap: spacing.md }}>
+            <Button
+              title="Criar conta grátis"
+              size="lg"
+              onPress={() => router.push("/(auth)/register")}
             />
-          </ValidationField>
-          <EmailTypoHint
-            suggestion={emailSuggestion}
-            onAccept={() => {
-              if (!emailSuggestion) return;
-              setEmail(emailSuggestion);
-              setEmailSuggestion(undefined);
-              setEmailError(undefined);
-            }}
-          />
-          <View>
-            <ValidationField {...formValidation.field("password")}>
+            <Button
+              title="Já tenho conta"
+              variant="outline"
+              size="lg"
+              onPress={() => setMode("login")}
+            />
+          </View>
+        ) : null}
+
+        {mode === "login" ? (
+          <View style={{ gap: spacing.lg }}>
+            <Button
+              title="Entrar com Google"
+              variant="outline"
+              size="lg"
+              icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
+              onPress={() => {
+                void handleGoogleLogin();
+              }}
+              loading={googleLoading}
+              disabled={emailLoading || googleLoading}
+              style={{
+                width: "100%",
+                backgroundColor: theme.colors.surfaceElevated,
+                borderColor: controlBorder,
+              }}
+            />
+
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
+              <Typography variant="caption">ou</Typography>
+              <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
+            </View>
+
+            <ValidationField {...formValidation.field("email")}>
               <Input
-                label="Senha"
-                placeholder="Sua senha"
-                secureTextEntry={!showPassword}
-                autoComplete="password"
-                value={password}
+                label="E-mail"
+                placeholder="seu@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                returnKeyType="next"
+                submitBehavior="submit"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+                value={email}
                 onChangeText={(text) => {
-                  setPassword(text);
-                  if (passwordError) setPasswordError(undefined);
+                  setEmail(text);
+                  if (emailError) setEmailError(undefined);
+                  if (emailSuggestion) setEmailSuggestion(undefined);
                 }}
-                error={passwordError}
-                rightIcon={
-                  <Pressable
-                    onPress={() => setShowPassword(!showPassword)}
-                    accessibilityRole="button"
-                    accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    hitSlop={10}
-                    style={{
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: 44,
-                      minHeight: 44,
-                    }}
-                  >
-                    <AppIcon
-                      name={showPassword ? "eye-off-outline" : "eye-outline"}
-                      size={20}
-                      color={theme.colors.primaryStrong}
-                    />
-                  </Pressable>
-                }
+                onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
+                error={emailError}
               />
             </ValidationField>
-          </View>
+            <EmailTypoHint
+              suggestion={emailSuggestion}
+              onAccept={() => {
+                if (!emailSuggestion) return;
+                setEmail(emailSuggestion);
+                setEmailSuggestion(undefined);
+                setEmailError(undefined);
+              }}
+            />
+            <View>
+              <ValidationField {...formValidation.field("password")}>
+                <Input
+                  ref={passwordRef}
+                  label="Senha"
+                  placeholder="Sua senha"
+                  returnKeyType="go"
+                  onSubmitEditing={() => {
+                    void handleLogin();
+                  }}
+                  secureTextEntry={!showPassword}
+                  autoComplete="password"
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    if (passwordError) setPasswordError(undefined);
+                  }}
+                  error={passwordError}
+                  rightIcon={
+                    <Pressable
+                      onPress={() => setShowPassword(!showPassword)}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showPassword ? "Ocultar senha" : "Mostrar senha"
+                      }
+                      hitSlop={10}
+                      style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 44,
+                        minHeight: 44,
+                      }}
+                    >
+                      <AppIcon
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color={theme.colors.primaryStrong}
+                      />
+                    </Pressable>
+                  }
+                />
+              </ValidationField>
+            </View>
 
-          <Pressable
-            style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
-            disabled={resetLoading}
-            accessibilityRole="button"
-            onPress={handleForgotPassword}
-          >
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              {resetLoading ? "Enviando..." : "Esqueci minha senha"}
-            </Typography>
-          </Pressable>
+            <Pressable
+              style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
+              disabled={resetLoading}
+              accessibilityRole="button"
+              onPress={handleForgotPassword}
+            >
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                {resetLoading ? "Enviando..." : "Esqueci minha senha"}
+              </Typography>
+            </Pressable>
 
-          <Button
-            title="Entrar"
-            size="lg"
-            icon={
-              <AppIcon
-                name="arrow-forward"
-                size={20}
-                color={theme.colors.textOnPrimary}
+            <Button
+              title="Entrar"
+              size="lg"
+              icon={
+                <AppIcon
+                  name="arrow-forward"
+                  size={20}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
+              onPress={() => {
+                void handleLogin();
+              }}
+              loading={emailLoading}
+              disabled={emailLoading || googleLoading}
+            />
+
+            <View style={{ gap: spacing.sm, alignItems: "center" }}>
+              <Typography variant="body">Primeira vez aqui?</Typography>
+              <Button
+                title="Criar conta grátis"
+                variant="outline"
+                size="lg"
+                onPress={() => router.push("/(auth)/register")}
+                style={{ width: "100%" }}
               />
-            }
-            onPress={() => {
-              void handleLogin();
-            }}
-            loading={emailLoading}
-            disabled={emailLoading || googleLoading}
-          />
-        </View>
-
-        <View style={{ flexDirection: "row", justifyContent: "center", gap: spacing.xs }}>
-          <Typography variant="body">Primeira vez?</Typography>
-          <Pressable
-            onPress={() => router.push("/(auth)/register")}
-            hitSlop={8}
-            accessibilityRole="link"
-          >
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              Criar conta
-            </Typography>
-          </Pressable>
-        </View>
+            </View>
+          </View>
+        ) : null}
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
