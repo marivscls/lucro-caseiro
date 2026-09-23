@@ -7,6 +7,9 @@ import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
 
 /** A partir desta largura a boas-vindas vira duas colunas (ilustração | conteúdo). */
 const WIDE_BREAKPOINT = 880;
+/** Espaço entre blocos (título, benefícios, botões) e entre itens de um bloco. */
+const GROUP_GAP = spacing["2xl"];
+const ITEM_GAP = spacing.md;
 
 const BENEFITS: ReadonlyArray<{ icon: AppIconName; title: string; detail: string }> = [
   {
@@ -52,7 +55,7 @@ export function WelcomeHero({
       style={{
         flexDirection: "row",
         alignItems: "center",
-        gap: spacing.md,
+        gap: ITEM_GAP,
         alignSelf: "flex-start",
       }}
     >
@@ -100,15 +103,23 @@ export function WelcomeHero({
     </View>
   );
 
+  const reassurance = (
+    <Typography variant="caption" style={{ textAlign: "center" }}>
+      Leva menos de um minuto. Não pedimos cartão.
+    </Typography>
+  );
+
   const content = (
     <View
       style={{
-        gap: wide ? spacing["2xl"] : spacing.xl,
+        // No computador os blocos se espalham na altura da ilustração: título no
+        // topo dela, "Leva menos de um minuto" na base e espaços iguais entre eles.
+        gap: wide ? undefined : GROUP_GAP,
         flex: wide ? 1 : undefined,
-        justifyContent: "center",
+        justifyContent: wide ? "space-between" : "flex-start",
       }}
     >
-      <View style={{ gap: spacing.md }}>
+      <View style={{ gap: ITEM_GAP }}>
         <Typography
           variant="display"
           style={{
@@ -125,11 +136,11 @@ export function WelcomeHero({
         </Typography>
       </View>
 
-      <View style={{ gap: wide ? spacing.lg : spacing.md }} accessibilityRole="list">
+      <View style={{ gap: ITEM_GAP }} accessibilityRole="list">
         {BENEFITS.map((benefit) => (
           <View
             key={benefit.title}
-            style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+            style={{ flexDirection: "row", alignItems: "center", gap: ITEM_GAP }}
           >
             <View
               style={{
@@ -152,13 +163,14 @@ export function WelcomeHero({
         ))}
       </View>
 
-      <View style={{ gap: spacing.md }}>
+      <View style={{ gap: ITEM_GAP }}>
         <Button title="Criar conta grátis" size="lg" onPress={onCreateAccount} />
         <Button title="Já tenho conta" variant="outline" size="lg" onPress={onLogin} />
-        <Typography variant="caption" style={{ textAlign: "center" }}>
-          Leva menos de um minuto. Não pedimos cartão.
-        </Typography>
+        {/* No celular a nota fica colada nos botões para caber na primeira tela. */}
+        {wide ? null : reassurance}
       </View>
+
+      {wide ? reassurance : null}
     </View>
   );
 
@@ -170,7 +182,7 @@ export function WelcomeHero({
           maxWidth: 1040,
           alignSelf: "center",
           padding: spacing["4xl"],
-          gap: spacing["3xl"],
+          gap: GROUP_GAP,
         }}
       >
         {lockup}
@@ -191,7 +203,7 @@ export function WelcomeHero({
         maxWidth: 480,
         alignSelf: "center",
         padding: spacing.xl,
-        gap: spacing.xl,
+        gap: GROUP_GAP,
       }}
     >
       {lockup}
