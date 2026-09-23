@@ -5,10 +5,17 @@
 ALTER TABLE analytics_events
   DROP CONSTRAINT IF EXISTS analytics_events_event_name_check;
 
-ALTER TABLE analytics_events
-  DROP CONSTRAINT IF EXISTS analytics_events_event_name_format_check;
-
-ALTER TABLE analytics_events
-  ADD CONSTRAINT analytics_events_event_name_format_check CHECK (
-    event_name ~ '^[a-z][a-z0-9_]{0,79}$'
-  );
+-- Roda a cada start da API: so cria a constraint quando ela ainda nao existe.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'analytics_events_event_name_format_check'
+      AND conrelid = 'analytics_events'::regclass
+  ) THEN
+    ALTER TABLE analytics_events
+      ADD CONSTRAINT analytics_events_event_name_format_check CHECK (
+        event_name ~ '^[a-z][a-z0-9_]{0,79}$'
+      );
+  END IF;
+END $$;

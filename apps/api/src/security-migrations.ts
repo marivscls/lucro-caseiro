@@ -14,6 +14,9 @@ export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/060_storefront_customization.sql",
   "../../../packages/database/src/migrations/061_supplier_management.sql",
   "../../../packages/database/src/migrations/20260910123323_restrict_api_table_access.sql",
+  "../../../packages/database/src/migrations/20260923100000_analytics_event_name_format.sql",
+  "../../../packages/database/src/migrations/20260923100100_analytics_installation_acquisition.sql",
+  "../../../packages/database/src/migrations/20260923100200_analytics_event_props.sql",
 ] as const;
 
 export function getSecurityMigrationPaths(baseUrl = import.meta.url): string[] {

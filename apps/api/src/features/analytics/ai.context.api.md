@@ -38,6 +38,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
   colunas de origem da instalação.
 - `packages/database/src/migrations/20260923100000_analytics_event_name_format.sql`: troca a
   lista fechada de nomes no banco por uma checagem de formato.
+- As três migrations 202609231000xx rodam no start da API (`security-migrations.ts`),
+  antes de `main`, e são idempotentes (constraints criadas só se ainda não existem).
 - `analytics.pglite.test.ts`: persistência e relatório contra as migrations reais em PGlite.
 
 ## Data Model
