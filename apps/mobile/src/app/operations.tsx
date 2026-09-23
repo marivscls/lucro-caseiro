@@ -1,5 +1,6 @@
 import { FilterChipRow, ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
+import { localIsoDate } from "../shared/utils/date";
 import type {
   CreateVerticalDocument,
   PublishedVerticalDomain,
@@ -171,7 +172,7 @@ function makePayload(
   if (kind === "daily_log")
     return {
       projectId: values.referenceId,
-      date: now.toISOString().slice(0, 10),
+      date: localIsoDate(now),
       teamCount: one,
       activities: [values.detail],
       occurrences: [],

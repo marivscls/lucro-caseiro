@@ -25,7 +25,7 @@ import {
   View,
 } from "react-native";
 
-import { brToIso, maskDateBR } from "../../../shared/utils/date";
+import { brToIso, localIsoDate, maskDateBR } from "../../../shared/utils/date";
 import {
   maskCurrencyInput,
   parseCurrencyInput,
@@ -223,7 +223,7 @@ export function CreateFinanceEntry({
         description: description.trim(),
         category: selectedCategory,
         isFixed: false,
-        date: normalizedDate || new Date().toISOString().split("T")[0],
+        date: normalizedDate || localIsoDate(),
       });
 
       showToast(`${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva!`);

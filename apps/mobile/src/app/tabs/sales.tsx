@@ -61,6 +61,7 @@ import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { desktopModalSurface, pageGutter } from "../../shared/layout/desktop-density";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { alertError } from "../../shared/utils/alerts";
+import { localDayOf, localIsoDate } from "../../shared/utils/date";
 import { brandScreenPalette } from "../../shared/brand-palette";
 import salesHeaderIcon from "../../assets/sales-header-icon.png";
 
@@ -115,13 +116,13 @@ function groupSalesByDate(items: Sale[]): SaleGroup[] {
   const map = new Map<string, Sale[]>();
 
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = localIsoDate(today);
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  const yesterdayStr = localIsoDate(yesterday);
 
   for (const item of items) {
-    const dateStr = item.soldAt.slice(0, 10);
+    const dateStr = localDayOf(item.soldAt);
     let label: string;
     if (dateStr === todayStr) {
       label = "Hoje";
