@@ -12,7 +12,7 @@ import type {
   PaymentMethod,
   SaleUnit,
 } from "@lucro-caseiro/contracts";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import {
   CenteredTextInput,
   Button,
@@ -31,8 +31,9 @@ import {
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
 import { FormStepProgress } from "../../shared/components/form-step-progress";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
+  BackHandler,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -58,6 +59,14 @@ import {
 } from "../../features/sales/cart";
 import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { QuickSaleButton } from "../../features/sales/components/quick-sale-button";
+import {
+  FIRST_SALE_STEP,
+  SALE_STEP_ORDER,
+  type SaleStep,
+  nextSaleStep,
+  previousSaleStep,
+  saleStepPosition,
+} from "../../features/sales/sale-steps";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useNotificationAsk } from "../../shared/hooks/notification-ask";
@@ -85,7 +94,7 @@ import {
 } from "../../shared/layout/desktop-density";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
 
-type Step = 1 | 2 | 3 | 4;
+type Step = SaleStep;
 
 interface CartItem {
   productId: string;
@@ -202,7 +211,8 @@ function searchFieldAccessibilityLabel(placeholder: string): string {
 }
 
 function saleNextStepAccessibilityLabel(step: number): string {
-  if (step === 2) return "Ir para pagamento";
+  if (step === 2) return "Ir para cliente";
+  if (step === 1) return "Ir para pagamento";
   if (step === 3) return "Ir para revisao";
   return "Confirmar venda";
 }
@@ -370,7 +380,20 @@ export default function NewSaleScreen() {
   const navigationBottomPadding = floatingTabBarContentPadding(insets.bottom);
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const showPaywall = usePaywall((s) => s.show);
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep] = useState<Step>(FIRST_SALE_STEP);
+
+  // Voltar do Android volta uma etapa da venda em vez de sair do fluxo.
+  useFocusEffect(
+    useCallback(() => {
+      const previous = previousSaleStep(step);
+      if (!previous) return undefined;
+      const listener = BackHandler.addEventListener("hardwareBackPress", () => {
+        setStep(previous);
+        return true;
+      });
+      return () => listener.remove();
+    }, [step]),
+  );
   const [mainWidth, setMainWidth] = useState(720);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<{
@@ -520,7 +543,7 @@ export default function NewSaleScreen() {
   }
 
   function resetForm() {
-    setStep(1);
+    setStep(FIRST_SALE_STEP);
     setCart([]);
     setSelectedClient(null);
     setPaymentMethod(null);
@@ -696,7 +719,7 @@ export default function NewSaleScreen() {
   }
 
   const formValidation = useFormValidation({
-    cart: step >= 2 && cart.length === 0 && "Adicione pelo menos um produto à venda.",
+    cart: cart.length === 0 && "Adicione pelo menos um produto à venda.",
     paymentMethod: step >= 3 && !paymentMethod && "Escolha uma forma de pagamento.",
   });
 
@@ -742,7 +765,8 @@ export default function NewSaleScreen() {
     cartItemSummary = `${cart.length} ${itemLabel}`;
   }
 
-  let nextActionLabel = "Pagamento";
+  let nextActionLabel = "Continuar";
+  if (step === 1) nextActionLabel = "Pagamento";
   if (step === 3) nextActionLabel = "Revisar venda";
   if (step === 4) nextActionLabel = copy.saleLabel;
 
@@ -811,30 +835,22 @@ export default function NewSaleScreen() {
       </View>
 
       <View style={{ gap: spacing.sm }}>
-        {step > 1 ? (
+        {previousSaleStep(step) ? (
           <Button
             title="Voltar"
             variant="ghost"
-            onPress={() => setStep((current) => (current - 1) as Step)}
+            onPress={() => setStep((current) => previousSaleStep(current) ?? current)}
             icon={<AppIcon name="chevron-back" size={16} color={theme.colors.text} />}
             style={{ borderRadius: radii.md, width: "100%" }}
           />
         ) : null}
         {step < 4 ? (
           <Button
-            title={step === 1 ? "Continuar" : nextActionLabel}
+            title={nextActionLabel}
             disabled={step === 2 && cart.length === 0}
             onPress={() => {
               if (!canAdvance()) return;
-              if (step === 1) {
-                setStep(2);
-                return;
-              }
-              if (step === 2) {
-                setStep(3);
-                return;
-              }
-              setStep(4);
+              setStep(nextSaleStep(step));
             }}
             icon={
               <AppIcon
@@ -914,11 +930,11 @@ export default function NewSaleScreen() {
                 >
                   {!isDesktop ? (
                     <Pressable
-                      onPress={() =>
-                        step > 1
-                          ? setStep((s) => (s - 1) as Step)
-                          : router.push("/tabs/sales")
-                      }
+                      onPress={() => {
+                        const previous = previousSaleStep(step);
+                        if (previous) setStep(previous);
+                        else router.push("/tabs/sales");
+                      }}
                       accessibilityRole="button"
                       accessibilityLabel="Voltar"
                       style={{
@@ -951,7 +967,9 @@ export default function NewSaleScreen() {
           actionLabel={
             products.length === 0 ? "Cadastrar produto e continuar" : "Escolher produtos"
           }
-          hasRecords={(salesData?.total ?? 0) > 0 || step > 1 || cart.length > 0}
+          hasRecords={
+            (salesData?.total ?? 0) > 0 || step !== FIRST_SALE_STEP || cart.length > 0
+          }
           loading={loadingProducts || productsQuery.isError}
           suspended={
             showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
@@ -965,12 +983,12 @@ export default function NewSaleScreen() {
           }}
         >
           <FormStepProgress
-            current={step}
-            steps={STEP_LABELS.map((label, index) => ({
-              label,
-              title: STEP_TITLES[(index + 1) as Step],
+            current={saleStepPosition(step)}
+            steps={SALE_STEP_ORDER.map((saleStep) => ({
+              label: STEP_LABELS[saleStep - 1],
+              title: STEP_TITLES[saleStep],
             }))}
-            onStepPress={(target) => setStep(target as Step)}
+            onStepPress={(target) => setStep(SALE_STEP_ORDER[target - 1] ?? step)}
           />
         </View>
 
@@ -1314,7 +1332,7 @@ export default function NewSaleScreen() {
                 <Pressable
                   onPress={() => {
                     setSelectedClient(null);
-                    setStep(2);
+                    setStep(nextSaleStep(1));
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="Venda avulsa"
@@ -1445,7 +1463,7 @@ export default function NewSaleScreen() {
                         accessibilityLabel={`Selecionar ${item.name}`}
                         onPress={() => {
                           setSelectedClient({ id: item.id, name: item.name });
-                          setStep(2);
+                          setStep(nextSaleStep(1));
                         }}
                         style={({ pressed }) => [
                           {
@@ -1872,7 +1890,7 @@ export default function NewSaleScreen() {
         </View>
       </View>
 
-      {!isDesktop && step >= 2 && (
+      {!isDesktop && step !== 1 && (
         <View
           style={{
             paddingHorizontal: spacing.xl,
@@ -1916,7 +1934,7 @@ export default function NewSaleScreen() {
                   void handleSubmit();
                   return;
                 }
-                if (canAdvance()) setStep((current) => (current + 1) as Step);
+                if (canAdvance()) setStep((current) => nextSaleStep(current));
               }}
               icon={
                 <AppIcon

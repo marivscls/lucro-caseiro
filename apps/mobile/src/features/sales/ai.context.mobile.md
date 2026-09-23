@@ -63,7 +63,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   2. **Selecionar cliente:** opcao "Sem cliente (avulso)", busca de clientes, selecao com borda destacada.
   3. **Forma de pagamento:** opcoes Pix, Dinheiro, Cartao, Fiado, Transferencia com icones.
   4. **Revisar e confirmar:** resumo de itens, cliente, pagamento, total. Botao "Registrar venda".
-- Progresso no topo com quatro segmentos e rótulos: Cliente, Produtos, Pagamento e Revisão.
+- Progresso no topo com quatro segmentos e rótulos: Produtos, Cliente, Pagamento e Revisão (ordem em `sale-steps.ts`; os números internos continuam 1 cliente, 2 produtos, 3 pagamento, 4 revisão).
 - A etapa inicial de cliente usa avatares neutros e linhas compactas. Tocar em um cliente
   ou em "Venda avulsa" avança para os produtos; no mobile, não há botão "Próximo"
   redundante nessa etapa, e a lista reserva espaço acima da navegação inferior.
@@ -219,3 +219,7 @@ A nova venda usa o componente compartilhado de etapas para cliente, produtos, pa
 O detalhe destaca total neutro, status e data no topo. Cliente e pagamento usam linhas com ícones; itens compartilham uma superfície com separadores, nomes completos e valores que se acomodam em telas estreitas. Descontos preservam subtotal, desconto e total. Observações ficam abaixo dos itens. WhatsApp é a ação principal para vendas pagas; pendentes priorizam marcar como pago. PDF usa contorno neutro, e editar/cancelar ficam em um grupo separado. Vendas canceladas não exibem ações. Tokens e componentes compartilhados preservam tema escuro e movimento reduzido.
 
 - 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).
+
+## Venda começa pelos produtos — 2026-09-23
+
+A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida no dinheiro". A ordem é Produtos → Cliente → Pagamento → Revisão (`SALE_STEP_ORDER` em `sale-steps.ts`). Tocar em um cliente ou em "Venda avulsa" avança para o pagamento. O Voltar do cabeçalho e o Voltar do Android voltam uma etapa; só saem da tela na primeira etapa. Depois de registrar a venda não há anúncio em tela cheia, o pedido de avaliação acontece a partir da 5ª venda e a permissão de notificação passa a ser pedida.
