@@ -1,10 +1,8 @@
-import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import { useBusinessOnboarding } from "../../features/onboarding/use-business-onboarding";
 import { onboardingDestination } from "../../shared/utils/new-account";
 import {
-  Card,
-  iconSizes,
+  fonts,
   radii,
   spacing,
   Typography,
@@ -19,14 +17,17 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  useWindowDimensions,
+  StyleSheet,
+  Text,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
+import { useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
 import { useProlaboreStatus } from "../../features/goals/hooks";
+import { useInsights } from "../../features/insights/hooks";
 import { BusinessProfileCard } from "../../features/onboarding/business-profile";
 import { usePricingList } from "../../features/pricing/hooks";
 import { useProducts } from "../../features/products/hooks";
@@ -35,7 +36,6 @@ import { LimitBanner } from "../../features/subscription/components/limit-banner
 import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
-import { AppIcon, type AppIconName } from "../../shared/components/app-icon";
 import { GettingStartedOverlay } from "../../shared/components/getting-started-overlay";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
@@ -48,42 +48,52 @@ import {
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
-import {
-  resolveGettingStartedPresentation,
-  type GettingStartedStage,
-} from "../../shared/utils/getting-started";
-import { resolveHomeNextStep } from "../../shared/utils/home-next-step";
+import { resolveGettingStartedPresentation } from "../../shared/utils/getting-started";
 
 import {
-  HomeDay,
-  HomeQuickActions,
-  HomeMoney,
   HomeAttention,
-  HomeGoal,
+  HomeChampions,
+  HomeDay,
+  HomeDayNumbers,
+  HomeDayPreview,
+  HomeFiado,
+  HomeHabitGoal,
+  HomeMonthHero,
+  HomeNextIdeas,
+  HomePriceAlert,
+  HomePrimaryButton,
+  HomeReadyBanner,
+  HomeSetupSteps,
+  HomeSetupTip,
+  HomeStreakCard,
+  QueryNotice,
 } from "../../features/home/components";
+import {
+  activeSaleDays,
+  capitalize,
+  greeting as greetingFor,
+  hasOlderHistory,
+  historyStart,
+  homePhase,
+  localDateKey,
+  setupSteps,
+  type HomePhase,
+  type SetupStepId,
+} from "../../features/home/domain";
+import { useHomeProducts, useHomeSalesHistory } from "../../features/home/hooks";
 import { useOrders } from "../../features/orders/hooks";
 import { useBusinessCopy } from "../../features/subscription/business-copy";
 
-function localDateKey(date = new Date()): string {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
-}
-
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function formattedDate(date = new Date()): string {
-  return capitalize(
+function formattedDate(date: Date, desktop: boolean): string {
+  const text = capitalize(
     new Intl.DateTimeFormat("pt-BR", {
       weekday: "long",
       day: "numeric",
       month: "long",
     }).format(date),
   );
+  // No celular, "Quarta, 23 de setembro" cabe ao lado da ajuda e do avatar.
+  return desktop ? text : text.replace("-feira", "");
 }
 
 function AvatarCircle({
@@ -116,235 +126,20 @@ function AvatarCircle({
   );
 }
 
-const GETTING_STARTED_COPY: Record<
-  GettingStartedStage,
-  {
-    action: string;
-    description: string;
-    icon: AppIconName;
-    title: string;
-  }
-> = {
-  product: {
-    action: "Cadastrar",
-    description: "Leva menos de 2 minutos",
-    icon: "cube-outline",
-    title: "Cadastre seu primeiro produto",
-  },
-  sale: {
-    action: "Nova venda",
-    description: "Leva menos de 1 minuto",
-    icon: "receipt-outline",
-    title: "Registre sua primeira venda",
-  },
-  result: {
-    action: "Ver resultado",
-    description: "Seu resultado já está pronto",
-    icon: "trending-up-outline",
-    title: "Veja o que sua venda rendeu",
-  },
-};
-
-function onboardingStepNumber(stage: GettingStartedStage): number {
-  if (stage === "sale") return 2;
-  if (stage === "result") return 3;
-  return 1;
-}
-
-function NextStepCard({
-  compact,
-  onAction,
-  stage,
-}: Readonly<{
-  compact: boolean;
-  onAction: () => void;
-  stage: GettingStartedStage;
-}>) {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-  const copy = GETTING_STARTED_COPY[stage];
-  const step = onboardingStepNumber(stage);
-
+function Columns({
+  desktop,
+  children,
+}: Readonly<{ desktop: boolean; children: React.ReactNode }>) {
   return (
-    <Card
-      variant="elevated"
-      padding="lg"
-      style={{
-        borderColor: colors.border,
-        borderRadius: radii.xl,
-      }}
+    <View
+      style={
+        desktop
+          ? { flexDirection: "row", alignItems: "stretch", gap: spacing.xl }
+          : { gap: 14 }
+      }
     >
-      <View
-        style={{
-          flexDirection: compact ? "column" : "row",
-          flexWrap: compact ? "nowrap" : "wrap",
-          alignItems: compact ? "stretch" : "center",
-          gap: spacing.lg,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.lg,
-            flex: 1,
-            minWidth: compact ? 0 : 260,
-          }}
-        >
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.primaryBg,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon
-              name={copy.icon}
-              size={iconSizes.lg}
-              color={theme.colors.primaryStrong}
-            />
-          </View>
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Typography variant="homeEyebrow" color={theme.colors.primaryStrong}>
-              PRÓXIMO PASSO · {step} DE 3
-            </Typography>
-            <Typography variant="homeCardLead" style={{ marginTop: 2 }}>
-              {copy.title}
-            </Typography>
-            <Typography variant="homeDescription" color={theme.colors.textSecondary}>
-              {copy.description}
-            </Typography>
-          </View>
-        </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${copy.action}: ${copy.title}`}
-          onPress={onAction}
-          style={({ pressed }) => ({
-            minHeight: 48,
-            paddingHorizontal: spacing.xl,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primaryInteractive,
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            opacity: pressed ? 0.84 : 1,
-          })}
-        >
-          <Typography variant="homeAction" color={theme.colors.textOnPrimary}>
-            {copy.action}
-          </Typography>
-        </Pressable>
-      </View>
-
-      <View
-        accessibilityRole="progressbar"
-        accessibilityValue={{ min: 1, max: 3, now: step }}
-        style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg }}
-      >
-        {[1, 2, 3].map((item) => (
-          <View
-            key={item}
-            style={{
-              width: item === step ? 56 : 44,
-              maxWidth: "30%",
-              height: 5,
-              borderRadius: radii.full,
-              backgroundColor:
-                item <= step ? theme.colors.primaryInteractive : theme.colors.surface,
-            }}
-          />
-        ))}
-      </View>
-    </Card>
-  );
-}
-
-function ContextualNextCard({
-  accessibilityHint,
-  accessibilityLabel,
-  action,
-  description,
-  icon,
-  iconBackground,
-  iconColor,
-  onPress,
-  title,
-}: Readonly<{
-  accessibilityHint: string;
-  accessibilityLabel: string;
-  action: string;
-  description: string;
-  icon: AppIconName;
-  iconBackground: string;
-  iconColor: string;
-  onPress: () => void;
-  title: string;
-}>) {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityHint={accessibilityHint}
-      onPress={onPress}
-      style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
-    >
-      <Card
-        variant="elevated"
-        padding="xl"
-        shadow="sm"
-        style={{
-          borderColor: colors.border,
-          borderRadius: radii.xl,
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: radii.full,
-              backgroundColor: iconBackground,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon name={icon} size={iconSizes.lg} color={iconColor} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="homeGoalTitle">{title}</Typography>
-            <Typography
-              variant="homeBody"
-              color={theme.colors.textSecondary}
-              style={{ marginTop: 4 }}
-            >
-              {description}
-            </Typography>
-            <View
-              style={{
-                minHeight: 44,
-                marginTop: 4,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.xs,
-              }}
-            >
-              <Typography variant="homeLink" color={colors.rose}>
-                {action}
-              </Typography>
-              <AppIcon name="chevron-forward" size={iconSizes.sm} color={colors.rose} />
-            </View>
-          </View>
-        </View>
-      </Card>
-    </Pressable>
+      {children}
+    </View>
   );
 }
 
@@ -355,9 +150,9 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
-  const { width } = useWindowDimensions();
-  const compact = !isDesktop && width < 480;
-  const today = localDateKey();
+  const now = new Date();
+  const today = localDateKey(now);
+  const since = historyStart(now);
 
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [manuallyOpenedGuideUserId, setManuallyOpenedGuideUserId] = useState<
@@ -383,6 +178,10 @@ export default function HomeScreen() {
   const productsQuery = useProducts();
   const salesQuery = useSales();
   const pricingQuery = usePricingList();
+  const allProducts = useHomeProducts(true);
+  const history = useHomeSalesHistory(since);
+  const olderInsights = useInsights(6);
+  const monthFinance = useFinanceSummary();
 
   const startedUserIds = useOnboarding((state) => state.gettingStartedStartedUserIds);
   const dismissedUserIds = useOnboarding((state) => state.gettingStartedDismissedUserIds);
@@ -394,38 +193,51 @@ export default function HomeScreen() {
 
   const hasProduct = (productsQuery.data?.items.length ?? 0) > 0;
   const hasSale = (salesQuery.data?.items.length ?? 0) > 0;
-  const hasPriced = (pricingQuery.data?.total ?? 0) > 0;
   const onboardingSettled =
     onboardingHydrated && !productsQuery.isLoading && !salesQuery.isLoading;
   const onboardingStarted = !!userId && startedUserIds.includes(userId);
   const onboardingDismissed = !!userId && dismissedUserIds.includes(userId);
   const onboardingCompleted = !!userId && completedUserIds.includes(userId);
-  const {
-    show: showGettingStarted,
-    showReopen: showGettingStartedReopen,
-    stage: gettingStartedStage,
-  } = resolveGettingStartedPresentation({
-    dismissed:
-      onboardingDismissed ||
-      (brand.id === "lucro-caseiro" && !!businessOnboarding.record),
-    manuallyOpened: !!userId && manuallyOpenedGuideUserId === userId,
-    settled: onboardingSettled && !serviceBusiness,
-    completed: onboardingCompleted,
-    started: onboardingStarted,
-    hasProduct,
+  const { show: showGettingStarted, stage: gettingStartedStage } =
+    resolveGettingStartedPresentation({
+      dismissed:
+        onboardingDismissed ||
+        (brand.id === "lucro-caseiro" && !!businessOnboarding.record),
+      manuallyOpened: !!userId && manuallyOpenedGuideUserId === userId,
+      settled: onboardingSettled && !serviceBusiness,
+      completed: onboardingCompleted,
+      started: onboardingStarted,
+      hasProduct,
+      hasSale,
+    });
+
+  // A fase só é decidida com todas as entradas da regra; antes disso não há
+  // cartão de passos nem valores, para não piscar a fase errada.
+  const settled = (query: { data: unknown; isError: boolean }) =>
+    query.data !== undefined || query.isError;
+  const phaseReady =
+    !!allProducts.data &&
+    !!salesQuery.data &&
+    !!history.data &&
+    settled(pricingQuery) &&
+    settled(olderInsights);
+  const steps = setupSteps({
+    hasProduct: (allProducts.data?.items.length ?? 0) > 0,
+    hasPricing: (pricingQuery.data?.total ?? 0) > 0,
+    products: allProducts.data?.items ?? [],
     hasSale,
   });
-  const homeNextStep = resolveHomeNextStep({
-    settled: onboardingSettled,
-    hasProduct,
-    hasPriced,
-    pricingKnown: pricingQuery.isSuccess,
-    gettingStartedVisible:
-      showGettingStarted ||
-      showGettingStartedReopen ||
-      serviceBusiness ||
-      (brand.id === "lucro-caseiro" && businessOnboarding.record?.status === "completed"),
-  });
+  const activeDays = history.data ? activeSaleDays(history.data.items) : 0;
+  const phase: HomePhase | null = phaseReady
+    ? homePhase({
+        steps,
+        activeDays,
+        olderHistory: hasOlderHistory(olderInsights.data, since),
+      })
+    : null;
+  const failedQuery = [allProducts, salesQuery, history].find(
+    (query) => query.isError && query.data === undefined,
+  );
 
   function skipGettingStarted() {
     setManuallyOpenedGuideUserId(null);
@@ -434,12 +246,22 @@ export default function HomeScreen() {
 
   // Sem nome inventado enquanto o perfil carrega.
   const firstName = profile?.name?.trim().split(/\s+/)[0];
-  const greeting = firstName ? `Olá, ${firstName}!` : "Olá!";
+  const greeting = greetingFor(now, firstName);
   const showSalesLimitBanner = getLimitBannerState(limits, profile, "sales") !== null;
+  const subtitle = isDesktop
+    ? [formattedDate(now, true), profile?.businessName].filter(Boolean).join(" · ")
+    : formattedDate(now, false);
 
   function handleProductRegistration() {
     if (userId) startGettingStarted(userId);
     router.push("/products?from=getting-started&create=getting-started");
+  }
+
+  function handleStep(step: SetupStepId) {
+    if (step === "product") return handleProductRegistration();
+    if (step === "price") return router.push("/pricing");
+    if (userId) startGettingStarted(userId);
+    router.push("/tabs/new-sale?from=getting-started");
   }
 
   function handleGettingStartedAction() {
@@ -470,48 +292,57 @@ export default function HomeScreen() {
   )
     return <Redirect href="/onboarding" />;
 
+  const newSale = () => router.push("/tabs/new-sale");
+  const pendingPhase = failedQuery ? (
+    <QueryNotice query={failedQuery} label="seu Início" />
+  ) : (
+    <View accessibilityLiveRegion="polite" style={{ paddingVertical: spacing.xl }}>
+      <Typography variant="homeBody" color={theme.colors.textSecondary}>
+        Carregando seu Início…
+      </Typography>
+    </View>
+  );
+
+  const openGoal = () => setShowGoalForm(true);
+
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      style={{ flex: 1, backgroundColor: colors.background }}
     >
       <ScrollView
         contentContainerStyle={{
-          paddingTop: isDesktop ? 0 : spacing.lg,
+          paddingTop: isDesktop ? spacing["3xl"] : spacing.lg,
           paddingBottom: isDesktop
             ? spacing["3xl"]
             : floatingTabBarContentPadding(insets.bottom),
-          gap: spacing.xl,
-          ...pageGutter(isDesktop, width <= 375 ? spacing.lg : spacing.xl),
-          ...desktopStretch(isDesktop, desktopWidths.data),
+          gap: isDesktop ? 22 : 14,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.form),
         }}
         showsVerticalScrollIndicator={false}
       >
         <ScreenGuidance
-          renderHeader={(helpButton) =>
-            isDesktop ? (
-              <ScreenHeader
-                help={helpButton}
-                title={greeting}
-                subtitle={formattedDate()}
-                hideBack
-              />
-            ) : (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}
-              >
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="homeTitle"
-                    color={brand.id === "lucro-caseiro" ? colors.wine : theme.colors.text}
-                  >
-                    {greeting}
-                  </Typography>
-                  <Typography variant="homeBody" style={{ marginTop: 2 }}>
-                    {formattedDate()}
-                  </Typography>
-                </View>
-                {helpButton}
+          renderHeader={(helpButton) => (
+            <View style={[styles.header, !isDesktop && { paddingHorizontal: 4 }]}>
+              <View style={{ flex: 1, minWidth: 0, gap: isDesktop ? 4 : 2 }}>
+                <Text
+                  style={[
+                    isDesktop ? styles.subDesk : styles.sub,
+                    { color: colors.muted },
+                  ]}
+                >
+                  {subtitle}
+                </Text>
+                <Text
+                  accessibilityRole="header"
+                  style={[isDesktop ? styles.h1Desk : styles.h1, { color: colors.ink }]}
+                >
+                  {greeting}
+                </Text>
+              </View>
+              {helpButton}
+              {isDesktop ? null : (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Minha conta"
@@ -524,9 +355,9 @@ export default function HomeScreen() {
                     avatarUrl={profile?.avatarUrl}
                   />
                 </Pressable>
-              </View>
-            )
-          }
+              )}
+            </View>
+          )}
           area="home"
           onStart={() =>
             router.push(
@@ -534,76 +365,139 @@ export default function HomeScreen() {
             )
           }
           actionLabel={serviceBusiness ? "Cadastrar serviço" : "Cadastrar produto"}
-          hasRecords={
-            hasProduct || hasSale || businessOnboarding.record?.status === "completed"
-          }
-          loading={!onboardingSettled || productsQuery.isError || salesQuery.isError}
+          // Os primeiros passos já são a apresentação do Início.
+          hasRecords={phase !== null}
+          loading={phase === null}
           suspended={showGettingStarted}
           secondary={{
             label: "Começar pelo financeiro",
             onPress: () => router.push("/finance"),
           }}
         />
-        {brand.id === "lucro-caseiro" ? (
-          <BusinessProfileCard
-            hasSale={hasSale}
-            compactHome={hasSale || hasPriced || (ordersQuery.data?.length ?? 0) > 0}
-          />
-        ) : null}
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
-        {/* O próximo passo vem logo abaixo da saudação, antes dos resumos. */}
-        {homeNextStep === "register-product" ? (
-          <ContextualNextCard
-            accessibilityHint="Abre o cadastro de produto"
-            accessibilityLabel="Comece pelo primeiro produto. Cadastrar produto"
-            action="Cadastrar produto"
-            description="Cadastre um produto para liberar estoque e lucro."
-            icon="trending-up-outline"
-            iconBackground={colors.lime}
-            iconColor={colors.onLime}
-            title="Comece pelo primeiro produto"
-            onPress={handleProductRegistration}
-          />
+        {phase === null ? pendingPhase : null}
+
+        {phase === "setup" ? (
+          <>
+            <Columns desktop={isDesktop}>
+              <HomeSetupSteps steps={steps} desktop={isDesktop} onAction={handleStep} />
+              {isDesktop ? (
+                <HomeSetupTip onPress={() => router.push("/pricing")} />
+              ) : null}
+            </Columns>
+            {hasSale ? (
+              <HomeDayNumbers
+                desktop={isDesktop}
+                history={history}
+                products={allProducts}
+                now={now}
+              />
+            ) : (
+              <HomeDayPreview desktop={isDesktop} />
+            )}
+          </>
         ) : null}
 
-        {homeNextStep === "price-product" ? (
-          <ContextualNextCard
-            accessibilityHint="Abre a calculadora de preço"
-            accessibilityLabel="Será que o preço cobre os custos? Calcular o lucro"
-            action="Calcular o lucro"
-            description="Você já tem produto. Veja se o preço de venda cobre os custos."
-            icon="calculator-outline"
-            iconBackground={theme.colors.primaryBg}
-            iconColor={theme.colors.primaryStrong}
-            title="Será que o preço cobre os custos?"
-            onPress={() => router.push("/pricing")}
-          />
+        {phase === "ready" ? (
+          <>
+            <Columns desktop={isDesktop}>
+              <View style={isDesktop ? { flex: 3 } : undefined}>
+                <HomeReadyBanner
+                  firstName={firstName}
+                  history={history}
+                  products={allProducts}
+                  desktop={isDesktop}
+                />
+              </View>
+              {isDesktop ? <HomeStreakCard activeDays={activeDays} desktop /> : null}
+            </Columns>
+            {isDesktop ? null : (
+              <HomePrimaryButton label="Anotar outra venda" onPress={newSale} />
+            )}
+            <HomeDayNumbers
+              desktop={isDesktop}
+              history={history}
+              products={allProducts}
+              now={now}
+            />
+            {isDesktop ? null : (
+              <HomeStreakCard activeDays={activeDays} desktop={false} />
+            )}
+            <HomeNextIdeas
+              columns={isDesktop ? 3 : 1}
+              hasGoal={!!goalQuery.data?.config}
+              onGoal={openGoal}
+            />
+          </>
         ) : null}
 
-        {showGettingStartedReopen ? (
-          <NextStepCard
-            compact={compact}
-            stage={gettingStartedStage}
-            onAction={() => {
-              if (userId) setManuallyOpenedGuideUserId(userId);
-            }}
-          />
+        {phase === "month" ? (
+          <>
+            <Columns desktop={isDesktop}>
+              <View style={isDesktop ? { flex: 3 } : undefined}>
+                <HomeMonthHero
+                  history={history}
+                  finance={monthFinance}
+                  now={now}
+                  desktop={isDesktop}
+                />
+              </View>
+              {isDesktop ? (
+                <HomeHabitGoal
+                  full
+                  history={history}
+                  goal={goalQuery}
+                  now={now}
+                  onEditGoal={openGoal}
+                />
+              ) : null}
+            </Columns>
+            {isDesktop ? null : (
+              <>
+                <HomePrimaryButton label="Anotar venda" onPress={newSale} />
+                <HomeHabitGoal
+                  full={false}
+                  history={history}
+                  goal={goalQuery}
+                  now={now}
+                  onEditGoal={openGoal}
+                />
+                <HomePriceAlert history={history} products={allProducts} now={now} />
+              </>
+            )}
+            <Columns desktop={isDesktop}>
+              <HomeChampions
+                history={history}
+                products={allProducts}
+                now={now}
+                style={isDesktop ? { flex: 1 } : undefined}
+              />
+              <HomeFiado style={isDesktop ? { flex: 1 } : undefined} />
+              {isDesktop ? (
+                <HomePriceAlert
+                  history={history}
+                  products={allProducts}
+                  now={now}
+                  style={{ flex: 1 }}
+                />
+              ) : null}
+            </Columns>
+          </>
         ) : null}
 
-        {hasScheduling && (
-          <HomeDay query={ordersQuery} today={today} service={serviceBusiness} />
-        )}
-        <HomeQuickActions service={serviceBusiness} scheduling={hasScheduling} />
-        {/* Dinheiro e meta só aparecem depois da primeira venda: antes disso
-            eram só seções com R$ 0,00 empurrando o próximo passo para baixo. */}
-        {hasSale ? (
-          <HomeMoney today={today} orders={ordersQuery} scheduling={hasScheduling} />
+        {phase === "ready" || phase === "month" ? (
+          <>
+            {hasScheduling && (
+              <HomeDay query={ordersQuery} today={today} service={serviceBusiness} />
+            )}
+            <HomeAttention enabled={!serviceBusiness && stockEnabled} />
+          </>
         ) : null}
-        <HomeAttention enabled={!serviceBusiness && stockEnabled} />
-        {hasSale ? (
-          <HomeGoal query={goalQuery} onEdit={() => setShowGoalForm(true)} />
+
+        {brand.id === "lucro-caseiro" && phase !== null ? (
+          <BusinessProfileCard hasSale={hasSale} compactHome={hasSale} />
         ) : null}
 
         {!showSalesLimitBanner ? <AdBanner size="banner" /> : null}
@@ -629,3 +523,16 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  header: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  sub: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 21 },
+  subDesk: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 22 },
+  h1: { fontFamily: fonts.extraBold, fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
+  h1Desk: {
+    fontFamily: fonts.extraBold,
+    fontSize: 36,
+    lineHeight: 42,
+    letterSpacing: -0.8,
+  },
+});

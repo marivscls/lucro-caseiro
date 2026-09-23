@@ -38,7 +38,7 @@ Não houve publicação. A simulação web de texto ampliado não substitui uma 
 Na raiz do projeto:
 
 ```powershell
-pnpm --filter @lucro-caseiro/mobile test -- src/features/home src/features/onboarding/profile-data.test.ts src/shared/utils/home-next-step.test.ts src/shared/layout/floating-tab-bar.test.ts src/shared/layout/mobile-tab-bar.test.ts
+pnpm --filter @lucro-caseiro/mobile test -- src/features/home src/features/onboarding/profile-data.test.ts src/shared/layout/floating-tab-bar.test.ts src/shared/layout/mobile-tab-bar.test.ts
 pnpm --filter @lucro-caseiro/mobile exec expo export --platform web --output-dir dist-home-review
 $env:PLAYWRIGHT_PATH = 'C:/Users/maria/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'
 node apps/mobile/scripts/home-validation.cjs
