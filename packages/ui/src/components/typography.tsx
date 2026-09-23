@@ -89,28 +89,29 @@ export function Typography({
       lineHeight: 22,
       color: theme.colors.text,
     },
+    // Público inclui pessoas mais velhas: texto corrido em 16 e legendas em 14.
     body: {
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.md,
       fontFamily: fonts.regular,
-      lineHeight: 20,
+      lineHeight: 24,
       color: theme.colors.textSecondary,
     },
     bodyBold: {
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.md,
       fontFamily: fonts.bold,
-      lineHeight: 20,
+      lineHeight: 24,
       color: theme.colors.text,
     },
     caption: {
-      fontSize: fontSizes.xs,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.regular,
-      lineHeight: 18,
+      lineHeight: 20,
       color: theme.colors.textSecondary,
     },
     captionBold: {
-      fontSize: fontSizes.xs,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.bold,
-      lineHeight: 18,
+      lineHeight: 20,
       color: theme.colors.text,
     },
     label: {

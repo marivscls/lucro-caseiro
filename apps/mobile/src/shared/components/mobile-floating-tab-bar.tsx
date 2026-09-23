@@ -185,7 +185,12 @@ function TabItem({
         style={[
           primary
             ? [styles.primaryWell, { backgroundColor: pal.wineFill }]
-            : styles.iconSlot,
+            : [
+                styles.iconSlot,
+                // A aba ativa ganha fundo, não só cor: fica clara para quem
+                // enxerga pouco contraste.
+                selected ? { backgroundColor: pal.softRose } : null,
+              ],
           { transform: [{ scale }] },
         ]}
       >
@@ -239,6 +244,7 @@ const styles = StyleSheet.create({
   },
   iconSlot: {
     alignItems: "center",
+    borderRadius: radii.full,
     height: controlSizes.compact,
     justifyContent: "center",
     width: controlSizes.compact,

@@ -141,21 +141,29 @@ export function ScreenGuidance({
             guidanceEvent(area, "help_opened", userId);
           }}
           style={({ pressed }) => ({
-            width: 44,
-            height: 44,
+            minHeight: 48,
             flexShrink: 0,
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            borderRadius: 22,
+            gap: spacing.xs,
+            paddingHorizontal: spacing.md,
+            borderRadius: 24,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
             backgroundColor: pressed ? theme.colors.surface : "transparent",
             opacity: pressed ? 0.7 : 1,
           })}
         >
+          {/* Texto junto do ícone: "?" sozinho não é entendido por todos. */}
           <AppIcon
             name="help-circle-outline"
-            size={22}
+            size={20}
             color={theme.colors.textSecondary}
           />
+          <Typography variant="captionBold" color={theme.colors.textSecondary}>
+            Ajuda
+          </Typography>
         </Pressable>,
       )}
       {introduce ? (

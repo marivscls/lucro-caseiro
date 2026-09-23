@@ -41,14 +41,15 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Alturas distintas por tamanho; minimo de 44px de alvo de toque (publico idoso).
+// Botões principais com 48dp e texto de 16 (público idoso); o pequeno fica
+// com 44dp, o mínimo de alvo de toque.
 const sizeStyles: Record<
   ButtonSize,
   { minHeight: number; fontSize: number; px: number }
 > = {
-  sm: { minHeight: controlSizes.compact, fontSize: fontSizes.xs, px: spacing.md },
-  md: { minHeight: controlSizes.regular, fontSize: fontSizes.sm, px: spacing.lg },
-  lg: { minHeight: controlSizes.large, fontSize: fontSizes.sm, px: spacing.xl },
+  sm: { minHeight: controlSizes.regular, fontSize: fontSizes.sm, px: spacing.md },
+  md: { minHeight: controlSizes.large, fontSize: fontSizes.md, px: spacing.lg },
+  lg: { minHeight: controlSizes.large, fontSize: fontSizes.md, px: spacing.xl },
 };
 
 export function Button({

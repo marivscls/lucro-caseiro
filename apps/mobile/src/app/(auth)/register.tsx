@@ -203,7 +203,7 @@ export default function RegisterScreen() {
           />
           <Typography
             variant="caption"
-            color={theme.colors.primaryLight}
+            color={theme.colors.primaryStrong}
             style={{ letterSpacing: 3, textTransform: "uppercase" }}
           >
             {brandName}
@@ -302,7 +302,7 @@ export default function RegisterScreen() {
               <Input
                 ref={passwordRef}
                 label="Senha"
-                placeholder="Mínimo de 8 caracteres"
+                placeholder="Crie uma senha"
                 secureTextEntry={!showPassword}
                 autoComplete="new-password"
                 returnKeyType="go"

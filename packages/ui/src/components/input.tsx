@@ -76,6 +76,8 @@ export function Input({
           style={[
             {
               flex: 1,
+              // Deixa o campo encolher para o ícone da direita caber (web).
+              minWidth: 0,
               // Denso sem sacrificar o alvo de toque recomendado.
               height: controlSizes.large,
               fontSize: fontSizes.md,

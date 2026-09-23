@@ -444,7 +444,7 @@ export function Paywall({
                 <Typography
                   variant="caption"
                   color={theme.colors.primaryStrong}
-                  style={{ fontSize: compact ? 12 : fontSizes.sm }}
+                  style={{ fontSize: fontSizes.sm }}
                 >
                   2 meses grátis
                 </Typography>
