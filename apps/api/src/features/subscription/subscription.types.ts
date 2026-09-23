@@ -115,3 +115,9 @@ export interface IGooglePlaySubscriptionLookup {
     productIdHint?: string,
   ): Promise<GooglePlaySubscriptionSnapshot | null>;
 }
+
+/** Escrita de plano usada pelas notificacoes da Play (implementada por SubscriptionUseCases). */
+export interface IPlanStateWriter {
+  activatePlan(userId: string, plan: PlanType, expiresAt: Date | null): Promise<unknown>;
+  deactivatePlan(userId: string): Promise<unknown>;
+}
