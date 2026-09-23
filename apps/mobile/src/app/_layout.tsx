@@ -50,6 +50,7 @@ import { shouldShowMobileTabBar } from "../shared/layout/mobile-tab-bar";
 import { shouldRedirectToLogin } from "../shared/layout/session-gate";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { preloadStaticImageAssets } from "../shared/static-image-assets";
+import { shouldRetryQuery } from "../shared/utils/query-retry";
 import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
 import { getPaywallRecommendedTier } from "../features/subscription/limit-copy";
@@ -481,11 +482,13 @@ export default function RootLayout() {
             gcTime: Infinity,
             staleTime: 5 * 60 * 1000,
             networkMode: "offlineFirst",
-            retry: 3,
+            retry: shouldRetryQuery,
           },
           mutations: {
             networkMode: "offlineFirst",
-            retry: 3,
+            // Gravações nunca são repetidas sozinhas: repetir pode duplicar
+            // uma venda que o servidor já registrou.
+            retry: 0,
           },
         },
       }),

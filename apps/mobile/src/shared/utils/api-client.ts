@@ -27,13 +27,23 @@ interface RequestOptions {
   body?: unknown;
   token?: string;
   responseType?: "json" | "text";
+  /** Tempo maximo de espera pela resposta, em ms. */
+  timeoutMs?: number;
 }
+
+export const DEFAULT_TIMEOUT_MS = 15_000;
 
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, token, responseType = "json" } = options;
+  const {
+    method = "GET",
+    body,
+    token,
+    responseType = "json",
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+  } = options;
 
   async function request(
     currentToken: string | undefined,
@@ -48,15 +58,29 @@ export async function apiClient<T>(
       headers["Authorization"] = `Bearer ${currentToken}`;
     }
 
+    // Sem tempo limite, uma conexao ruim deixa a tela carregando para sempre.
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
+
     let response: Response;
     try {
       response = await fetch(`${API_URL}${path}`, {
         method,
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller.signal,
       });
     } catch {
+      if (timedOut) {
+        throw new ApiError(USER_ERROR_MESSAGES.timeout, 0, "TIMEOUT");
+      }
       throw new ApiError(USER_ERROR_MESSAGES.network, 0, "NETWORK_ERROR");
+    } finally {
+      clearTimeout(timer);
     }
 
     // Ao voltar para um PWA que ficou inativo, a primeira requisição pode sair
