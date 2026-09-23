@@ -103,7 +103,7 @@ const plans = [
     period: "para começar",
     description: "Calcule, organize e faça suas primeiras vendas.",
     features: [
-      `${PLAN_LIMITS.free.maxSalesPerMonth} vendas por mês`,
+      "Vendas ilimitadas",
       `${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes`,
       "Cálculo com materiais, trabalho, gastos fixos e taxas",
       "Catálogo com até 3 produtos publicados",
@@ -118,7 +118,7 @@ const plans = [
     period: "por mês",
     description: "Para usar no dia a dia sem limites de volume.",
     features: [
-      "Vendas, clientes e produtos ilimitados",
+      "Clientes e produtos ilimitados",
       "Catálogo completo e personalizado, com mais fotos",
       "Agenda, fiado e financeiro",
       "Resumo mensal em PDF",
@@ -151,7 +151,7 @@ const faqs = [
   {
     question: "O que está incluído no Gratuito?",
     answer:
-      "Você pode registrar até 30 vendas por mês, cadastrar 15 produtos e 20 clientes e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.",
+      `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
   },
   {
     question: "Preciso do Profissional para calcular mão de obra e taxas?",

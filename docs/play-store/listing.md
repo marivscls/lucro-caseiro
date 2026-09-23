@@ -69,14 +69,15 @@ FUNCIONA OFFLINE
 - Sincronizacao automatica quando voltar a rede.
 
 PLANO GRATUITO
-- 30 vendas por mes
-- 20 clientes
+- Vendas ilimitadas
+- 50 clientes
+- 30 produtos
 - 5 receitas
 - 3 embalagens
 - Relatorio basico mensal
 
 PLANO ESSENCIAL (R$ 29,90/mes ou R$ 299,00/ano)
-- Vendas, clientes, produtos, receitas e embalagens sem limite de volume
+- Clientes, produtos, receitas e embalagens sem limite de volume
 - Agenda, fiado, financeiro e estoque basico
 - Catalogo completo e personalizado
 - Resumo mensal em PDF

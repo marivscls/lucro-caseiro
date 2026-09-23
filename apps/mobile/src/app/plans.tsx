@@ -194,7 +194,7 @@ export default function PlansScreen() {
           </Typography>
           <Typography variant="body">
             {current === "free"
-              ? "Vendas ilimitadas e sem anúncios nos dois planos."
+              ? "Sem anúncios e sem limite de clientes e produtos nos dois planos."
               : "Consulte os benefícios e gerencie seu plano."}
           </Typography>
         </View>

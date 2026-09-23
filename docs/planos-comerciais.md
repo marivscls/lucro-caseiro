@@ -30,9 +30,9 @@ Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limi
 | Recurso                |                      Limite |
 | ---------------------- | --------------------------: |
 | Usuarios               |                           1 |
-| Vendas                 |                  30 por mes |
-| Clientes               |                          20 |
-| Produtos               |                          15 |
+| Vendas                 |                  Ilimitadas |
+| Clientes               |                          50 |
+| Produtos               |                          30 |
 | Fotos por produto      |                           1 |
 | Receitas               |                           5 |
 | Embalagens             |                           3 |
@@ -111,9 +111,9 @@ Usar a logica de 2 meses gratis:
 
 | Recurso                 | Gratis         | Essencial                | Profissional                |
 | ----------------------- | -------------- | ------------------------ | --------------------------- |
-| Vendas                  | 30/mes         | Ilimitadas               | Ilimitadas                  |
-| Clientes                | 20             | Ilimitados               | Ilimitados                  |
-| Produtos                | 15             | Ilimitados               | Ilimitados                  |
+| Vendas                  | Ilimitadas     | Ilimitadas               | Ilimitadas                  |
+| Clientes                | 50             | Ilimitados               | Ilimitados                  |
+| Produtos                | 30             | Ilimitados               | Ilimitados                  |
 | Receitas                | 5              | Ilimitadas               | Ilimitadas                  |
 | Embalagens              | 3              | Ilimitadas               | Ilimitadas                  |
 | Fornecedores            | 3              | Limitado ou nao incluso  | Ilimitados                  |
@@ -150,7 +150,7 @@ Hoje o app ainda tem partes modeladas como `free` e `premium`, com Premium antig
 1. Trocar o modelo de plano para `free`, `essential` e `professional`.
 2. Atualizar Stripe/Google Play com os novos produtos mensais e anuais.
 3. Atualizar a tela de planos e paywalls.
-4. Atualizar limites do backend, especialmente vendas gratis de 50 para 30 por mes.
+4. Atualizar limites do backend (2026-09-23: vendas ilimitadas no gratis, 50 clientes e 30 produtos).
 5. Separar gates de recurso entre Essencial e Profissional.
 6. Garantir que dados antigos continuam visiveis quando a usuaria faz downgrade ou bate limite.
 7. Criar testes para limites e permissoes por plano.

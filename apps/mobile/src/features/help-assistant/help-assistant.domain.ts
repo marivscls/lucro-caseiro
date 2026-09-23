@@ -92,8 +92,8 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       kind: "guide",
       text: "Temos três planos disponíveis. Os planos pagos têm opções mensal e anual.",
       steps: [
-        `${PLAN_LABELS.free}: sem mensalidade, com até ${PLAN_LIMITS.free.maxSalesPerMonth} vendas por mês, ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos.`,
-        `${PLAN_LABELS.essential}: ${planPrice("essential")}. Vendas, clientes e produtos ilimitados, catálogo completo e personalizado e resumo do mês em PDF.`,
+        `${PLAN_LABELS.free}: sem mensalidade, com vendas ilimitadas, até ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos.`,
+        `${PLAN_LABELS.essential}: ${planPrice("essential")}. Clientes e produtos ilimitados, catálogo completo e personalizado e resumo do mês em PDF.`,
         `${PLAN_LABELS.professional}: ${planPrice("professional")}. Tudo do Essencial, mais relatórios avançados, exportação em PDF/Excel, compras e suporte prioritário.`,
         "Toque em Ver planos para comparar os recursos e conferir o valor antes de assinar.",
       ],

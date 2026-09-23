@@ -44,7 +44,7 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 - User profile and plan state live on the users table.
 - `users.plan` is the enum `plan_type = free | essential | professional` (+ legacy `premium`, kept in the enum but normalized to `professional` on read). Optional `users.planExpiresAt`.
 - `planExpiresAt = null` means the paid plan has no known expiry from the provider.
-- The plan matrix (limits + feature flags) is the single source of truth in `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). Free volume limits: sales 30/mês, clients 20, products 15, recipes 5, packaging 3, suppliers 3. Essencial removes volume limits but keeps suppliers capped at 3, and gains the `exportBasic` feature (PDF do resumo mensal — ADR-0005). Profissional unlocks everything (all premium features + `exportBasic` + suppliers/compras).
+- The plan matrix (limits + feature flags) is the single source of truth in `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). Free volume limits: sales unlimited (`null`), clients 50, products 30, recipes 5, packaging 3, suppliers 3. Essencial removes volume limits but keeps suppliers capped at 3, and gains the `exportBasic` feature (PDF do resumo mensal — ADR-0005). Profissional unlocks everything (all premium features + `exportBasic` + suppliers/compras).
 - Freemium usage counts are read from feature tables and converted into limits per active plan.
 
 ## Invariants
@@ -191,3 +191,7 @@ personalização.
 ## Catálogo completo no Essencial — 2026-09-09
 
 O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.
+
+## Vendas ilimitadas no Gratuito — 2026-09-23
+
+Decisão do dono do produto: registrar vendas é o hábito diário e não deve travar no Gratuito. `PLAN_LIMITS.free.maxSalesPerMonth = null` (ilimitado); `maxClients` 20→**50** e `maxProducts` 15→**30**. Receitas (5), embalagens (3), fornecedores (3) e o catálogo com 3 produtos seguem iguais. `freemiumGuard("sales")` continua no `POST /api/v1/sales` e passa a liberar sempre (limite `null`). A mensagem de limite de vendas não cita número.

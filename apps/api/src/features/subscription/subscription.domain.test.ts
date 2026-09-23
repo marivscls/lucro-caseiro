@@ -24,8 +24,9 @@ function makeCounts(overrides: Partial<ResourceCounts> = {}): ResourceCounts {
 describe("buildFreemiumLimits", () => {
   it("returns free limits for free plan", () => {
     const result = buildFreemiumLimits(makeCounts({ salesThisMonth: 5 }), "free");
-    expect(result.maxSalesPerMonth).toBe(30);
-    expect(result.maxClients).toBe(20);
+    expect(result.maxSalesPerMonth).toBeNull();
+    expect(result.maxClients).toBe(50);
+    expect(result.maxProducts).toBe(30);
     expect(result.currentSalesThisMonth).toBe(5);
   });
 
@@ -55,14 +56,19 @@ describe("isLimitExceeded", () => {
     );
   });
 
-  it("returns true when at sales limit", () => {
-    expect(isLimitExceeded("sales", makeCounts({ salesThisMonth: 30 }), "free")).toBe(
-      true,
+  it("never blocks sales on free", () => {
+    expect(isLimitExceeded("sales", makeCounts({ salesThisMonth: 9999 }), "free")).toBe(
+      false,
     );
   });
 
+  it("returns false just below the new clients and products limits", () => {
+    expect(isLimitExceeded("clients", makeCounts({ clients: 49 }), "free")).toBe(false);
+    expect(isLimitExceeded("products", makeCounts({ products: 29 }), "free")).toBe(false);
+  });
+
   it("returns true when at clients limit", () => {
-    expect(isLimitExceeded("clients", makeCounts({ clients: 20 }), "free")).toBe(true);
+    expect(isLimitExceeded("clients", makeCounts({ clients: 50 }), "free")).toBe(true);
   });
 
   it("returns true when at recipes limit", () => {
@@ -74,7 +80,7 @@ describe("isLimitExceeded", () => {
   });
 
   it("returns true when at products limit", () => {
-    expect(isLimitExceeded("products", makeCounts({ products: 15 }), "free")).toBe(true);
+    expect(isLimitExceeded("products", makeCounts({ products: 30 }), "free")).toBe(true);
   });
 
   it("returns true when at suppliers limit", () => {

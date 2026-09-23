@@ -5,7 +5,6 @@ import type { BusinessExperienceCopy } from "./business-copy";
 // Fonte única para não divergir entre as duas telas.
 export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
   essential: [
-    "Vendas ilimitadas",
     "Clientes e produtos ilimitados",
     "Receitas e embalagens ilimitadas",
     "Catálogo completo e personalizado",

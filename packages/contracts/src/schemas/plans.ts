@@ -20,9 +20,11 @@ export interface PlanLimits {
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   free: {
-    maxSalesPerMonth: 30,
-    maxClients: 20,
-    maxProducts: 15,
+    // Registrar vendas é o hábito diário do app: nunca trava no grátis.
+    // O grátis limita o que cresce com o negócio (clientes, produtos...).
+    maxSalesPerMonth: null,
+    maxClients: 50,
+    maxProducts: 30,
     maxRecipes: 5,
     maxPackaging: 3,
     maxSuppliers: 3,
