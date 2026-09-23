@@ -59,7 +59,6 @@ import {
 import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { QuickSaleButton } from "../../features/sales/components/quick-sale-button";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
-import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
@@ -368,7 +367,6 @@ export default function NewSaleScreen() {
   const guidedFirstSale = from === "getting-started";
   const insets = useSafeAreaInsets();
   const navigationBottomPadding = floatingTabBarContentPadding(insets.bottom);
-  const { show: showInterstitial } = useInterstitial();
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const showPaywall = usePaywall((s) => s.show);
   const [step, setStep] = useState<Step>(1);
@@ -647,7 +645,8 @@ export default function NewSaleScreen() {
             ]
           : [{ text: "Nova venda", onPress: resetForm }, receiptButton],
       });
-      showInterstitial();
+      // Sem anuncio em tela cheia aqui: interromper o momento da venda
+      // irrita e derruba a nota na loja. O banner continua nas outras telas.
       // Dispara em segundo plano (nao bloqueia o feedback de sucesso). O
       // total ainda nao reflete a venda recem-criada (cache pre-invalidacao),
       // entao soma 1 pra contar a venda atual.
