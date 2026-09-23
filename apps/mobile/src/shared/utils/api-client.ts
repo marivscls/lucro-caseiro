@@ -1,6 +1,7 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
 import { apiErrorMessage, USER_ERROR_MESSAGES } from "@lucro-caseiro/contracts";
 
+import { isMockMode } from "../mock/mode";
 import { supabase } from "./supabase";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
@@ -33,6 +34,23 @@ interface RequestOptions {
 
 export const DEFAULT_TIMEOUT_MS = 15_000;
 
+function errorCode(error: unknown): string | undefined {
+  return error &&
+    typeof error === "object" &&
+    "error" in error &&
+    typeof error.error === "string"
+    ? error.error
+    : undefined;
+}
+
+// Modo demonstração: as rotas são atendidas em memória, sem rede.
+function loadMockApi() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- only evaluated in demo builds.
+  return (require("../mock/api") as typeof import("../mock/api")).mockApiRequest;
+}
+
+const mockApiRequest = isMockMode ? loadMockApi() : null;
+
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
@@ -44,6 +62,18 @@ export async function apiClient<T>(
     responseType = "json",
     timeoutMs = DEFAULT_TIMEOUT_MS,
   } = options;
+
+  if (mockApiRequest) {
+    const result = await mockApiRequest(path, { method, body, token });
+    if (result.status >= 400) {
+      throw new ApiError(
+        apiErrorMessage(result.status, result.body),
+        result.status,
+        errorCode(result.body),
+      );
+    }
+    return result.body as T;
+  }
 
   async function request(
     currentToken: string | undefined,
@@ -95,14 +125,11 @@ export async function apiClient<T>(
 
     if (!response.ok) {
       const error: unknown = await response.json().catch(() => null);
-      const code =
-        error &&
-        typeof error === "object" &&
-        "error" in error &&
-        typeof error.error === "string"
-          ? error.error
-          : undefined;
-      throw new ApiError(apiErrorMessage(response.status, error), response.status, code);
+      throw new ApiError(
+        apiErrorMessage(response.status, error),
+        response.status,
+        errorCode(error),
+      );
     }
 
     if (response.status === 204) {
