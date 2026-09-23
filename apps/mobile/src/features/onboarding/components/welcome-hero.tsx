@@ -100,55 +100,63 @@ export function WelcomeHero({
   const content = (
     <View
       style={{
-        // No computador os blocos se espalham na altura da ilustração: título no
-        // topo dela, botões na base e espaços iguais entre os blocos.
+        // No computador os blocos se espalham na altura da ilustração: texto e
+        // benefícios juntos no topo dela, botões na base.
         gap: wide ? undefined : GROUP_GAP,
         flex: wide ? 1 : undefined,
         justifyContent: wide ? "space-between" : "flex-start",
       }}
     >
-      <View style={{ gap: ITEM_GAP }}>
-        <Typography
-          variant="display"
-          style={{
-            fontSize: wide ? 40 : 30,
-            lineHeight: wide ? 46 : 36,
-            letterSpacing: -0.8,
-          }}
-        >
-          Anote suas vendas e descubra seu lucro
-        </Typography>
-        <Typography variant="body">
-          O caderno do seu negócio, no celular. Grátis para começar, com vendas
-          ilimitadas.
-        </Typography>
-      </View>
-
-      <View style={{ gap: ITEM_GAP }} accessibilityRole="list">
-        {BENEFITS.map((benefit) => (
-          <View
-            key={benefit.title}
-            style={{ flexDirection: "row", alignItems: "center", gap: ITEM_GAP }}
+      <View style={{ gap: GROUP_GAP }}>
+        <View style={{ gap: ITEM_GAP }}>
+          <Typography
+            variant="display"
+            style={{
+              fontSize: wide ? 40 : 30,
+              lineHeight: wide ? 46 : 36,
+              letterSpacing: -0.8,
+            }}
           >
+            Anote suas vendas e descubra seu lucro
+          </Typography>
+          <Typography variant="body">
+            O caderno do seu negócio, no celular. Grátis para começar, com vendas
+            ilimitadas.
+          </Typography>
+        </View>
+
+        <View style={{ gap: ITEM_GAP }} accessibilityRole="list">
+          {BENEFITS.map((benefit) => (
             <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.yellowBg,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              key={benefit.title}
+              style={{ flexDirection: "row", alignItems: "center", gap: ITEM_GAP }}
             >
-              <AppIcon name={benefit.icon} size={22} color={theme.colors.primaryStrong} />
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: radii.full,
+                  backgroundColor: theme.colors.yellowBg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AppIcon
+                  name={benefit.icon}
+                  size={22}
+                  color={theme.colors.primaryStrong}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="bodyBold">{benefit.title}</Typography>
+                {/* No celular o detalhe sai para os botões caberem na primeira tela. */}
+                {wide ? (
+                  <Typography variant="caption">{benefit.detail}</Typography>
+                ) : null}
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">{benefit.title}</Typography>
-              {/* No celular o detalhe sai para os botões caberem na primeira tela. */}
-              {wide ? <Typography variant="caption">{benefit.detail}</Typography> : null}
-            </View>
-          </View>
-        ))}
+          ))}
+        </View>
       </View>
 
       <View style={{ gap: ITEM_GAP }}>
