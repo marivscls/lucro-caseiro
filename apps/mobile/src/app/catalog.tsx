@@ -49,7 +49,20 @@ import { alertError } from "../shared/utils/alerts";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { useBrandIllustration } from "../shared/brand-illustrations";
 import { useBrandScreenPalette } from "../shared/brand-palette";
-import { desktopContentWidth, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopContentWidth,
+  desktopLayout,
+  pageGutter,
+} from "../shared/layout/desktop-density";
+import {
+  DesktopGrid,
+  DesktopSplit,
+  DesktopToolbarButton,
+} from "../shared/layout/desktop-page";
+import {
+  CatalogDesktopShareCard,
+  CatalogDesktopUpsell,
+} from "../features/catalog/components/catalog-desktop";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useAllProducts, useUpdateProduct } from "../features/products/hooks";
 import { useServices, useUpdateService } from "../features/services/hooks";
@@ -557,9 +570,11 @@ function CatalogContentManager({
   onCopy,
   onCustomize,
   onActivate,
+  aside,
 }: Readonly<{
   settings: CatalogSettings;
   businessName: string;
+  aside?: React.ReactNode;
   onShare: () => void;
   onPreview: () => void;
   onMore: () => void;
@@ -570,6 +585,7 @@ function CatalogContentManager({
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
   const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const { width: viewportWidth } = useWindowDimensions();
   const spaciousLayout = viewportWidth >= 768;
   const referencePwaLayout = spaciousLayout && viewportWidth < 1024;
@@ -680,40 +696,44 @@ function CatalogContentManager({
     const displayedProducts = organizing ? products : products.slice(0, 3);
     content = (
       <View style={{ gap: listGap }}>
-        {displayedProducts.map((product) => (
-          <CatalogItemVisibility
-            key={product.id}
-            title={displayCatalogItemName(product.name)}
-            description={`${product.category} · ${formatCurrency(product.salePrice)}`}
-            imageUrl={product.photoUrl}
-            icon="cube-outline"
-            enabled={resolvedVisibility("products", product.id, product.publicEnabled)}
-            pending={pending?.type === "products" && pending.id === product.id}
-            onChange={(enabled) => void setProductVisibility(product, enabled)}
-          />
-        ))}
+        <DesktopGrid minColumnWidth={320} maxColumns={2} gap={spacing.md}>
+          {displayedProducts.map((product) => (
+            <CatalogItemVisibility
+              key={product.id}
+              title={displayCatalogItemName(product.name)}
+              description={`${product.category} · ${formatCurrency(product.salePrice)}`}
+              imageUrl={product.photoUrl}
+              icon="cube-outline"
+              enabled={resolvedVisibility("products", product.id, product.publicEnabled)}
+              pending={pending?.type === "products" && pending.id === product.id}
+              onChange={(enabled) => void setProductVisibility(product, enabled)}
+            />
+          ))}
+        </DesktopGrid>
       </View>
     );
   } else {
     const displayedServices = organizing ? services : services.slice(0, 3);
     content = (
       <View style={{ gap: spacing.sm }}>
-        {displayedServices.map((service) => (
-          <CatalogItemVisibility
-            key={service.id}
-            title={displayCatalogItemName(service.name)}
-            description={serviceCatalogDescription(service)}
-            icon="briefcase-outline"
-            enabled={resolvedVisibility(
-              "services",
-              service.id,
-              service.active && service.publicEnabled,
-            )}
-            disabled={!service.active}
-            pending={pending?.type === "services" && pending.id === service.id}
-            onChange={(enabled) => void setServiceVisibility(service, enabled)}
-          />
-        ))}
+        <DesktopGrid minColumnWidth={320} maxColumns={2} gap={spacing.md}>
+          {displayedServices.map((service) => (
+            <CatalogItemVisibility
+              key={service.id}
+              title={displayCatalogItemName(service.name)}
+              description={serviceCatalogDescription(service)}
+              icon="briefcase-outline"
+              enabled={resolvedVisibility(
+                "services",
+                service.id,
+                service.active && service.publicEnabled,
+              )}
+              disabled={!service.active}
+              pending={pending?.type === "services" && pending.id === service.id}
+              onChange={(enabled) => void setServiceVisibility(service, enabled)}
+            />
+          ))}
+        </DesktopGrid>
       </View>
     );
   }
@@ -750,443 +770,500 @@ function CatalogContentManager({
   if (compactSummary) organizeButtonStyle = { alignSelf: "flex-end" };
   if (spaciousLayout) organizeButtonStyle = { minHeight: 52 };
 
-  return (
-    <View style={{ gap: spacing["2xl"], marginTop: spacing.lg }}>
-      <View testID="catalog-link-card" style={{ position: "relative" }}>
-        <Card
-          variant="elevated"
-          shadow="sm"
-          style={{
-            borderRadius: 24,
-            paddingVertical: summaryCardPaddingVertical,
-            paddingHorizontal: summaryCardPaddingHorizontal,
-            gap: spaciousLayout ? 24 : spacing.lg,
-            borderWidth: 0,
-            backgroundColor: colors.white,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "stretch" }}>
-            <SummaryMetric
-              icon="bag-handle-outline"
-              value={loadingCounts ? null : products.length}
-              label="produtos"
-              compact={compactSummary}
-              spacious={spaciousLayout}
-            />
-            <View
-              style={{
-                width: 1,
-                marginVertical: spacing.xs,
-                backgroundColor: theme.colors.border,
-              }}
-            />
-            <SummaryMetric
-              icon="briefcase-outline"
-              value={loadingCounts ? null : services.length}
-              label="serviços"
-              compact={compactSummary}
-              spacious={spaciousLayout}
-            />
-            <View
-              style={{
-                width: 1,
-                marginVertical: spacing.xs,
-                backgroundColor: theme.colors.border,
-              }}
-            />
-            <SummaryMetric
-              icon="star"
-              value={loadingCounts ? null : publishedCount}
-              label="publicados"
-              highlighted
-              compact={compactSummary}
-              spacious={spaciousLayout}
-            />
-          </View>
-
-          <View style={{ gap: spaciousLayout ? spacing.md : spacing.sm }}>
-            <Typography
-              style={{
-                color: colors.wine,
-                fontFamily: fonts.bold,
-                fontSize: spaciousLayout ? 16 : 13,
-                lineHeight: spaciousLayout ? 22 : 18,
-              }}
-            >
-              Seu link da vitrine
-            </Typography>
-            <View
-              style={{
-                minHeight: spaciousLayout ? 64 : 52,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.sm,
-                borderWidth: 1,
-                borderColor: theme.colors.border,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.background,
-                paddingLeft: spacing.md,
-                paddingRight: spacing.xs,
-              }}
-            >
-              <AppIcon
-                name="link-outline"
-                size={spaciousLayout ? 24 : 20}
-                color={theme.colors.primaryStrong}
-              />
-              <Typography
-                color={theme.colors.textSecondary}
-                style={{ flex: 1, minWidth: 0, fontSize: spaciousLayout ? 18 : 13 }}
-              >
-                {catalogUrl.replace(/^https?:\/\//, "")}
-              </Typography>
-              <IconButton
-                size={44}
-                onPress={onCopy}
-                accessibilityLabel="Copiar link da vitrine"
-                icon={
-                  <AppIcon
-                    name="clipboard-outline"
-                    size={20}
-                    color={theme.colors.primaryStrong}
-                  />
-                }
-              />
-            </View>
-          </View>
-
-          <Button
-            title={primaryActionLabel}
-            titleLines={2}
-            size="lg"
-            icon={
-              <AppIcon
-                name={settings.enabled ? "share-outline" : "rocket-outline"}
-                size={20}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            onPress={primaryAction}
-            accessibilityLabel={primaryActionLabel}
+  const linkCard = (
+    <View testID="catalog-link-card" style={{ position: "relative" }}>
+      <Card
+        variant="elevated"
+        shadow="sm"
+        style={{
+          borderRadius: 24,
+          paddingVertical: summaryCardPaddingVertical,
+          paddingHorizontal: summaryCardPaddingHorizontal,
+          gap: spaciousLayout ? 24 : spacing.lg,
+          borderWidth: 0,
+          backgroundColor: colors.white,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "stretch" }}>
+          <SummaryMetric
+            icon="bag-handle-outline"
+            value={loadingCounts ? null : products.length}
+            label="produtos"
+            compact={compactSummary}
+            spacious={spaciousLayout}
+          />
+          <View
             style={{
-              width: "100%",
-              minHeight: spaciousLayout ? 56 : undefined,
-              backgroundColor: theme.colors.primaryInteractive,
+              width: 1,
+              marginVertical: spacing.xs,
+              backgroundColor: theme.colors.border,
             }}
           />
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            {readinessMessage}
-          </Typography>
-          {publishedCount === 0 && settings.enabled ? (
-            <Button
-              title="Compartilhar link mesmo assim"
-              variant="outline"
-              onPress={onShare}
-            />
-          ) : null}
-          <View
-            style={{
-              flexDirection: secondaryActionsStacked ? "column" : "row",
-              gap: spacing.sm,
-            }}
-          >
-            <Button
-              title="Ver como cliente"
-              titleLines={2}
-              variant="outline"
-              compact
-              disabled={!settings.enabled}
-              fitTitle={false}
-              icon={
-                <AppIcon
-                  name="eye-outline"
-                  size={18}
-                  color={theme.colors.primaryStrong}
-                />
-              }
-              onPress={onPreview}
-              style={{
-                flex: secondaryActionsStacked ? undefined : 1.2,
-                minHeight: spaciousLayout ? 56 : 48,
-              }}
-            />
-            <Button
-              title="Mais opções"
-              titleLines={2}
-              variant="outline"
-              compact
-              fitTitle={false}
-              icon={
-                <AppIcon
-                  name="ellipsis-horizontal"
-                  size={18}
-                  color={theme.colors.primaryStrong}
-                />
-              }
-              onPress={onMore}
-              style={{
-                flex: secondaryActionsStacked ? undefined : 1,
-                minHeight: spaciousLayout ? 56 : 48,
-              }}
-            />
-          </View>
-        </Card>
-      </View>
-
-      <View style={{ gap: spacing.md, paddingHorizontal: contentSectionInset }}>
-        <View style={{ gap: spacing.xs }}>
-          <View
-            style={{
-              flexDirection: compactSummary ? "column" : "row",
-              alignItems: compactSummary ? "stretch" : "center",
-              gap: compactSummary ? spacing.sm : spacing.md,
-            }}
-          >
-            <Typography variant="h3" style={{ flex: compactSummary ? undefined : 1 }}>
-              Conteúdo da vitrine
-            </Typography>
-            <Button
-              title={organizing ? "Concluir" : "Organizar"}
-              variant="outline"
-              compact
-              icon={
-                <AppIcon
-                  name="options-outline"
-                  size={18}
-                  color={theme.colors.primaryStrong}
-                />
-              }
-              onPress={() => setOrganizing((current) => !current)}
-              style={organizeButtonStyle}
-            />
-          </View>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Escolha e organize o que seus clientes podem encontrar.
-          </Typography>
-        </View>
-
-        <View
-          accessibilityRole="tablist"
-          style={{
-            minHeight: spaciousLayout ? 52 : 48,
-            flexDirection: "row",
-            borderRadius: radii.lg,
-            backgroundColor: colors.neutral,
-            padding: 3,
-          }}
-        >
-          {(["products", "services"] as const).map((itemTab) => {
-            const selected = tab === itemTab;
-            const label = itemTab === "products" ? "Produtos" : "Serviços";
-            const count = itemTab === "products" ? products.length : services.length;
-            return (
-              <Pressable
-                key={itemTab}
-                accessibilityRole="tab"
-                accessibilityState={{ selected }}
-                accessibilityLabel={`${label}, ${count}`}
-                onPress={() => {
-                  setTab(itemTab);
-                  setOrganizing(false);
-                }}
-                style={({ pressed }) => ({
-                  flex: 1,
-                  minHeight: spaciousLayout ? 46 : 42,
-                  borderRadius: radii.lg - 3,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: pressed ? 0.86 : 1,
-                  backgroundColor: selected ? colors.wineFill : "transparent",
-                })}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Typography
-                    style={{
-                      color: selected ? colors.onWine : colors.warmGray,
-                      fontFamily: selected ? fonts.bold : fonts.semiBold,
-                      fontSize: 14,
-                    }}
-                  >
-                    {label}
-                  </Typography>
-                  <View
-                    style={{
-                      minWidth: 22,
-                      minHeight: 22,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderRadius: radii.full,
-                      paddingHorizontal: 6,
-                      backgroundColor: selected
-                        ? "rgba(255, 255, 255, 0.18)"
-                        : colors.softRose,
-                    }}
-                  >
-                    <Typography
-                      style={{
-                        color: selected ? colors.onWine : colors.wine,
-                        fontFamily: fonts.bold,
-                        fontSize: 11,
-                        lineHeight: 15,
-                      }}
-                    >
-                      {count}
-                    </Typography>
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {content}
-
-        {!itemsAreEmpty ? (
-          <Button
-            title={`Ver todos os ${sectionLabel}`}
-            variant="outline"
-            icon={
-              <AppIcon name="grid-outline" size={20} color={theme.colors.primaryStrong} />
-            }
-            onPress={() => router.push(isProductsTab ? "/products" : "/services")}
-            style={{ width: "100%", minHeight: spaciousLayout ? 56 : undefined }}
+          <SummaryMetric
+            icon="briefcase-outline"
+            value={loadingCounts ? null : services.length}
+            label="serviços"
+            compact={compactSummary}
+            spacious={spaciousLayout}
           />
-        ) : null}
-      </View>
-
-      <View style={{ gap: spacing.sm, paddingHorizontal: contentSectionInset }}>
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h3">Sua identidade</Typography>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Deixe a vitrine com a cara do seu negócio.
-          </Typography>
-        </View>
-        <Card
-          variant="elevated"
-          onPress={onCustomize}
-          style={{
-            padding: 0,
-            overflow: "hidden",
-            backgroundColor: theme.colors.surfaceElevated,
-          }}
-        >
           <View
             style={{
-              minHeight: spaciousLayout ? 128 : 96,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              padding: spacing.lg,
+              width: 1,
+              marginVertical: spacing.xs,
+              backgroundColor: theme.colors.border,
+            }}
+          />
+          <SummaryMetric
+            icon="star"
+            value={loadingCounts ? null : publishedCount}
+            label="publicados"
+            highlighted
+            compact={compactSummary}
+            spacious={spaciousLayout}
+          />
+        </View>
+
+        <View style={{ gap: spaciousLayout ? spacing.md : spacing.sm }}>
+          <Typography
+            style={{
+              color: colors.wine,
+              fontFamily: fonts.bold,
+              fontSize: spaciousLayout ? 16 : 13,
+              lineHeight: spaciousLayout ? 22 : 18,
             }}
           >
-            {settings.logoUrl ? (
-              <Image
-                source={{ uri: settings.logoUrl }}
-                resizeMode="cover"
-                accessible={false}
-                style={{
-                  width: identityLogoSize,
-                  height: identityLogoSize,
-                  borderRadius: radii.full,
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: identityLogoSize,
-                  height: identityLogoSize,
-                  borderRadius: radii.full,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: colors.softRose,
-                }}
-              >
-                <AppIcon
-                  name="storefront-outline"
-                  size={28}
-                  color={theme.colors.primaryStrong}
-                />
-              </View>
-            )}
-            <Typography
-              variant="bodyBold"
-              numberOfLines={2}
-              style={{
-                flex: 1,
-                fontSize: spaciousLayout ? 16 : undefined,
-                lineHeight: spaciousLayout ? 22 : undefined,
-              }}
-            >
-              {businessName}
-            </Typography>
-            <View style={{ flexDirection: "row", gap: 6 }}>
-              {Array.from({ length: identitySlotCount }, (_, index) => index).map(
-                (index) =>
-                  identityImages[index] ? (
-                    <Image
-                      key={`identity-${index}`}
-                      source={{ uri: identityImages[index] }}
-                      resizeMode="cover"
-                      accessible={false}
-                      style={{
-                        width: identityPreviewSize,
-                        height: identityPreviewSize,
-                        borderRadius: 10,
-                      }}
-                    />
-                  ) : (
-                    <View
-                      key={`identity-placeholder-${index}`}
-                      style={{
-                        width: identityPreviewSize,
-                        height: identityPreviewSize,
-                        borderRadius: 10,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: theme.colors.surface,
-                      }}
-                    >
-                      <AppIcon
-                        name="image-outline"
-                        size={18}
-                        color={theme.colors.primaryLight}
-                      />
-                    </View>
-                  ),
-              )}
-            </View>
-            <AppIcon
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </View>
+            Seu link da vitrine
+          </Typography>
           <View
             style={{
-              minHeight: spaciousLayout ? 60 : 48,
+              minHeight: spaciousLayout ? 64 : 52,
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
               gap: spacing.sm,
-              borderTopWidth: 1,
-              borderTopColor: theme.colors.border,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.background,
+              paddingLeft: spacing.md,
+              paddingRight: spacing.xs,
             }}
           >
             <AppIcon
-              name="color-palette-outline"
+              name="link-outline"
               size={spaciousLayout ? 24 : 20}
               color={theme.colors.primaryStrong}
             />
             <Typography
-              variant="bodyBold"
-              color={theme.colors.primaryStrong}
-              style={spaciousLayout ? { fontSize: 14, lineHeight: 20 } : undefined}
+              color={theme.colors.textSecondary}
+              style={{ flex: 1, minWidth: 0, fontSize: spaciousLayout ? 18 : 13 }}
             >
-              Personalizar
+              {catalogUrl.replace(/^https?:\/\//, "")}
             </Typography>
+            <IconButton
+              size={44}
+              onPress={onCopy}
+              accessibilityLabel="Copiar link da vitrine"
+              icon={
+                <AppIcon
+                  name="clipboard-outline"
+                  size={20}
+                  color={theme.colors.primaryStrong}
+                />
+              }
+            />
           </View>
-        </Card>
+        </View>
+
+        <Button
+          title={primaryActionLabel}
+          titleLines={2}
+          size="lg"
+          icon={
+            <AppIcon
+              name={settings.enabled ? "share-outline" : "rocket-outline"}
+              size={20}
+              color={theme.colors.textOnPrimary}
+            />
+          }
+          onPress={primaryAction}
+          accessibilityLabel={primaryActionLabel}
+          style={{
+            width: "100%",
+            minHeight: spaciousLayout ? 56 : undefined,
+            backgroundColor: theme.colors.primaryInteractive,
+          }}
+        />
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {readinessMessage}
+        </Typography>
+        {publishedCount === 0 && settings.enabled ? (
+          <Button
+            title="Compartilhar link mesmo assim"
+            variant="outline"
+            onPress={onShare}
+          />
+        ) : null}
+        <View
+          style={{
+            flexDirection: secondaryActionsStacked ? "column" : "row",
+            gap: spacing.sm,
+          }}
+        >
+          <Button
+            title="Ver como cliente"
+            titleLines={2}
+            variant="outline"
+            compact
+            disabled={!settings.enabled}
+            fitTitle={false}
+            icon={
+              <AppIcon name="eye-outline" size={18} color={theme.colors.primaryStrong} />
+            }
+            onPress={onPreview}
+            style={{
+              flex: secondaryActionsStacked ? undefined : 1.2,
+              minHeight: spaciousLayout ? 56 : 48,
+            }}
+          />
+          <Button
+            title="Mais opções"
+            titleLines={2}
+            variant="outline"
+            compact
+            fitTitle={false}
+            icon={
+              <AppIcon
+                name="ellipsis-horizontal"
+                size={18}
+                color={theme.colors.primaryStrong}
+              />
+            }
+            onPress={onMore}
+            style={{
+              flex: secondaryActionsStacked ? undefined : 1,
+              minHeight: spaciousLayout ? 56 : 48,
+            }}
+          />
+        </View>
+      </Card>
+    </View>
+  );
+
+  const contentSection = (
+    <View style={{ gap: spacing.md, paddingHorizontal: contentSectionInset }}>
+      <View style={{ gap: spacing.xs }}>
+        <View
+          style={{
+            flexDirection: compactSummary ? "column" : "row",
+            alignItems: compactSummary ? "stretch" : "center",
+            gap: compactSummary ? spacing.sm : spacing.md,
+          }}
+        >
+          <Typography
+            variant={isDesktop ? "desktopSection" : "h3"}
+            style={{ flex: compactSummary ? undefined : 1 }}
+          >
+            Conteúdo da vitrine
+          </Typography>
+          <Button
+            title={organizing ? "Concluir" : "Organizar"}
+            variant="outline"
+            compact
+            icon={
+              <AppIcon
+                name="options-outline"
+                size={18}
+                color={theme.colors.primaryStrong}
+              />
+            }
+            onPress={() => setOrganizing((current) => !current)}
+            style={organizeButtonStyle}
+          />
+        </View>
+        <Typography
+          variant={isDesktop ? "desktopBody" : "caption"}
+          color={theme.colors.textSecondary}
+        >
+          Escolha e organize o que seus clientes podem encontrar.
+        </Typography>
       </View>
+
+      <View
+        accessibilityRole="tablist"
+        style={{
+          minHeight: spaciousLayout ? 52 : 48,
+          flexDirection: "row",
+          borderRadius: radii.lg,
+          backgroundColor: colors.neutral,
+          padding: 3,
+          alignSelf: isDesktop ? "flex-start" : undefined,
+        }}
+      >
+        {(["products", "services"] as const).map((itemTab) => {
+          const selected = tab === itemTab;
+          const label = itemTab === "products" ? "Produtos" : "Serviços";
+          const count = itemTab === "products" ? products.length : services.length;
+          return (
+            <Pressable
+              key={itemTab}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              accessibilityLabel={`${label}, ${count}`}
+              onPress={() => {
+                setTab(itemTab);
+                setOrganizing(false);
+              }}
+              style={({ pressed }) => ({
+                flex: isDesktop ? undefined : 1,
+                minWidth: isDesktop ? 168 : undefined,
+                paddingHorizontal: isDesktop ? spacing.lg : undefined,
+                minHeight: spaciousLayout ? 46 : 42,
+                borderRadius: radii.lg - 3,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.86 : 1,
+                backgroundColor: selected ? colors.wineFill : "transparent",
+              })}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Typography
+                  style={{
+                    color: selected ? colors.onWine : colors.warmGray,
+                    fontFamily: selected ? fonts.bold : fonts.semiBold,
+                    fontSize: isDesktop ? 16 : 14,
+                  }}
+                >
+                  {label}
+                </Typography>
+                <View
+                  style={{
+                    minWidth: 22,
+                    minHeight: 22,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: radii.full,
+                    paddingHorizontal: 6,
+                    backgroundColor: selected
+                      ? "rgba(255, 255, 255, 0.18)"
+                      : colors.softRose,
+                  }}
+                >
+                  <Typography
+                    style={{
+                      color: selected ? colors.onWine : colors.wine,
+                      fontFamily: fonts.bold,
+                      fontSize: isDesktop ? 14 : 11,
+                      lineHeight: isDesktop ? 20 : 15,
+                    }}
+                  >
+                    {count}
+                  </Typography>
+                </View>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {content}
+
+      {!itemsAreEmpty ? (
+        <Button
+          title={`Ver todos os ${sectionLabel}`}
+          variant="outline"
+          icon={
+            <AppIcon name="grid-outline" size={20} color={theme.colors.primaryStrong} />
+          }
+          onPress={() => router.push(isProductsTab ? "/products" : "/services")}
+          style={
+            isDesktop
+              ? { alignSelf: "flex-start", minHeight: 48 }
+              : { width: "100%", minHeight: spaciousLayout ? 56 : undefined }
+          }
+        />
+      ) : null}
+    </View>
+  );
+
+  const identitySection = (
+    <View style={{ gap: spacing.sm, paddingHorizontal: contentSectionInset }}>
+      <View style={{ gap: spacing.xs }}>
+        <Typography variant={isDesktop ? "desktopSection" : "h3"}>
+          Sua identidade
+        </Typography>
+        <Typography
+          variant={isDesktop ? "desktopBody" : "caption"}
+          color={theme.colors.textSecondary}
+        >
+          Deixe a vitrine com a cara do seu negócio.
+        </Typography>
+      </View>
+      <Card
+        variant="elevated"
+        onPress={onCustomize}
+        style={{
+          padding: 0,
+          overflow: "hidden",
+          backgroundColor: theme.colors.surfaceElevated,
+        }}
+      >
+        <View
+          style={{
+            minHeight: spaciousLayout ? 128 : 96,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            padding: spacing.lg,
+          }}
+        >
+          {settings.logoUrl ? (
+            <Image
+              source={{ uri: settings.logoUrl }}
+              resizeMode="cover"
+              accessible={false}
+              style={{
+                width: identityLogoSize,
+                height: identityLogoSize,
+                borderRadius: radii.full,
+              }}
+            />
+          ) : (
+            <View
+              style={{
+                width: identityLogoSize,
+                height: identityLogoSize,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: colors.softRose,
+              }}
+            >
+              <AppIcon
+                name="storefront-outline"
+                size={28}
+                color={theme.colors.primaryStrong}
+              />
+            </View>
+          )}
+          <Typography
+            variant="bodyBold"
+            numberOfLines={2}
+            style={{
+              flex: 1,
+              fontSize: spaciousLayout ? 16 : undefined,
+              lineHeight: spaciousLayout ? 22 : undefined,
+            }}
+          >
+            {businessName}
+          </Typography>
+          <View style={{ flexDirection: "row", gap: 6 }}>
+            {Array.from({ length: identitySlotCount }, (_, index) => index).map(
+              (index) =>
+                identityImages[index] ? (
+                  <Image
+                    key={`identity-${index}`}
+                    source={{ uri: identityImages[index] }}
+                    resizeMode="cover"
+                    accessible={false}
+                    style={{
+                      width: identityPreviewSize,
+                      height: identityPreviewSize,
+                      borderRadius: 10,
+                    }}
+                  />
+                ) : (
+                  <View
+                    key={`identity-placeholder-${index}`}
+                    style={{
+                      width: identityPreviewSize,
+                      height: identityPreviewSize,
+                      borderRadius: 10,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: theme.colors.surface,
+                    }}
+                  >
+                    <AppIcon
+                      name="image-outline"
+                      size={18}
+                      color={theme.colors.primaryLight}
+                    />
+                  </View>
+                ),
+            )}
+          </View>
+          <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+        </View>
+        <View
+          style={{
+            minHeight: spaciousLayout ? 60 : 48,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+          }}
+        >
+          <AppIcon
+            name="color-palette-outline"
+            size={spaciousLayout ? 24 : 20}
+            color={theme.colors.primaryStrong}
+          />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.primaryStrong}
+            style={
+              spaciousLayout
+                ? { fontSize: isDesktop ? 16 : 14, lineHeight: isDesktop ? 24 : 20 }
+                : undefined
+            }
+          >
+            Personalizar
+          </Typography>
+        </View>
+      </Card>
+    </View>
+  );
+
+  if (isDesktop) {
+    return (
+      <DesktopSplit
+        style={{ marginTop: desktopLayout.blockGap }}
+        aside={
+          <>
+            <CatalogDesktopShareCard
+              productCount={loadingCounts ? null : products.length}
+              serviceCount={loadingCounts ? null : services.length}
+              publishedCount={loadingCounts ? null : publishedCount}
+              catalogUrl={catalogUrl}
+              primaryLabel={primaryActionLabel}
+              primaryIcon={settings.enabled ? "share-outline" : "rocket-outline"}
+              onPrimary={primaryAction}
+              readinessMessage={readinessMessage}
+              shareAnyway={publishedCount === 0 && settings.enabled}
+              onShare={onShare}
+              enabled={settings.enabled}
+              onPreview={onPreview}
+              onCopy={onCopy}
+            />
+            {aside}
+          </>
+        }
+      >
+        {contentSection}
+        {identitySection}
+      </DesktopSplit>
+    );
+  }
+
+  return (
+    <View style={{ gap: spacing["2xl"], marginTop: spacing.lg }}>
+      {linkCard}
+
+      {contentSection}
+
+      {identitySection}
     </View>
   );
 }
@@ -1340,9 +1417,16 @@ function CatalogForm({
             onCopy={() => void handleCopy()}
             onCustomize={openCustomizer}
             onActivate={() => void handleToggle(true)}
+            aside={
+              canShowFullCatalog ? null : (
+                <CatalogDesktopUpsell
+                  onPress={() => showPaywall("catalog", "essential")}
+                />
+              )
+            }
           />
 
-          {!canShowFullCatalog ? (
+          {!canShowFullCatalog && !isDesktop ? (
             <Card
               padding="lg"
               onPress={() => showPaywall("catalog", "essential")}
@@ -1413,7 +1497,8 @@ function CatalogForm({
           accessibilityLabel="Fechar mais opções"
           style={{
             flex: 1,
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing["2xl"] : 0,
             backgroundColor: theme.colors.overlay,
           }}
         >
@@ -1424,6 +1509,14 @@ function CatalogForm({
               gap: spacing.md,
               borderTopLeftRadius: 28,
               borderTopRightRadius: 28,
+              ...(isDesktop
+                ? {
+                    borderRadius: radii.lg,
+                    width: "100%",
+                    maxWidth: 480,
+                    alignSelf: "center",
+                  }
+                : null),
               backgroundColor: theme.colors.surfaceElevated,
               padding: spacing["2xl"],
               paddingBottom: spacing["2xl"] + Math.max(insets.bottom, spacing.lg),
@@ -1540,6 +1633,31 @@ export default function CatalogScreen() {
     headerMenuSize = 56;
   }
 
+  let headerRight: React.ReactNode = null;
+  if (settings && isDesktop) {
+    headerRight = (
+      <DesktopToolbarButton
+        icon="ellipsis-horizontal"
+        label="Mais opções"
+        onPress={() => setMoreMenuVisible(true)}
+      />
+    );
+  } else if (settings) {
+    headerRight = (
+      <IconButton
+        size={headerMenuSize}
+        style={{
+          borderRadius: 14,
+          borderColor: colors.border,
+          backgroundColor: colors.white,
+        }}
+        onPress={() => setMoreMenuVisible(true)}
+        accessibilityLabel="Mais opções do catálogo"
+        icon={<AppIcon name="ellipsis-vertical" size={22} color={theme.colors.text} />}
+      />
+    );
+  }
+
   let content: React.ReactNode;
   if (settings) {
     content = (
@@ -1629,23 +1747,7 @@ export default function CatalogScreen() {
           style={headerStyle}
           titleStyle={headerTitleStyle}
           subtitleStyle={headerSubtitleStyle}
-          right={
-            settings ? (
-              <IconButton
-                size={headerMenuSize}
-                style={{
-                  borderRadius: 14,
-                  borderColor: colors.border,
-                  backgroundColor: colors.white,
-                }}
-                onPress={() => setMoreMenuVisible(true)}
-                accessibilityLabel="Mais opções do catálogo"
-                icon={
-                  <AppIcon name="ellipsis-vertical" size={22} color={theme.colors.text} />
-                }
-              />
-            ) : null
-          }
+          right={headerRight}
         />
       )}
       {content}

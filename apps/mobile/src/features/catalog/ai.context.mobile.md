@@ -35,6 +35,10 @@ API (`/c/:slug`).
 
 ## Components
 
+### `catalog-desktop.tsx` (desktop)
+
+`CatalogDesktopShareCard` (lateral "Sua vitrine") e `CatalogDesktopUpsell`.
+
 ### `CatalogScreen` / `CatalogForm` (locais na tela)
 
 - Switch "Catálogo ativo" — salva `enabled` imediatamente.
@@ -263,3 +267,18 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 - 2026-09-09: editor e prévia lateral usam fade, leve escala e deslocamento de 18 px por 320 ms ao trocar de etapa; edições no mesmo passo não repetem a animação nem remontam os campos. Preferência por movimento reduzido respeitada.
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Link público do catálogo é exibido com quebra de linha em vez de reticências. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+
+## Desktop (web ≥ 1024px) — 2026-09-23
+
+Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px idênticas).
+
+- Painel vinho na largura da página; abaixo, `DesktopSplit`: conteúdo da vitrine e
+  identidade na coluna principal; lateral "Sua vitrine" (`CatalogDesktopShareCard`) com
+  contagens em linhas (produtos, serviços, publicados), link com copiar, ação principal
+  (Ativar / Compartilhar / Adicionar conteúdo, mesma regra do celular), aviso e
+  "Ver como cliente".
+- Convite ao Essencial vai para a lateral (`CatalogDesktopUpsell`), sem faixa lateral.
+- Abas Produtos/Serviços com largura do texto (16 px, contagem 14 px); itens em grade
+  de 2 colunas; o botão de ver a lista completa tem largura do texto.
+- Cabeçalho: `DesktopToolbarButton` "Mais opções" (ícone com texto); a folha de
+  "Mais opções" abre centralizada com até 480 px.
