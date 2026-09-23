@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 
 import { useAuth } from "./use-auth";
+import { useNotificationAsk } from "./notification-ask";
 import { handleNotificationResponse } from "./notification-types";
 import { registerPushToken, unregisterPushToken } from "./push-token-api";
 import { useBrowserNotifications } from "./use-browser-notifications";
@@ -27,7 +28,7 @@ if (Platform.OS !== "web") {
 // ---------------------------------------------------------------------------
 // Permission helper — ensures local notifications can be shown/scheduled
 // ---------------------------------------------------------------------------
-async function ensureNotificationPermissionsAsync(): Promise<boolean> {
+async function ensureNotificationPermissionsAsync(canAsk: boolean): Promise<boolean> {
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
@@ -38,6 +39,7 @@ async function ensureNotificationPermissionsAsync(): Promise<boolean> {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
 
   if (String(existingStatus) === "granted") return true;
+  if (!canAsk) return false;
   const { status } = await Notifications.requestPermissionsAsync();
   return String(status) === "granted";
 }
@@ -65,6 +67,8 @@ export function useNotifications() {
   const notificationListener = useRef<{ remove(): void } | null>(null);
   const responseListener = useRef<{ remove(): void } | null>(null);
 
+  const canAskPermission = useNotificationAsk((state) => state.ready);
+
   useEffect(() => {
     if (!isAuthenticated || Platform.OS === "web") return;
 
@@ -74,7 +78,7 @@ export function useNotifications() {
 
     void (async () => {
       try {
-        const allowed = await ensureNotificationPermissionsAsync();
+        const allowed = await ensureNotificationPermissionsAsync(canAskPermission);
         const projectId =
           Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
         const accessToken = useAuth.getState().token;
@@ -127,5 +131,5 @@ export function useNotifications() {
         );
       }
     };
-  }, [isAuthenticated, userId]);
+  }, [isAuthenticated, userId, canAskPermission]);
 }

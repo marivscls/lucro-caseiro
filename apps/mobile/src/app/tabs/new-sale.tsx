@@ -60,6 +60,7 @@ import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { QuickSaleButton } from "../../features/sales/components/quick-sale-button";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
+import { useNotificationAsk } from "../../shared/hooks/notification-ask";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
@@ -645,6 +646,9 @@ export default function NewSaleScreen() {
             ]
           : [{ text: "Nova venda", onPress: resetForm }, receiptButton],
       });
+      // Depois da primeira venda os lembretes fazem sentido: libera o pedido
+      // de permissao de notificacao.
+      useNotificationAsk.getState().markReady();
       // Sem anuncio em tela cheia aqui: interromper o momento da venda
       // irrita e derruba a nota na loja. O banner continua nas outras telas.
       // Dispara em segundo plano (nao bloqueia o feedback de sucesso). O
