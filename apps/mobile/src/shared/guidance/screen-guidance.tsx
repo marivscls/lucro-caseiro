@@ -166,7 +166,76 @@ export function ScreenGuidance({
           </Typography>
         </Pressable>,
       )}
-      {introduce ? (
+      {introduce && isDesktop ? (
+        <Animated.View
+          testID={`screen-guidance-${area}`}
+          style={{ opacity, width: "100%", maxWidth: desktopWidths.page }}
+          pointerEvents={dismissing ? "none" : "auto"}
+        >
+          {/* Desktop: uma faixa discreta; a tarefa da tela continua em primeiro plano. */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: spacing.lg,
+              paddingVertical: spacing.lg,
+              paddingHorizontal: spacing.xl,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surfaceElevated,
+              marginBottom: spacing.sm,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.colors.primaryBg,
+              }}
+            >
+              <AppIcon name="bulb-outline" size={20} color={theme.colors.primaryStrong} />
+            </View>
+            <View style={{ flex: 1, minWidth: 280, gap: 2 }}>
+              <Typography variant="desktopBodyStrong" accessibilityRole="header">
+                {title ?? content.title}
+              </Typography>
+              <Typography variant="desktopBody">
+                {description ?? content.description}
+              </Typography>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <Button
+                title="Agora não"
+                variant="ghost"
+                onPress={() => setDismissFor(identity)}
+                disabled={dismissing}
+                fitTitle={false}
+              />
+              {secondary ? (
+                <Button
+                  title={secondary.label}
+                  variant="text"
+                  onPress={() => start(secondary.onPress)}
+                  disabled={dismissing}
+                  fitTitle={false}
+                />
+              ) : null}
+              <Button
+                title={actionLabel ?? content.action}
+                onPress={() => start()}
+                disabled={dismissing}
+                fitTitle={false}
+              />
+            </View>
+          </View>
+        </Animated.View>
+      ) : null}
+      {introduce && !isDesktop ? (
         <View
           testID={`screen-guidance-${area}`}
           style={{
