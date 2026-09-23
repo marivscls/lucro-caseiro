@@ -38,14 +38,14 @@ export function BusinessProfileFlow({
       if (closeRequest) closeRequest.current = null;
     };
   });
+  // Enquanto carrega, o Voltar do Android não fecha o primeiro acesso. Com o
+  // questionário aberto, o próprio formulário volta uma etapa por vez.
+  const blockBack = firstAccess && (state.loading || !!state.loadError);
   useEffect(() => {
-    if (!firstAccess) return;
-    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (!state.loading && !state.loadError) void close();
-      return true;
-    });
+    if (!blockBack) return;
+    const listener = BackHandler.addEventListener("hardwareBackPress", () => true);
     return () => listener.remove();
-  });
+  }, [blockBack]);
   async function finish(profile: BusinessProfileAnswers, start = false) {
     if (!(await state.save(profile))) return;
     onClose();
@@ -76,15 +76,12 @@ export function BusinessProfileFlow({
             >
               <Text style={{ color: colors.wine }}>Tentar novamente</Text>
             </Pressable>
-            {!firstAccess && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onClose}
-                style={styles.action}
-              >
-                <Text style={{ color: colors.wine }}>Fechar</Text>
-              </Pressable>
-            )}
+            {/* No primeiro acesso, "Pular por agora" evita prender a pessoa aqui. */}
+            <Pressable accessibilityRole="button" onPress={onClose} style={styles.action}>
+              <Text style={{ color: colors.wine }}>
+                {firstAccess ? "Pular por agora" : "Fechar"}
+              </Text>
+            </Pressable>
             {state.error && (
               <Text
                 accessibilityRole="alert"
@@ -108,6 +105,8 @@ export function BusinessProfileFlow({
       onClose={() => void close()}
       onComplete={(profile) => void finish(profile)}
       onStart={(profile) => void finish(profile, true)}
+      skipKnownName={firstAccess}
+      handleHardwareBack={firstAccess}
     />
   );
 }

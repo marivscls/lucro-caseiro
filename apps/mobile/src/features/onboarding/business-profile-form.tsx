@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   Animated,
+  BackHandler,
   Easing,
   Keyboard,
   Image,
@@ -95,6 +96,8 @@ export function BusinessProfileForm({
   editInitially = false,
   saving = false,
   saveError = null,
+  skipKnownName = false,
+  handleHardwareBack = false,
 }: Readonly<{
   onClose: () => void;
   onComplete: (profile: BusinessProfileAnswers) => void;
@@ -103,6 +106,10 @@ export function BusinessProfileForm({
   editInitially?: boolean;
   saving?: boolean;
   saveError?: string | null;
+  /** Começa na segunda etapa quando o nome já veio do cadastro. */
+  skipKnownName?: boolean;
+  /** Voltar do Android leva à etapa anterior em vez de fechar. */
+  handleHardwareBack?: boolean;
 }>) {
   const colors = useBrandScreenPalette();
   const { theme } = useTheme();
@@ -113,9 +120,10 @@ export function BusinessProfileForm({
   const [profile, setProfile] = useState<BusinessProfileAnswers>(
     initialProfile ?? emptyBusinessProfile,
   );
-  const [step, setStep] = useState(
-    initialProfile && !editInitially ? profileSteps.length : 0,
-  );
+  const [step, setStep] = useState(() => {
+    if (initialProfile && !editInitially) return profileSteps.length;
+    return skipKnownName && initialProfile?.name.trim() ? 1 : 0;
+  });
   const reducedMotion = useReducedMotion();
   const progress = useRef(new Animated.Value(1)).current;
   const scroll = useRef<ScrollView>(null);
@@ -160,6 +168,19 @@ export function BusinessProfileForm({
     Keyboard.dismiss();
     setStep(nextStep);
   }
+
+  useEffect(() => {
+    if (!handleHardwareBack) return;
+    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (!saving) {
+        if (step > 0) goToStep(step - 1);
+        else onClose();
+      }
+      // Sempre consome o evento: o Voltar nunca fecha o questionário sozinho.
+      return true;
+    });
+    return () => listener.remove();
+  });
 
   function update<Key extends keyof BusinessProfileAnswers>(
     key: Key,
