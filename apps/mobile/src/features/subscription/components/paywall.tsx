@@ -458,12 +458,14 @@ export function Paywall({
               { marginTop: compact ? spacing.xl : spacing["2xl"] },
             ]}
           >
+            {/* O valor em destaque é o que será cobrado; no anual o mensal
+                equivalente fica como informação secundária. */}
             <View style={styles.priceLine}>
               <Typography variant="moneyHero" color={theme.colors.text}>
-                R$ {formatBRL(displayedMonthlyPrice)}
+                R$ {formatBRL(period === "annual" ? pricing.annual : pricing.monthly)}
               </Typography>
               <Typography variant="body" color={theme.colors.text}>
-                /mês
+                {period === "annual" ? "/ano" : "/mês"}
               </Typography>
             </View>
 
@@ -476,7 +478,8 @@ export function Paywall({
                   fontSize: compact ? fontSizes.md : fontSizes.xl,
                 }}
               >
-                R$ {formatBRL(pricing.annual)} cobrados anualmente
+                Cobrado uma vez por ano. Equivale a R$ {formatBRL(displayedMonthlyPrice)}{" "}
+                por mês.
               </Typography>
             ) : null}
 
@@ -585,7 +588,9 @@ export function Paywall({
               color={theme.colors.text}
               style={{ fontSize: fontSizes.lg }}
             >
-              R$ {formatBRL(displayedMonthlyPrice)}/mês
+              {period === "annual"
+                ? `R$ ${formatBRL(pricing.annual)}/ano`
+                : `R$ ${formatBRL(pricing.monthly)}/mês`}
             </Typography>
             {period === "annual" ? (
               <Typography
@@ -593,7 +598,7 @@ export function Paywall({
                 color={theme.colors.textSecondary}
                 style={{ fontSize: fontSizes.sm }}
               >
-                no anual
+                equivale a R$ {formatBRL(displayedMonthlyPrice)}/mês
               </Typography>
             ) : null}
           </View>
