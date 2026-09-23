@@ -8,6 +8,33 @@ export const PWA_URL = "https://app.lucrocaseiro.com.br";
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&referrer=utm_source%3Dsite_publico%26utm_medium%3Downed%26utm_campaign%3Dlanding";
 
+const SITE_UTM = {
+  utm_source: "site_publico",
+  utm_medium: "owned",
+  utm_campaign: "landing",
+} as const;
+
+/**
+ * Link da Play Store com a posição do botão em `utm_content`, para saber
+ * qual chamada do site traz instalação (lido pelo app no primeiro acesso).
+ */
+export function playStoreUrl(content: string): string {
+  const referrer = new URLSearchParams({ ...SITE_UTM, utm_content: content }).toString();
+  const url = new URL("https://play.google.com/store/apps/details");
+  url.searchParams.set("id", "br.com.orionseven.lucrocaseiro");
+  url.searchParams.set("referrer", referrer);
+  return url.toString();
+}
+
+/** Link do app no navegador com a posição do botão em `utm_content`. */
+export function pwaUrl(content: string): string {
+  const url = new URL(PWA_URL);
+  for (const [key, value] of Object.entries({ ...SITE_UTM, utm_content: content })) {
+    url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
 export const PUBLIC_PATHS = [
   "/",
   "/landing/calculadora",

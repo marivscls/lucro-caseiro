@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import styles from "./landing-page.module.css";
 import { PointerFeedback } from "./pointer-feedback";
-import { PLAY_STORE_URL, PWA_URL, SUPPORT_EMAIL } from "./site-constants";
+import { playStoreUrl, pwaUrl, SUPPORT_EMAIL } from "./site-constants";
 
 function CtaArrow() {
   return (
@@ -40,7 +40,7 @@ export function SiteHeader({ tone = "paper" }: SiteHeaderProps) {
           <Link href="/landing/calculadora">Calculadora</Link>
           <Link href="/#planos">Planos</Link>
           <Link href="/landing/suporte">Ajuda</Link>
-          <a href={PWA_URL} data-analytics="pwa_header">
+          <a href={pwaUrl("pwa_header")} data-analytics="pwa_header">
             Usar no navegador
           </a>
         </nav>
@@ -53,10 +53,13 @@ export function SiteHeader({ tone = "paper" }: SiteHeaderProps) {
             <Link href="/landing/calculadora">Calculadora</Link>
             <Link href="/#planos">Planos</Link>
             <Link href="/landing/suporte">Ajuda</Link>
-            <a href={PWA_URL} data-analytics="pwa_mobile_menu">
+            <a href={pwaUrl("pwa_mobile_menu")} data-analytics="pwa_mobile_menu">
               Usar no navegador
             </a>
-            <a href={PLAY_STORE_URL} data-analytics="play_store_mobile_menu">
+            <a
+              href={playStoreUrl("play_store_mobile_menu")}
+              data-analytics="play_store_mobile_menu"
+            >
               Baixar no Google Play
             </a>
           </nav>
@@ -64,7 +67,7 @@ export function SiteHeader({ tone = "paper" }: SiteHeaderProps) {
         <a
           className={styles.headerCta}
           data-pointer-ripple
-          href={PLAY_STORE_URL}
+          href={playStoreUrl("play_store_header")}
           data-analytics="play_store_header"
         >
           {onWine ? "Baixar grátis" : "Baixar no Google Play"}

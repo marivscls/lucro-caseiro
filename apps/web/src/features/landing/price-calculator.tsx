@@ -16,7 +16,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
-import { PLAY_STORE_URL, PWA_URL } from "./site-constants";
+import { playStoreUrl, pwaUrl } from "./site-constants";
 import { createCalculatorTracking } from "./analytics-events";
 import { trackLandingEvent } from "./site-analytics";
 import styles from "./price-calculator.module.css";
@@ -328,10 +328,17 @@ export function PriceCalculator() {
           </div>
           <div className={styles.resultCta}>
             <p>Leve essa organização para o dia a dia.</p>
-            <a href={PWA_URL} data-pointer-ripple data-analytics="pwa_calculator_result">
+            <a
+              href={pwaUrl("pwa_calculator_result")}
+              data-pointer-ripple
+              data-analytics="pwa_calculator_result"
+            >
               Começar grátis no navegador <ArrowRight size={19} aria-hidden="true" />
             </a>
-            <a href={PLAY_STORE_URL} data-analytics="play_store_calculator_result">
+            <a
+              href={playStoreUrl("play_store_calculator_result")}
+              data-analytics="play_store_calculator_result"
+            >
               Baixar no Google Play <ArrowRight size={19} aria-hidden="true" />
             </a>
             <small>

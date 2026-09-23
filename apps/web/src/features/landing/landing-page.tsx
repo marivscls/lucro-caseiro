@@ -6,7 +6,6 @@ import {
   Check,
   ChevronDown,
   ReceiptText,
-  Smartphone,
   Store,
   Users,
   Wallet,
@@ -16,9 +15,10 @@ import Image from "next/image";
 import { PLAN_LIMITS, PLAN_PRICING } from "@lucro-caseiro/contracts";
 
 import styles from "./landing-page.module.css";
+import { HeroActions } from "./hero-actions";
 import { LandingMotion } from "./landing-motion";
 import { SiteFooter, SiteHeader } from "./site-chrome";
-import { PLAY_STORE_URL, PWA_URL } from "./site-constants";
+import { playStoreUrl, pwaUrl } from "./site-constants";
 
 const exampleRows = [
   { label: "Insumos", value: "R$ 10,00" },
@@ -150,8 +150,7 @@ const faqs = [
   },
   {
     question: "O que está incluído no Gratuito?",
-    answer:
-      `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
+    answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
   },
   {
     question: "Preciso do Profissional para calcular mão de obra e taxas?",
@@ -261,25 +260,7 @@ export function LandingPage() {
                 Para quem produz, vende ou presta serviços. Some seus custos, valorize seu
                 trabalho e transforme a conta em produto, catálogo ou venda no mesmo app.
               </p>
-              <div className={styles.heroActions}>
-                <a
-                  className={styles.primaryCta}
-                  data-pointer-ripple
-                  href={PLAY_STORE_URL}
-                  data-analytics="play_store_hero"
-                >
-                  <Smartphone aria-hidden="true" size={20} />
-                  Baixar no Google Play
-                </a>
-                <a
-                  className={styles.secondaryCta}
-                  href={PWA_URL}
-                  data-analytics="pwa_hero"
-                >
-                  Usar no navegador
-                  <ArrowRight aria-hidden="true" size={18} />
-                </a>
-              </div>
+              <HeroActions />
               <p className={styles.heroNote}>
                 <Check aria-hidden="true" size={18} />
                 Plano gratuito no app e no navegador
@@ -552,7 +533,7 @@ export function LandingPage() {
                   ))}
                 </ul>
                 <a
-                  href={PWA_URL}
+                  href={pwaUrl(`pwa_plan_${plan.name.toLowerCase()}`)}
                   data-analytics={`pwa_plan_${plan.name.toLowerCase()}`}
                   data-pointer-ripple
                 >
@@ -561,7 +542,7 @@ export function LandingPage() {
                 </a>
                 <a
                   className={styles.planAndroid}
-                  href={PLAY_STORE_URL}
+                  href={playStoreUrl(`play_store_plan_${plan.name.toLowerCase()}`)}
                   data-analytics={`play_store_plan_${plan.name.toLowerCase()}`}
                 >
                   Baixar no Google Play
@@ -627,12 +608,16 @@ export function LandingPage() {
             <a
               className={styles.finalButton}
               data-pointer-ripple
-              href={PLAY_STORE_URL}
+              href={playStoreUrl("play_store_final")}
               data-analytics="play_store_final"
             >
               Baixar no Google Play
             </a>
-            <a className={styles.secondaryCta} href={PWA_URL} data-analytics="pwa_final">
+            <a
+              className={styles.secondaryCta}
+              href={pwaUrl("pwa_final")}
+              data-analytics="pwa_final"
+            >
               Usar no navegador
               <ArrowRight aria-hidden="true" size={18} />
             </a>
