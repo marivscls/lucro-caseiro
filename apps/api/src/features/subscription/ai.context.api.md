@@ -18,11 +18,13 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 - **Depends on:**
   - `subscription.repo.pg.ts` for profile and plan persistence.
   - `subscription.domain.ts` for freemium limit calculation.
-  - `google-play.client.ts` for Android purchase-token validation fallback.
+  - `google-play.client.ts` for Android purchase-token validation fallback and subscriptionsv2 snapshots.
+  - `shared/middleware/pubsub-push-auth.ts` for Pub/Sub push OIDC verification (RTDN webhook).
   - `features/email/subscription-lifecycle-email.ts` for best-effort transactional notifications.
 - **Dependents:**
   - Mobile profile/settings/plans screens.
   - Payments use cases call `activatePlan(userId, plan, expiresAt)` / `deactivatePlan`.
+  - Google Play RTDN (`GooglePlayNotificationsUseCases`) calls the same `activatePlan` / `deactivatePlan`.
   - Limit guards call `getLimits` and `freemiumGuard`; feature guards call `requireFeature` / `hasActiveFeature`.
 
 ## Code pointers
@@ -36,6 +38,10 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 | `subscription.types.ts`         | Interfaces and provider purchase types       |
 | `google-play.client.ts`         | Google Play subscription token validation    |
 | `google-play.client.test.ts`    | Google Play validation tests                 |
+| `google-play-rtdn.routes.ts`    | Pub/Sub push webhook for Google Play RTDN    |
+| `google-play-rtdn.usecases.ts`  | Applies a Play notification to plan state    |
+| `google-play-rtdn.domain.ts`    | Push body parsing and plan decision rules    |
+| `google-play-rtdn.*.test.ts`    | RTDN route, use case and domain tests        |
 | `subscription.usecases.test.ts` | Subscription use case tests                  |
 | `subscription.domain.test.ts`   | Domain helper tests                          |
 
@@ -45,6 +51,8 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 - `users.plan` is the enum `plan_type = free | essential | professional` (+ legacy `premium`, kept in the enum but normalized to `professional` on read). Optional `users.planExpiresAt`.
 - `planExpiresAt = null` means the paid plan has no known expiry from the provider.
 - The plan matrix (limits + feature flags) is the single source of truth in `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). Free volume limits: sales unlimited (`null`), clients 50, products 30, recipes 5, packaging 3, suppliers 3. Essencial removes volume limits but keeps suppliers capped at 3, and gains the `exportBasic` feature (PDF do resumo mensal — ADR-0005). Profissional unlocks everything (all premium features + `exportBasic` + suppliers/compras).
+- `subscription_purchase_claims(user_id, provider, token_hash)` links a verified Play purchase token (SHA-256 only) to one account. `hasPurchaseClaim(userId, provider, tokenHash)` is the user-scoped lookup the RTDN flow uses.
+- The plan source (Stripe x Google Play) is **not** stored; RTDN decisions compare `planExpiresAt` with the Play expiry instead.
 - Freemium usage counts are read from feature tables and converted into limits per active plan.
 
 ## Invariants
@@ -58,6 +66,11 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 - Canceled but unexpired Google Play subscriptions remain paid until their expiry time.
 - A Free→paid transition sends `activated`; an expiration extension on the same paid plan sends `renewed`; a paid→Free transition sends `cancelled`. Provider retries are deduplicated by stable email keys.
 - Email delivery failure is logged without reverting a provider-confirmed plan change.
+- RTDN never trusts the notification body: it only carries the purchase token; plan, expiry and owner (`obfuscatedExternalAccountId`) come from subscriptionsv2.
+- RTDN only acts when the owner already claimed that token hash via `/sync-plan` (`hasPurchaseClaim`); a notification can never grant a plan to an account that did not sync the purchase from the app.
+- RTDN active purchase → `activatePlan(owner, tier, playExpiry)` (renewal), unless the current paid plan has no known expiry or expires later than Play (never shortens another channel's plan).
+- RTDN inactive purchase → `deactivatePlan(owner)` only when the account is not already Free and its `planExpiresAt` is known and not later than the Play expiry (never removes a newer Stripe plan).
+- RTDN is idempotent: redelivery re-reads Google and rewrites the same state; renewal/cancel emails keep their stable deduplication keys.
 
 ## Operations
 
@@ -88,11 +101,20 @@ api:
         productId: lucrocaseiro_essential_monthly | lucrocaseiro_essential_annual | lucrocaseiro_professional_monthly | lucrocaseiro_professional_annual | (legacy) lucrocaseiro_premium_monthly | lucrocaseiro_premium_annual
         purchaseToken: string
       response: UserProfile
+webhooks:
+  base: /api/v1/webhooks
+  endpoints:
+    - method: POST
+      path: /google-play
+      auth: Pub/Sub push OIDC (Authorization Bearer, audience GOOGLE_PLAY_RTDN_AUDIENCE, email GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL, email_verified)
+      body: Pub/Sub push envelope; message.data = base64 DeveloperNotification
+      response: "{ ok: true, result: processed | ignored }"
 ```
 
 ## Authorization & RLS
 
-- Every route uses `authMiddleware`.
+- Every `/api/v1/subscription` route uses `authMiddleware`.
+- `POST /api/v1/webhooks/google-play` has no app JWT; every request must carry a Google-signed OIDC token (verified by `OAuth2Client.verifyIdToken`) for the configured audience, with `email` equal to the configured push service account and `email_verified = true`. It is mounted before the global rate limit, like the Stripe webhook.
 - Route handlers use `getUserId(req)` and ignore any client-sent user id.
 - Database access is server-side through the repo layer.
 
@@ -105,18 +127,23 @@ api:
 
 ## Errors
 
-| Status | When                                 | Message/code                                           |
-| ------ | ------------------------------------ | ------------------------------------------------------ |
-| 401    | Missing/invalid JWT                  | auth middleware response                               |
-| 404    | Profile not found                    | `NotFoundError`                                        |
-| 503    | Google Play service account missing  | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON nao configurado...`  |
-| 503    | Google Play verification unavailable | `Nao foi possivel verificar assinatura no Google Play` |
+| Status | When                                 | Message/code                                                                          |
+| ------ | ------------------------------------ | ------------------------------------------------------------------------------------- |
+| 401    | Missing/invalid JWT                  | auth middleware response                                                              |
+| 404    | Profile not found                    | `NotFoundError`                                                                       |
+| 503    | Google Play service account missing  | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON nao configurado...`                                 |
+| 503    | Google Play verification unavailable | `Nao foi possivel verificar assinatura no Google Play`                                |
+| 503    | RTDN env vars missing                | `GOOGLE_PLAY_RTDN_NOT_CONFIGURED` (does nothing)                                      |
+| 401    | RTDN OIDC token missing/invalid      | `INVALID_PUBSUB_TOKEN`                                                                |
+| 503    | RTDN Google certs/API unavailable    | `PUBSUB_TOKEN_VERIFICATION_UNAVAILABLE` / `GOOGLE_PLAY_UNAVAILABLE` (Pub/Sub retries) |
+| 200    | RTDN test/other/foreign package      | `{ ok: true, result: "ignored" }`                                                     |
 
 ## Events / Side effects
 
 - `activatePlan(userId, plan, expiresAt)` writes the paid plan state.
 - `deactivatePlan` writes Free plan state.
 - `syncPlanFromProvider` may update plan state after provider validation.
+- `POST /api/v1/webhooks/google-play` may renew (`activatePlan`) or end (`deactivatePlan`) a Play plan without the app being opened. Logs `google_play_rtdn` with messageId, notificationType, userId and result; never the purchase token.
 - Plan transitions may send lifecycle emails; `notifyPaymentFailed` sends the Stripe retry warning without changing plan state.
 - `getLimits` reads usage counters and returns the active plan's limits.
 
@@ -124,6 +151,7 @@ api:
 
 - Profile and limits endpoints perform bounded database reads.
 - `/sync-plan` performs one Google Play API request.
+- Each RTDN message performs at most one Google certs fetch (cached), one subscriptionsv2 request and bounded DB reads/writes.
 - No cache is used; data is inexpensive and plan state must be fresh.
 
 ## Security
@@ -131,6 +159,7 @@ api:
 - Google Play service account credentials stay server-side.
 - Purchase tokens are verified server-side before Premium activation.
 - Stripe webhook-driven plan changes go through these use cases, not through client input.
+- RTDN: OIDC token checked for signature, audience, issuer, expiry, email and `email_verified`; package name must match `GOOGLE_PLAY_PACKAGE_NAME`; purchase token is never logged or stored raw.
 
 ## Test matrix
 
@@ -141,6 +170,7 @@ api:
 - Google Play active/canceled/expired/mismatched purchase handling.
 - Activation, renewal, cancellation and payment-failure notification transitions.
 - Provider unavailable error paths.
+- RTDN: push body parsing (test/other/foreign package/invalid), renewal, deactivation, newer-plan protection, unknown plan source, unclaimed token, idempotent redelivery, OIDC 401/503 paths, token never logged.
 
 ## Examples
 
@@ -161,6 +191,16 @@ Content-Type: application/json
   "productId": "lucrocaseiro_essential_monthly",
   "purchaseToken": "<GOOGLE_PLAY_PURCHASE_TOKEN>"
 }
+```
+
+```http
+POST /api/v1/webhooks/google-play
+Authorization: Bearer <GOOGLE_SIGNED_OIDC_TOKEN>
+Content-Type: application/json
+
+{ "message": { "messageId": "123", "data": "<base64 DeveloperNotification>" }, "subscription": "projects/<p>/subscriptions/<s>" }
+
+=> 200 { "ok": true, "result": "processed" }
 ```
 
 ## Change log / Decisions
@@ -195,3 +235,7 @@ O Essencial inclui catálogo completo, personalização e galeria com até 3 fot
 ## Vendas ilimitadas no Gratuito — 2026-09-23
 
 Decisão do dono do produto: registrar vendas é o hábito diário e não deve travar no Gratuito. `PLAN_LIMITS.free.maxSalesPerMonth = null` (ilimitado); `maxClients` 20→**50** e `maxProducts` 15→**30**. Receitas (5), embalagens (3), fornecedores (3) e o catálogo com 3 produtos seguem iguais. `freemiumGuard("sales")` continua no `POST /api/v1/sales` e passa a liberar sempre (limite `null`). A mensagem de limite de vendas não cita número.
+
+## Google Play RTDN — 2026-09-23
+
+Problema: o plano Play so era sincronizado quando o app chamava `POST /sync-plan`. `planExpiresAt` guarda a expiracao do periodo pago e `resolvePlan` cai para Free quando ela passa, entao um assinante que renovava sem abrir o app perdia o plano ate abrir; e um reembolso/revogacao nunca era refletido. Agora `POST /api/v1/webhooks/google-play` recebe as Real-time Developer Notifications via Pub/Sub push (OIDC) e reaplica o estado do subscriptionsv2. Env vars: `GOOGLE_PLAY_RTDN_AUDIENCE` e `GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL` (sem elas, 503). Setup no Play Console/GCP em `docs/subscription-setup.md`. Decisao: como a origem do plano nao e gravada, a desativacao so acontece quando `planExpiresAt` nao passa da expiracao da Play (e a renovacao nao encurta um plano mais longo); com isso uma revogacao que antecipa a expiracao da Play pode nao derrubar o plano na hora, e o acesso termina na expiracao ja gravada.
