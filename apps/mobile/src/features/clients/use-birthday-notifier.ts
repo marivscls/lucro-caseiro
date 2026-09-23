@@ -5,7 +5,7 @@ import { Platform } from "react-native";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { asyncStorage } from "../../shared/utils/async-storage";
-import { useClients } from "./hooks";
+import { useAllClients } from "./hooks";
 
 // Avisa no máximo uma vez por dia (guarda a data YYYY-MM-DD do último aviso).
 const KEY = "birthdayNotifiedOn";
@@ -60,7 +60,7 @@ async function maybeNotify(names: string[], today: Date): Promise<void> {
  */
 export function useBirthdayNotifier(isPremium: boolean): void {
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.CLIENT_BIRTHDAY);
-  const { data } = useClients();
+  const { data } = useAllClients();
 
   useEffect(() => {
     if (Platform.OS === "web" || !isPremium || !enabled || !data) return;

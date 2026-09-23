@@ -6,6 +6,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import {
   createClient,
   deleteClient,
+  fetchAllClients,
   fetchBirthdays,
   fetchClient,
   fetchClients,
@@ -19,6 +20,16 @@ export function useClients(opts?: { page?: number; search?: string }) {
   return useQuery({
     queryKey: [...CLIENTS_KEY, opts],
     queryFn: () => fetchClients(token!, opts),
+    enabled: !!token,
+  });
+}
+
+/** Todos os clientes (todas as páginas). */
+export function useAllClients() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...CLIENTS_KEY, "all"],
+    queryFn: () => fetchAllClients(token!),
     enabled: !!token,
   });
 }

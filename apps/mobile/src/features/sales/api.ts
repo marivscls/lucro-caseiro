@@ -1,6 +1,7 @@
 import type { CreateSale, Sale, UpdateSaleStatus } from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
+import { MAX_PAGE_SIZE, fetchAllPages } from "../../shared/utils/pagination";
 
 const BASE = "/api/v1/sales";
 
@@ -18,18 +19,34 @@ interface DaySummary {
   averageTicket: number;
 }
 
+export interface SalesFilter {
+  status?: string;
+  clientId?: string;
+}
+
 export async function fetchSales(
   token: string,
-  opts?: { page?: number; status?: string; clientId?: string },
+  opts?: SalesFilter & { page?: number; limit?: number },
 ): Promise<PaginatedSales> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.status) params.set("status", opts.status);
   if (opts?.clientId) params.set("clientId", opts.clientId);
 
   const query = params.toString();
   const queryString = query ? `?${query}` : "";
   return apiClient<PaginatedSales>(`${BASE}${queryString}`, { token });
+}
+
+/** Todas as vendas do filtro, para telas que somam a lista inteira. */
+export async function fetchAllSales(
+  token: string,
+  opts?: SalesFilter,
+): Promise<PaginatedSales> {
+  return fetchAllPages((page) =>
+    fetchSales(token, { ...opts, page, limit: MAX_PAGE_SIZE }),
+  );
 }
 
 export async function fetchSale(token: string, id: string): Promise<Sale> {

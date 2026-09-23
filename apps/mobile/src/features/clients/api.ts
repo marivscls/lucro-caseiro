@@ -1,6 +1,7 @@
 import type { Client, CreateClient, UpdateClient } from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
+import { MAX_PAGE_SIZE, fetchAllPages } from "../../shared/utils/pagination";
 
 const BASE = "/api/v1/clients";
 
@@ -37,10 +38,11 @@ export function normalizeClient(client: ClientWire): Client {
 
 export async function fetchClients(
   token: string,
-  opts?: { page?: number; search?: string },
+  opts?: { page?: number; search?: string; limit?: number },
 ): Promise<PaginatedClients> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.search) params.set("search", opts.search);
 
   const query = params.toString();
@@ -49,6 +51,11 @@ export async function fetchClients(
     token,
   });
   return { ...result, items: result.items.map(normalizeClient) };
+}
+
+/** Todos os clientes, para telas que cruzam a lista inteira. */
+export async function fetchAllClients(token: string): Promise<PaginatedClients> {
+  return fetchAllPages((page) => fetchClients(token, { page, limit: MAX_PAGE_SIZE }));
 }
 
 export async function fetchClient(token: string, id: string): Promise<Client> {

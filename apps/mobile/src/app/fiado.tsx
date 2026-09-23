@@ -26,7 +26,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import fiadoNotebook from "../assets/fiado-notebook-calendar.png";
-import { useClients } from "../features/clients/hooks";
+import { useAllClients } from "../features/clients/hooks";
 import {
   buildChargeMessage,
   fiadoTiming,
@@ -35,7 +35,7 @@ import {
   type FiadoGroup,
   type FiadoTiming,
 } from "../features/sales/fiado";
-import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
+import { useAllSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { brandScreenPalette } from "../shared/brand-palette";
 import type { AppIconName } from "../shared/components/app-icon";
 import { AppIcon } from "../shared/components/app-icon";
@@ -525,8 +525,8 @@ export default function FiadoScreen() {
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
   const [contactFilter, setContactFilter] = React.useState<ContactFilter>("all");
   const [sortOrder, setSortOrder] = React.useState<SortOrder>("oldest");
-  const { data, isLoading, error, refetch } = useSales({ status: "pending" });
-  const { data: clientsData } = useClients();
+  const { data, isLoading, error, refetch } = useAllSales({ status: "pending" });
+  const { data: clientsData } = useAllClients();
   const updateStatus = useUpdateSaleStatus();
 
   const sales = data?.items ?? [];

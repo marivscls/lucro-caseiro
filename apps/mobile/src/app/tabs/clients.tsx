@@ -43,7 +43,7 @@ import {
   type ClientListInsight,
   type ClientListSort,
 } from "../../features/clients/client-list";
-import { useSales } from "../../features/sales/hooks";
+import { useAllSales } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../shared/hooks/use-paywall";
@@ -705,7 +705,7 @@ function ClientsListScreen({
     page: isDesktop ? page : undefined,
     search: search.trim() || undefined,
   });
-  const salesQuery = useSales();
+  const salesQuery = useAllSales();
   const summaryInsights = useMemo(
     () =>
       buildClientListInsights(

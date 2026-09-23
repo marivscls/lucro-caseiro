@@ -7,7 +7,7 @@ import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { asyncStorage } from "../../shared/utils/async-storage";
 import { formatCurrency } from "../../shared/utils/format";
 import { oldFiadoSummary } from "./fiado";
-import { useSales } from "./hooks";
+import { useAllSales } from "./hooks";
 
 // Lembra de cobrar fiado antigo, no máximo uma vez a cada N dias.
 const KEY = "fiadoNotifiedAt";
@@ -45,7 +45,7 @@ async function maybeNotify(count: number, total: number): Promise<void> {
  * com cooldown de alguns dias para não virar incômodo.
  */
 export function useFiadoNotifier(): void {
-  const { data } = useSales({ status: "pending" });
+  const { data } = useAllSales({ status: "pending" });
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.PENDING_SALES);
 
   useEffect(() => {
