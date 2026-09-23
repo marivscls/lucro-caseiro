@@ -2,29 +2,41 @@ import type { ModalProps, ViewStyle } from "react-native";
 
 export const desktopWidths = {
   compact: 360,
+  /** Texto corrido e cadastros curtos (medida de leitura). */
+  reading: 720,
   standard: 720,
   wide: 960,
   form: 1040,
-  data: 1280,
+  /** Largura máxima de toda página autenticada (cabeçalho e conteúdo). */
+  page: 1200,
+  data: 1200,
 } as const;
 
 /** One desktop frame for navigation, page headings, content and actions. */
 export const desktopLayout = {
   sidebarWidth: 240,
-  pageGutter: 32,
+  pageGutter: 40,
+  /** Intervalo entre blocos irmãos dentro de uma seção. */
   sectionGap: 24,
+  /** Intervalo entre seções/blocos principais da página. */
+  blockGap: 32,
+  /** Intervalo entre a coluna principal e a lateral. */
+  columnGap: 32,
   headerHeight: 88,
-  controlHeight: 44,
-  asideMinWidth: 280,
-  asideMaxWidth: 360,
+  controlHeight: 48,
+  asideMinWidth: 300,
+  asideMaxWidth: 380,
+  /** Coluna lateral canônica (resumo, prévia, filtros). */
+  asideWidth: 360,
+  pageBottom: 56,
 } as const;
 
+/** Cabeçalho de página no desktop: respiro de 40px acima e 28px abaixo. */
 export const desktopHeaderStyle: ViewStyle = {
   width: "100%",
-  minHeight: desktopLayout.headerHeight,
   paddingHorizontal: 0,
-  paddingTop: 24,
-  paddingBottom: 24,
+  paddingTop: 40,
+  paddingBottom: 28,
   flexShrink: 0,
 };
 
@@ -67,7 +79,7 @@ export function desktopContained(
 
 /**
  * Page content aligned with ScreenHeader: stretch left under the shell gutter,
- * capped at `maxWidth` (default data zone 1280). Canonical for authenticated pages.
+ * capped at `maxWidth` (default page zone 1200). Canonical for authenticated pages.
  */
 export function desktopStretch(
   isDesktop: boolean,
