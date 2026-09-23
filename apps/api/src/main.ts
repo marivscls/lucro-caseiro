@@ -72,6 +72,9 @@ import { createSubscriptionRouter } from "./features/subscription/subscription.r
 import { SubscriptionRepoPg } from "./features/subscription/subscription.repo.pg";
 import { SubscriptionUseCases } from "./features/subscription/subscription.usecases";
 import { GooglePlayClient } from "./features/subscription/google-play.client";
+import { createGooglePlayRtdnRouter } from "./features/subscription/google-play-rtdn.routes";
+import { GooglePlayNotificationsUseCases } from "./features/subscription/google-play-rtdn.usecases";
+import { GoogleOidcPushTokenVerifier } from "./shared/middleware/pubsub-push-auth";
 import {
   createStripeCheckoutRouter,
   createStripeWebhookRouter,
@@ -375,6 +378,12 @@ const goalsUseCases = new GoalsUseCases(
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases, salesUseCases);
 const insightsUseCases = new InsightsUseCases(insightsRepo);
 
+const googlePlayNotificationsUseCases = new GooglePlayNotificationsUseCases(
+  subscriptionRepo,
+  googlePlayClient,
+  subscriptionUseCases,
+);
+
 // Payments (Stripe)
 const stripeClient = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
 const stripeUseCases = new StripeUseCases(stripeClient, subscriptionUseCases, {
@@ -409,7 +418,16 @@ app.use(
     webhookSecret: config.stripeWebhookSecret,
   }),
 );
-// Barreira contra abuso/rajada (webhook do Stripe fica de fora, montado antes).
+// Google Play RTDN via Pub/Sub push (autenticado por OIDC, sem JWT do app).
+app.use(
+  "/api/v1/webhooks",
+  createGooglePlayRtdnRouter(googlePlayNotificationsUseCases, {
+    packageName: config.googlePlayPackageName,
+    auth: config.googlePlayRtdn,
+    verifier: new GoogleOidcPushTokenVerifier(),
+  }),
+);
+// Barreira contra abuso/rajada (webhooks do Stripe e da Play ficam de fora, montados antes).
 app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
 const sharedRateLimitStore = createPostgresRateLimitStore(db);

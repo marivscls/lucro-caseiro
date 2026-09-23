@@ -24,6 +24,9 @@ const baseEnvSchema = z.object({
   CORS_ORIGIN: z.string().default(""),
   GOOGLE_PLAY_PACKAGE_NAME: z.string().default("br.com.orionseven.lucrocaseiro"),
   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: z.string().default(""),
+  // RTDN (Pub/Sub push): sem as duas, POST /api/v1/webhooks/google-play responde 503.
+  GOOGLE_PLAY_RTDN_AUDIENCE: z.string().default(""),
+  GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
   STRIPE_PRICE_ESSENTIAL_MONTHLY_ID: z.string().default(""),
@@ -101,6 +104,10 @@ export const config = {
   ].filter((origin, index, origins) => origins.indexOf(origin) === index),
   googlePlayPackageName: parsed.data.GOOGLE_PLAY_PACKAGE_NAME,
   googlePlayServiceAccountJson: parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,
+  googlePlayRtdn: {
+    audience: parsed.data.GOOGLE_PLAY_RTDN_AUDIENCE,
+    serviceAccountEmail: parsed.data.GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL,
+  },
   stripeSecretKey: parsed.data.STRIPE_SECRET_KEY,
   stripeWebhookSecret: parsed.data.STRIPE_WEBHOOK_SECRET,
   stripePrices: {
