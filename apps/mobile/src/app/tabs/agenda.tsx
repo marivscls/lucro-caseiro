@@ -29,11 +29,20 @@ import { OrderCard } from "../../features/orders/components/order-card";
 import { CompleteServiceModal } from "../../features/orders/components/complete-service-modal";
 import { OrderForm } from "../../features/orders/components/order-form";
 import { useAgendaTip } from "../../features/orders/use-agenda-tip";
+import {
+  AgendaDesktopDayStrip,
+  AgendaDesktopEmpty,
+  AgendaDesktopGroup,
+  AgendaDesktopTimeline,
+  AgendaDesktopTip,
+} from "../../features/orders/components/agenda-desktop";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
   STATUS_LABEL,
   agendaDateLimit,
+  agendaStripDays,
   agendaSummaryLabels,
+  agendaTimelineSlots,
   formatDateBR,
   groupOrders,
   type OrderGroup,
@@ -49,6 +58,7 @@ import { openWhatsApp, waMessages } from "../../shared/utils/whatsapp";
 import { showAlert } from "../../shared/components/alert-store";
 import { alertError } from "../../shared/utils/alerts";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import { DesktopStatRow, desktopPageContent } from "../../shared/layout/desktop-page";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../shared/components/standard-modal";
@@ -82,6 +92,15 @@ const GROUP_META: Record<string, { icon: AppIconName; tone: GroupTone }> = {
   later: { icon: "time-outline", tone: "default" },
   finished: { icon: "checkmark-done-circle", tone: "success" },
 };
+
+function groupToneColor(
+  theme: ReturnType<typeof useTheme>["theme"],
+  tone: GroupTone,
+): string {
+  if (tone === "alert") return theme.colors.alert;
+  if (tone === "success") return theme.colors.success;
+  return theme.colors.text;
+}
 
 function ModernOrderDetail({
   order,
@@ -766,6 +785,94 @@ function OrdersSummaryHeader({
   );
 }
 
+function DesktopOrdersList({
+  groups,
+  orders,
+  dayOptions,
+  onSelect,
+  selectedDate,
+  onSelectDate,
+  onOpenDayFilter,
+}: Readonly<{
+  groups: OrderGroup[];
+  orders: Order[];
+  dayOptions: Array<{ date: string; count: number }>;
+  onSelect: (id: string) => void;
+  selectedDate: string | null;
+  onSelectDate: (date: string | null) => void;
+  onOpenDayFilter: () => void;
+}>) {
+  const { theme } = useTheme();
+  const copy = useBusinessCopy();
+  const noun = { singular: copy.orderNoun, plural: copy.orderNounPlural };
+  const userId = useAuth((state) => state.userId);
+  const { visible: showTip, dismiss: dismissTip } = useAgendaTip(userId);
+  const { data: summary } = useOrdersSummary(
+    selectedDate ? { startDate: selectedDate, endDate: selectedDate } : undefined,
+  );
+  const summaryLabels = agendaSummaryLabels(selectedDate);
+  const totalOrders = dayOptions.reduce((total, option) => total + option.count, 0);
+  const days = agendaStripDays(dayOptions, new Date(), agendaDateLimit(true));
+  const toneColor = (tone: GroupTone) => groupToneColor(theme, tone);
+
+  return (
+    <ScrollView contentContainerStyle={desktopPageContent(true)}>
+      {summary ? (
+        <DesktopStatRow
+          items={[
+            { label: summaryLabels.total, value: formatMoney(summary.totalAmount) },
+            {
+              label: "A receber",
+              value: formatMoney(summary.toReceive),
+              color: theme.colors.premium,
+            },
+            {
+              label: "Recebido",
+              value: formatMoney(summary.received),
+              color: theme.colors.success,
+            },
+          ]}
+        />
+      ) : null}
+      <AgendaDesktopDayStrip
+        days={days}
+        totalOrders={totalOrders}
+        selectedDate={selectedDate}
+        noun={noun}
+        onSelect={onSelectDate}
+        onOpenFilter={onOpenDayFilter}
+      />
+      {selectedDate ? (
+        <AgendaDesktopTimeline slots={agendaTimelineSlots(orders)} />
+      ) : null}
+      {groups.length === 0 ? (
+        <AgendaDesktopEmpty
+          title="Nenhuma encomenda nesse dia"
+          description="Escolha outra data ou cadastre uma nova encomenda."
+        />
+      ) : null}
+      {groups.map((group) => {
+        const meta = GROUP_META[group.key] ?? {
+          icon: "calendar-outline" as const,
+          tone: "default" as const,
+        };
+        return (
+          <AgendaDesktopGroup
+            key={group.key}
+            title={group.title}
+            icon={meta.icon}
+            color={toneColor(meta.tone)}
+            orders={group.orders}
+            noun={noun}
+            onSelect={onSelect}
+          />
+        );
+      })}
+      {showTip ? <AgendaDesktopTip onDismiss={dismissTip} /> : null}
+    </ScrollView>
+  );
+}
+
 function OrdersList({
   groups,
   orders,
@@ -788,11 +895,7 @@ function OrdersList({
   const agColors = agendaPalette(theme);
   const userId = useAuth((state) => state.userId);
   const { visible: showTip, dismiss: dismissTip } = useAgendaTip(userId);
-  const toneColor = (tone: GroupTone) => {
-    if (tone === "alert") return theme.colors.alert;
-    if (tone === "success") return theme.colors.success;
-    return theme.colors.text;
-  };
+  const toneColor = (tone: GroupTone) => groupToneColor(theme, tone);
 
   return (
     <ScrollView
@@ -1362,6 +1465,18 @@ function AgendaContent() {
         />
       );
     }
+    if ((orders?.length ?? 0) === 0 && isDesktop) {
+      return (
+        <ScrollView contentContainerStyle={desktopPageContent(true)}>
+          <AgendaDesktopEmpty
+            title="Sua agenda está vazia"
+            description="Cadastre uma encomenda com data de entrega para começar a se organizar."
+            actionLabel={createOrderLabel}
+            onAction={() => setShowCreate(true)}
+          />
+        </ScrollView>
+      );
+    }
     if ((orders?.length ?? 0) === 0) {
       return (
         <EmptyState
@@ -1376,8 +1491,9 @@ function AgendaContent() {
         />
       );
     }
+    const List = isDesktop ? DesktopOrdersList : OrdersList;
     return (
-      <OrdersList
+      <List
         groups={groups}
         orders={visibleOrders}
         dayOptions={dayFilterOptions}

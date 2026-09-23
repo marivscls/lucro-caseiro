@@ -38,6 +38,12 @@ receita ao entregar.
 
 ## Components
 
+### `agenda-desktop.tsx` (desktop)
+
+`AgendaDesktopDayStrip`, `AgendaDesktopGroup`, `AgendaDesktopTimeline`,
+`AgendaDesktopEmpty` e `AgendaDesktopTip`: apresentação da Agenda no desktop.
+`OrderCard` exporta `orderToneColors` e `orderIcon` para a tabela.
+
 ### `OrderCard`
 
 - **Props:** `{ order: Order; onPress?: () => void }`
@@ -175,3 +181,21 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Cadastro em etapas — 2026-09-09
 
 Encomendas e atendimentos usam três etapas: pedido, serviço e cliente; data, horário e valores; detalhes e confirmação. Dependências de serviço/local são resolvidas antes da agenda, e erros finais levam a pessoa de volta à etapa correspondente.
+
+## Desktop (web ≥ 1024px) — 2026-09-23
+
+Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px idênticas).
+
+- Página em `desktopPageContent`: `DesktopStatRow` com total, a receber e recebido
+  (mesmos valores de `OrdersSummaryHeader`, período segue o dia escolhido).
+- `AgendaDesktopDayStrip`: cartão com o total geral + 7 dias (`agendaStripDays`) em cartões de 96 px,
+  número do dia em 28 px e contagem com ícone ou "Livre"; "Todas as datas" abre o mesmo
+  `DayFilterModal`.
+- Cada grupo de `groupOrders` vira `AgendaDesktopGroup`: título de 22 px com contagem
+  (`agendaDayCountLabel`) e `DesktopTable` (encomenda e cliente, entrega, valor e falta,
+  status). A linha abre o mesmo detalhe (`ModernOrderDetail`).
+- Dia escolhido: `AgendaDesktopTimeline` mostra `agendaTimelineSlots` (8h às 18h, 30 min)
+  em grade, no lugar da lista de 20 linhas.
+- Agenda vazia e dia sem encomenda: cartão tracejado (`AgendaDesktopEmpty`) na coluna.
+- `agendaStripDays`, `agendaDayCountLabel` e `agendaTimelineSlots` são puras e testadas
+  em `domain.test.ts`.
