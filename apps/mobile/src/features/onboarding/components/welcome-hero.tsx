@@ -103,17 +103,11 @@ export function WelcomeHero({
     </View>
   );
 
-  const reassurance = (
-    <Typography variant="caption" style={{ textAlign: "center" }}>
-      Leva menos de um minuto. Não pedimos cartão.
-    </Typography>
-  );
-
   const content = (
     <View
       style={{
         // No computador os blocos se espalham na altura da ilustração: título no
-        // topo dela, "Leva menos de um minuto" na base e espaços iguais entre eles.
+        // topo dela, botões na base e espaços iguais entre os blocos.
         gap: wide ? undefined : GROUP_GAP,
         flex: wide ? 1 : undefined,
         justifyContent: wide ? "space-between" : "flex-start",
@@ -166,11 +160,7 @@ export function WelcomeHero({
       <View style={{ gap: ITEM_GAP }}>
         <Button title="Criar conta grátis" size="lg" onPress={onCreateAccount} />
         <Button title="Já tenho conta" variant="outline" size="lg" onPress={onLogin} />
-        {/* No celular a nota fica colada nos botões para caber na primeira tela. */}
-        {wide ? null : reassurance}
       </View>
-
-      {wide ? reassurance : null}
     </View>
   );
 
