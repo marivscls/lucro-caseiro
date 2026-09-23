@@ -15,7 +15,7 @@ export function validateEmail(email: string): ValidationResult {
   const [local, domain] = email.trim().split("@");
   const isValidFormat = hasAtSign && !!local && !!domain && domain.includes(".");
   if (!isValidFormat) {
-    errors.push("E-mail invalido. Use o formato: nome@exemplo.com");
+    errors.push("E-mail inválido. Use o formato: nome@exemplo.com");
   }
 
   return { valid: errors.length === 0, errors };
@@ -33,18 +33,6 @@ export function validatePassword(password: string): ValidationResult {
     errors.push("Mínimo 8 caracteres");
   }
 
-  if (!/[A-Z]/.test(password)) {
-    errors.push("Pelo menos 1 letra maiuscula");
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push("Pelo menos 1 letra minuscula");
-  }
-
-  if (!/\d/.test(password)) {
-    errors.push("Pelo menos 1 número");
-  }
-
   return { valid: errors.length === 0, errors };
 }
 
@@ -58,20 +46,4 @@ export function validateName(name: string): ValidationResult {
   }
 
   return { valid: errors.length === 0, errors };
-}
-
-export function getPasswordStrength(password: string): "weak" | "medium" | "strong" {
-  if (!password || password.length < 8) return "weak";
-
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (password.length >= 12) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 2) return "weak";
-  if (score <= 4) return "medium";
-  return "strong";
 }

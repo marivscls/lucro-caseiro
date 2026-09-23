@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  getPasswordStrength,
-  validateEmail,
-  validateName,
-  validatePassword,
-} from "./validation";
+import { validateEmail, validateName, validatePassword } from "./validation";
 
 describe("validateEmail", () => {
   it("aceita um e-mail bem formado", () => {
@@ -30,8 +25,9 @@ describe("validateEmail", () => {
 });
 
 describe("validatePassword", () => {
-  it("aceita senha forte com todos os requisitos", () => {
+  it("aceita qualquer senha com 8 caracteres ou mais", () => {
     expect(validatePassword("Senha123")).toEqual({ valid: true, errors: [] });
+    expect(validatePassword("bolinhos")).toEqual({ valid: true, errors: [] });
   });
 
   it("exige senha nao vazia", () => {
@@ -43,9 +39,7 @@ describe("validatePassword", () => {
   it("acumula os erros que faltam", () => {
     const r = validatePassword("abc");
     expect(r.valid).toBe(false);
-    expect(r.errors).toContain("Mínimo 8 caracteres");
-    expect(r.errors).toContain("Pelo menos 1 letra maiuscula");
-    expect(r.errors).toContain("Pelo menos 1 número");
+    expect(r.errors).toEqual(["Mínimo 8 caracteres"]);
   });
 });
 
@@ -60,20 +54,5 @@ describe("validateName", () => {
 
   it("exige pelo menos 2 caracteres", () => {
     expect(validateName("M").errors).toContain("Nome deve ter pelo menos 2 caracteres");
-  });
-});
-
-describe("getPasswordStrength", () => {
-  it("classifica como fraca quando curta", () => {
-    expect(getPasswordStrength("abc")).toBe("weak");
-    expect(getPasswordStrength("")).toBe("weak");
-  });
-
-  it("classifica como media com requisitos parciais", () => {
-    expect(getPasswordStrength("Senha123")).toBe("medium");
-  });
-
-  it("classifica como forte com tamanho e variedade", () => {
-    expect(getPasswordStrength("SenhaForte123!")).toBe("strong");
   });
 });

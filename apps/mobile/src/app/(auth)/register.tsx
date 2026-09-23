@@ -11,8 +11,8 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { Image, Pressable, type TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { trackAnalyticsAction } from "../../features/analytics/tracker";
@@ -20,7 +20,6 @@ import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-
 import { EmailTypoHint } from "../../shared/components/email-typo-hint";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
-  getPasswordStrength,
   validateEmail,
   validateName,
   validatePassword,
@@ -32,56 +31,13 @@ import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { brandLogoByMode } from "../../shared/brand-logo";
 
-function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
-  const { theme } = useTheme();
-  const strength = getPasswordStrength(password);
-
-  if (!password) return null;
-
-  const config = {
-    weak: { color: theme.colors.alert, label: "Fraca", width: "33%" },
-    medium: { color: theme.colors.yellow, label: "Média", width: "66%" },
-    strong: { color: theme.colors.success, label: "Forte", width: "100%" },
-  } as const;
-
-  const c = config[strength];
-
-  return (
-    <View style={{ gap: spacing.xs }}>
-      <View
-        style={{
-          height: 8,
-          backgroundColor: theme.colors.surface,
-          borderRadius: radii.full,
-        }}
-      >
-        <View
-          style={{
-            height: 8,
-            width: c.width,
-            backgroundColor: c.color,
-            borderRadius: radii.full,
-          }}
-        />
-      </View>
-      <Typography variant="bodyBold" color={c.color} style={{ fontSize: 14 }}>
-        Senha {c.label.toLowerCase()}
-      </Typography>
-    </View>
-  );
-}
-
 function PasswordRules({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
 
   if (!password) return null;
 
-  const rules = [
-    { label: "Mínimo 8 caracteres", met: password.length >= 8 },
-    { label: "1 letra maiúscula", met: /[A-Z]/.test(password) },
-    { label: "1 letra minúscula", met: /[a-z]/.test(password) },
-    { label: "1 número", met: /\d/.test(password) },
-  ];
+  // Só o tamanho mínimo: regras de maiúscula/número travavam o cadastro.
+  const rules = [{ label: "Mínimo 8 caracteres", met: password.length >= 8 }];
 
   return (
     <View style={{ gap: spacing.xs }}>
@@ -130,7 +86,6 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -139,6 +94,8 @@ export default function RegisterScreen() {
   const [emailError, setEmailError] = useState<string>();
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   function validateForm(): boolean {
     let valid = true;
@@ -181,12 +138,8 @@ export default function RegisterScreen() {
     if (!validateForm()) return;
 
     setRegisterLoading(true);
-    const result = await signUpWithEmail(
-      email,
-      password,
-      name,
-      businessName || undefined,
-    );
+    // O nome do negócio é perguntado no primeiro acesso, não aqui.
+    const result = await signUpWithEmail(email, password, name);
     setRegisterLoading(false);
 
     if (result.error) {
@@ -301,6 +254,9 @@ export default function RegisterScreen() {
               label="Seu nome"
               placeholder="Como podemos te chamar?"
               autoComplete="name"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => emailRef.current?.focus()}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -312,11 +268,15 @@ export default function RegisterScreen() {
 
           <ValidationField {...formValidation.field("email")}>
             <Input
+              ref={emailRef}
               label="E-mail"
               placeholder="seu@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => passwordRef.current?.focus()}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -340,10 +300,15 @@ export default function RegisterScreen() {
           <View style={{ gap: spacing.sm }}>
             <ValidationField {...formValidation.field("password")}>
               <Input
+                ref={passwordRef}
                 label="Senha"
-                placeholder="Crie uma senha forte"
+                placeholder="Mínimo de 8 caracteres"
                 secureTextEntry={!showPassword}
                 autoComplete="new-password"
+                returnKeyType="go"
+                onSubmitEditing={() => {
+                  void handleRegister();
+                }}
                 value={password}
                 onChangeText={(text) => {
                   setPassword(text);
@@ -380,16 +345,8 @@ export default function RegisterScreen() {
                 }
               />
             </ValidationField>
-            <PasswordStrengthBar password={password} />
             <PasswordRules password={password} />
           </View>
-
-          <Input
-            label="Nome do negócio (opcional)"
-            placeholder="Ex: Meu negócio"
-            value={businessName}
-            onChangeText={setBusinessName}
-          />
 
           <Button
             title="Criar minha conta"
@@ -405,13 +362,8 @@ export default function RegisterScreen() {
               void handleRegister();
             }}
             loading={registerLoading}
-            disabled={
-              registerLoading ||
-              googleLoading ||
-              !name.trim() ||
-              !email.trim() ||
-              !password.trim()
-            }
+            // Fica ativo com campos vazios: ao tocar, mostra o que falta.
+            disabled={registerLoading || googleLoading}
           />
         </View>
 
