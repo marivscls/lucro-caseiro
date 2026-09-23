@@ -149,11 +149,11 @@ function ModernOrderDetail({
   function handleDeliver() {
     showAlert({
       title: "Marcar como entregue?",
-      message: "Deseja registrar essa encomenda como receita no financeiro?",
+      message: "Quer lançar o valor desta encomenda como entrada no financeiro?",
       buttons: [
         { text: "Cancelar", style: "cancel" },
         {
-          text: "Sem receita",
+          text: "Não lançar",
           onPress: () => {
             deliverOrder.mutate(
               { id: order.id, data: { registerIncome: false } },
@@ -162,7 +162,7 @@ function ModernOrderDetail({
           },
         },
         {
-          text: "Registrar receita",
+          text: "Lançar como entrada",
           onPress: () => {
             deliverOrder.mutate(
               { id: order.id, data: { registerIncome: true } },
@@ -176,8 +176,8 @@ function ModernOrderDetail({
 
   function handleDelete() {
     showAlert({
-      title: "Excluir encomenda",
-      message: "Tem certeza?",
+      title: "Excluir encomenda?",
+      message: `"${order.title}" sai da agenda e não pode ser recuperada.`,
       buttons: [
         { text: "Cancelar", style: "cancel" },
         {

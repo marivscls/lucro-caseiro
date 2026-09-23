@@ -103,7 +103,7 @@ interface CreateProductFormProps {
 }
 
 const PRODUCT_FORM_STEPS = [
-  { label: "Essencial", title: "Informações e preço" },
+  { label: "Nome e preço", title: "Informações e preço" },
   { label: "Detalhes", title: "Tipo, variações e apresentação" },
   { label: "Estoque", title: "Estoque e identificação" },
 ] as const;

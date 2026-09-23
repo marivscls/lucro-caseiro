@@ -69,7 +69,7 @@ export const FEATURED_MANAGEMENT_ITEMS = [
 
 export const MORE_MANAGEMENT_ITEMS = [
   {
-    title: "Insights",
+    title: "Resultados",
     description: "Gráficos e desempenho",
     icon: "bar-chart-outline",
     route: "/insights",

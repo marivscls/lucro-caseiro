@@ -151,7 +151,7 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <AppIcon name="bar-chart" size={22} color={theme.colors.premium} />
         <Typography variant="h3" color={theme.colors.premium}>
-          Insights completos
+          Resultados completos
         </Typography>
       </View>
       <Typography variant="body" color={theme.colors.textSecondary}>
@@ -541,7 +541,7 @@ export default function InsightsScreen() {
       ) : null}
       {!loadingProfile && !isLoading && error ? (
         <EmptyState
-          title="Não foi possível carregar os Insights"
+          title="Não foi possível carregar os resultados"
           description="Verifique sua conexão e tente novamente."
           action={
             <Button

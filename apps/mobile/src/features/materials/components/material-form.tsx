@@ -443,8 +443,8 @@ export function MaterialForm({
   function handleDelete() {
     if (!material) return;
     showAlert({
-      title: `Excluir ${experienceCopy.materialNoun}`,
-      message: "Tem certeza?",
+      title: `Excluir ${experienceCopy.materialNoun}?`,
+      message: `"${material.name}" será excluído e não pode ser recuperado.`,
       buttons: [
         { text: "Cancelar", style: "cancel" },
         {

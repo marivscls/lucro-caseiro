@@ -222,7 +222,7 @@ function signUpErrorMessage(error: AuthFailure) {
     message.includes("password should be") ||
     message.includes("weak password")
   ) {
-    return "Senha muito fraca. Use pelo menos 8 caracteres com letras e numeros.";
+    return "Senha muito fraca. Use pelo menos 8 caracteres com letras e números.";
   }
   if (code === "email_address_invalid" || message.includes("invalid email")) {
     return "Confira o e-mail digitado e tente novamente.";

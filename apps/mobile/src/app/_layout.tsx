@@ -381,7 +381,7 @@ function AppContent() {
             name="insights"
             options={{
               headerShown: !showDesktopShell,
-              title: "Insights",
+              title: "Resultados",
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.text,
             }}

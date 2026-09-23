@@ -557,13 +557,13 @@ export default function HomeScreen() {
         {homeNextStep === "register-product" ? (
           <ContextualNextCard
             accessibilityHint="Abre o cadastro de produto"
-            accessibilityLabel="Comece pelo essencial. Cadastrar produto"
+            accessibilityLabel="Comece pelo primeiro produto. Cadastrar produto"
             action="Cadastrar produto"
             description="Cadastre um produto para liberar estoque e lucro."
             icon="trending-up-outline"
             iconBackground={colors.lime}
             iconColor={colors.onLime}
-            title="Comece pelo essencial"
+            title="Comece pelo primeiro produto"
             onPress={handleProductRegistration}
           />
         ) : null}
