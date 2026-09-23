@@ -30,6 +30,9 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
 - `packages/database/src/migrations/034_product_analytics.sql`: instalações e atividade.
 - `packages/database/src/migrations/035_analytics_behavior_events.sql`: eventos e segurança.
+- `packages/database/src/migrations/20260923100000_analytics_event_name_format.sql`: troca a
+  lista fechada de nomes no banco por uma checagem de formato.
+- `analytics.pglite.test.ts`: persistência e relatório contra as migrations reais em PGlite.
 
 ## Data Model
 
@@ -45,6 +48,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 - A primeira abertura nunca é sobrescrita.
 - Trocar de conta na mesma instalação não reatribui o histórico da conta anterior.
 - A atividade diária é idempotente pela chave composta.
+- A allowlist de nomes vive no contrato e no zod da API; o banco só garante o formato
+  `^[a-z][a-z0-9_]{0,79}$`, para que um nome novo do contrato não seja descartado em silêncio.
 
 ## Operations
 
@@ -120,3 +125,10 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
 ## Orientação contextual — 2026-09-07
 
 O contrato compartilhado aceita áreas e ações de orientação em allowlist (apresentação, dispensa, ajuda, início, conclusão e retomada), erros de produto/financeiro por identificadores fixos, cadastros de apoio, resultado de preço e conteúdo de catálogo publicado. `catalog_published` continua registrando apenas ativação de link; `catalog_content_published` exige salvamento confirmado no editor e itens públicos. Nenhum texto de formulário é aceito como metadata adicional. Coleta e permissões mantêm o comportamento anterior. Os novos marcos são definidos em `docs/orientacao-contextual-primeiro-valor.md`; o relatório histórico não ganha inferências causais automaticamente.
+
+## Nomes de eventos no banco — 2026-09-23
+
+A checagem `analytics_events_event_name_check` (037) listava só 17 ações e 29 telas; ações de
+cadastros de apoio, orientação, validação e a tela `services` falhavam no insert e, como a coleta é
+best effort, se perdiam sem erro visível. A migration `20260923100000_analytics_event_name_format.sql`
+substitui a lista por `analytics_events_event_name_format_check` (formato apenas).
