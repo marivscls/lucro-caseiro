@@ -2,7 +2,13 @@ import React from "react";
 import { Text, type TextProps, type TextStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes, homeTypography, moneyTypography } from "../theme";
+import {
+  desktopTypography,
+  fonts,
+  fontSizes,
+  homeTypography,
+  moneyTypography,
+} from "../theme";
 
 type TypographyVariant =
   | "display"
@@ -37,7 +43,18 @@ type TypographyVariant =
   | "homeProgressStrong"
   | "homeShortcut"
   | "homeNavigation"
-  | "homeNavigationActive";
+  | "homeNavigationActive"
+  | "desktopPageTitle"
+  | "desktopPageSubtitle"
+  | "desktopSection"
+  | "desktopCardTitle"
+  | "desktopBody"
+  | "desktopBodyStrong"
+  | "desktopMeta"
+  | "desktopFieldLabel"
+  | "desktopMetricLabel"
+  | "desktopMetric"
+  | "desktopTotal";
 
 interface TypographyProps extends TextProps {
   variant?: TypographyVariant;
@@ -224,6 +241,32 @@ export function Typography({
     homeNavigationActive: {
       ...homeTypography.navigationActive,
       color: theme.colors.text,
+    },
+    // Escala do desktop (web >= 1024px): use apenas quando useDesktopLayout().
+    desktopPageTitle: { ...desktopTypography.pageTitle, color: theme.colors.text },
+    desktopPageSubtitle: {
+      ...desktopTypography.pageSubtitle,
+      color: theme.colors.textSecondary,
+    },
+    desktopSection: { ...desktopTypography.section, color: theme.colors.text },
+    desktopCardTitle: { ...desktopTypography.cardTitle, color: theme.colors.text },
+    desktopBody: { ...desktopTypography.body, color: theme.colors.textSecondary },
+    desktopBodyStrong: { ...desktopTypography.bodyStrong, color: theme.colors.text },
+    desktopMeta: { ...desktopTypography.meta, color: theme.colors.textSecondary },
+    desktopFieldLabel: { ...desktopTypography.fieldLabel, color: theme.colors.text },
+    desktopMetricLabel: {
+      ...desktopTypography.metricLabel,
+      color: theme.colors.textSecondary,
+    },
+    desktopMetric: {
+      ...desktopTypography.metric,
+      color: theme.colors.text,
+      fontVariant: ["tabular-nums"],
+    },
+    desktopTotal: {
+      ...desktopTypography.total,
+      color: theme.colors.text,
+      fontVariant: ["tabular-nums"],
     },
   };
 

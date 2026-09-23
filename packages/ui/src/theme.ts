@@ -175,6 +175,41 @@ export const homeTypography = {
 } as const;
 
 /**
+ * Escala tipografica do desktop (web >= 1024px). Mesma voz do Inicio no
+ * computador: titulo de pagina em 36px, texto corrido em 16 e legendas em 14.
+ * Use so quando `useDesktopLayout()` for verdadeiro; o celular segue a escala
+ * padrao (`Typography` variantes sem prefixo).
+ */
+export const desktopTypography = {
+  pageTitle: {
+    fontSize: 36,
+    fontFamily: fonts.extraBold,
+    lineHeight: 42,
+    letterSpacing: -0.8,
+  },
+  pageSubtitle: { fontSize: 17, fontFamily: fonts.regular, lineHeight: 26 },
+  section: { fontSize: 22, fontFamily: fonts.bold, lineHeight: 30, letterSpacing: -0.3 },
+  cardTitle: { fontSize: 18, fontFamily: fonts.bold, lineHeight: 26 },
+  body: { fontSize: fontSizes.md, fontFamily: fonts.regular, lineHeight: 24 },
+  bodyStrong: { fontSize: fontSizes.md, fontFamily: fonts.bold, lineHeight: 24 },
+  meta: { fontSize: fontSizes.sm, fontFamily: fonts.medium, lineHeight: 20 },
+  fieldLabel: { fontSize: 15, fontFamily: fonts.semiBold, lineHeight: 22 },
+  metricLabel: { fontSize: 15, fontFamily: fonts.medium, lineHeight: 22 },
+  metric: {
+    fontSize: 28,
+    fontFamily: fonts.extraBold,
+    lineHeight: 34,
+    letterSpacing: -0.4,
+  },
+  total: {
+    fontSize: 36,
+    fontFamily: fonts.extraBold,
+    lineHeight: 42,
+    letterSpacing: -0.6,
+  },
+} as const;
+
+/**
  * Escala de valores monetarios. ExtraBold + tabular-nums.
  * money = preco em card/lista; moneyLg = resumo da tela; moneyHero = um destaque.
  */
