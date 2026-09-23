@@ -329,12 +329,15 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   }
                   if (
                     formStep === 2 &&
-                    items.some(
-                      (item) =>
+                    items.some((item) => {
+                      const quantity = parseNumber(item.quantity);
+                      return (
                         !item.description.trim() ||
-                        parseNumber(item.quantity) <= 0 ||
-                        !item.unitPrice.trim(),
-                    )
+                        !Number.isFinite(quantity) ||
+                        quantity <= 0 ||
+                        !item.unitPrice.trim()
+                      );
+                    })
                   ) {
                     alertValidation(
                       "Confira descrição, quantidade e preço de cada item.",
