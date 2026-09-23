@@ -6,6 +6,7 @@ import {
   type Order,
   type Product,
   type Sale,
+  type SuppliersOverview,
 } from "@lucro-caseiro/contracts";
 
 import { currentDemoAccount, userIdFromToken } from "./auth";
@@ -84,6 +85,14 @@ export function paginate<T>(items: T[], query: URLSearchParams) {
  */
 export function emptyCollection() {
   return Object.assign([], { items: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+}
+
+/** Resumo de fornecedores vazio (`SuppliersOverviewDto`). */
+function emptySuppliersOverview(): SuppliersOverview {
+  return {
+    month: { totalAmount: 0, purchaseCount: 0, supplierCount: 0, planningStatus: "none" },
+    items: [],
+  };
 }
 
 function isEmptyCollection(value: unknown[]): boolean {
@@ -721,6 +730,10 @@ const routes: [string, RegExp, Handler][] = [
     new RegExp(`^/api/v1/orders/${ID}$`),
     ({ data }, [id]) => removeById(data.orders, id),
   ],
+
+  // Fornecedores: a demo não guarda fornecedores, então o resumo vem zerado,
+  // no mesmo formato de `SuppliersOverviewDto` da API real.
+  ["GET", /^\/api\/v1\/suppliers\/overview$/, () => ok(emptySuppliersOverview())],
 
   // Resultados e precificação
   ["GET", /^\/api\/v1\/insights$/, insights],

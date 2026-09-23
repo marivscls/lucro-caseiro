@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { SuppliersOverviewDto } from "@lucro-caseiro/contracts";
 
 import { handleMockRequest, paginate, type MockRequest } from "./api";
 import {
@@ -177,6 +178,30 @@ describe("mock api — dados da confeitaria de exemplo", () => {
     // Assert
     expect(summary.totalIncome).toBeGreaterThan(summary.totalExpenses);
     expect(summary.profit).toBeCloseTo(summary.totalIncome - summary.totalExpenses, 2);
+  });
+});
+
+describe("mock api — fornecedores", () => {
+  it("responde o resumo de fornecedores no formato da API real", () => {
+    // Arrange
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { request } = makeSut();
+
+    // Act
+    const result = request("GET", "/api/v1/suppliers/overview");
+
+    // Assert
+    expect(result.status).toBe(200);
+    expect(SuppliersOverviewDto.parse(result.body)).toEqual({
+      month: {
+        totalAmount: 0,
+        purchaseCount: 0,
+        supplierCount: 0,
+        planningStatus: "none",
+      },
+      items: [],
+    });
+    expect(warn).not.toHaveBeenCalled();
   });
 });
 

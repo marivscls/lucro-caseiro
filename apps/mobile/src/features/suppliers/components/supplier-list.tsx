@@ -286,9 +286,9 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
   const header = (
     <View style={{ gap: spacing.lg }}>
       <MonthlyPanel
-        totalAmount={query.data?.month.totalAmount ?? 0}
-        purchaseCount={query.data?.month.purchaseCount ?? 0}
-        supplierCount={query.data?.month.supplierCount ?? 0}
+        totalAmount={query.data?.month?.totalAmount ?? 0}
+        purchaseCount={query.data?.month?.purchaseCount ?? 0}
+        supplierCount={query.data?.month?.supplierCount ?? 0}
       />
 
       <View
