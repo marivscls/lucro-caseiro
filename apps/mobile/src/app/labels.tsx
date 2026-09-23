@@ -75,6 +75,11 @@ import {
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
+import {
+  LabelDesktopCard,
+  LabelsDesktopEmpty,
+} from "../features/labels/components/labels-desktop";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
@@ -611,23 +616,31 @@ function LabelsSummary({ totalCount }: Readonly<{ totalCount: number }>) {
           gap: spacing.sm,
         }}
       >
-        <Typography
-          variant="label"
-          color={palette.rose}
-          numberOfLines={1}
-          style={{ fontFamily: fonts.bold, letterSpacing: 1.4 }}
-        >
-          SUA COLEÇÃO
-        </Typography>
+        {isDesktop ? null : (
+          <Typography
+            variant="label"
+            color={palette.rose}
+            numberOfLines={1}
+            style={{ fontFamily: fonts.bold, letterSpacing: 1.4 }}
+          >
+            SUA COLEÇÃO
+          </Typography>
+        )}
         <Typography variant="h1" color={palette.onWine} numberOfLines={2}>
           {totalCount} {countLabel}
         </Typography>
-        <Typography
-          color={palette.onWine}
-          style={{ fontFamily: fonts.medium, fontSize: compact ? 13 : fontSizes.sm }}
-        >
-          prontas para imprimir
-        </Typography>
+        {isDesktop ? (
+          <Typography variant="desktopBody" color={palette.onWine}>
+            prontas para imprimir
+          </Typography>
+        ) : (
+          <Typography
+            color={palette.onWine}
+            style={{ fontFamily: fonts.medium, fontSize: compact ? 13 : fontSizes.sm }}
+          >
+            prontas para imprimir
+          </Typography>
+        )}
       </View>
 
       <View
@@ -659,6 +672,7 @@ function FilterChip({
 }: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
+  const isDesktop = useDesktopLayout();
   return (
     <Pressable
       onPress={onPress}
@@ -666,8 +680,8 @@ function FilterChip({
       accessibilityLabel={label}
       accessibilityState={{ selected }}
       style={({ pressed }) => ({
-        minHeight: 44,
-        height: 44,
+        minHeight: isDesktop ? 48 : 44,
+        height: isDesktop ? 48 : 44,
         paddingHorizontal: spacing.lg,
         borderRadius: radii.full,
         borderWidth: 1,
@@ -679,9 +693,13 @@ function FilterChip({
       })}
     >
       <Typography
-        variant="bodyBold"
+        variant={isDesktop ? "desktopBodyStrong" : "bodyBold"}
         color={selected ? palette.onWine : palette.ink}
-        style={{ fontFamily: selected ? fonts.bold : fonts.semiBold, fontSize: 14 }}
+        style={
+          isDesktop
+            ? undefined
+            : { fontFamily: selected ? fonts.bold : fonts.semiBold, fontSize: 14 }
+        }
       >
         {label}
       </Typography>
@@ -814,6 +832,137 @@ export default function LabelsScreen() {
     }
   }
 
+  function renderDesktopList() {
+    let body: React.ReactNode = null;
+    if (items.length === 0) {
+      body = (
+        <LabelsDesktopEmpty
+          title="Nenhuma etiqueta ainda"
+          description="Escolha um produto e crie uma etiqueta pronta para imprimir."
+          actionLabel="Nova etiqueta"
+          onAction={() => setShowCreate(true)}
+        />
+      );
+    } else if (visible.length === 0) {
+      body = (
+        <LabelsDesktopEmpty
+          title="Nenhuma etiqueta encontrada"
+          description="Ajuste a busca ou o filtro."
+        />
+      );
+    } else {
+      body = (
+        <DesktopGrid minColumnWidth={280} maxColumns={3}>
+          {visible.map((label) => (
+            <LabelDesktopCard
+              key={label.id}
+              label={label}
+              category={labelCategory(label, categoryByProductId)}
+              mostUsed={label.id === mostUsedId}
+              onPress={() => openDetail(label.id)}
+              onEdit={() => openDetail(label.id, true)}
+              onPrint={() => void printLabel(label)}
+              onDelete={() => confirmDelete(label.id)}
+            />
+          ))}
+        </DesktopGrid>
+      );
+    }
+    return (
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={desktopPageContent(true)}
+      >
+        <LabelsSummary totalCount={totalCount} />
+        {items.length > 0 ? (
+          <View style={{ gap: spacing.lg }}>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: spacing.md,
+              }}
+            >
+              <View
+                style={{
+                  flexGrow: 1,
+                  flexBasis: 280,
+                  minWidth: 280,
+                  minHeight: 52,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: palette.border,
+                  backgroundColor: palette.white,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.md,
+                  gap: spacing.sm,
+                }}
+              >
+                <AppIcon name="search-outline" size={20} color={palette.muted} />
+                <CenteredTextInput
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Buscar etiqueta"
+                  placeholderTextColor={palette.muted}
+                  accessibilityLabel="Buscar etiqueta"
+                  returnKeyType="search"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    color: palette.ink,
+                    fontSize: fontSizes.md,
+                    fontFamily: fonts.regular,
+                    paddingVertical: 0,
+                  }}
+                />
+                {search.length > 0 ? (
+                  <Pressable
+                    onPress={() => setSearch("")}
+                    accessibilityRole="button"
+                    accessibilityLabel="Limpar busca"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AppIcon name="close-circle" size={20} color={palette.muted} />
+                  </Pressable>
+                ) : null}
+              </View>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {LABEL_LIST_FILTERS.map((filter) => (
+                  <FilterChip
+                    key={filter.value}
+                    label={filter.label}
+                    selected={listFilter === filter.value}
+                    onPress={() => setListFilter(filter.value)}
+                  />
+                ))}
+              </View>
+            </View>
+            <View
+              style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.md }}
+            >
+              <Typography variant="desktopSection" accessibilityRole="header">
+                Suas etiquetas
+              </Typography>
+              <Typography variant="desktopMeta">
+                {visible.length} {visible.length === 1 ? "modelo" : "modelos"}
+              </Typography>
+            </View>
+          </View>
+        ) : null}
+        {body}
+      </ScrollView>
+    );
+  }
+
   function renderList() {
     if (isLoading) {
       return (
@@ -830,6 +979,7 @@ export default function LabelsScreen() {
         />
       );
     }
+    if (isDesktop) return renderDesktopList();
 
     return (
       <ScrollView
@@ -1017,7 +1167,7 @@ export default function LabelsScreen() {
 
       <View style={{ flex: 1 }}>{renderList()}</View>
 
-      {!isLoading && !error && items.length > 0 ? (
+      {!isDesktop && !isLoading && !error && items.length > 0 ? (
         <ScreenCreateBar title="+ Nova etiqueta" onPress={() => setShowCreate(true)} />
       ) : null}
 

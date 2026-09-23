@@ -56,6 +56,7 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 
 ## Components
 
+- `labels-desktop.tsx`: `LabelDesktopCard` e `LabelsDesktopEmpty` (galeria do desktop).
 - `CreateLabelForm`: modal de criação; recebe `visible`, `onClose`, `productId?` e
   `onSuccess?`, valida os campos, envia a etiqueta e pode exportá-la imediatamente.
 - `LabelPreview`: renderização compartilhada pelo formulário, detalhe e exportação.
@@ -207,3 +208,16 @@ O cadastro de etiqueta usa três etapas: produto e modelo; texto e datas; contat
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Título, categoria e data dos cards podem quebrar em linhas. Cabeçalhos das seções de formulário acomodam título e selo sem truncamento. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
 - 2026-09-19: edição de etiqueta antiga sem `productName` usa `labelPrintedName` (string vazia) em vez de `trim()` em `undefined`.
+
+## Desktop (web ≥ 1024px) — 2026-09-23
+
+Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px idênticas).
+
+- Página em `desktopPageContent`; painel vinho sem rótulo em caixa alta.
+- Busca e filtros (48 px, 16 px) na mesma barra; título "Suas etiquetas" de 22 px.
+- Galeria em `DesktopGrid` (até 3 colunas) com `LabelDesktopCard`: prévia ampliada da
+  miniatura, nome de 18 px, modelo, selo "Mais usada", data e ações visíveis
+  (Imprimir, Editar e menu com Excluir; mesmas ações do celular).
+- Sem etiquetas ou sem resultado: cartão tracejado (`LabelsDesktopEmpty`).
+- Sem `ScreenCreateBar` no desktop: "Nova etiqueta" fica no cabeçalho.
+- `CreateLabelForm` usa `DesktopStepper` e mostra o título da etapa uma vez (22 px).
