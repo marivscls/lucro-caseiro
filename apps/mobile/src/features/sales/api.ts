@@ -22,6 +22,9 @@ interface DaySummary {
 export interface SalesFilter {
   status?: string;
   clientId?: string;
+  /** ISO; a API compara com soldAt (inclusive). */
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export async function fetchSales(
@@ -33,6 +36,8 @@ export async function fetchSales(
   if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.status) params.set("status", opts.status);
   if (opts?.clientId) params.set("clientId", opts.clientId);
+  if (opts?.dateFrom) params.set("dateFrom", opts.dateFrom);
+  if (opts?.dateTo) params.set("dateTo", opts.dateTo);
 
   const query = params.toString();
   const queryString = query ? `?${query}` : "";

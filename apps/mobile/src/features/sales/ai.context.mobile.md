@@ -93,13 +93,13 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## API Integration
 
-| Endpoint                      | Verbo | Funcao              | Parametros                        |
-| ----------------------------- | ----- | ------------------- | --------------------------------- |
-| `/api/v1/sales`               | GET   | `fetchSales`        | `?page=N&status=paid&clientId=ID` |
-| `/api/v1/sales/:id`           | GET   | `fetchSale`         | path param `id`                   |
-| `/api/v1/sales/summary/today` | GET   | `fetchTodaySummary` | -                                 |
-| `/api/v1/sales`               | POST  | `createSale`        | body: `CreateSale`                |
-| `/api/v1/sales/:id/status`    | PATCH | `updateSaleStatus`  | body: `UpdateSaleStatus`          |
+| Endpoint                      | Verbo | Funcao              | Parametros                                                |
+| ----------------------------- | ----- | ------------------- | --------------------------------------------------------- |
+| `/api/v1/sales`               | GET   | `fetchSales`        | `?page=N&status=paid&clientId=ID&dateFrom=ISO&dateTo=ISO` |
+| `/api/v1/sales/:id`           | GET   | `fetchSale`         | path param `id`                                           |
+| `/api/v1/sales/summary/today` | GET   | `fetchTodaySummary` | -                                                         |
+| `/api/v1/sales`               | POST  | `createSale`        | body: `CreateSale`                                        |
+| `/api/v1/sales/:id/status`    | PATCH | `updateSaleStatus`  | body: `UpdateSaleStatus`                                  |
 
 ## Contracts
 
@@ -223,3 +223,7 @@ O detalhe destaca total neutro, status e data no topo. Cliente e pagamento usam 
 ## Venda começa pelos produtos — 2026-09-23
 
 A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida no dinheiro". A ordem é Produtos → Cliente → Pagamento → Revisão (`SALE_STEP_ORDER` em `sale-steps.ts`). Tocar em um cliente ou em "Venda avulsa" avança para o pagamento. O Voltar do cabeçalho e o Voltar do Android voltam uma etapa; só saem da tela na primeira etapa. Depois de registrar a venda não há anúncio em tela cheia, o pedido de avaliação acontece a partir da 5ª venda e a permissão de notificação passa a ser pedida.
+
+## Filtro por data na lista — 2026-09-23
+
+`fetchSales`/`fetchAllSales` aceitam `dateFrom` e `dateTo` (ISO), que a API já recebia e compara com `soldAt`. Usado pelo histórico do Início (início do mês anterior até agora).
