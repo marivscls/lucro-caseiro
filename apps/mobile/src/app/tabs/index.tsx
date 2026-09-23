@@ -432,7 +432,9 @@ export default function HomeScreen() {
     if (userId) dismissGettingStarted(userId);
   }
 
-  const firstName = profile?.name?.trim().split(/\s+/)[0] || "Maria";
+  // Sem nome inventado enquanto o perfil carrega.
+  const firstName = profile?.name?.trim().split(/\s+/)[0];
+  const greeting = firstName ? `Olá, ${firstName}!` : "Olá!";
   const showSalesLimitBanner = getLimitBannerState(limits, profile, "sales") !== null;
 
   function handleProductRegistration() {
@@ -490,7 +492,7 @@ export default function HomeScreen() {
             isDesktop ? (
               <ScreenHeader
                 help={helpButton}
-                title={`Olá, ${firstName}!`}
+                title={greeting}
                 subtitle={formattedDate()}
                 hideBack
               />
@@ -503,7 +505,7 @@ export default function HomeScreen() {
                     variant="homeTitle"
                     color={brand.id === "lucro-caseiro" ? colors.wine : theme.colors.text}
                   >
-                    Olá, {firstName}!
+                    {greeting}
                   </Typography>
                   <Typography variant="homeBody" style={{ marginTop: 2 }}>
                     {formattedDate()}
@@ -518,7 +520,7 @@ export default function HomeScreen() {
                   style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                 >
                   <AvatarCircle
-                    name={profile?.name ?? firstName}
+                    name={profile?.name ?? ""}
                     avatarUrl={profile?.avatarUrl}
                   />
                 </Pressable>
@@ -551,24 +553,7 @@ export default function HomeScreen() {
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
-        {showGettingStartedReopen ? (
-          <NextStepCard
-            compact={compact}
-            stage={gettingStartedStage}
-            onAction={() => {
-              if (userId) setManuallyOpenedGuideUserId(userId);
-            }}
-          />
-        ) : null}
-
-        {hasScheduling && (
-          <HomeDay query={ordersQuery} today={today} service={serviceBusiness} />
-        )}
-        <HomeQuickActions service={serviceBusiness} scheduling={hasScheduling} />
-        <HomeMoney today={today} orders={ordersQuery} scheduling={hasScheduling} />
-        <HomeAttention enabled={!serviceBusiness && stockEnabled} />
-        <HomeGoal query={goalQuery} onEdit={() => setShowGoalForm(true)} />
-
+        {/* O próximo passo vem logo abaixo da saudação, antes dos resumos. */}
         {homeNextStep === "register-product" ? (
           <ContextualNextCard
             accessibilityHint="Abre o cadastro de produto"
@@ -595,6 +580,30 @@ export default function HomeScreen() {
             title="Será que o preço cobre os custos?"
             onPress={() => router.push("/pricing")}
           />
+        ) : null}
+
+        {showGettingStartedReopen ? (
+          <NextStepCard
+            compact={compact}
+            stage={gettingStartedStage}
+            onAction={() => {
+              if (userId) setManuallyOpenedGuideUserId(userId);
+            }}
+          />
+        ) : null}
+
+        {hasScheduling && (
+          <HomeDay query={ordersQuery} today={today} service={serviceBusiness} />
+        )}
+        <HomeQuickActions service={serviceBusiness} scheduling={hasScheduling} />
+        {/* Dinheiro e meta só aparecem depois da primeira venda: antes disso
+            eram só seções com R$ 0,00 empurrando o próximo passo para baixo. */}
+        {hasSale ? (
+          <HomeMoney today={today} orders={ordersQuery} scheduling={hasScheduling} />
+        ) : null}
+        <HomeAttention enabled={!serviceBusiness && stockEnabled} />
+        {hasSale ? (
+          <HomeGoal query={goalQuery} onEdit={() => setShowGoalForm(true)} />
         ) : null}
 
         {!showSalesLimitBanner ? <AdBanner size="banner" /> : null}
