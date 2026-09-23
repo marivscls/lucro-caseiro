@@ -98,6 +98,53 @@ describe("Analytics persistence in PostgreSQL", () => {
     await expect(insert).rejects.toThrow();
   });
 
+  describe("cadastro registrado pelo servidor", () => {
+    const OTHER_INSTALLATION = "0cbd1c3e-1755-4f3f-a1bf-40c12b267ac4";
+    const open = {
+      ...ENVELOPE,
+      openedAt: new Date("2026-09-20T12:00:00.000Z"),
+      activityDate: "2026-09-20",
+    };
+
+    it("só marca o primeiro vínculo da conta em qualquer instalação", async () => {
+      // Arrange
+      await pg.query("UPDATE users SET created_at = '2026-09-20T11:59:00Z'");
+
+      // Act
+      const first = await repo.recordOpen(USER, open);
+      const again = await repo.recordOpen(USER, open);
+      const otherDevice = await repo.recordOpen(USER, {
+        ...open,
+        installationId: OTHER_INSTALLATION,
+      });
+
+      // Assert
+      expect(first).toEqual({
+        firstUserLink: true,
+        userCreatedAt: new Date("2026-09-20T11:59:00.000Z"),
+      });
+      expect(again.firstUserLink).toBe(false);
+      expect(otherDevice.firstUserLink).toBe(false);
+    });
+
+    it("não duplica signup_completed da mesma conta", async () => {
+      // Arrange
+      await repo.recordOpen(USER, open);
+
+      // Act
+      await repo.recordSignupOnce(USER, open);
+      await repo.recordSignupOnce(USER, { ...open, installationId: INSTALLATION });
+
+      // Assert
+      const { rows } = await pg.query<{ count: number }>(
+        `SELECT count(*)::int AS count FROM analytics_events
+         WHERE user_id = $1 AND event_name = 'signup_completed'`,
+        [USER],
+      );
+      expect(rows).toEqual([{ count: 1 }]);
+    });
+  });
+
   describe("funil do painel", () => {
     const GOOGLE = "a0000000-0000-4000-8000-000000000001";
     const EMAIL = "a0000000-0000-4000-8000-000000000002";

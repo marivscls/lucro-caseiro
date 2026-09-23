@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { NO_USER_LINK, type UserLinkOutcome } from "./analytics.domain";
 import type { IAnalyticsRepo } from "./analytics.types";
 import { AnalyticsUseCases, utcDateKey } from "./analytics.usecases";
 
@@ -38,8 +39,9 @@ const DASHBOARD = {
 
 function analyticsRepo(overrides: Partial<IAnalyticsRepo> = {}): IAnalyticsRepo {
   return {
-    recordOpen: vi.fn(() => Promise.resolve()),
-    recordEvents: vi.fn(() => Promise.resolve()),
+    recordOpen: vi.fn(() => Promise.resolve(NO_USER_LINK)),
+    recordEvents: vi.fn(() => Promise.resolve(NO_USER_LINK)),
+    recordSignupOnce: vi.fn(() => Promise.resolve()),
     recordUserAction: vi.fn(() => Promise.resolve()),
     getDashboard: vi.fn(() => Promise.resolve(DASHBOARD)),
     ...overrides,
@@ -49,7 +51,7 @@ function analyticsRepo(overrides: Partial<IAnalyticsRepo> = {}): IAnalyticsRepo 
 describe("AnalyticsUseCases", () => {
   it("persiste a abertura com dia UTC determinístico", async () => {
     const openedAt = new Date("2026-07-14T00:30:00.000Z");
-    const recordOpen = vi.fn(() => Promise.resolve());
+    const recordOpen = vi.fn(() => Promise.resolve(NO_USER_LINK));
     const repo = analyticsRepo({ recordOpen });
     const sut = new AnalyticsUseCases(repo, () => openedAt);
 
@@ -72,7 +74,7 @@ describe("AnalyticsUseCases", () => {
 
   it("persiste eventos com timestamp e dia UTC definidos pelo servidor", async () => {
     const occurredAt = new Date("2026-07-14T23:30:00.000Z");
-    const recordEvents = vi.fn(() => Promise.resolve());
+    const recordEvents = vi.fn(() => Promise.resolve(NO_USER_LINK));
     const sut = new AnalyticsUseCases(analyticsRepo({ recordEvents }), () => occurredAt);
 
     await sut.recordEvents("user-1", {
@@ -102,6 +104,98 @@ describe("AnalyticsUseCases", () => {
       "user-1",
       "subscription_completed",
       occurredAt,
+    );
+  });
+});
+
+describe("AnalyticsUseCases — cadastro registrado pelo servidor", () => {
+  const identifiedAt = new Date("2026-09-20T12:00:00.000Z");
+  const freshLink: UserLinkOutcome = {
+    firstUserLink: true,
+    userCreatedAt: new Date("2026-09-20T11:59:00.000Z"),
+  };
+
+  function sutWith(link: UserLinkOutcome) {
+    const recordSignupOnce = vi.fn(() => Promise.resolve());
+    const recordEvents = vi.fn(() => Promise.resolve(link));
+    const repo = analyticsRepo({
+      recordOpen: vi.fn(() => Promise.resolve(link)),
+      recordEvents,
+      recordSignupOnce,
+    });
+    return {
+      sut: new AnalyticsUseCases(repo, () => identifiedAt),
+      recordSignupOnce,
+      recordEvents,
+    };
+  }
+
+  it("registra o cadastro na primeira identificação de uma conta nova (Google ou e-mail)", async () => {
+    // Arrange
+    const { sut, recordSignupOnce } = sutWith(freshLink);
+
+    // Act
+    await sut.recordOpen("user-1", OPEN);
+
+    // Assert
+    expect(recordSignupOnce).toHaveBeenCalledWith("user-1", {
+      ...OPEN,
+      openedAt: identifiedAt,
+      activityDate: "2026-09-20",
+    });
+  });
+
+  it("registra o cadastro também quando a primeira identificação chega por eventos", async () => {
+    // Arrange
+    const { sut, recordSignupOnce } = sutWith(freshLink);
+
+    // Act
+    await sut.recordEvents("user-1", {
+      ...OPEN,
+      events: [{ type: "action", name: "pricing_started" }],
+    });
+
+    // Assert
+    expect(recordSignupOnce).toHaveBeenCalledOnce();
+  });
+
+  it("não conta como cadastro conta antiga, conta já vista ou abertura anônima", async () => {
+    // Arrange
+    const oldAccount = sutWith({
+      firstUserLink: true,
+      userCreatedAt: new Date("2026-07-01T00:00:00.000Z"),
+    });
+    const seenAccount = sutWith({ ...freshLink, firstUserLink: false });
+    const anonymous = sutWith(freshLink);
+
+    // Act
+    await oldAccount.sut.recordOpen("user-1", OPEN);
+    await seenAccount.sut.recordOpen("user-1", OPEN);
+    await anonymous.sut.recordOpen(null, OPEN);
+
+    // Assert
+    expect(oldAccount.recordSignupOnce).not.toHaveBeenCalled();
+    expect(seenAccount.recordSignupOnce).not.toHaveBeenCalled();
+    expect(anonymous.recordSignupOnce).not.toHaveBeenCalled();
+  });
+
+  it("descarta signup_completed enviado por versões antigas do app", async () => {
+    // Arrange
+    const { sut, recordEvents } = sutWith(NO_USER_LINK);
+
+    // Act
+    await sut.recordEvents("user-1", {
+      ...OPEN,
+      events: [
+        { type: "action", name: "signup_completed" },
+        { type: "action", name: "pricing_started" },
+      ],
+    });
+
+    // Assert
+    expect(recordEvents).toHaveBeenCalledWith(
+      "user-1",
+      expect.objectContaining({ events: [{ type: "action", name: "pricing_started" }] }),
     );
   });
 });

@@ -24,7 +24,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 - `analytics.routes.ts`: abertura anônima, identificação autenticada e painel administrativo.
 - `analytics.admin.ts`: regra pura de autorização por UUID configurado.
-- `analytics.usecases.ts`: relógio e chave de dia UTC.
+- `analytics.usecases.ts`: relógio, chave de dia UTC e cadastro registrado pelo servidor.
+- `analytics.domain.ts`: regra pura do cadastro recente e dos eventos que só o servidor emite.
 - `analytics.repo.pg.ts`: upserts idempotentes e vínculo retroativo.
 - `analytics.report-query.ts`: consulta canônica compartilhada pelo endpoint e pelo comando.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
@@ -141,3 +142,15 @@ substitui a lista por `analytics_events_event_name_format_check` (formato apenas
 - Etapa `product`: `product_created` ou `product_created_from_pricing`.
 - Cada etapa usa o primeiro marco a partir da etapa anterior (antes era o primeiro marco absoluto,
   o que descartava quem criou um produto antes de precificar e depois criou outro).
+
+## Cadastro registrado pelo servidor — 2026-09-23
+
+- `signup_completed` passou a ser emitido pela API, seja o cadastro por e-mail ou Google:
+  na primeira vez que a conta é vinculada a uma instalação (`/identify` ou `/events/identify`),
+  se `users.created_at` estiver a no máximo 7 dias da identificação (`isFreshSignup`).
+- "Primeiro vínculo": o insert em `analytics_installation_users` criou a linha (`xmax = 0`) e não
+  existe vínculo da conta com outra instalação. Contas antigas que só agora aparecem não contam.
+- `recordSignupOnce` insere com `NOT EXISTS`, então há no máximo um `signup_completed` por conta.
+- O app não envia mais o evento; versões antigas ainda enviam e a API o descarta
+  (`withoutServerOwnedEvents`) antes de persistir, sem rejeitar o lote.
+- `signups.total`/`last30Days` continuam vindo de `users`; o evento alimenta uso de funções e funil.

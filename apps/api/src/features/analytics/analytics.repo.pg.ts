@@ -11,10 +11,12 @@ import {
   analyticsInstallationUsers,
   analyticsInstallations,
   analyticsUserActivityDays,
+  users,
 } from "@lucro-caseiro/database/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
+import { NO_USER_LINK, type UserLinkOutcome } from "./analytics.domain";
 import { ANALYTICS_DASHBOARD_QUERY } from "./analytics.report-query";
 import type { IAnalyticsRepo, PersistedEvents, PersistedOpen } from "./analytics.types";
 
@@ -101,8 +103,11 @@ function parsedArray<T>(value: unknown): T[] {
 export class AnalyticsRepoPg implements IAnalyticsRepo {
   constructor(private db: AppDatabase) {}
 
-  async recordOpen(userId: string | null, input: PersistedOpen): Promise<void> {
-    await this.db.transaction(async (tx) => {
+  async recordOpen(
+    userId: string | null,
+    input: PersistedOpen,
+  ): Promise<UserLinkOutcome> {
+    return this.db.transaction(async (tx) => {
       await tx
         .insert(analyticsInstallations)
         .values({
@@ -142,33 +147,74 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
           },
         });
 
-      if (userId) {
-        await tx
-          .insert(analyticsInstallationUsers)
-          .values({
-            installationId: input.installationId,
-            userId,
-            firstIdentifiedAt: input.openedAt,
-            lastIdentifiedAt: input.openedAt,
-          })
-          .onConflictDoUpdate({
-            target: [
-              analyticsInstallationUsers.installationId,
-              analyticsInstallationUsers.userId,
-            ],
-            set: { lastIdentifiedAt: input.openedAt },
-          });
+      if (!userId) return NO_USER_LINK;
 
-        await tx
-          .insert(analyticsUserActivityDays)
-          .values({ userId, activityDate: input.activityDate })
-          .onConflictDoNothing();
-      }
+      // xmax = 0 só na linha recém-inserida; a PK serializa aberturas concorrentes.
+      const [link] = await tx
+        .insert(analyticsInstallationUsers)
+        .values({
+          installationId: input.installationId,
+          userId,
+          firstIdentifiedAt: input.openedAt,
+          lastIdentifiedAt: input.openedAt,
+        })
+        .onConflictDoUpdate({
+          target: [
+            analyticsInstallationUsers.installationId,
+            analyticsInstallationUsers.userId,
+          ],
+          set: { lastIdentifiedAt: input.openedAt },
+        })
+        .returning({ inserted: sql<boolean>`(xmax = 0)` });
+
+      await tx
+        .insert(analyticsUserActivityDays)
+        .values({ userId, activityDate: input.activityDate })
+        .onConflictDoNothing();
+
+      if (!link?.inserted) return NO_USER_LINK;
+
+      const [otherLink] = await tx
+        .select({ installationId: analyticsInstallationUsers.installationId })
+        .from(analyticsInstallationUsers)
+        .where(
+          and(
+            eq(analyticsInstallationUsers.userId, userId),
+            ne(analyticsInstallationUsers.installationId, input.installationId),
+          ),
+        )
+        .limit(1);
+      const [user] = await tx
+        .select({ createdAt: users.createdAt })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      return { firstUserLink: !otherLink, userCreatedAt: user?.createdAt ?? null };
     });
   }
 
-  async recordEvents(userId: string | null, input: PersistedEvents): Promise<void> {
-    await this.recordOpen(userId, {
+  async recordSignupOnce(userId: string, input: PersistedOpen): Promise<void> {
+    await this.db.execute(sql`
+      INSERT INTO analytics_events
+        (installation_id, user_id, event_type, event_name, app_version, app_build, occurred_at)
+      SELECT ${input.installationId}::uuid, ${userId}::uuid, 'action', 'signup_completed',
+        ${input.appVersion}::text, ${input.appBuild ?? null}::text,
+        ${input.openedAt.toISOString()}::timestamptz
+      WHERE NOT EXISTS (
+        SELECT 1 FROM analytics_events
+        WHERE user_id = ${userId}::uuid
+          AND event_type = 'action'
+          AND event_name = 'signup_completed'
+      )
+    `);
+  }
+
+  async recordEvents(
+    userId: string | null,
+    input: PersistedEvents,
+  ): Promise<UserLinkOutcome> {
+    const link = await this.recordOpen(userId, {
       installationId: input.installationId,
       platform: input.platform,
       appVersion: input.appVersion,
@@ -177,18 +223,21 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
       activityDate: input.activityDate,
     });
 
-    await this.db.insert(analyticsEvents).values(
-      input.events.map((event) => ({
-        installationId: input.installationId,
-        userId,
-        eventType: event.type,
-        eventName: event.name,
-        durationMs: event.type === "screen_view" ? event.durationMs : null,
-        appVersion: input.appVersion,
-        appBuild: input.appBuild ?? null,
-        occurredAt: input.occurredAt,
-      })),
-    );
+    if (input.events.length > 0) {
+      await this.db.insert(analyticsEvents).values(
+        input.events.map((event) => ({
+          installationId: input.installationId,
+          userId,
+          eventType: event.type,
+          eventName: event.name,
+          durationMs: event.type === "screen_view" ? event.durationMs : null,
+          appVersion: input.appVersion,
+          appBuild: input.appBuild ?? null,
+          occurredAt: input.occurredAt,
+        })),
+      );
+    }
+    return link;
   }
 
   async recordUserAction(

@@ -102,3 +102,8 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 
 A etapa `signup` do painel é exibida como "Conta criada ou login": o backend passou a contar a
 primeira identificação da instalação, além do cadastro por e-mail.
+
+## Cadastro — 2026-09-23
+
+O app não envia mais `signup_completed` (antes só a tela de cadastro por e-mail enviava). A API
+registra o evento na primeira identificação de uma conta recém-criada, cobrindo também o Google.

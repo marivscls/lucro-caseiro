@@ -15,7 +15,6 @@ import React, { useRef, useState } from "react";
 import { Image, Pressable, type TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { trackAnalyticsAction } from "../../features/analytics/tracker";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { EmailTypoHint } from "../../shared/components/email-typo-hint";
 import { useAuth } from "../../shared/hooks/use-auth";
@@ -147,7 +146,8 @@ export default function RegisterScreen() {
       return;
     }
 
-    void trackAnalyticsAction("signup_completed", useAuth.getState().token);
+    // signup_completed é registrado pela API na primeira identificação da conta nova,
+    // o que cobre também o cadastro com Google.
     if (result.needsConfirmation) {
       showAlert({
         title: "Conta criada!",

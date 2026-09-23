@@ -4,6 +4,8 @@ import type {
   ProductAnalyticsEvent,
 } from "@lucro-caseiro/contracts";
 
+import type { UserLinkOutcome } from "./analytics.domain";
+
 export type AnalyticsPlatform = "android" | "ios" | "web";
 
 export interface RecordOpenInput {
@@ -28,8 +30,10 @@ export interface PersistedEvents extends RecordEventsInput {
 }
 
 export interface IAnalyticsRepo {
-  recordOpen(userId: string | null, input: PersistedOpen): Promise<void>;
-  recordEvents(userId: string | null, input: PersistedEvents): Promise<void>;
+  recordOpen(userId: string | null, input: PersistedOpen): Promise<UserLinkOutcome>;
+  recordEvents(userId: string | null, input: PersistedEvents): Promise<UserLinkOutcome>;
+  /** Insere `signup_completed` para a conta, a menos que ela já tenha um. */
+  recordSignupOnce(userId: string, input: PersistedOpen): Promise<void>;
   recordUserAction(
     userId: string,
     action: AnalyticsActionName,

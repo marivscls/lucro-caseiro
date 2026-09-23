@@ -3,8 +3,14 @@ import type {
   ProductAnalyticsDashboard,
 } from "@lucro-caseiro/contracts";
 
+import {
+  isFreshSignup,
+  type UserLinkOutcome,
+  withoutServerOwnedEvents,
+} from "./analytics.domain";
 import type {
   IAnalyticsRepo,
+  PersistedOpen,
   RecordEventsInput,
   RecordOpenInput,
 } from "./analytics.types";
@@ -21,20 +27,46 @@ export class AnalyticsUseCases {
 
   async recordOpen(userId: string | null, input: RecordOpenInput): Promise<void> {
     const openedAt = this.now();
-    await this.repo.recordOpen(userId, {
+    const open: PersistedOpen = {
       ...input,
       openedAt,
       activityDate: utcDateKey(openedAt),
-    });
+    };
+    const link = await this.repo.recordOpen(userId, open);
+    await this.recordSignupIfFresh(userId, open, link);
   }
 
   async recordEvents(userId: string | null, input: RecordEventsInput): Promise<void> {
     const occurredAt = this.now();
-    await this.repo.recordEvents(userId, {
+    const activityDate = utcDateKey(occurredAt);
+    const link = await this.repo.recordEvents(userId, {
       ...input,
+      events: withoutServerOwnedEvents(input.events),
       occurredAt,
-      activityDate: utcDateKey(occurredAt),
+      activityDate,
     });
+    await this.recordSignupIfFresh(
+      userId,
+      {
+        installationId: input.installationId,
+        platform: input.platform,
+        appVersion: input.appVersion,
+        appBuild: input.appBuild,
+        openedAt: occurredAt,
+        activityDate,
+      },
+      link,
+    );
+  }
+
+  private async recordSignupIfFresh(
+    userId: string | null,
+    open: PersistedOpen,
+    link: UserLinkOutcome,
+  ): Promise<void> {
+    if (userId && isFreshSignup(link, open.openedAt)) {
+      await this.repo.recordSignupOnce(userId, open);
+    }
   }
 
   recordUserAction(userId: string, action: AnalyticsActionName): Promise<void> {
