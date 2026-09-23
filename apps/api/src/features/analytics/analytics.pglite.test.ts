@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import type { AppDatabase } from "../../shared/db";
 import { AnalyticsRepoPg } from "./analytics.repo.pg";
+import { ANALYTICS_DASHBOARD_QUERY } from "./analytics.report-query";
 
 const MIGRATIONS = [
   "034_product_analytics.sql",
@@ -95,5 +96,94 @@ describe("Analytics persistence in PostgreSQL", () => {
 
     // Assert
     await expect(insert).rejects.toThrow();
+  });
+
+  describe("funil do painel", () => {
+    const GOOGLE = "a0000000-0000-4000-8000-000000000001";
+    const EMAIL = "a0000000-0000-4000-8000-000000000002";
+    const PRODUCT_FIRST = "a0000000-0000-4000-8000-000000000003";
+    const IDLE = "a0000000-0000-4000-8000-000000000004";
+
+    async function seedInstallation(id: string): Promise<void> {
+      await pg.query(
+        `INSERT INTO analytics_installations(id, platform, app_version, first_opened_at, last_opened_at)
+         VALUES ($1, 'android', '1.2.0', '2026-09-01T10:00:00Z', '2026-09-01T10:00:00Z')`,
+        [id],
+      );
+    }
+
+    async function seedAction(id: string, name: string, at: string): Promise<void> {
+      await pg.query(
+        `INSERT INTO analytics_events(installation_id, event_type, event_name, app_version, occurred_at)
+         VALUES ($1, 'action', $2, '1.2.0', $3)`,
+        [id, name, at],
+      );
+    }
+
+    async function funnel(): Promise<Record<string, number>> {
+      const { rows } = await pg.query<{
+        funnel: { stage: string; installations: number }[];
+      }>(ANALYTICS_DASHBOARD_QUERY);
+      return Object.fromEntries(
+        (rows[0]?.funnel ?? []).map((row) => [row.stage, row.installations]),
+      );
+    }
+
+    it("conta conta Google sem evento de cadastro e produto criado fora da precificação", async () => {
+      // Arrange
+      for (const id of [GOOGLE, EMAIL, PRODUCT_FIRST, IDLE]) await seedInstallation(id);
+      await pg.query(
+        `INSERT INTO analytics_installation_users VALUES
+          ($1, $3, '2026-09-01T10:05:00Z', '2026-09-01T10:05:00Z'),
+          ($2, $3, '2026-09-01T10:05:00Z', '2026-09-01T10:05:00Z')`,
+        [GOOGLE, PRODUCT_FIRST, USER],
+      );
+      await seedAction(GOOGLE, "pricing_completed", "2026-09-01T10:10:00Z");
+      await seedAction(GOOGLE, "product_created", "2026-09-01T10:20:00Z");
+      await seedAction(GOOGLE, "sale_completed", "2026-09-01T10:30:00Z");
+      await seedAction(EMAIL, "signup_completed", "2026-09-01T10:05:00Z");
+      await seedAction(PRODUCT_FIRST, "product_created", "2026-09-01T10:06:00Z");
+      await seedAction(PRODUCT_FIRST, "pricing_completed", "2026-09-01T10:10:00Z");
+      await seedAction(
+        PRODUCT_FIRST,
+        "product_created_from_pricing",
+        "2026-09-01T10:11:00Z",
+      );
+
+      // Act
+      const result = await funnel();
+
+      // Assert
+      expect(result).toEqual({
+        installation: 4,
+        signup: 3,
+        pricing: 2,
+        product: 2,
+        catalog_or_sale: 1,
+      });
+    });
+
+    it("ignora marcos fora de ordem mesmo com a conta identificada", async () => {
+      // Arrange
+      await seedInstallation(GOOGLE);
+      await pg.query(
+        `INSERT INTO analytics_installation_users
+         VALUES ($1, $2, '2026-09-01T10:05:00Z', '2026-09-01T10:05:00Z')`,
+        [GOOGLE, USER],
+      );
+      await seedAction(GOOGLE, "sale_completed", "2026-09-01T10:06:00Z");
+      await seedAction(GOOGLE, "product_created", "2026-09-01T10:07:00Z");
+
+      // Act
+      const result = await funnel();
+
+      // Assert
+      expect(result).toMatchObject({
+        signup: 1,
+        pricing: 0,
+        product: 0,
+        catalog_or_sale: 0,
+      });
+    });
   });
 });

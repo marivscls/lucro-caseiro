@@ -99,7 +99,7 @@ const ACTION_LABELS: Record<string, string> = {
 
 const FUNNEL_LABELS: Record<string, string> = {
   installation: "Instalação",
-  signup: "Cadastro",
+  signup: "Conta criada ou login",
   pricing: "Precificação",
   product: "Produto",
   catalog_or_sale: "Catálogo ou venda",
@@ -404,7 +404,7 @@ function FunnelSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) 
       <View style={{ gap: spacing.xs }}>
         <Typography variant="h3">Funil principal</Typography>
         <Typography variant="body" color={theme.colors.textSecondary}>
-          Instalação → cadastro → precificação → produto → venda, sempre nessa ordem.
+          Instalação → conta → precificação → produto → venda, sempre nessa ordem.
         </Typography>
       </View>
       {data.funnel.map((item, index) => (

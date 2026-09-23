@@ -97,3 +97,8 @@ Uma instalação anônima abre o app, recebe UUID local e chama `/open`; após l
 Orientações usam allowlist compartilhada (área + evento, sem payload livre). Sucessos de mutations acionam conclusão local após hidratação, isolada por conta, mesmo se a coleta falhar. Cliques e ajuda não completam tarefas; preço percebido é separado de preço salvo.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Funil do painel — 2026-09-23
+
+A etapa `signup` do painel é exibida como "Conta criada ou login": o backend passou a contar a
+primeira identificação da instalação, além do cadastro por e-mail.

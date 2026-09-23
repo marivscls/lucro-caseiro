@@ -132,3 +132,12 @@ A checagem `analytics_events_event_name_check` (037) listava só 17 ações e 29
 cadastros de apoio, orientação, validação e a tela `services` falhavam no insert e, como a coleta é
 best effort, se perdiam sem erro visível. A migration `20260923100000_analytics_event_name_format.sql`
 substitui a lista por `analytics_events_event_name_format_check` (formato apenas).
+
+## Funil do painel — 2026-09-23
+
+- Etapa `signup`: primeiro `signup_completed` da instalação ou a primeira identificação de uma conta
+  nela (`analytics_installation_users.first_identified_at`), o que vier antes. Contas Google entram
+  no funil mesmo sem o evento do cadastro por e-mail.
+- Etapa `product`: `product_created` ou `product_created_from_pricing`.
+- Cada etapa usa o primeiro marco a partir da etapa anterior (antes era o primeiro marco absoluto,
+  o que descartava quem criou um produto antes de precificar e depois criou outro).

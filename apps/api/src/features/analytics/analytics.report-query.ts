@@ -146,36 +146,65 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     LEFT JOIN action_counts USING (action)
     ORDER BY events DESC, action
   ),
-  raw_milestones AS (
+  -- Cada etapa usa o primeiro marco a partir da etapa anterior. Conta criada vale pelo
+  -- evento de cadastro ou pela primeira identificação da instalação (Google, login),
+  -- e produto vale qualquer que seja a origem do cadastro.
+  signup_candidates AS (
     SELECT
       installation.id,
       installation.first_opened_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'signup_completed') AS signup_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'pricing_completed') AS pricing_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'product_created_from_pricing') AS product_at,
-      MIN(event.occurred_at) FILTER (
-        WHERE event.event_name IN ('catalog_published', 'sale_completed')
-      ) AS outcome_at
+      LEAST(
+        (
+          SELECT MIN(event.occurred_at)
+          FROM analytics_events event
+          WHERE event.installation_id = installation.id
+            AND event.event_type = 'action'
+            AND event.event_name = 'signup_completed'
+        ),
+        (
+          SELECT MIN(linked.first_identified_at)
+          FROM analytics_installation_users linked
+          WHERE linked.installation_id = installation.id
+        )
+      ) AS signup_at
     FROM analytics_installations installation
-    LEFT JOIN analytics_events event
-      ON event.installation_id = installation.id AND event.event_type = 'action'
-    GROUP BY installation.id, installation.first_opened_at
   ),
   signup_milestones AS (
-    SELECT *, CASE WHEN signup_at >= first_opened_at THEN signup_at END AS valid_signup
-    FROM raw_milestones
+    SELECT id, CASE WHEN signup_at >= first_opened_at THEN signup_at END AS valid_signup
+    FROM signup_candidates
   ),
   pricing_milestones AS (
-    SELECT *, CASE WHEN pricing_at >= valid_signup THEN pricing_at END AS valid_pricing
-    FROM signup_milestones
+    SELECT milestone.*, (
+      SELECT MIN(event.occurred_at)
+      FROM analytics_events event
+      WHERE event.installation_id = milestone.id
+        AND event.event_type = 'action'
+        AND event.event_name = 'pricing_completed'
+        AND event.occurred_at >= milestone.valid_signup
+    ) AS valid_pricing
+    FROM signup_milestones milestone
   ),
   product_milestones AS (
-    SELECT *, CASE WHEN product_at >= valid_pricing THEN product_at END AS valid_product
-    FROM pricing_milestones
+    SELECT milestone.*, (
+      SELECT MIN(event.occurred_at)
+      FROM analytics_events event
+      WHERE event.installation_id = milestone.id
+        AND event.event_type = 'action'
+        AND event.event_name IN ('product_created', 'product_created_from_pricing')
+        AND event.occurred_at >= milestone.valid_pricing
+    ) AS valid_product
+    FROM pricing_milestones milestone
   ),
   ordered_milestones AS (
-    SELECT *, CASE WHEN outcome_at >= valid_product THEN outcome_at END AS valid_outcome
-    FROM product_milestones
+    SELECT milestone.*, (
+      SELECT MIN(event.occurred_at)
+      FROM analytics_events event
+      WHERE event.installation_id = milestone.id
+        AND event.event_type = 'action'
+        AND event.event_name IN ('catalog_published', 'sale_completed')
+        AND event.occurred_at >= milestone.valid_product
+    ) AS valid_outcome
+    FROM product_milestones milestone
   ),
   funnel_counts AS (
     SELECT
