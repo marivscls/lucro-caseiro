@@ -159,3 +159,4 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 Foco de erro é aplicado após o layout da mensagem; categoria inválida rola até a categoria, não até o fim do formulário. A rolagem automática web mantém o foco do campo.
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Categorias de lançamento quebram em linhas; período usa largura natural, resumos empilham abaixo de 520px e valores extensos ganham a largura do hero sem sobrepor a ilustração. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+- 2026-09-23: **meses anteriores liberados** — navegar para meses passados (setas e seletor de mês) deixou de abrir `showPaywall("reports")`; vale para qualquer plano. Exportações continuam pagas (`exportBasic` no Essencial, `export` no Profissional).

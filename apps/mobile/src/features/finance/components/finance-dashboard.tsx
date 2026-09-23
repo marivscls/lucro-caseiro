@@ -130,9 +130,8 @@ export function FinanceDashboard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const { data: profile } = useProfile();
-  const isPremium = profile
-    ? hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedReports")
-    : false;
+  // Meses anteriores ficam abertos em todos os planos: ver o histórico é o
+  // que faz a pessoa confiar no app. Relatórios e exportações seguem pagos.
   const canExportBasic = profile
     ? hasActiveFeature(profile.plan, profile.planExpiresAt, "exportBasic")
     : false;
@@ -340,10 +339,6 @@ export function FinanceDashboard({
   );
 
   function handlePrevMonth() {
-    if (!isPremium) {
-      showPaywall("reports");
-      return;
-    }
     if (month === 1) {
       setMonth(12);
       setYear((currentYear) => currentYear - 1);
@@ -353,10 +348,6 @@ export function FinanceDashboard({
   }
 
   function handleNextMonth() {
-    if (!isPremium) {
-      showPaywall("reports");
-      return;
-    }
     if (month === 12) {
       setMonth(1);
       setYear((currentYear) => currentYear + 1);
@@ -366,10 +357,6 @@ export function FinanceDashboard({
   }
 
   function handleOpenMonthPicker() {
-    if (!isPremium) {
-      showPaywall("reports");
-      return;
-    }
     setPeriod("month");
     setPickerYear(year);
     setShowMonthPicker(true);
