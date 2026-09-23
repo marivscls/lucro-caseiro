@@ -659,9 +659,19 @@ export default function NewSaleScreen() {
         showPaywall("sales");
         return;
       }
+      // Tempo esgotado: o servidor pode ter gravado a venda. Nao enfileira
+      // para nao duplicar; pede para conferir antes de tentar de novo.
+      if (e instanceof ApiError && e.code === "TIMEOUT") {
+        showAlert({
+          title: "A conexão está lenta",
+          message:
+            "Não deu para confirmar se a venda foi registrada. Confira na lista de vendas antes de tentar de novo.",
+        });
+        return;
+      }
       // Falha de rede (sem resposta HTTP): salva a venda na fila offline.
       // setupAutoSync envia automaticamente quando a conexao voltar.
-      if (!(e instanceof ApiError)) {
+      if (!(e instanceof ApiError) || e.code === "NETWORK_ERROR") {
         useOfflineQueue.getState().enqueue({
           method: "POST",
           endpoint: "/api/v1/sales",

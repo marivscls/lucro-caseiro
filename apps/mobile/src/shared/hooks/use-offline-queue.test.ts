@@ -1,7 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act } from "@testing-library/react";
 
-import { useOfflineQueue, processOfflineQueue } from "./use-offline-queue";
+import { useNetwork } from "./use-network";
+import { processOfflineQueue, setupAutoSync, useOfflineQueue } from "./use-offline-queue";
 
 // Mock the api client
 vi.mock("../utils/api-client", () => ({
@@ -255,5 +256,66 @@ describe("processOfflineQueue", () => {
 
     expect(syncingStates).toContain(true);
     expect(useOfflineQueue.getState().isSyncing).toBe(false);
+  });
+});
+
+describe("setupAutoSync", () => {
+  beforeEach(() => {
+    act(() => {
+      useOfflineQueue.getState().clear();
+      useOfflineQueue.setState({ isSyncing: false });
+      useNetwork.setState({ isOnline: true });
+    });
+    mockApiClient.mockReset();
+  });
+
+  it("syncs pending operations right away when starting online", async () => {
+    // Arrange
+    act(() => {
+      useOfflineQueue.getState().enqueue({ method: "POST", endpoint: "/api/v1/sales" });
+    });
+    mockApiClient.mockResolvedValue({});
+    const onSynced = vi.fn();
+
+    // Act
+    const unsub = setupAutoSync(() => "token", onSynced);
+    await vi.waitFor(() => expect(onSynced).toHaveBeenCalledWith(1));
+    unsub();
+
+    // Assert
+    expect(mockApiClient).toHaveBeenCalledTimes(1);
+    expect(useOfflineQueue.getState().operations).toHaveLength(0);
+  });
+
+  it("does not call the API when the queue is empty", () => {
+    // Arrange / Act
+    const unsub = setupAutoSync(() => "token");
+    unsub();
+
+    // Assert
+    expect(mockApiClient).not.toHaveBeenCalled();
+  });
+
+  it("syncs when the connection comes back", async () => {
+    // Arrange
+    act(() => {
+      useNetwork.setState({ isOnline: false });
+    });
+    const onSynced = vi.fn();
+    const unsub = setupAutoSync(() => "token", onSynced);
+    act(() => {
+      useOfflineQueue.getState().enqueue({ method: "POST", endpoint: "/api/v1/sales" });
+    });
+    mockApiClient.mockResolvedValue({});
+
+    // Act
+    act(() => {
+      useNetwork.setState({ isOnline: true });
+    });
+    await vi.waitFor(() => expect(onSynced).toHaveBeenCalledWith(1));
+    unsub();
+
+    // Assert
+    expect(useOfflineQueue.getState().operations).toHaveLength(0);
   });
 });
