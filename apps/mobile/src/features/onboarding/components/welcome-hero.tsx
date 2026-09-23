@@ -1,15 +1,16 @@
-import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, Typography, radii, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 import { Image, type ImageSourcePropType, View, useWindowDimensions } from "react-native";
 
 import resultHero from "../../../assets/getting-started-result.png";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
-
-/** A partir desta largura a boas-vindas vira duas colunas (ilustração | conteúdo). */
-const WIDE_BREAKPOINT = 880;
-/** Espaço entre blocos (título, benefícios, botões) e entre itens de um bloco. */
-const GROUP_GAP = spacing["2xl"];
-const ITEM_GAP = spacing.md;
+import {
+  AuthHeadline,
+  AuthLayout,
+  GROUP_GAP,
+  ITEM_GAP,
+  useAuthWide,
+} from "./auth-layout";
 
 const BENEFITS: ReadonlyArray<{ icon: AppIconName; title: string; detail: string }> = [
   {
@@ -45,57 +46,10 @@ export function WelcomeHero({
 }: Readonly<WelcomeHeroProps>) {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
-  const wide = width >= WIDE_BREAKPOINT;
+  const wide = useAuthWide();
   // Medidas explícitas: no web, aspectRatio com largura percentual estica a imagem.
   const heroWidth = wide ? 420 : Math.min(190, width - 96);
   const heroHeight = Math.round(heroWidth / 1.15);
-
-  const lockup = (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: ITEM_GAP,
-        alignSelf: "flex-start",
-      }}
-    >
-      <Image
-        source={logo}
-        resizeMode="contain"
-        accessibilityIgnoresInvertColors
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: radii.md,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-        }}
-      />
-      <Typography variant="wordmark">{brandName}</Typography>
-    </View>
-  );
-
-  const illustration = (
-    <View
-      style={{
-        backgroundColor: theme.colors.primaryBg,
-        borderRadius: radii["2xl"],
-        alignItems: "center",
-        justifyContent: "center",
-        padding: wide ? spacing["4xl"] : spacing.lg,
-        flex: wide ? 1 : undefined,
-        minHeight: wide ? 560 : undefined,
-      }}
-    >
-      <Image
-        source={resultHero}
-        resizeMode="contain"
-        accessible
-        accessibilityLabel="Painel com vendas anotadas e o lucro subindo"
-        style={{ width: heroWidth, height: heroHeight }}
-      />
-    </View>
-  );
 
   const content = (
     <View
@@ -109,16 +63,7 @@ export function WelcomeHero({
     >
       <View style={{ gap: GROUP_GAP }}>
         <View style={{ gap: ITEM_GAP }}>
-          <Typography
-            variant="display"
-            style={{
-              fontSize: wide ? 40 : 30,
-              lineHeight: wide ? 46 : 36,
-              letterSpacing: -0.8,
-            }}
-          >
-            Anote suas vendas e descubra seu lucro
-          </Typography>
+          <AuthHeadline>Anote suas vendas e descubra seu lucro</AuthHeadline>
           <Typography variant="body">
             O caderno do seu negócio, no celular. Grátis para começar, com vendas
             ilimitadas.
@@ -166,41 +111,22 @@ export function WelcomeHero({
     </View>
   );
 
-  if (wide) {
-    return (
-      <View
-        style={{
-          width: "100%",
-          maxWidth: 1040,
-          alignSelf: "center",
-          padding: spacing["4xl"],
-          gap: GROUP_GAP,
-        }}
-      >
-        {lockup}
-        <View
-          style={{ flexDirection: "row", alignItems: "stretch", gap: spacing["5xl"] }}
-        >
-          {illustration}
-          {content}
-        </View>
-      </View>
-    );
-  }
-
   return (
-    <View
-      style={{
-        width: "100%",
-        maxWidth: 480,
-        alignSelf: "center",
-        padding: spacing.xl,
-        gap: GROUP_GAP,
-      }}
+    <AuthLayout
+      brandName={brandName}
+      logo={logo}
+      showAsideOnMobile
+      aside={
+        <Image
+          source={resultHero}
+          resizeMode="contain"
+          accessible
+          accessibilityLabel="Painel com vendas anotadas e o lucro subindo"
+          style={{ width: heroWidth, height: heroHeight }}
+        />
+      }
     >
-      {lockup}
-      {illustration}
       {content}
-    </View>
+    </AuthLayout>
   );
 }
