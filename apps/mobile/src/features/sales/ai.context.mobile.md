@@ -64,8 +64,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   3. **Forma de pagamento:** opcoes Pix, Dinheiro, Cartao, Fiado, Transferencia com icones.
   4. **Revisar e confirmar:** resumo de itens, cliente, pagamento, total. Botao "Registrar venda".
 - Progresso no topo com quatro segmentos e rótulos: Produtos, Cliente, Pagamento e Revisão (ordem em `sale-steps.ts`; os números internos continuam 1 cliente, 2 produtos, 3 pagamento, 4 revisão).
-- A etapa inicial de cliente usa avatares neutros e linhas compactas. Tocar em um cliente
-  ou em "Venda avulsa" avança para os produtos; no mobile, não há botão "Próximo"
+- A etapa de cliente (segunda) usa avatares neutros e linhas compactas. Tocar em um cliente
+  ou em "Venda avulsa" avança para o pagamento; no mobile, não há botão "Próximo"
   redundante nessa etapa, e a lista reserva espaço acima da navegação inferior.
 - Produtos, pagamento e revisão usam uma barra de total no fluxo do layout mobile,
   com reserva para a navegação, sem sobrepor as listas. Busca e atalhos de produto

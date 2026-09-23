@@ -247,6 +247,7 @@ function AppContent() {
     return (
       <BrandIntro
         authReady={!isLoading && staticAssetsReady}
+        skipMinimum={!isLoading && isAuthenticated}
         onFinish={() => setIntroDone(true)}
       />
     );
