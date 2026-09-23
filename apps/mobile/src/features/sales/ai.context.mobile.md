@@ -21,16 +21,17 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Code pointers
 
-| Arquivo                                                     | Descricao                                                                             |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/sales/api.ts`                     | Funcoes HTTP (fetchSales, fetchSale, fetchTodaySummary, createSale, updateSaleStatus) |
-| `apps/mobile/src/features/sales/hooks.ts`                   | React Query hooks                                                                     |
-| `apps/mobile/src/features/sales/components/sale-card.tsx`   | Card de venda na listagem                                                             |
-| `apps/mobile/src/features/sales/components/sale-detail.tsx` | Detalhe da venda com acoes de status + enviar recibo                                  |
-| `apps/mobile/src/features/sales/receipt.ts`                 | `buildReceiptMessage(sale)` — texto do recibo p/ WhatsApp                             |
-| `apps/mobile/src/features/sales/fiado.ts`                   | Fiado (vendas pendentes): `groupFiados`, `totalOwed`, `buildChargeMessage`            |
-| `apps/mobile/src/app/fiado.tsx`                             | Tela `/fiado` (quem te deve, por cliente, + cobrar no WhatsApp)                       |
-| `apps/mobile/src/app/tabs/new-sale.tsx`                     | Screen do wizard de nova venda (tab)                                                  |
+| Arquivo                                                          | Descricao                                                                             |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `apps/mobile/src/features/sales/api.ts`                          | Funcoes HTTP (fetchSales, fetchSale, fetchTodaySummary, createSale, updateSaleStatus) |
+| `apps/mobile/src/features/sales/hooks.ts`                        | React Query hooks                                                                     |
+| `apps/mobile/src/features/sales/components/sale-card.tsx`        | Card de venda na listagem                                                             |
+| `apps/mobile/src/features/sales/components/sale-detail.tsx`      | Detalhe da venda com acoes de status + enviar recibo                                  |
+| `apps/mobile/src/features/sales/receipt.ts`                      | `buildReceiptMessage(sale)` — texto do recibo p/ WhatsApp                             |
+| `apps/mobile/src/features/sales/fiado.ts`                        | Fiado (vendas pendentes): `groupFiados`, `totalOwed`, `buildChargeMessage`            |
+| `apps/mobile/src/app/fiado.tsx`                                  | Tela `/fiado` (quem te deve, por cliente, + cobrar no WhatsApp)                       |
+| `apps/mobile/src/app/tabs/new-sale.tsx`                          | Screen do wizard de nova venda (tab)                                                  |
+| `apps/mobile/src/features/sales/components/new-sale-desktop.tsx` | Apresentação desktop da Nova venda (cartões, resumo lateral, revisão)                 |
 
 ## Components
 
@@ -78,6 +79,15 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   cliente e pagamento e mostra subtotal, desconto, total e observações.
 - A confirmação de sucesso conserva as ações de nova venda e recibo, destacando
   somente o acesso ao recibo; o atalho de venda rápida permanece disponível.
+- **Desktop (web >= 1024px)**: página rolável com `ScreenHeader` (título de 36px) e
+  `DesktopSplit`. A coluna principal traz `DesktopStepper` (Produtos, Cliente, Pagamento, Revisão),
+  o título da etapa uma única vez, a barra de busca com "Novo produto" e "Usar código"
+  ao lado e a grade de produtos (`DesktopGrid`, cartões com mínimo de 180px, até 4 colunas). A lateral
+  fixa (`DesktopSaleSummary`, de 280 a 360px) lista os itens, o cliente, o pagamento, o desconto
+  e o total, com a ação da etapa, a venda rápida e o botão Voltar. Os clientes aparecem em grade
+  de cartões, as formas de pagamento em grade e os ajustes em `DesktopFormGrid`.
+  A revisão mostra os itens e, ao lado, os dados e os valores. Estado, regras, rótulos
+  de acessibilidade e ações são os mesmos do celular; o celular não mudou.
 - Checa limite freemium via `useLimitCheck("sales")` antes de submeter.
 - Modal inline para criar produto caso nao exista nenhum.
 
@@ -142,6 +152,11 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Fluxo: step 1 (produtos) -> 2 (cliente) -> 3 (pagamento) -> 4 (revisar) -> registrar.
 
 ## Change log / Decisions
+
+- 2026-09-23: Nova venda redesenhada para o desktop com as primitivas de
+  `shared/layout/desktop-page.tsx`. Os componentes de apresentação ficam em
+  `components/new-sale-desktop.tsx`, e o subtítulo da página segue a ordem real das etapas.
+  O celular continua igual pixel a pixel.
 
 - 2026-09-22: a tab central da navbar passou a `Vender`; o leitor de tela continua ouvindo `Nova venda`.
 

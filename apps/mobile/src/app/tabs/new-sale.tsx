@@ -60,6 +60,16 @@ import {
 import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { QuickSaleButton } from "../../features/sales/components/quick-sale-button";
 import {
+  DesktopChoiceCard,
+  DesktopChoiceIcon,
+  DesktopListHeading,
+  DesktopProductCard,
+  DesktopReviewItem,
+  DesktopSaleStepHeading,
+  DesktopSaleSummary,
+  type DesktopSummaryItem,
+} from "../../features/sales/components/new-sale-desktop";
+import {
   FIRST_SALE_STEP,
   SALE_STEP_ORDER,
   type SaleStep,
@@ -84,6 +94,17 @@ import {
 } from "../../shared/components/responsive-modal-surface";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import {
+  DesktopCard,
+  DesktopField,
+  DesktopFormGrid,
+  DesktopGrid,
+  DesktopSection,
+  DesktopSplit,
+  DesktopToolbarButton,
+  desktopPageContent,
+} from "../../shared/layout/desktop-page";
+import { DesktopStepper } from "../../shared/layout/desktop-stepper";
 import {
   desktopCompactField,
   desktopModalSurface,
@@ -770,195 +791,483 @@ export default function NewSaleScreen() {
   if (step === 3) nextActionLabel = "Revisar venda";
   if (step === 4) nextActionLabel = copy.saleLabel;
 
-  const desktopSummaryAside = isDesktop ? (
-    <View style={split.aside}>
-      <View
-        style={{
-          backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.border,
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          overflow: "hidden",
-        }}
-      >
-        <View style={{ gap: spacing.xs, padding: spacing.xl }}>
-          <Typography variant="label">RESUMO DA VENDA</Typography>
-          <Typography
-            variant="moneyHero"
-            color={theme.colors.text}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.55}
-          >
-            {formatCurrency(summaryTotal)}
-          </Typography>
-        </View>
+  // Desktop (web >= 1024px): página rolável, etapas no topo da coluna principal
+  // e resumo fixo à direita. Mesmo estado e mesmas ações do celular.
+  const desktopStepTitle = STEP_TITLES[step];
+  const desktopSummaryItems: DesktopSummaryItem[] = cart.map((item) => ({
+    key: `${item.productId}:${item.variationId ?? "default"}`,
+    name: [displayProductName(item.productName), item.variationName]
+      .filter(Boolean)
+      .join(" · "),
+    detail: `${cartQuantityLabel(item)} × ${formatCurrency(item.unitPrice)}${
+      item.saleUnit === "kg" ? "/kg" : ""
+    }`,
+    subtotal: item.unitPrice * item.quantity,
+  }));
+  const desktopPaymentLabel =
+    PAYMENT_OPTIONS.find((option) => option.value === paymentMethod)?.label ??
+    "A escolher";
+  const desktopProductsCount =
+    products.length === 1 ? "1 produto" : `${products.length} produtos`;
+  const paymentSubtitles: Record<PaymentMethod, string> = {
+    pix: "Pagamento instantâneo",
+    cash: "Pagamento em espécie",
+    card: "Débito ou crédito",
+    credit: "Pagamento para depois",
+    transfer: "Transferência bancária",
+  };
+
+  const desktopAside = (
+    <DesktopSaleSummary
+      items={desktopSummaryItems}
+      itemCountLabel={cartItemSummary}
+      clientName={selectedClient?.name ?? "Venda avulsa"}
+      paymentLabel={desktopPaymentLabel}
+      discount={step >= 3 ? pricing.discount : 0}
+      total={summaryTotal}
+    >
+      {step < 4 ? (
+        <Button
+          title={nextActionLabel}
+          size="lg"
+          disabled={step === 2 && cart.length === 0}
+          onPress={() => {
+            if (!canAdvance()) return;
+            setStep(nextSaleStep(step));
+          }}
+          icon={
+            <AppIcon name="arrow-forward" size={18} color={theme.colors.textOnPrimary} />
+          }
+          style={{ borderRadius: radii.md, width: "100%", backgroundColor: actionFill }}
+        />
+      ) : (
+        <Button
+          title={copy.saleLabel}
+          size="lg"
+          loading={createSale.isPending}
+          onPress={() => {
+            void handleSubmit();
+          }}
+          icon={
+            <AppIcon
+              name="checkmark-circle"
+              size={18}
+              color={theme.colors.textOnPrimary}
+            />
+          }
+          style={{ borderRadius: radii.md, width: "100%", backgroundColor: actionFill }}
+        />
+      )}
+      {step === 2 ? (
+        <QuickSaleButton
+          itemCount={cart.length}
+          hasClient={Boolean(selectedClient)}
+          pending={createSale.isPending}
+          onConfirm={(payment) => {
+            void handleSubmit(payment);
+          }}
+        />
+      ) : null}
+      {previousSaleStep(step) ? (
+        <Button
+          title="Voltar"
+          variant="ghost"
+          size="lg"
+          onPress={() => setStep((current) => previousSaleStep(current) ?? current)}
+          icon={
+            <AppIcon name="chevron-back" size={18} color={theme.colors.textSecondary} />
+          }
+          style={{ borderRadius: radii.md, width: "100%" }}
+        />
+      ) : null}
+    </DesktopSaleSummary>
+  );
+
+  const desktopProductsStep = (
+    <>
+      <ValidationField {...formValidation.field("cart")}>
         <View
           style={{
-            borderTopColor: theme.colors.border,
-            borderTopWidth: 1,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "stretch",
             gap: spacing.md,
-            padding: spacing.lg,
           }}
         >
-          <View style={{ gap: 2 }}>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Cliente
-            </Typography>
-            <Typography variant="bodyBold" numberOfLines={2}>
-              {selectedClient?.name ?? "Cliente avulso"}
-            </Typography>
+          <View style={{ flexGrow: 1, flexBasis: 320, minWidth: 0 }}>
+            <SearchBox
+              placeholder="Buscar produto ou código"
+              value={productSearch}
+              onChangeText={setProductSearch}
+              onTrailingPress={() => setShowScanner(true)}
+            />
           </View>
-          <View style={{ gap: 2 }}>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Itens
-            </Typography>
-            <Typography variant="bodyBold">{cartItemSummary}</Typography>
+          <DesktopToolbarButton
+            icon="add-circle-outline"
+            label="Novo produto"
+            onPress={() => {
+              setCreateProductInitial(undefined);
+              setShowCreateProduct(true);
+            }}
+          />
+          <DesktopToolbarButton
+            icon="barcode-outline"
+            label="Usar código"
+            onPress={() => setShowScanner(true)}
+          />
+        </View>
+      </ValidationField>
+      <DesktopListHeading
+        title="Seus produtos"
+        count={loadingProducts ? undefined : desktopProductsCount}
+        linkLabel="Ver todos"
+        onLink={() => router.push("/products")}
+      />
+      {productsQuery.error ? (
+        <DesktopCard>
+          <Typography variant="desktopCardTitle">
+            Não foi possível carregar os produtos
+          </Typography>
+          <Typography variant="desktopBody">
+            Verifique sua conexão e tente novamente.
+          </Typography>
+          <View style={{ alignItems: "flex-start" }}>
+            <Button
+              title="Tentar novamente"
+              variant="secondary"
+              onPress={() => void productsQuery.refetch()}
+            />
           </View>
-          <View style={{ gap: 2 }}>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Pagamento
+        </DesktopCard>
+      ) : null}
+      {loadingProducts ? <SkeletonList rows={6} variant="product" /> : null}
+      {!loadingProducts && !productsQuery.error && filteredProducts.length > 0 ? (
+        <DesktopGrid minColumnWidth={180} maxColumns={4}>
+          {filteredProducts.map((item) => {
+            const qty = getCartQuantity(item.id);
+            const cartItem = getCartItem(item.id);
+            return (
+              <DesktopProductCard
+                key={item.id}
+                product={item}
+                quantity={qty}
+                quantityLabel={
+                  cartItem?.saleUnit === "kg" ? formatWeight(qty) : String(qty)
+                }
+                stockLabel={productStockLabel(item)}
+                onAdd={() => addToCart(item)}
+                onRemove={() => removeFromCart(item.id)}
+              />
+            );
+          })}
+        </DesktopGrid>
+      ) : null}
+      {!loadingProducts && !productsQuery.error && filteredProducts.length === 0 ? (
+        <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
+          <Typography variant="desktopCardTitle">
+            {productSearch
+              ? "Nenhum produto encontrado"
+              : "Cadastre seu primeiro produto"}
+          </Typography>
+          <Typography variant="desktopBody">
+            {productSearch
+              ? "Tente outro nome ou use o código do produto."
+              : "Use Novo produto para cadastrar e já colocar na venda."}
+          </Typography>
+        </DesktopCard>
+      ) : null}
+    </>
+  );
+
+  const desktopClientStep = (
+    <>
+      <DesktopChoiceCard
+        title="Venda avulsa"
+        description="Continuar sem cliente"
+        leading={<DesktopChoiceIcon icon="person-outline" />}
+        onPress={() => {
+          setSelectedClient(null);
+          setStep(nextSaleStep(1));
+        }}
+      />
+      <SearchBox
+        placeholder="Buscar cliente"
+        value={clientSearch}
+        onChangeText={setClientSearch}
+        trailingIcon="filter-outline"
+        trailingLabel="Filtrar clientes"
+        onTrailingPress={() => setShowClientFilter(true)}
+      />
+      <DesktopListHeading
+        title="Seus clientes"
+        linkLabel="Ver todos"
+        onLink={() => router.push("/tabs/clients")}
+      />
+      {clientsQuery.error ? (
+        <DesktopCard>
+          <Typography variant="desktopCardTitle">
+            Não foi possível carregar os clientes
+          </Typography>
+          <Typography variant="desktopBody">
+            Você ainda pode continuar como venda avulsa ou tentar novamente.
+          </Typography>
+          <View style={{ alignItems: "flex-start" }}>
+            <Button
+              title="Tentar novamente"
+              variant="secondary"
+              onPress={() => void clientsQuery.refetch()}
+            />
+          </View>
+        </DesktopCard>
+      ) : null}
+      {!clientsQuery.error && loadingClients ? (
+        <SkeletonList rows={4} variant="client" />
+      ) : null}
+      {!clientsQuery.error && !loadingClients && filteredClients.length > 0 ? (
+        <DesktopGrid minColumnWidth={260} maxColumns={3} gap={spacing.md}>
+          {filteredClients.map((client) => (
+            <DesktopChoiceCard
+              key={client.id}
+              title={client.name}
+              description={client.phone}
+              accessibilityLabel={`Selecionar ${client.name}`}
+              selected={selectedClient?.id === client.id}
+              leading={
+                <DesktopChoiceIcon
+                  initial={(client.name.trim().charAt(0) || "?").toUpperCase()}
+                />
+              }
+              onPress={() => {
+                setSelectedClient({ id: client.id, name: client.name });
+                setStep(nextSaleStep(1));
+              }}
+            />
+          ))}
+        </DesktopGrid>
+      ) : null}
+      {!clientsQuery.error && !loadingClients && filteredClients.length === 0 ? (
+        <Typography variant="desktopBody">
+          {clientSearch ? "Nenhum cliente encontrado" : "Nenhum cliente para este filtro"}
+        </Typography>
+      ) : null}
+    </>
+  );
+
+  const discountOptions = [
+    { value: null, label: "Sem desconto" },
+    { value: "fixed" as const, label: "Valor em R$" },
+    { value: "percentage" as const, label: "Porcentagem" },
+  ];
+
+  const desktopPaymentStep = (
+    <>
+      <ValidationField {...formValidation.field("paymentMethod")}>
+        <View accessibilityRole="radiogroup" accessibilityLabel="Forma de pagamento">
+          <DesktopGrid minColumnWidth={300} maxColumns={3} gap={spacing.md}>
+            {PAYMENT_OPTIONS.map((option) => {
+              const isSelected = paymentMethod === option.value;
+              return (
+                <DesktopChoiceCard
+                  key={option.value}
+                  accessibilityRole="radio"
+                  title={option.label}
+                  description={paymentSubtitles[option.value]}
+                  selected={isSelected}
+                  onPress={() => setPaymentMethod(option.value)}
+                  leading={
+                    <DesktopChoiceIcon
+                      icon={option.icon as AppIconName}
+                      active={isSelected}
+                    />
+                  }
+                  trailing={
+                    <AppIcon
+                      name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+                      size={24}
+                      color={isSelected ? pal.wine : theme.colors.textSecondary}
+                    />
+                  }
+                />
+              );
+            })}
+          </DesktopGrid>
+        </View>
+      </ValidationField>
+      <DesktopSection
+        card
+        title="Ajustes da venda"
+        description="Desconto e observações são opcionais. Na próxima etapa você confere tudo."
+      >
+        <DesktopFormGrid>
+          <DesktopField span="full">
+            <View style={{ gap: spacing.sm }}>
+              <Typography variant="desktopFieldLabel">Desconto</Typography>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {discountOptions.map((option) => {
+                  const selected = discountType === option.value;
+                  return (
+                    <Pressable
+                      key={option.label}
+                      onPress={() => {
+                        setDiscountType(option.value);
+                        if (option.value === null) setDiscountInput("");
+                      }}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      style={{
+                        minHeight: 48,
+                        justifyContent: "center",
+                        paddingHorizontal: spacing.lg,
+                        borderRadius: radii.full,
+                        backgroundColor: selected ? pal.softRose : theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: selected ? pal.wine : theme.colors.border,
+                      }}
+                    >
+                      <Typography
+                        variant={selected ? "desktopBodyStrong" : "desktopBody"}
+                        color={selected ? pal.wine : theme.colors.text}
+                      >
+                        {option.label}
+                      </Typography>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </DesktopField>
+          {discountType ? (
+            <Input
+              label={discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"}
+              value={discountInput}
+              onChangeText={setDiscountInput}
+              keyboardType="decimal-pad"
+              numericMode="decimal"
+              placeholder={discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"}
+              error={
+                pricing.total <= 0
+                  ? "O desconto deve ser menor que o subtotal."
+                  : undefined
+              }
+            />
+          ) : null}
+          <DesktopField span="full">
+            <Input
+              label="Observações do pedido"
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Ex.: separar em duas embalagens"
+              maxLength={500}
+              multiline
+              numberOfLines={3}
+              style={{ height: 96, textAlignVertical: "top" }}
+            />
+          </DesktopField>
+        </DesktopFormGrid>
+      </DesktopSection>
+    </>
+  );
+
+  const desktopReviewStep = (
+    <>
+      <DesktopSection
+        card
+        title="Itens da venda"
+        action={{
+          label: "Editar itens",
+          accessibilityLabel: "Editar itens da venda",
+          onPress: () => setStep(2),
+        }}
+      >
+        <View>
+          {cart.map((item, index) => (
+            <DesktopReviewItem
+              key={`${item.productId}:${item.variationId ?? "default"}`}
+              first={index === 0}
+              photoUrl={getCartItemPhotoUrl(item)}
+              name={item.productName}
+              variation={item.variationName}
+              detail={`${cartQuantityLabel(item)} × ${formatCurrency(item.unitPrice)}${
+                item.saleUnit === "kg" ? "/kg" : ""
+              }`}
+              subtotal={item.unitPrice * item.quantity}
+            />
+          ))}
+        </View>
+      </DesktopSection>
+      <DesktopGrid minColumnWidth={280} maxColumns={2}>
+        <DesktopCard style={{ height: "100%", gap: spacing.xs }}>
+          <Typography variant="desktopCardTitle">Dados da venda</Typography>
+          <ReviewDetail
+            label="Cliente"
+            value={selectedClient?.name ?? "Venda avulsa"}
+            onEdit={() => setStep(1)}
+          />
+          <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+          <ReviewDetail
+            label="Pagamento"
+            value={desktopPaymentLabel}
+            onEdit={() => setStep(3)}
+          />
+        </DesktopCard>
+        <DesktopCard style={{ height: "100%", gap: spacing.md }}>
+          <Typography variant="desktopCardTitle">Valores</Typography>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Typography variant="desktopBody">Subtotal</Typography>
+            <Typography variant="desktopBodyStrong">
+              {formatCurrency(pricing.subtotal)}
             </Typography>
-            <Typography variant="bodyBold">{paymentMethodLabel}</Typography>
           </View>
           {pricing.discount > 0 ? (
-            <View style={{ gap: 2 }}>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Desconto
-              </Typography>
-              <Typography variant="bodyBold" color={theme.colors.text}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <Typography variant="desktopBody">Desconto</Typography>
+              <Typography variant="desktopBodyStrong">
                 − {formatCurrency(pricing.discount)}
               </Typography>
             </View>
           ) : null}
-        </View>
-      </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+              paddingTop: spacing.md,
+            }}
+          >
+            <Typography variant="desktopBodyStrong">Total da venda</Typography>
+            <Typography variant="desktopMetric">
+              {formatCurrency(pricing.total)}
+            </Typography>
+          </View>
+          {notes.trim() ? (
+            <View style={{ gap: spacing.xs }}>
+              <Typography variant="desktopMeta">Observações</Typography>
+              <Typography variant="desktopBody">{notes.trim()}</Typography>
+            </View>
+          ) : null}
+        </DesktopCard>
+      </DesktopGrid>
+    </>
+  );
 
-      <View style={{ gap: spacing.sm }}>
-        {previousSaleStep(step) ? (
-          <Button
-            title="Voltar"
-            variant="ghost"
-            onPress={() => setStep((current) => previousSaleStep(current) ?? current)}
-            icon={<AppIcon name="chevron-back" size={16} color={theme.colors.text} />}
-            style={{ borderRadius: radii.md, width: "100%" }}
-          />
-        ) : null}
-        {step < 4 ? (
-          <Button
-            title={nextActionLabel}
-            disabled={step === 2 && cart.length === 0}
-            onPress={() => {
-              if (!canAdvance()) return;
-              setStep(nextSaleStep(step));
-            }}
-            icon={
-              <AppIcon
-                name="arrow-forward"
-                size={16}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            style={{ borderRadius: radii.md, width: "100%", backgroundColor: actionFill }}
-          />
-        ) : (
-          <Button
-            title={copy.saleLabel}
-            size="lg"
-            loading={createSale.isPending}
-            onPress={() => {
-              void handleSubmit();
-            }}
-            icon={
-              <AppIcon
-                name="checkmark-circle"
-                size={18}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            style={{ borderRadius: radii.md, width: "100%", backgroundColor: actionFill }}
-          />
-        )}
-        {step === 2 ? (
-          <QuickSaleButton
-            itemCount={cart.length}
-            hasClient={Boolean(selectedClient)}
-            pending={createSale.isPending}
-            onConfirm={(payment) => {
-              void handleSubmit(payment);
-            }}
-          />
-        ) : null}
-      </View>
-    </View>
-  ) : null;
-
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View
-        style={{
-          flex: 1,
-          ...pageGutter(isDesktop),
-          ...pageZone,
-        }}
-      >
+  const desktopView = isDesktop ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View>
         <ScreenGuidance
-          renderHeader={(helpButton) =>
-            isDesktop ? (
-              <ScreenHeader
-                help={helpButton}
-                title="Nova venda"
-                subtitle="Escolha o cliente, os itens e a forma de pagamento."
-                hideBack
-              />
-            ) : (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingTop: spacing.sm,
-                  justifyContent: "space-between",
-                }}
-              >
-                <View
-                  style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: spacing.md,
-                  }}
-                >
-                  {!isDesktop ? (
-                    <Pressable
-                      onPress={() => {
-                        const previous = previousSaleStep(step);
-                        if (previous) setStep(previous);
-                        else router.push("/tabs/sales");
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Voltar"
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: radii.full,
-                        backgroundColor: theme.colors.surface,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <AppIcon
-                        name="chevron-back"
-                        size={25}
-                        color={theme.colors.textSecondary}
-                      />
-                    </Pressable>
-                  ) : null}
-                  <Typography variant="screenTitle">Nova venda</Typography>
-                </View>
-                {helpButton}
-              </View>
-            )
-          }
+          renderHeader={(helpButton) => (
+            <ScreenHeader
+              help={helpButton}
+              title="Nova venda"
+              subtitle="Escolha os produtos, o cliente e a forma de pagamento."
+              hideBack
+            />
+          )}
           area="new_sale"
           onStart={() => {
             if (products.length === 0) setShowCreateProduct(true);
@@ -975,987 +1284,1115 @@ export default function NewSaleScreen() {
             showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
           }
         />
-        <View
-          style={{
-            maxWidth: isDesktop ? 520 : undefined,
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.lg,
-          }}
-        >
-          <FormStepProgress
-            current={saleStepPosition(step)}
-            steps={SALE_STEP_ORDER.map((saleStep) => ({
-              label: STEP_LABELS[saleStep - 1],
-              title: STEP_TITLES[saleStep],
-            }))}
-            onStepPress={(target) => setStep(SALE_STEP_ORDER[target - 1] ?? step)}
-          />
-        </View>
+      </View>
+      <DesktopSplit aside={desktopAside}>
+        <DesktopStepper
+          current={saleStepPosition(step)}
+          steps={SALE_STEP_ORDER.map((saleStep) => ({
+            label: STEP_LABELS[saleStep - 1],
+            title: STEP_TITLES[saleStep],
+          }))}
+          onStepPress={(target) => setStep(SALE_STEP_ORDER[target - 1] ?? step)}
+        />
+        <DesktopSaleStepHeading
+          title={desktopStepTitle}
+          description={STEP_SUBTITLES[step]}
+        />
+        {step === 2 ? desktopProductsStep : null}
+        {step === 1 ? desktopClientStep : null}
+        {step === 3 ? desktopPaymentStep : null}
+        {step === 4 ? desktopReviewStep : null}
+      </DesktopSplit>
+    </ScrollView>
+  ) : null;
 
-        <View style={{ paddingBottom: spacing.lg }}>
-          <Typography variant="h3">{STEP_TITLES[step]}</Typography>
-          <Typography variant="body" style={{ marginTop: spacing.sm }}>
-            {STEP_SUBTITLES[step]}
-          </Typography>
-        </View>
-
-        <View style={[{ flex: 1, minHeight: 0 }, isDesktop ? split.row : undefined]}>
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {desktopView ?? (
+        <>
           <View
-            onLayout={(event) => setMainWidth(event.nativeEvent.layout.width)}
-            style={[
-              { flex: 1, minWidth: 0, minHeight: 0 },
-              isDesktop ? split.main : undefined,
-            ]}
+            style={{
+              flex: 1,
+              ...pageGutter(isDesktop),
+              ...pageZone,
+            }}
           >
-            {/* Step 2: Select Products */}
-            {step === 2 && (
-              <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={{ paddingBottom: spacing.lg }}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
-                <View
-                  style={{
-                    gap: spacing.lg,
-                    paddingBottom: spacing.lg,
-                  }}
-                >
-                  <ValidationField {...formValidation.field("cart")}>
-                    <View style={searchFieldStyle}>
-                      <SearchBox
-                        placeholder="Buscar produto..."
-                        value={productSearch}
-                        onChangeText={setProductSearch}
-                        onTrailingPress={() => setShowScanner(true)}
-                      />
-                    </View>
-                  </ValidationField>
-                </View>
-
-                <View
-                  style={{
-                    gap: spacing.lg,
-                    paddingBottom: spacing.lg,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      gap: spacing.md,
-                    }}
-                  >
-                    <QuickActionCard
-                      icon="add-circle-outline"
-                      title="Novo produto"
-                      onPress={() => {
-                        setCreateProductInitial(undefined);
-                        setShowCreateProduct(true);
-                      }}
-                    />
-                    <QuickActionCard
-                      icon="barcode-outline"
-                      title="Usar código"
-                      onPress={() => setShowScanner(true)}
-                    />
-                  </View>
+            <ScreenGuidance
+              renderHeader={(helpButton) =>
+                isDesktop ? (
+                  <ScreenHeader
+                    help={helpButton}
+                    title="Nova venda"
+                    subtitle="Escolha o cliente, os itens e a forma de pagamento."
+                    hideBack
+                  />
+                ) : (
                   <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
+                      paddingTop: spacing.sm,
                       justifyContent: "space-between",
                     }}
                   >
                     <View
                       style={{
+                        flex: 1,
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: spacing.sm,
+                        gap: spacing.md,
                       }}
                     >
-                      <Typography variant="bodyBold">Seus produtos</Typography>
+                      {!isDesktop ? (
+                        <Pressable
+                          onPress={() => {
+                            const previous = previousSaleStep(step);
+                            if (previous) setStep(previous);
+                            else router.push("/tabs/sales");
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel="Voltar"
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: radii.full,
+                            backgroundColor: theme.colors.surface,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AppIcon
+                            name="chevron-back"
+                            size={25}
+                            color={theme.colors.textSecondary}
+                          />
+                        </Pressable>
+                      ) : null}
+                      <Typography variant="screenTitle">Nova venda</Typography>
                     </View>
-                    <Pressable
-                      onPress={() => router.push("/products")}
-                      accessibilityRole="button"
-                      hitSlop={10}
-                    >
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Ver todos
-                      </Typography>
-                    </Pressable>
+                    {helpButton}
                   </View>
-                </View>
+                )
+              }
+              area="new_sale"
+              onStart={() => {
+                if (products.length === 0) setShowCreateProduct(true);
+                else setStep(2);
+              }}
+              actionLabel={
+                products.length === 0
+                  ? "Cadastrar produto e continuar"
+                  : "Escolher produtos"
+              }
+              hasRecords={
+                (salesData?.total ?? 0) > 0 || step !== FIRST_SALE_STEP || cart.length > 0
+              }
+              loading={loadingProducts || productsQuery.isError}
+              suspended={
+                showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
+              }
+            />
+            <View
+              style={{
+                maxWidth: isDesktop ? 520 : undefined,
+                paddingTop: spacing.sm,
+                paddingBottom: spacing.lg,
+              }}
+            >
+              <FormStepProgress
+                current={saleStepPosition(step)}
+                steps={SALE_STEP_ORDER.map((saleStep) => ({
+                  label: STEP_LABELS[saleStep - 1],
+                  title: STEP_TITLES[saleStep],
+                }))}
+                onStepPress={(target) => setStep(SALE_STEP_ORDER[target - 1] ?? step)}
+              />
+            </View>
 
-                {productsQuery.error ? (
-                  <View style={{ paddingVertical: spacing.xl, gap: spacing.md }}>
-                    <Typography variant="h3">
-                      Não foi possível carregar os produtos
-                    </Typography>
-                    <Typography variant="body" color={theme.colors.textSecondary}>
-                      Verifique sua conexão e tente novamente.
-                    </Typography>
-                    <Button
-                      title="Tentar novamente"
-                      variant="secondary"
-                      onPress={() => void productsQuery.refetch()}
-                    />
-                  </View>
-                ) : null}
-                {loadingProducts && (
-                  <View style={{ flex: 1 }}>
-                    <SkeletonList rows={5} variant="picker" />
-                  </View>
-                )}
-                {!loadingProducts &&
-                  !productsQuery.error &&
-                  !!filteredProducts?.length && (
-                    <View>
+            <View style={{ paddingBottom: spacing.lg }}>
+              <Typography variant="h3">{STEP_TITLES[step]}</Typography>
+              <Typography variant="body" style={{ marginTop: spacing.sm }}>
+                {STEP_SUBTITLES[step]}
+              </Typography>
+            </View>
+
+            <View style={[{ flex: 1, minHeight: 0 }, isDesktop ? split.row : undefined]}>
+              <View
+                onLayout={(event) => setMainWidth(event.nativeEvent.layout.width)}
+                style={[
+                  { flex: 1, minWidth: 0, minHeight: 0 },
+                  isDesktop ? split.main : undefined,
+                ]}
+              >
+                {/* Step 2: Select Products */}
+                {step === 2 && (
+                  <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ paddingBottom: spacing.lg }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    <View
+                      style={{
+                        gap: spacing.lg,
+                        paddingBottom: spacing.lg,
+                      }}
+                    >
+                      <ValidationField {...formValidation.field("cart")}>
+                        <View style={searchFieldStyle}>
+                          <SearchBox
+                            placeholder="Buscar produto..."
+                            value={productSearch}
+                            onChangeText={setProductSearch}
+                            onTrailingPress={() => setShowScanner(true)}
+                          />
+                        </View>
+                      </ValidationField>
+                    </View>
+
+                    <View
+                      style={{
+                        gap: spacing.lg,
+                        paddingBottom: spacing.lg,
+                      }}
+                    >
                       <View
                         style={{
                           flexDirection: "row",
                           flexWrap: "wrap",
-                          justifyContent: "flex-start",
                           gap: spacing.md,
                         }}
                       >
-                        {filteredProducts.map((item) => {
-                          const qty = getCartQuantity(item.id);
-                          const cartItem = getCartItem(item.id);
-                          const stockLabel = productStockLabel(item);
-                          const selected = qty > 0;
-                          return (
-                            <Pressable
-                              key={item.id}
-                              onPress={() => addToCart(item)}
-                              onLongPress={() => removeFromCart(item.id)}
-                              accessibilityRole="button"
-                              accessibilityLabel={`Produto ${displayProductName(item.name)}`}
-                              accessibilityHint="Toque para adicionar à venda"
-                              accessibilityState={{ selected }}
-                              style={({ pressed }) => ({
-                                width: productCardWidth,
-                                borderRadius: radii.lg,
-                                padding: spacing.sm,
-                                gap: spacing.xs,
-                                ...getSurfaceStyle(theme),
-                                borderColor: selected ? pal.wine : theme.colors.border,
-                                backgroundColor: selected
-                                  ? theme.colors.surface
-                                  : theme.colors.surfaceElevated,
-                                opacity: pressed ? 0.86 : 1,
-                              })}
-                            >
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <View
-                                  style={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: radii.md,
-                                    overflow: "hidden",
-                                    backgroundColor: theme.colors.surface,
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
+                        <QuickActionCard
+                          icon="add-circle-outline"
+                          title="Novo produto"
+                          onPress={() => {
+                            setCreateProductInitial(undefined);
+                            setShowCreateProduct(true);
+                          }}
+                        />
+                        <QuickActionCard
+                          icon="barcode-outline"
+                          title="Usar código"
+                          onPress={() => setShowScanner(true)}
+                        />
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.sm,
+                          }}
+                        >
+                          <Typography variant="bodyBold">Seus produtos</Typography>
+                        </View>
+                        <Pressable
+                          onPress={() => router.push("/products")}
+                          accessibilityRole="button"
+                          hitSlop={10}
+                        >
+                          <Typography
+                            variant="caption"
+                            color={theme.colors.textSecondary}
+                          >
+                            Ver todos
+                          </Typography>
+                        </Pressable>
+                      </View>
+                    </View>
+
+                    {productsQuery.error ? (
+                      <View style={{ paddingVertical: spacing.xl, gap: spacing.md }}>
+                        <Typography variant="h3">
+                          Não foi possível carregar os produtos
+                        </Typography>
+                        <Typography variant="body" color={theme.colors.textSecondary}>
+                          Verifique sua conexão e tente novamente.
+                        </Typography>
+                        <Button
+                          title="Tentar novamente"
+                          variant="secondary"
+                          onPress={() => void productsQuery.refetch()}
+                        />
+                      </View>
+                    ) : null}
+                    {loadingProducts && (
+                      <View style={{ flex: 1 }}>
+                        <SkeletonList rows={5} variant="picker" />
+                      </View>
+                    )}
+                    {!loadingProducts &&
+                      !productsQuery.error &&
+                      !!filteredProducts?.length && (
+                        <View>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              justifyContent: "flex-start",
+                              gap: spacing.md,
+                            }}
+                          >
+                            {filteredProducts.map((item) => {
+                              const qty = getCartQuantity(item.id);
+                              const cartItem = getCartItem(item.id);
+                              const stockLabel = productStockLabel(item);
+                              const selected = qty > 0;
+                              return (
+                                <Pressable
+                                  key={item.id}
+                                  onPress={() => addToCart(item)}
+                                  onLongPress={() => removeFromCart(item.id)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Produto ${displayProductName(item.name)}`}
+                                  accessibilityHint="Toque para adicionar à venda"
+                                  accessibilityState={{ selected }}
+                                  style={({ pressed }) => ({
+                                    width: productCardWidth,
+                                    borderRadius: radii.lg,
+                                    padding: spacing.sm,
+                                    gap: spacing.xs,
+                                    ...getSurfaceStyle(theme),
+                                    borderColor: selected
+                                      ? pal.wine
+                                      : theme.colors.border,
+                                    backgroundColor: selected
+                                      ? theme.colors.surface
+                                      : theme.colors.surfaceElevated,
+                                    opacity: pressed ? 0.86 : 1,
+                                  })}
                                 >
-                                  {item.photoUrl ? (
-                                    <Image
-                                      source={{ uri: item.photoUrl }}
-                                      style={{ width: "100%", height: "100%" }}
-                                      resizeMode="cover"
-                                    />
-                                  ) : (
-                                    <Typography
-                                      variant="bodyBold"
-                                      color={theme.colors.textSecondary}
+                                  <View
+                                    style={{
+                                      flexDirection: "row",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <View
+                                      style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: radii.md,
+                                        overflow: "hidden",
+                                        backgroundColor: theme.colors.surface,
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
                                     >
-                                      {productInitial(item.name)}
+                                      {item.photoUrl ? (
+                                        <Image
+                                          source={{ uri: item.photoUrl }}
+                                          style={{ width: "100%", height: "100%" }}
+                                          resizeMode="cover"
+                                        />
+                                      ) : (
+                                        <Typography
+                                          variant="bodyBold"
+                                          color={theme.colors.textSecondary}
+                                        >
+                                          {productInitial(item.name)}
+                                        </Typography>
+                                      )}
+                                    </View>
+                                    {selected ? (
+                                      <AppIcon
+                                        name="checkmark-circle"
+                                        size={18}
+                                        color={pal.wine}
+                                      />
+                                    ) : null}
+                                  </View>
+                                  <Typography
+                                    variant="bodyBold"
+                                    numberOfLines={2}
+                                    style={{ marginTop: spacing.sm, minHeight: 40 }}
+                                  >
+                                    {displayProductName(item.name)}
+                                  </Typography>
+                                  <Typography variant="bodyBold">
+                                    {formatCurrency(item.salePrice)}
+                                    {item.saleUnit === "kg" ? "/kg" : ""}
+                                  </Typography>
+                                  {stockLabel &&
+                                  stockLabel !== "Sem controle de estoque" ? (
+                                    <Typography
+                                      variant="caption"
+                                      color={
+                                        stockLabel.includes("baixo") ||
+                                        stockLabel === "Sem estoque"
+                                          ? theme.colors.alert
+                                          : theme.colors.textSecondary
+                                      }
+                                      numberOfLines={2}
+                                    >
+                                      {stockLabel}
                                     </Typography>
-                                  )}
-                                </View>
-                                {selected ? (
-                                  <AppIcon
-                                    name="checkmark-circle"
-                                    size={18}
-                                    color={pal.wine}
-                                  />
-                                ) : null}
-                              </View>
-                              <Typography
-                                variant="bodyBold"
-                                numberOfLines={2}
-                                style={{ marginTop: spacing.sm, minHeight: 40 }}
-                              >
-                                {displayProductName(item.name)}
-                              </Typography>
-                              <Typography variant="bodyBold">
-                                {formatCurrency(item.salePrice)}
-                                {item.saleUnit === "kg" ? "/kg" : ""}
-                              </Typography>
-                              {stockLabel && stockLabel !== "Sem controle de estoque" ? (
-                                <Typography
-                                  variant="caption"
-                                  color={
-                                    stockLabel.includes("baixo") ||
-                                    stockLabel === "Sem estoque"
-                                      ? theme.colors.alert
-                                      : theme.colors.textSecondary
-                                  }
-                                  numberOfLines={2}
-                                >
-                                  {stockLabel}
-                                </Typography>
-                              ) : null}
-                              <View style={{ flex: 1 }} />
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  marginTop: spacing.sm,
-                                  borderTopWidth: 1,
-                                  borderTopColor: theme.colors.border,
-                                  paddingTop: spacing.xs,
-                                }}
-                              >
-                                {selected ? (
-                                  <>
+                                  ) : null}
+                                  <View style={{ flex: 1 }} />
+                                  <View
+                                    style={{
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                      marginTop: spacing.sm,
+                                      borderTopWidth: 1,
+                                      borderTopColor: theme.colors.border,
+                                      paddingTop: spacing.xs,
+                                    }}
+                                  >
+                                    {selected ? (
+                                      <>
+                                        <Pressable
+                                          onPress={(event) => {
+                                            event.stopPropagation();
+                                            removeFromCart(item.id);
+                                          }}
+                                          accessibilityRole="button"
+                                          accessibilityLabel={`Diminuir quantidade de ${displayProductName(item.name)}`}
+                                          style={{
+                                            width: 44,
+                                            height: 44,
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                          }}
+                                        >
+                                          <AppIcon
+                                            name="remove"
+                                            size={18}
+                                            color={theme.colors.text}
+                                          />
+                                        </Pressable>
+                                        <QuantityPulse
+                                          value={qty}
+                                          style={{
+                                            flex: 1,
+                                            minWidth: 0,
+                                            alignItems: "center",
+                                          }}
+                                        >
+                                          <Typography
+                                            variant="caption"
+                                            color={pal.wine}
+                                            numberOfLines={1}
+                                            adjustsFontSizeToFit
+                                            minimumFontScale={0.75}
+                                          >
+                                            {cartItem?.saleUnit === "kg"
+                                              ? formatWeight(qty)
+                                              : qty}
+                                          </Typography>
+                                        </QuantityPulse>
+                                      </>
+                                    ) : (
+                                      <Typography
+                                        variant="caption"
+                                        color={theme.colors.textSecondary}
+                                        style={{ flex: 1 }}
+                                      >
+                                        Adicionar
+                                      </Typography>
+                                    )}
                                     <Pressable
                                       onPress={(event) => {
                                         event.stopPropagation();
-                                        removeFromCart(item.id);
+                                        addToCart(item);
                                       }}
                                       accessibilityRole="button"
-                                      accessibilityLabel={`Diminuir quantidade de ${displayProductName(item.name)}`}
+                                      accessibilityLabel={`Adicionar ${displayProductName(item.name)}`}
                                       style={{
                                         width: 44,
                                         height: 44,
                                         alignItems: "center",
                                         justifyContent: "center",
+                                        borderRadius: radii.md,
+                                        backgroundColor: theme.colors.surface,
                                       }}
                                     >
-                                      <AppIcon
-                                        name="remove"
-                                        size={18}
-                                        color={theme.colors.text}
-                                      />
+                                      <AppIcon name="add" size={20} color={pal.wine} />
                                     </Pressable>
-                                    <QuantityPulse
-                                      value={qty}
-                                      style={{
-                                        flex: 1,
-                                        minWidth: 0,
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <Typography
-                                        variant="caption"
-                                        color={pal.wine}
-                                        numberOfLines={1}
-                                        adjustsFontSizeToFit
-                                        minimumFontScale={0.75}
-                                      >
-                                        {cartItem?.saleUnit === "kg"
-                                          ? formatWeight(qty)
-                                          : qty}
-                                      </Typography>
-                                    </QuantityPulse>
-                                  </>
-                                ) : (
-                                  <Typography
-                                    variant="caption"
-                                    color={theme.colors.textSecondary}
-                                    style={{ flex: 1 }}
-                                  >
-                                    Adicionar
-                                  </Typography>
-                                )}
-                                <Pressable
-                                  onPress={(event) => {
-                                    event.stopPropagation();
-                                    addToCart(item);
-                                  }}
-                                  accessibilityRole="button"
-                                  accessibilityLabel={`Adicionar ${displayProductName(item.name)}`}
-                                  style={{
-                                    width: 44,
-                                    height: 44,
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    borderRadius: radii.md,
-                                    backgroundColor: theme.colors.surface,
-                                  }}
-                                >
-                                  <AppIcon name="add" size={20} color={pal.wine} />
+                                  </View>
                                 </Pressable>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      )}
+                    {!loadingProducts &&
+                    !productsQuery.error &&
+                    filteredProducts.length === 0 ? (
+                      <View style={{ paddingVertical: spacing.xl, gap: spacing.sm }}>
+                        <Typography variant="bodyBold">
+                          {productSearch
+                            ? "Nenhum produto encontrado"
+                            : "Cadastre seu primeiro produto"}
+                        </Typography>
+                        <Typography variant="body">
+                          {productSearch
+                            ? "Tente outro nome ou use o código do produto."
+                            : "Toque em Novo produto para começar esta venda."}
+                        </Typography>
+                      </View>
+                    ) : null}
+                  </ScrollView>
+                )}
+
+                {/* Step 1: Select Client */}
+                {step === 1 && (
+                  <View
+                    style={{
+                      flex: 1,
+                      gap: spacing.md,
+                      paddingBottom: isDesktop ? 0 : navigationBottomPadding,
+                    }}
+                  >
+                    <Pressable
+                      onPress={() => {
+                        setSelectedClient(null);
+                        setStep(nextSaleStep(1));
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Venda avulsa"
+                      style={({ pressed }) => ({
+                        minHeight: 72,
+                        borderRadius: radii.lg,
+                        paddingHorizontal: spacing.lg,
+                        paddingVertical: spacing.md,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                        opacity: pressed ? 0.86 : 1,
+                        width: isDesktop ? "100%" : undefined,
+                        ...getSurfaceStyle(theme),
+                      })}
+                    >
+                      <View
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: radii.full,
+                          backgroundColor: theme.colors.surface,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AppIcon
+                          name="person-outline"
+                          size={iconSizes.md}
+                          color={theme.colors.textSecondary}
+                        />
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Typography
+                          variant="bodyBold"
+                          color={theme.colors.text}
+                          numberOfLines={1}
+                        >
+                          Venda avulsa
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color={theme.colors.textSecondary}
+                          numberOfLines={1}
+                        >
+                          Continuar sem cliente
+                        </Typography>
+                      </View>
+                      <AppIcon
+                        name="chevron-forward"
+                        size={24}
+                        color={theme.colors.textSecondary}
+                      />
+                    </Pressable>
+
+                    <View style={searchFieldStyle}>
+                      <SearchBox
+                        placeholder="Buscar cliente"
+                        value={clientSearch}
+                        onChangeText={setClientSearch}
+                        trailingIcon="filter-outline"
+                        trailingLabel="Filtrar clientes"
+                        onTrailingPress={() => setShowClientFilter(true)}
+                      />
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        <Typography variant="bodyBold">Seus clientes</Typography>
+                      </View>
+                      <Pressable
+                        onPress={() => router.push("/tabs/clients")}
+                        accessibilityRole="button"
+                        hitSlop={10}
+                      >
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Ver todos
+                        </Typography>
+                      </Pressable>
+                    </View>
+
+                    {clientsQuery.error ? (
+                      <View style={{ gap: spacing.md }}>
+                        <Typography variant="h3">
+                          Não foi possível carregar os clientes
+                        </Typography>
+                        <Typography variant="body" color={theme.colors.textSecondary}>
+                          Você ainda pode continuar como venda avulsa ou tentar novamente.
+                        </Typography>
+                        <Button
+                          title="Tentar novamente"
+                          variant="secondary"
+                          onPress={() => void clientsQuery.refetch()}
+                        />
+                      </View>
+                    ) : null}
+                    {!clientsQuery.error && loadingClients ? (
+                      <SkeletonList rows={4} variant="client" />
+                    ) : null}
+                    {!clientsQuery.error && !loadingClients ? (
+                      <FlatList
+                        key={isDesktop ? "clients-desktop" : "clients-mobile"}
+                        data={filteredClients}
+                        keyExtractor={(item) => item.id}
+                        numColumns={isDesktop ? 2 : 1}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                        style={{ flex: 1, minHeight: 0 }}
+                        columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
+                        contentContainerStyle={{
+                          gap: isDesktop ? spacing.sm : 0,
+                          paddingBottom: spacing.lg,
+                        }}
+                        renderItem={({ item }: { item: Client }) => (
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Selecionar ${item.name}`}
+                            onPress={() => {
+                              setSelectedClient({ id: item.id, name: item.name });
+                              setStep(nextSaleStep(1));
+                            }}
+                            style={({ pressed }) => [
+                              {
+                                minHeight: 72,
+                                borderRadius: isDesktop ? radii.lg : 0,
+                                paddingVertical: spacing.md,
+                                paddingHorizontal: isDesktop ? spacing.lg : spacing.xs,
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: spacing.md,
+                                borderBottomWidth: 1,
+                                borderColor: theme.colors.border,
+                                backgroundColor: pressed
+                                  ? theme.colors.surface
+                                  : theme.colors.background,
+                                opacity: pressed ? 0.86 : 1,
+                                flex: isDesktop ? 1 : undefined,
+                                marginBottom: isDesktop ? spacing.sm : 0,
+                              },
+                            ]}
+                          >
+                            <ClientPickerAvatar name={item.name} />
+                            <View style={{ flex: 1, minWidth: 0 }}>
+                              <Typography variant="bodyBold" numberOfLines={1}>
+                                {item.name}
+                              </Typography>
+                              {item.phone && (
+                                <Typography variant="caption">{item.phone}</Typography>
+                              )}
+                            </View>
+                            <AppIcon
+                              name="chevron-forward"
+                              size={18}
+                              color={theme.colors.textSecondary}
+                            />
+                          </Pressable>
+                        )}
+                        ListEmptyComponent={
+                          clientSearch ? (
+                            <Typography
+                              variant="caption"
+                              color={theme.colors.textSecondary}
+                            >
+                              Nenhum cliente encontrado
+                            </Typography>
+                          ) : (
+                            <Typography
+                              variant="caption"
+                              color={theme.colors.textSecondary}
+                            >
+                              Nenhum cliente para este filtro
+                            </Typography>
+                          )
+                        }
+                      />
+                    ) : null}
+                  </View>
+                )}
+
+                {/* Step 3: Payment Method */}
+                {step === 3 && (
+                  <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{
+                      gap: spacing.md,
+                      paddingBottom: spacing.lg,
+                    }}
+                  >
+                    <ValidationField {...formValidation.field("paymentMethod")}>
+                      <View
+                        accessibilityRole="radiogroup"
+                        accessibilityLabel="Forma de pagamento"
+                        style={{
+                          flexDirection: isDesktop ? "row" : "column",
+                          flexWrap: "wrap",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        {PAYMENT_OPTIONS.map((option) => {
+                          const isSelected = paymentMethod === option.value;
+                          // Fundo opaco mantém a seleção consistente no Android.
+                          const cardBackgroundColor = isSelected
+                            ? theme.colors.surface
+                            : theme.colors.surfaceElevated;
+                          const subtitles: Record<PaymentMethod, string> = {
+                            pix: "Pagamento instantâneo",
+                            cash: "Pagamento em espécie",
+                            card: "Débito ou crédito",
+                            credit: "Pagamento para depois",
+                            transfer: "Transferência bancária",
+                          };
+                          return (
+                            <Pressable
+                              key={option.value}
+                              onPress={() => setPaymentMethod(option.value)}
+                              accessibilityRole="radio"
+                              accessibilityLabel={option.label}
+                              accessibilityState={{ checked: isSelected }}
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: spacing.md,
+                                minHeight: 68,
+                                paddingVertical: spacing.md,
+                                paddingHorizontal: spacing.lg,
+                                borderRadius: radii.xl,
+                                ...getSurfaceStyle(theme),
+                                borderWidth: 1,
+                                borderColor: isSelected ? pal.wine : theme.colors.border,
+                                backgroundColor: cardBackgroundColor,
+                                width: isDesktop ? paymentCardWidth : "100%",
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: radii.md,
+                                  backgroundColor: theme.colors.surface,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <AppIcon
+                                  name={option.icon as AppIconName}
+                                  size={24}
+                                  color={
+                                    isSelected ? pal.wine : theme.colors.textSecondary
+                                  }
+                                />
                               </View>
+                              <View style={{ flex: 1 }}>
+                                <Typography variant="bodyBold">{option.label}</Typography>
+                                <Typography variant="caption">
+                                  {subtitles[option.value]}
+                                </Typography>
+                              </View>
+                              <AppIcon
+                                name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+                                size={24}
+                                color={isSelected ? pal.wine : theme.colors.textSecondary}
+                              />
                             </Pressable>
                           );
                         })}
                       </View>
-                    </View>
-                  )}
-                {!loadingProducts &&
-                !productsQuery.error &&
-                filteredProducts.length === 0 ? (
-                  <View style={{ paddingVertical: spacing.xl, gap: spacing.sm }}>
-                    <Typography variant="bodyBold">
-                      {productSearch
-                        ? "Nenhum produto encontrado"
-                        : "Cadastre seu primeiro produto"}
-                    </Typography>
-                    <Typography variant="body">
-                      {productSearch
-                        ? "Tente outro nome ou use o código do produto."
-                        : "Toque em Novo produto para começar esta venda."}
-                    </Typography>
-                  </View>
-                ) : null}
-              </ScrollView>
-            )}
-
-            {/* Step 1: Select Client */}
-            {step === 1 && (
-              <View
-                style={{
-                  flex: 1,
-                  gap: spacing.md,
-                  paddingBottom: isDesktop ? 0 : navigationBottomPadding,
-                }}
-              >
-                <Pressable
-                  onPress={() => {
-                    setSelectedClient(null);
-                    setStep(nextSaleStep(1));
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Venda avulsa"
-                  style={({ pressed }) => ({
-                    minHeight: 72,
-                    borderRadius: radii.lg,
-                    paddingHorizontal: spacing.lg,
-                    paddingVertical: spacing.md,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: spacing.md,
-                    opacity: pressed ? 0.86 : 1,
-                    width: isDesktop ? "100%" : undefined,
-                    ...getSurfaceStyle(theme),
-                  })}
-                >
-                  <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: radii.full,
-                      backgroundColor: theme.colors.surface,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <AppIcon
-                      name="person-outline"
-                      size={iconSizes.md}
-                      color={theme.colors.textSecondary}
-                    />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="bodyBold"
-                      color={theme.colors.text}
-                      numberOfLines={1}
+                    </ValidationField>
+                    <Card
+                      style={{
+                        ...getSurfaceStyle(theme),
+                        ...(isDesktop ? { width: "100%" } : null),
+                      }}
                     >
-                      Venda avulsa
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color={theme.colors.textSecondary}
-                      numberOfLines={1}
-                    >
-                      Continuar sem cliente
-                    </Typography>
-                  </View>
-                  <AppIcon
-                    name="chevron-forward"
-                    size={24}
-                    color={theme.colors.textSecondary}
-                  />
-                </Pressable>
-
-                <View style={searchFieldStyle}>
-                  <SearchBox
-                    placeholder="Buscar cliente"
-                    value={clientSearch}
-                    onChangeText={setClientSearch}
-                    trailingIcon="filter-outline"
-                    trailingLabel="Filtrar clientes"
-                    onTrailingPress={() => setShowClientFilter(true)}
-                  />
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    <Typography variant="bodyBold">Seus clientes</Typography>
-                  </View>
-                  <Pressable
-                    onPress={() => router.push("/tabs/clients")}
-                    accessibilityRole="button"
-                    hitSlop={10}
-                  >
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Ver todos
-                    </Typography>
-                  </Pressable>
-                </View>
-
-                {clientsQuery.error ? (
-                  <View style={{ gap: spacing.md }}>
-                    <Typography variant="h3">
-                      Não foi possível carregar os clientes
-                    </Typography>
-                    <Typography variant="body" color={theme.colors.textSecondary}>
-                      Você ainda pode continuar como venda avulsa ou tentar novamente.
-                    </Typography>
-                    <Button
-                      title="Tentar novamente"
-                      variant="secondary"
-                      onPress={() => void clientsQuery.refetch()}
-                    />
-                  </View>
-                ) : null}
-                {!clientsQuery.error && loadingClients ? (
-                  <SkeletonList rows={4} variant="client" />
-                ) : null}
-                {!clientsQuery.error && !loadingClients ? (
-                  <FlatList
-                    key={isDesktop ? "clients-desktop" : "clients-mobile"}
-                    data={filteredClients}
-                    keyExtractor={(item) => item.id}
-                    numColumns={isDesktop ? 2 : 1}
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                    style={{ flex: 1, minHeight: 0 }}
-                    columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
-                    contentContainerStyle={{
-                      gap: isDesktop ? spacing.sm : 0,
-                      paddingBottom: spacing.lg,
-                    }}
-                    renderItem={({ item }: { item: Client }) => (
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={`Selecionar ${item.name}`}
-                        onPress={() => {
-                          setSelectedClient({ id: item.id, name: item.name });
-                          setStep(nextSaleStep(1));
-                        }}
-                        style={({ pressed }) => [
-                          {
-                            minHeight: 72,
-                            borderRadius: isDesktop ? radii.lg : 0,
-                            paddingVertical: spacing.md,
-                            paddingHorizontal: isDesktop ? spacing.lg : spacing.xs,
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: spacing.md,
-                            borderBottomWidth: 1,
-                            borderColor: theme.colors.border,
-                            backgroundColor: pressed
-                              ? theme.colors.surface
-                              : theme.colors.background,
-                            opacity: pressed ? 0.86 : 1,
-                            flex: isDesktop ? 1 : undefined,
-                            marginBottom: isDesktop ? spacing.sm : 0,
-                          },
-                        ]}
+                      <Typography variant="h3">Ajustes da venda</Typography>
+                      <Typography
+                        variant="caption"
+                        color={theme.colors.textSecondary}
+                        style={{ marginTop: spacing.xs, marginBottom: spacing.md }}
                       >
-                        <ClientPickerAvatar name={item.name} />
-                        <View style={{ flex: 1, minWidth: 0 }}>
-                          <Typography variant="bodyBold" numberOfLines={1}>
-                            {item.name}
-                          </Typography>
-                          {item.phone && (
-                            <Typography variant="caption">{item.phone}</Typography>
-                          )}
-                        </View>
-                        <AppIcon
-                          name="chevron-forward"
-                          size={18}
-                          color={theme.colors.textSecondary}
-                        />
-                      </Pressable>
-                    )}
-                    ListEmptyComponent={
-                      clientSearch ? (
-                        <Typography variant="caption" color={theme.colors.textSecondary}>
-                          Nenhum cliente encontrado
-                        </Typography>
-                      ) : (
-                        <Typography variant="caption" color={theme.colors.textSecondary}>
-                          Nenhum cliente para este filtro
-                        </Typography>
-                      )
-                    }
-                  />
-                ) : null}
-              </View>
-            )}
-
-            {/* Step 3: Payment Method */}
-            {step === 3 && (
-              <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={{
-                  gap: spacing.md,
-                  paddingBottom: spacing.lg,
-                }}
-              >
-                <ValidationField {...formValidation.field("paymentMethod")}>
-                  <View
-                    accessibilityRole="radiogroup"
-                    accessibilityLabel="Forma de pagamento"
-                    style={{
-                      flexDirection: isDesktop ? "row" : "column",
-                      flexWrap: "wrap",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    {PAYMENT_OPTIONS.map((option) => {
-                      const isSelected = paymentMethod === option.value;
-                      // Fundo opaco mantém a seleção consistente no Android.
-                      const cardBackgroundColor = isSelected
-                        ? theme.colors.surface
-                        : theme.colors.surfaceElevated;
-                      const subtitles: Record<PaymentMethod, string> = {
-                        pix: "Pagamento instantâneo",
-                        cash: "Pagamento em espécie",
-                        card: "Débito ou crédito",
-                        credit: "Pagamento para depois",
-                        transfer: "Transferência bancária",
-                      };
-                      return (
-                        <Pressable
-                          key={option.value}
-                          onPress={() => setPaymentMethod(option.value)}
-                          accessibilityRole="radio"
-                          accessibilityLabel={option.label}
-                          accessibilityState={{ checked: isSelected }}
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: spacing.md,
-                            minHeight: 68,
-                            paddingVertical: spacing.md,
-                            paddingHorizontal: spacing.lg,
-                            borderRadius: radii.xl,
-                            ...getSurfaceStyle(theme),
-                            borderWidth: 1,
-                            borderColor: isSelected ? pal.wine : theme.colors.border,
-                            backgroundColor: cardBackgroundColor,
-                            width: isDesktop ? paymentCardWidth : "100%",
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: radii.md,
-                              backgroundColor: theme.colors.surface,
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <AppIcon
-                              name={option.icon as AppIconName}
-                              size={24}
-                              color={isSelected ? pal.wine : theme.colors.textSecondary}
-                            />
-                          </View>
-                          <View style={{ flex: 1 }}>
-                            <Typography variant="bodyBold">{option.label}</Typography>
-                            <Typography variant="caption">
-                              {subtitles[option.value]}
-                            </Typography>
-                          </View>
-                          <AppIcon
-                            name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-                            size={24}
-                            color={isSelected ? pal.wine : theme.colors.textSecondary}
+                        Adicione desconto e observações antes da revisão.
+                      </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: spacing.sm,
+                          marginBottom: spacing.md,
+                        }}
+                      >
+                        {[
+                          { value: null, label: "Sem desconto" },
+                          { value: "fixed" as const, label: "Valor em R$" },
+                          { value: "percentage" as const, label: "Porcentagem" },
+                        ].map((option) => {
+                          const selected = discountType === option.value;
+                          return (
+                            <Pressable
+                              key={option.label}
+                              onPress={() => {
+                                setDiscountType(option.value);
+                                if (option.value === null) setDiscountInput("");
+                              }}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected }}
+                              style={{
+                                minHeight: 44,
+                                justifyContent: "center",
+                                paddingHorizontal: spacing.md,
+                                borderRadius: radii.full,
+                                backgroundColor: theme.colors.surface,
+                                borderWidth: 1,
+                                borderColor: selected ? pal.wine : theme.colors.border,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                color={selected ? pal.wine : theme.colors.textSecondary}
+                              >
+                                {option.label}
+                              </Typography>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                      {discountType ? (
+                        <View style={desktopCompactField(isDesktop)}>
+                          <Input
+                            label={
+                              discountType === "percentage"
+                                ? "Desconto (%)"
+                                : "Desconto (R$)"
+                            }
+                            value={discountInput}
+                            onChangeText={setDiscountInput}
+                            keyboardType="decimal-pad"
+                            numericMode="decimal"
+                            placeholder={
+                              discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"
+                            }
+                            error={
+                              pricing.total <= 0
+                                ? "O desconto deve ser menor que o subtotal."
+                                : undefined
+                            }
+                            containerStyle={{ marginBottom: spacing.md }}
                           />
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </ValidationField>
-                <Card
-                  style={{
-                    ...getSurfaceStyle(theme),
-                    ...(isDesktop ? { width: "100%" } : null),
-                  }}
-                >
-                  <Typography variant="h3">Ajustes da venda</Typography>
-                  <Typography
-                    variant="caption"
-                    color={theme.colors.textSecondary}
-                    style={{ marginTop: spacing.xs, marginBottom: spacing.md }}
+                        </View>
+                      ) : null}
+                      <Input
+                        label="Observações do pedido"
+                        value={notes}
+                        onChangeText={setNotes}
+                        placeholder="Ex.: separar em duas embalagens"
+                        maxLength={500}
+                        multiline
+                        numberOfLines={3}
+                        style={{
+                          height: 80,
+                          textAlignVertical: "center",
+                        }}
+                      />
+                    </Card>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Na próxima etapa, você confere tudo antes de registrar.
+                    </Typography>
+                  </ScrollView>
+                )}
+
+                {/* Step 4: Review & Confirm */}
+                {step === 4 && (
+                  <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.lg }}
+                    showsVerticalScrollIndicator={false}
                   >
-                    Adicione desconto e observações antes da revisão.
-                  </Typography>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      gap: spacing.sm,
-                      marginBottom: spacing.md,
-                    }}
-                  >
-                    {[
-                      { value: null, label: "Sem desconto" },
-                      { value: "fixed" as const, label: "Valor em R$" },
-                      { value: "percentage" as const, label: "Porcentagem" },
-                    ].map((option) => {
-                      const selected = discountType === option.value;
-                      return (
+                    <Card style={{ ...getSurfaceStyle(theme), borderRadius: radii.lg }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        <Typography variant="bodyBold">Itens da venda</Typography>
                         <Pressable
-                          key={option.label}
-                          onPress={() => {
-                            setDiscountType(option.value);
-                            if (option.value === null) setDiscountInput("");
-                          }}
+                          onPress={() => setStep(2)}
                           accessibilityRole="button"
-                          accessibilityState={{ selected }}
+                          accessibilityLabel="Editar itens da venda"
                           style={{
                             minHeight: 44,
-                            justifyContent: "center",
-                            paddingHorizontal: spacing.md,
-                            borderRadius: radii.full,
-                            backgroundColor: theme.colors.surface,
-                            borderWidth: 1,
-                            borderColor: selected ? pal.wine : theme.colors.border,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.xs,
                           }}
                         >
-                          <Typography
-                            variant="caption"
-                            color={selected ? pal.wine : theme.colors.textSecondary}
-                          >
-                            {option.label}
-                          </Typography>
+                          <AppIcon
+                            name="pencil-outline"
+                            size={16}
+                            color={theme.colors.textSecondary}
+                          />
+                          <Typography variant="caption">Editar itens</Typography>
                         </Pressable>
-                      );
-                    })}
-                  </View>
-                  {discountType ? (
-                    <View style={desktopCompactField(isDesktop)}>
-                      <Input
-                        label={
-                          discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"
-                        }
-                        value={discountInput}
-                        onChangeText={setDiscountInput}
-                        keyboardType="decimal-pad"
-                        numericMode="decimal"
-                        placeholder={
-                          discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"
-                        }
-                        error={
-                          pricing.total <= 0
-                            ? "O desconto deve ser menor que o subtotal."
-                            : undefined
-                        }
-                        containerStyle={{ marginBottom: spacing.md }}
-                      />
-                    </View>
-                  ) : null}
-                  <Input
-                    label="Observações do pedido"
-                    value={notes}
-                    onChangeText={setNotes}
-                    placeholder="Ex.: separar em duas embalagens"
-                    maxLength={500}
-                    multiline
-                    numberOfLines={3}
-                    style={{
-                      height: 80,
-                      textAlignVertical: "center",
-                    }}
-                  />
-                </Card>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Na próxima etapa, você confere tudo antes de registrar.
-                </Typography>
-              </ScrollView>
-            )}
+                      </View>
+                      {cart.map((item) => {
+                        const photoUrl = getCartItemPhotoUrl(item);
+                        return (
+                          <View
+                            key={`${item.productId}:${item.variationId ?? "default"}`}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "flex-start",
+                              gap: spacing.md,
+                              paddingVertical: spacing.md,
+                              borderBottomWidth: 1,
+                              borderBottomColor: theme.colors.border,
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: radii.md,
+                                overflow: "hidden",
+                                backgroundColor: theme.colors.surface,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {photoUrl ? (
+                                <Image
+                                  source={{ uri: photoUrl }}
+                                  style={{ width: "100%", height: "100%" }}
+                                  resizeMode="cover"
+                                />
+                              ) : (
+                                <Typography
+                                  variant="bodyBold"
+                                  color={theme.colors.textSecondary}
+                                >
+                                  {productInitial(item.productName)}
+                                </Typography>
+                              )}
+                            </View>
+                            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                              <Typography variant="bodyBold" numberOfLines={2}>
+                                {displayProductName(item.productName)}
+                              </Typography>
+                              {item.variationName ? (
+                                <Typography variant="caption">
+                                  {item.variationName}
+                                </Typography>
+                              ) : null}
+                              <Typography variant="caption">
+                                {cartQuantityLabel(item)} ×{" "}
+                                {formatCurrency(item.unitPrice)}
+                                {item.saleUnit === "kg" ? "/kg" : ""}
+                              </Typography>
+                              <Typography variant="bodyBold">
+                                {formatCurrency(item.unitPrice * item.quantity)}
+                              </Typography>
+                            </View>
+                          </View>
+                        );
+                      })}
+                      <Typography variant="caption" style={{ marginTop: spacing.md }}>
+                        {cartItemSummary}
+                      </Typography>
+                    </Card>
 
-            {/* Step 4: Review & Confirm */}
-            {step === 4 && (
-              <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.lg }}
-                showsVerticalScrollIndicator={false}
-              >
-                <Card style={{ ...getSurfaceStyle(theme), borderRadius: radii.lg }}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    <Typography variant="bodyBold">Itens da venda</Typography>
-                    <Pressable
-                      onPress={() => setStep(2)}
-                      accessibilityRole="button"
-                      accessibilityLabel="Editar itens da venda"
+                    <Card
                       style={{
-                        minHeight: 44,
-                        flexDirection: "row",
-                        alignItems: "center",
+                        ...getSurfaceStyle(theme),
+                        borderRadius: radii.lg,
                         gap: spacing.xs,
                       }}
                     >
-                      <AppIcon
-                        name="pencil-outline"
-                        size={16}
-                        color={theme.colors.textSecondary}
+                      <Typography variant="bodyBold">Dados da venda</Typography>
+                      <ReviewDetail
+                        label="Cliente"
+                        value={selectedClient?.name ?? "Venda avulsa"}
+                        onEdit={() => setStep(1)}
                       />
-                      <Typography variant="caption">Editar itens</Typography>
-                    </Pressable>
-                  </View>
-                  {cart.map((item) => {
-                    const photoUrl = getCartItemPhotoUrl(item);
-                    return (
-                      <View
-                        key={`${item.productId}:${item.variationId ?? "default"}`}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "flex-start",
-                          gap: spacing.md,
-                          paddingVertical: spacing.md,
-                          borderBottomWidth: 1,
-                          borderBottomColor: theme.colors.border,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: radii.md,
-                            overflow: "hidden",
-                            backgroundColor: theme.colors.surface,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {photoUrl ? (
-                            <Image
-                              source={{ uri: photoUrl }}
-                              style={{ width: "100%", height: "100%" }}
-                              resizeMode="cover"
-                            />
-                          ) : (
-                            <Typography
-                              variant="bodyBold"
-                              color={theme.colors.textSecondary}
-                            >
-                              {productInitial(item.productName)}
-                            </Typography>
-                          )}
-                        </View>
-                        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-                          <Typography variant="bodyBold" numberOfLines={2}>
-                            {displayProductName(item.productName)}
-                          </Typography>
-                          {item.variationName ? (
-                            <Typography variant="caption">
-                              {item.variationName}
-                            </Typography>
-                          ) : null}
-                          <Typography variant="caption">
-                            {cartQuantityLabel(item)} × {formatCurrency(item.unitPrice)}
-                            {item.saleUnit === "kg" ? "/kg" : ""}
-                          </Typography>
-                          <Typography variant="bodyBold">
-                            {formatCurrency(item.unitPrice * item.quantity)}
-                          </Typography>
-                        </View>
-                      </View>
-                    );
-                  })}
-                  <Typography variant="caption" style={{ marginTop: spacing.md }}>
-                    {cartItemSummary}
-                  </Typography>
-                </Card>
+                      <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+                      <ReviewDetail
+                        label="Pagamento"
+                        value={paymentMethodLabel}
+                        onEdit={() => setStep(3)}
+                      />
+                    </Card>
 
-                <Card
-                  style={{
-                    ...getSurfaceStyle(theme),
-                    borderRadius: radii.lg,
-                    gap: spacing.xs,
-                  }}
-                >
-                  <Typography variant="bodyBold">Dados da venda</Typography>
-                  <ReviewDetail
-                    label="Cliente"
-                    value={selectedClient?.name ?? "Venda avulsa"}
-                    onEdit={() => setStep(1)}
-                  />
-                  <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-                  <ReviewDetail
-                    label="Pagamento"
-                    value={paymentMethodLabel}
-                    onEdit={() => setStep(3)}
-                  />
-                </Card>
-
-                <Card
-                  style={{
-                    ...getSurfaceStyle(theme),
-                    borderRadius: radii.lg,
-                    gap: spacing.md,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      gap: spacing.md,
-                    }}
-                  >
-                    <Typography variant="body">Subtotal</Typography>
-                    <Typography variant="bodyBold">
-                      {formatCurrency(pricing.subtotal)}
-                    </Typography>
-                  </View>
-                  {pricing.discount > 0 ? (
-                    <View
+                    <Card
                       style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
+                        ...getSurfaceStyle(theme),
+                        borderRadius: radii.lg,
                         gap: spacing.md,
                       }}
                     >
-                      <Typography variant="body">Desconto</Typography>
-                      <Typography variant="bodyBold">
-                        − {formatCurrency(pricing.discount)}
-                      </Typography>
-                    </View>
-                  ) : null}
-                  <View
-                    style={{
-                      borderTopWidth: 1,
-                      borderTopColor: theme.colors.border,
-                      paddingTop: spacing.md,
-                      gap: spacing.xs,
-                    }}
-                  >
-                    <Typography variant="caption">Total da venda</Typography>
-                    <Typography
-                      variant="moneyLg"
-                      color={theme.colors.text}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {formatCurrency(pricing.total)}
-                    </Typography>
-                  </View>
-                  {notes.trim() ? (
-                    <View style={{ gap: spacing.xs }}>
-                      <Typography variant="caption">Observações</Typography>
-                      <Typography variant="body">{notes.trim()}</Typography>
-                    </View>
-                  ) : null}
-                </Card>
-              </ScrollView>
-            )}
-          </View>
-          {desktopSummaryAside}
-        </View>
-      </View>
-
-      {!isDesktop && step !== 1 && (
-        <View
-          style={{
-            paddingHorizontal: spacing.xl,
-            paddingTop: spacing.md,
-            paddingBottom: navigationBottomPadding,
-            gap: spacing.xs,
-            borderTopWidth: 1,
-            borderTopColor: theme.colors.border,
-            backgroundColor: theme.colors.background,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-              <Typography variant="caption" numberOfLines={1}>
-                {step === 2 ? cartItemSummary : "Total da venda"}
-              </Typography>
-              <Typography
-                variant="moneyLg"
-                color={theme.colors.text}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.65}
-              >
-                {formatCurrency(summaryTotal)}
-              </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          gap: spacing.md,
+                        }}
+                      >
+                        <Typography variant="body">Subtotal</Typography>
+                        <Typography variant="bodyBold">
+                          {formatCurrency(pricing.subtotal)}
+                        </Typography>
+                      </View>
+                      {pricing.discount > 0 ? (
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            gap: spacing.md,
+                          }}
+                        >
+                          <Typography variant="body">Desconto</Typography>
+                          <Typography variant="bodyBold">
+                            − {formatCurrency(pricing.discount)}
+                          </Typography>
+                        </View>
+                      ) : null}
+                      <View
+                        style={{
+                          borderTopWidth: 1,
+                          borderTopColor: theme.colors.border,
+                          paddingTop: spacing.md,
+                          gap: spacing.xs,
+                        }}
+                      >
+                        <Typography variant="caption">Total da venda</Typography>
+                        <Typography
+                          variant="moneyLg"
+                          color={theme.colors.text}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                        >
+                          {formatCurrency(pricing.total)}
+                        </Typography>
+                      </View>
+                      {notes.trim() ? (
+                        <View style={{ gap: spacing.xs }}>
+                          <Typography variant="caption">Observações</Typography>
+                          <Typography variant="body">{notes.trim()}</Typography>
+                        </View>
+                      ) : null}
+                    </Card>
+                  </ScrollView>
+                )}
+              </View>
             </View>
-            <Button
-              title={nextActionLabel}
-              accessibilityLabel={saleNextStepAccessibilityLabel(step)}
-              loading={createSale.isPending}
-              disabled={step === 2 && cart.length === 0}
-              size="lg"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                borderRadius: radii.md,
-                backgroundColor: actionFill,
-              }}
-              onPress={() => {
-                if (step === 4) {
-                  void handleSubmit();
-                  return;
-                }
-                if (canAdvance()) setStep((current) => nextSaleStep(current));
-              }}
-              icon={
-                <AppIcon
-                  name={step === 4 ? "checkmark" : "arrow-forward"}
-                  size={18}
-                  color={theme.colors.textOnPrimary}
-                />
-              }
-            />
           </View>
-          {step === 2 ? (
-            <QuickSaleButton
-              itemCount={cart.length}
-              hasClient={Boolean(selectedClient)}
-              pending={createSale.isPending}
-              onConfirm={(payment) => {
-                void handleSubmit(payment);
+
+          {!isDesktop && step !== 1 && (
+            <View
+              style={{
+                paddingHorizontal: spacing.xl,
+                paddingTop: spacing.md,
+                paddingBottom: navigationBottomPadding,
+                gap: spacing.xs,
+                borderTopWidth: 1,
+                borderTopColor: theme.colors.border,
+                backgroundColor: theme.colors.background,
               }}
-            />
-          ) : null}
-        </View>
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                  <Typography variant="caption" numberOfLines={1}>
+                    {step === 2 ? cartItemSummary : "Total da venda"}
+                  </Typography>
+                  <Typography
+                    variant="moneyLg"
+                    color={theme.colors.text}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.65}
+                  >
+                    {formatCurrency(summaryTotal)}
+                  </Typography>
+                </View>
+                <Button
+                  title={nextActionLabel}
+                  accessibilityLabel={saleNextStepAccessibilityLabel(step)}
+                  loading={createSale.isPending}
+                  disabled={step === 2 && cart.length === 0}
+                  size="lg"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    borderRadius: radii.md,
+                    backgroundColor: actionFill,
+                  }}
+                  onPress={() => {
+                    if (step === 4) {
+                      void handleSubmit();
+                      return;
+                    }
+                    if (canAdvance()) setStep((current) => nextSaleStep(current));
+                  }}
+                  icon={
+                    <AppIcon
+                      name={step === 4 ? "checkmark" : "arrow-forward"}
+                      size={18}
+                      color={theme.colors.textOnPrimary}
+                    />
+                  }
+                />
+              </View>
+              {step === 2 ? (
+                <QuickSaleButton
+                  itemCount={cart.length}
+                  hasClient={Boolean(selectedClient)}
+                  pending={createSale.isPending}
+                  onConfirm={(payment) => {
+                    void handleSubmit(payment);
+                  }}
+                />
+              ) : null}
+            </View>
+          )}
+        </>
       )}
       <BarcodeScanner
         visible={showScanner}
