@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   agendaDateLimit,
+  agendaDayCountLabel,
+  agendaStripDays,
+  agendaTimelineSlots,
   agendaSummaryLabels,
   formatDateBR,
   groupOrders,
@@ -115,5 +118,74 @@ describe("agenda presentation", () => {
       title: "Resumo do dia",
       total: "Total do dia",
     });
+  });
+});
+
+describe("agendaStripDays", () => {
+  it("lists the next days from today with their order counts", () => {
+    // Arrange
+    const today = new Date(2026, 8, 23); // quarta-feira, 23/09/2026
+    const options = [
+      { date: "2026-09-24", count: 1 },
+      { date: "2026-09-26", count: 2 },
+      { date: "2026-10-30", count: 5 },
+    ];
+
+    // Act
+    const days = agendaStripDays(options, today, 7);
+
+    // Assert
+    expect(days).toHaveLength(7);
+    expect(days[0]).toEqual({ date: "2026-09-23", day: 23, label: "Hoje", count: 0 });
+    expect(days[1]).toMatchObject({ date: "2026-09-24", label: "qui", count: 1 });
+    expect(days[3]).toMatchObject({ date: "2026-09-26", count: 2 });
+    expect(days[6].date).toBe("2026-09-29");
+  });
+
+  it("crosses the month boundary", () => {
+    const days = agendaStripDays([], new Date(2026, 8, 29), 3);
+    expect(days.map((day) => day.date)).toEqual([
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+    ]);
+  });
+});
+
+describe("agendaDayCountLabel", () => {
+  const noun = { singular: "encomenda", plural: "encomendas" };
+
+  it("calls an empty day free", () => {
+    expect(agendaDayCountLabel(0, noun)).toBe("Livre");
+  });
+
+  it("uses singular and plural nouns", () => {
+    expect(agendaDayCountLabel(1, noun)).toBe("1 encomenda");
+    expect(agendaDayCountLabel(3, noun)).toBe("3 encomendas");
+  });
+});
+
+describe("agendaTimelineSlots", () => {
+  it("covers 8h to 18h in 30 minute slots", () => {
+    const slots = agendaTimelineSlots([]);
+    expect(slots).toHaveLength(20);
+    expect(slots[0]).toEqual({ label: "08:00", busyWith: null });
+    expect(slots[19].label).toBe("17:30");
+  });
+
+  it("marks the slots taken by active orders with a time", () => {
+    // Arrange
+    const orders = [
+      makeOrder({ title: "Bolo", deliveryTime: "09:00", durationMinutes: null }),
+      makeOrder({ title: "Entregue", deliveryTime: "11:00", status: "done" }),
+      makeOrder({ title: "Sem hora", deliveryTime: null }),
+    ];
+
+    // Act
+    const busy = agendaTimelineSlots(orders).filter((slot) => slot.busyWith);
+
+    // Assert
+    expect(busy.map((slot) => slot.label)).toEqual(["09:00", "09:30"]);
+    expect(busy[0].busyWith).toBe("Bolo");
   });
 });
