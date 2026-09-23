@@ -28,6 +28,7 @@ import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { brandLogoByMode } from "../../shared/brand-logo";
 import { hasSignedInOnDevice } from "../../shared/utils/returning-user";
+import { WelcomeHero } from "../../features/onboarding/components/welcome-hero";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -158,6 +159,24 @@ export default function LoginScreen() {
       });
   }
 
+  if (mode === "welcome") {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+          showsVerticalScrollIndicator={false}
+        >
+          <WelcomeHero
+            brandName={brandName}
+            logo={brandLogoByMode[theme.mode][brand.id]}
+            onCreateAccount={() => router.push("/(auth)/register")}
+            onLogin={() => setMode("login")}
+          />
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAwareScrollView
@@ -198,37 +217,10 @@ export default function LoginScreen() {
 
           <View style={{ alignItems: "center", gap: spacing.sm }}>
             <Typography variant="screenTitle" style={{ textAlign: "center" }}>
-              {mode === "welcome"
-                ? "Anote suas vendas e descubra seu lucro"
-                : "Que bom te ver!"}
+              Que bom te ver!
             </Typography>
-            {mode === "welcome" ? (
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                style={{ textAlign: "center" }}
-              >
-                Grátis para começar, com vendas ilimitadas.
-              </Typography>
-            ) : null}
           </View>
         </View>
-
-        {mode === "welcome" ? (
-          <View style={{ gap: spacing.md }}>
-            <Button
-              title="Criar conta grátis"
-              size="lg"
-              onPress={() => router.push("/(auth)/register")}
-            />
-            <Button
-              title="Já tenho conta"
-              variant="outline"
-              size="lg"
-              onPress={() => setMode("login")}
-            />
-          </View>
-        ) : null}
 
         {mode === "login" ? (
           <View style={{ gap: spacing.lg }}>
