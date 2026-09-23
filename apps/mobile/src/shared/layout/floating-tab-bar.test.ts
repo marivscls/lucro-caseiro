@@ -10,6 +10,7 @@ import {
 
 describe("screenCreateBarBottomPadding", () => {
   it("reserva espaço para os rótulos da navegação com fonte ampliada", () => {
+    expect(floatingTabBarHeight(1)).toBeGreaterThanOrEqual(78);
     expect(floatingTabBarHeight(1.5)).toBeGreaterThan(floatingTabBarHeight(1));
     expect(floatingTabBarReserve(0, 1.5)).toBeGreaterThanOrEqual(
       floatingTabBarHeight(1.5),

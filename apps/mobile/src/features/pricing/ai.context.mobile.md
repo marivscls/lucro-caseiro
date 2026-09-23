@@ -31,7 +31,7 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 
 ## Components
 
-A rota controla a etapa atual; o botão do cabeçalho e o retorno do Android voltam uma etapa antes de sair. A navegação e o salvamento ficam bloqueados durante requisições. Cada avanço valida os campos já apresentados; salvar valida o rascunho completo e retorna à primeira etapa inválida. Trabalho, despesas, taxas, simulação alternativa e composição começam recolhidos. O rodapé permanece fora da rolagem, acima do espaço reservado à navegação global.
+A rota controla a etapa atual; o botão do cabeçalho e o retorno do Android voltam uma etapa antes de sair. Sem histórico, o fallback usa `router.navigate("/tabs/more")` — `replace`/`push` disparavam REPLACE num navigator sem a rota `more`. A navegação e o salvamento ficam bloqueados durante requisições. Cada avanço valida os campos já apresentados; salvar valida o rascunho completo e retorna à primeira etapa inválida. Trabalho, despesas, taxas, simulação alternativa e composição começam recolhidos. O rodapé permanece fora da rolagem, acima do espaço reservado à navegação global.
 
 `UnifiedPricingCalculator` aceita custo inicial, productId inicial, metadados de nome/categoria vindos da receita, callbacks de salvamento e criação. `PricingSummary` permite simular outro preço; mostra margem sobre a venda efetiva, despesas e taxas recalculadas. O resultado identifica custos ausentes, inclusive ao restaurar zeros de históricos sem confirmação.
 
@@ -109,3 +109,5 @@ Produto: custo antigo R$ 10, receita atual R$ 12, embalagem antiga R$ 1 e atual 
 ## Padrão de progresso — 2026-09-09
 
 A precificação usa o componente compartilhado de etapas, com número, nome completo da etapa atual, rótulos curtos e retorno apenas a etapas já alcançadas.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Seletores de produto e embalagem usam FilterChipRow com quebra de linha e opções limitadas à largura disponível. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.

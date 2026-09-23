@@ -228,6 +228,21 @@ vi.mock("@lucro-caseiro/ui", () => ({
     "4xl": 40,
     "5xl": 48,
   },
+  controlSizes: {
+    compact: 40,
+    regular: 44,
+    large: 48,
+    badge: 20,
+    avatar: 36,
+  },
+  iconSizes: {
+    xs: 16,
+    inline: 18,
+    sm: 20,
+    list: 22,
+    md: 24,
+    lg: 32,
+  },
   radii: { sm: 8, md: 12, lg: 16, xl: 20, full: 9999 },
   fonts: {
     regular: "System",

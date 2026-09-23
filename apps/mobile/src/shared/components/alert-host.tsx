@@ -294,6 +294,7 @@ export function AlertHost() {
         <Animated.View style={{ width: "100%", maxWidth: 360, transform: [{ scale }] }}>
           {/* Card: o onPress vazio impede que o toque "vaze" e feche o diálogo. */}
           <Pressable
+            accessibilityViewIsModal
             onPress={() => {}}
             style={{
               backgroundColor: theme.colors.surfaceElevated,

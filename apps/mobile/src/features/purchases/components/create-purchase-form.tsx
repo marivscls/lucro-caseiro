@@ -1,4 +1,4 @@
-import { ValidationField } from "@lucro-caseiro/ui";
+import { FilterChipRow, ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Product, Purchase } from "@lucro-caseiro/contracts";
 import {
@@ -12,7 +12,7 @@ import {
   spacing,
 } from "@lucro-caseiro/ui";
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
@@ -25,6 +25,7 @@ import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import {
   currencyInput,
+  isPositiveCurrency,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
@@ -188,9 +189,7 @@ export function CreatePurchaseForm({
   const formValidation = useFormValidation<string>({
     description: !description.trim() && "Descreva a compra.",
     amount:
-      !receiveStock &&
-      (!Number.isFinite(parseCurrencyInput(amount)) || parseCurrencyInput(amount) <= 0) &&
-      "Informe um valor maior que zero.",
+      !receiveStock && !isPositiveCurrency(amount) && "Informe um valor maior que zero.",
     date: !date.trim() && "Informe a data da compra.",
 
     ...Object.fromEntries(
@@ -214,7 +213,7 @@ export function CreatePurchaseForm({
     if (incompatibleEdit) return;
     if (!description.trim()) setFormStep(1);
     else if (
-      (!receiveStock && parseCurrencyInput(amount) <= 0) ||
+      (!receiveStock && !isPositiveCurrency(amount)) ||
       (receiveStock &&
         (items.length === 0 ||
           items.some(
@@ -230,7 +229,7 @@ export function CreatePurchaseForm({
       return;
     }
     const value = parseCurrencyInput(amount);
-    if (!receiveStock && (isNaN(value) || value <= 0)) {
+    if (!receiveStock && !isPositiveCurrency(amount)) {
       alertValidation("O valor precisa ser maior que zero.");
       return;
     }
@@ -345,7 +344,7 @@ export function CreatePurchaseForm({
                   alertValidation("Adicione ao menos um produto recebido.");
                   return;
                 }
-                if (formStep === 2 && !receiveStock && parseCurrencyInput(amount) <= 0) {
+                if (formStep === 2 && !receiveStock && !isPositiveCurrency(amount)) {
                   alertValidation("Informe um valor maior que zero.");
                   return;
                 }
@@ -436,11 +435,7 @@ export function CreatePurchaseForm({
                 Toque para adicionar um produto à compra.
               </Typography>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: spacing.sm }}
-            >
+            <FilterChipRow>
               {products.map((product) => (
                 <Chip
                   key={product.id}
@@ -449,7 +444,7 @@ export function CreatePurchaseForm({
                   onPress={() => addProduct(product)}
                 />
               ))}
-            </ScrollView>
+            </FilterChipRow>
             {products.length === 0 ? (
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 Cadastre um produto antes de receber mercadoria.
@@ -481,11 +476,7 @@ export function CreatePurchaseForm({
                   </Pressable>
                 </View>
                 {item.product.variations?.length ? (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: spacing.sm }}
-                  >
+                  <FilterChipRow>
                     {item.product.variations.map((variation) => (
                       <Chip
                         key={variation.id}
@@ -494,7 +485,7 @@ export function CreatePurchaseForm({
                         onPress={() => updateItem(index, { variationId: variation.id })}
                       />
                     ))}
-                  </ScrollView>
+                  </FilterChipRow>
                 ) : null}
                 <View style={{ flexDirection: "row", gap: spacing.sm }}>
                   <View style={[{ flex: 1 }, compactField]}>

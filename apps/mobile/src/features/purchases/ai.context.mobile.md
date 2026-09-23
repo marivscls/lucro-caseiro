@@ -125,3 +125,8 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Cadastro em etapas — 2026-09-09
 
 Compras usam três etapas: dados da compra; produtos e valores; categoria e pagamento. A segunda etapa muda conforme entrada de estoque ou somente despesa e impede avanço sem item ou valor válido.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Filtros da lista e seletores de produtos/variações quebram em linhas, preservando rótulos no PWA estreito. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+- 2026-09-16: o bloqueio de avanço sem valor na etapa de valores compara com `!(parseCurrencyInput(valor) > 0)`: campo vazio gera `NaN` e `NaN <= 0` é falso, o que antes deixava avançar para a etapa final sem valor.
+- 2026-09-19: a comparação passou a `isPositiveCurrency` (finito e > 0), cobrindo vazio, `0,00` e texto inválido no Continuar e no submit. O mesmo helper vale para produto, embalagem e edição de preço.
+- 2026-09-19: no Android o bottom sheet não soma o teclado de novo (`resize` já encolhe a janela). Isso evitava o formulário de Nova compra subir e sumir ao digitar.

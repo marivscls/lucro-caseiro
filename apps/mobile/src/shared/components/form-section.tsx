@@ -68,15 +68,16 @@ export function FormSection({
         ]}
       >
         {icon && <AppIcon name={icon} size={22} color={theme.colors.primary} />}
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Typography
-              variant="bodyBold"
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.82}
-              style={{ flexShrink: 1 }}
-            >
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: spacing.sm,
+            }}
+          >
+            <Typography variant="bodyBold" style={{ flexShrink: 1, minWidth: 0 }}>
               {title}
             </Typography>
             {titleAccessory}

@@ -377,6 +377,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               <ValidationField {...formValidation.field("title")}>
                 <Input
                   label="Título"
+                  accessibilityLabel="Titulo do orcamento"
                   placeholder="Ex.: Kit festa Safari"
                   value={title}
                   onChangeText={setTitle}
@@ -443,6 +444,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   <ValidationField {...formValidation.field(`item-${index}-description`)}>
                     <Input
                       placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
+                      accessibilityLabel={`Item ${index + 1}`}
                       value={item.description}
                       onChangeText={(v) => setItem(index, { description: v })}
                     />
@@ -476,6 +478,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                       <ValidationField {...formValidation.field(`item-${index}-price`)}>
                         <Input
                           placeholder="Preço un."
+                          accessibilityLabel="Preco un"
                           value={item.unitPrice}
                           onChangeText={(v) =>
                             setItem(index, { unitPrice: maskCurrencyInput(v) })

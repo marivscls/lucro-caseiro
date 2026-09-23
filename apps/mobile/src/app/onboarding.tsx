@@ -196,7 +196,7 @@ function WelcomeStep({
   const isDesktop = useDesktopLayout();
   const [slide, setSlide] = useState(0);
   const slideWidth = Math.max(
-    280,
+    0,
     Math.min(width - spacing["2xl"] * 2, isDesktop ? 656 : Number.POSITIVE_INFINITY),
   );
 

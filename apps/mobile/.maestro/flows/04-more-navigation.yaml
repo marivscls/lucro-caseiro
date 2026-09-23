@@ -59,14 +59,19 @@ tags:
     direction: UP
 - assertVisible: "Mais opções"
 
-# Receitas (mais abaixo na lista do menu -> rola até aparecer)
+# Receitas / fichas (fica em "Ver tudo"; o título muda com o perfil)
+- runFlow:
+    when:
+      visible: "Ver tudo"
+    commands:
+      - tapOn: "Ver tudo"
 - scrollUntilVisible:
     element:
-      text: "Receitas"
+      text: "Receitas|Fichas de custo"
     direction: DOWN
-- tapOn: "Receitas"
+- tapOn: "Receitas|Fichas de custo"
 - assertNotVisible: "Mais opções"
-- assertVisible: "Receitas"
+- assertVisible: "Receitas|Fichas de custo"
 - back
 # A lista ficou rolada pra baixo; volta ao topo pra confirmar o header "Mais opções".
 - scrollUntilVisible:

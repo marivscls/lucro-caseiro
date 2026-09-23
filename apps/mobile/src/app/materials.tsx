@@ -721,14 +721,12 @@ function MaterialsScreenContent() {
             >
               <AppIcon name="options-outline" size={24} color={palette.rose} />
             </Pressable>
-            {isDesktop ? (
-              <FAB
-                icon="add"
-                header
-                accessibilityLabel="Novo material"
-                onPress={() => setShowCreate(true)}
-              />
-            ) : null}
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Novo material"
+              onPress={() => setShowCreate(true)}
+            />
           </View>
         }
       />

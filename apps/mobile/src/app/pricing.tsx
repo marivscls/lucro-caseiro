@@ -51,8 +51,11 @@ export default function SimplePricingScreen() {
       setStep((current) => (current - 1) as PricingStep);
       return;
     }
-    if (router.canGoBack()) router.back();
-    else router.replace("/tabs/more");
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.navigate("/tabs/more");
   }
 
   return (

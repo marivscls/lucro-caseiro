@@ -1258,6 +1258,7 @@ export default function SettingsScreen() {
             <TextFieldCard
               icon="storefront-outline"
               placeholder={`Ex: ${experienceCopy.businessNameExample}`}
+              accessibilityLabel="Nome do negocio"
               value={editBusinessName}
               onChangeText={setEditBusinessName}
             />

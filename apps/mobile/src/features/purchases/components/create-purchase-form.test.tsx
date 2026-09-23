@@ -39,6 +39,7 @@ vi.mock("@lucro-caseiro/ui", async (original) => ({
   Chip: ({ label, onPress }: { label: string; onPress: () => void }) => (
     <button onClick={onPress}>{label}</button>
   ),
+  FilterChipRow: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 vi.mock("../../../shared/components/standard-modal", () => ({
   StandardModal: ({
@@ -109,6 +110,33 @@ afterEach(() => {
 });
 
 describe("compras sem suporte a entrada de estoque", () => {
+  it("não avança sem informar um valor maior que zero", () => {
+    render(<CreatePurchaseForm visible onClose={() => {}} />);
+
+    fireEvent.change(screen.getByLabelText("Descrição"), {
+      target: { value: "Farinha" },
+    });
+    fireEvent.click(screen.getByText("Continuar"));
+    fireEvent.click(screen.getByText("Continuar"));
+
+    expect(screen.queryByText("Registrar compra")).toBeNull();
+  });
+
+  it("não avança quando o valor está zerado", () => {
+    render(<CreatePurchaseForm visible onClose={() => {}} />);
+
+    fireEvent.change(screen.getByLabelText("Descrição"), {
+      target: { value: "Farinha" },
+    });
+    fireEvent.click(screen.getByText("Continuar"));
+    fireEvent.change(screen.getByLabelText("Valor (R$)"), {
+      target: { value: "0,00" },
+    });
+    fireEvent.click(screen.getByText("Continuar"));
+
+    expect(screen.queryByText("Registrar compra")).toBeNull();
+  });
+
   it("revisa a recompra como despesa sem enviar itens indisponíveis", async () => {
     render(<CreatePurchaseForm visible onClose={() => {}} prefill={purchase} />);
     expect(screen.queryByText("PRODUTOS RECEBIDOS")).toBeNull();

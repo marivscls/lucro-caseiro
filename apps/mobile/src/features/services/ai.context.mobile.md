@@ -136,6 +136,8 @@ const pricing = calculateServicePricing({
 - 2026-09-09: painel de serviço usa indicadores compactos em duas colunas no celular
   e quatro no desktop, lucro com cor semântica, solicitações com data brasileira e
   contato em linhas separadas, além de ações de rodapé que quebram em telas estreitas.
+- 2026-09-19: chips de status da solicitação (`Contato feito`, Confirmar, Recusar) deixam
+  de forçar largura igual; o rótulo do Chip não quebra no meio da palavra.
 
 - 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
 

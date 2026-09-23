@@ -1,4 +1,4 @@
-# 08 — Criar receita (CRUD) + limite freemium (free = 5). Usa o insumo do flow 07.
+# 08 — Criar receita / ficha de custo (wizard 3 etapas).
 appId: br.com.orionseven.lucrocaseiro
 name: 08 - Criar receita
 tags:
@@ -10,79 +10,75 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Receitas
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
+- runFlow:
+    file: ../subflows/open-more.yaml
 - scrollUntilVisible:
     element:
-      text: "Receitas"
+      text: "Receitas|Fichas de custo"
     direction: DOWN
-- tapOn: "Receitas"
+    centerElement: true
+- tapOn: "Receitas|Fichas de custo"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- runFlow:
+    when:
+      notVisible: "Receita Teste"
+    commands:
+      - tapOn: "Criar ficha de custo|Criar receita|Cadastrar receita|Cadastrar ficha de custo|. Nova receita|. Nova ficha de custo|Nova receita|Nova ficha de custo"
+      - extendedWaitUntil:
+          visible:
+            text: "Nome da ficha de custo|Nome da receita"
+          timeout: 8000
+      - tapOn:
+          below:
+            text: "Nome da ficha de custo|Nome da receita"
+      - inputText: "[e2e] Receita Teste"
+      - tapOn: "Categoria"
+      - tapOn: "Escolher categoria"
+      - extendedWaitUntil:
+          visible:
+            text: "Usar categoria"
+          timeout: 8000
+      - inputText: "Doces"
+      - tapOn: "Usar categoria"
+      - tapOn: "1 de 3"
+      - tapOn: "Continuar"
+      - extendedWaitUntil:
+          visible:
+            text: "Ex: 30 ou 1,5|unidades"
+          timeout: 8000
+      - tapOn: "Ex: 30 ou 1,5"
+      - inputText: "10"
+      - tapOn:
+          text: "^unidades$"
+      - tapOn: "2 de 3"
+      - tapOn: "Continuar"
+      - scrollUntilVisible:
+          element:
+            text: "Selecionar insumo|Selecionar material"
+          direction: DOWN
+          timeout: 15000
+          centerElement: true
+      - tapOn: "Selecionar insumo|Selecionar material"
+      - swipe:
+          direction: UP
+      - tapOn:
+          point: "50%,42%"
+      - tapOn: "Quantidade"
+      - inputText: "1"
+      - tapOn: "Salvar ficha de custo|Salvar receita"
+      - tapOn:
+          point: "50%,55%"
+      - runFlow:
+          when:
+            visible: "OK"
+          commands:
+            - tapOn: "OK"
 - scrollUntilVisible:
     element:
-      text: "Nova receita"
+      text: "Receita Teste"
     direction: DOWN
-- tapOn: "Nova receita"
-
-# Nome (autoFocus)
-- extendedWaitUntil:
-    visible:
-      text: "Nome da receita"
-    timeout: 8000
-- inputText: "[e2e] Receita Teste"
-
-# Categoria (mesmo modal do produto)
-- scrollUntilVisible:
-    element:
-      text: "Escolher categoria"
-    direction: DOWN
-- tapOn: "Escolher categoria"
-- assertVisible: "Usar categoria"
-- inputText: "Doces"
-- tapOn: "Usar categoria"
-
-# Rendimento + Unidade
-- scrollUntilVisible:
-    element:
-      text: "Rendimento"
-    direction: DOWN
-- tapOn:
-    below:
-      text: "Rendimento"
-- inputText: "10"
-# Unidade: usa o chip "unidades" (o TextBox lado a lado é difícil de focar)
-- scrollUntilVisible:
-    element:
-      text: "unidades"
-    direction: DOWN
-- tapOn: "unidades"
-
-# Ingrediente: seleciona o insumo e põe a quantidade
-- scrollUntilVisible:
-    element:
-      text: "Selecionar [e2e] Insumo Teste"
-    direction: DOWN
-- tapOn: "Selecionar [e2e] Insumo Teste"
-- scrollUntilVisible:
-    element:
-      text: ".*Quantidade.*"
-    direction: DOWN
-- tapOn:
-    below:
-      text: ".*Quantidade.*"
-- inputText: "2"
-
-# Salvar
-- scrollUntilVisible:
-    element:
-      text: "Salvar receita"
-    direction: DOWN
-- tapOn: "Salvar receita"
-
-# Resultado: criada OU paywall de limite (free = 5)
-- extendedWaitUntil:
-    visible:
-      text: ".*(Receita cadastrada|Receita Teste|Limite de|Premium).*"
-    timeout: 12000
+    timeout: 20000
+    visibilityPercentage: 10
+    centerElement: true
 - takeScreenshot: .maestro/screenshots/08-receita

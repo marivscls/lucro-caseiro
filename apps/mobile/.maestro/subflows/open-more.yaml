@@ -1,0 +1,23 @@
+# Abre a aba Mais (toque por coordenada) e expande "Ver tudo" se aparecer.
+appId: br.com.orionseven.lucrocaseiro
+---
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Mais opções"
+          commands:
+            - tapOn:
+                point: "90%,94%"
+- assertVisible: "Mais opções"
+- runFlow:
+    when:
+      visible: "Ver tudo"
+    commands:
+      - tapOn: "Ver tudo"

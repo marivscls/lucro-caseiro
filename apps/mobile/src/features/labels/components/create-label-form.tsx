@@ -35,6 +35,7 @@ import { useCatalogSettings } from "../../catalog/hooks";
 import { useProfile } from "../../subscription/hooks";
 import { businessCopyFor } from "../../subscription/business-copy";
 import { brToIso } from "../dates";
+import { labelPrintedName } from "../domain";
 import { exportLabelPdfWithChoice } from "../label-export";
 import { useCreateLabel, useLabels } from "../hooks";
 import { LabelLayoutEditor } from "./label-layout-editor";
@@ -153,7 +154,8 @@ export function CreateLabelForm({
   const formValidation = useFormValidation({
     name: !name.trim() && "Dê um nome para a etiqueta.",
     selectedProductId: !selectedProductId && "Escolha o produto da etiqueta.",
-    productName: !labelData.productName.trim() && "Informe o nome que será impresso.",
+    productName:
+      !labelPrintedName(labelData).trim() && "Informe o nome que será impresso.",
   });
 
   async function handleSubmit() {
@@ -169,7 +171,7 @@ export function CreateLabelForm({
       alertValidation("Escolha o produto da etiqueta");
       return;
     }
-    if (!labelData.productName.trim()) {
+    if (!labelPrintedName(labelData).trim()) {
       alertValidation("Preencha o nome que será impresso");
       return;
     }
@@ -221,7 +223,7 @@ export function CreateLabelForm({
   }
 
   async function handleExport() {
-    if (!labelData.productName.trim()) {
+    if (!labelPrintedName(labelData).trim()) {
       alertValidation("Preencha o nome que será impresso");
       return;
     }
@@ -301,7 +303,7 @@ export function CreateLabelForm({
                     );
                     return;
                   }
-                  if (formStep === 2 && !labelData.productName.trim()) {
+                  if (formStep === 2 && !labelPrintedName(labelData).trim()) {
                     alertValidation("Informe o nome que será impresso.");
                     return;
                   }

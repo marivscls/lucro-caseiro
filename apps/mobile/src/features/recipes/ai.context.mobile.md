@@ -202,3 +202,5 @@ Criar e editar receita usa três etapas: informações da receita; rendimento; i
 `RecipeStatisticsModal` usa métricas compactas e ranking com nomes completos, lucro e margem em linhas separadas. O primeiro resultado positivo recebe destaque; prejuízos e margem média negativa usam a cor de alerta, e percentuais usam vírgula decimal. O título acompanha o vocabulário do negócio. Os cálculos e a seleção do produto ativo de maior lucro permanecem em `statistics.ts`. Verificação visual local com dados simulados: `scripts/recipe-statistics-ui-smoke.cjs`.
 
 - 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Categorias da lista quebram em linhas; rótulos longos podem crescer em altura. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.

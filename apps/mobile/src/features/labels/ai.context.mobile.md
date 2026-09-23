@@ -204,3 +204,6 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Cadastro em etapas — 2026-09-09
 
 O cadastro de etiqueta usa três etapas: produto e modelo; texto e datas; contato e acabamento. A prévia final aparece junto do acabamento no desktop, e as ações de baixar/criar ficam na etapa final.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Título, categoria e data dos cards podem quebrar em linhas. Cabeçalhos das seções de formulário acomodam título e selo sem truncamento. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+- 2026-09-19: edição de etiqueta antiga sem `productName` usa `labelPrintedName` (string vazia) em vez de `trim()` em `undefined`.

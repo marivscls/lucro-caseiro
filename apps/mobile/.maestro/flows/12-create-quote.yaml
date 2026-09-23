@@ -1,4 +1,4 @@
-# 12 — Criar orçamento (CRUD). Gera dado real.
+# 12 — Criar orcamento (wizard Cliente / Itens / Detalhes).
 appId: br.com.orionseven.lucrocaseiro
 name: 12 - Criar orcamento
 tags:
@@ -10,53 +10,46 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Orçamentos
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
+- runFlow:
+    file: ../subflows/open-more.yaml
 - scrollUntilVisible:
     element:
-      text: "Orçamentos"
+      text: "Or.amentos"
     direction: DOWN
-- tapOn: "Orçamentos"
+    centerElement: true
+- tapOn: "Or.amentos. Propostas|Or.amentos"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- runFlow:
+    when:
+      notVisible: "Orcamento Teste"
+    commands:
+      - tapOn: "Criar or.amento|Novo or.amento|. Novo or.amento|Cadastrar or.amento"
+      - extendedWaitUntil:
+          visible:
+            text: "Titulo do orcamento|Continuar"
+          timeout: 8000
+      - tapOn: "Titulo do orcamento"
+      - inputText: "Orcamento Teste"
+      - tapOn: "Continuar"
+      - extendedWaitUntil:
+          visible:
+            text: "Item 1|Adicionar do cat"
+          timeout: 8000
+      - tapOn: "Item 1"
+      - inputText: "Item teste"
+      - tapOn: "Preco un"
+      - inputText: "1000"
+      - tapOn: "Continuar"
+      - tapOn: "Revisar or.amento"
+      - tapOn: "Salvar or.amento"
+      - tapOn:
+          point: "50%,55%"
 - scrollUntilVisible:
     element:
-      text: "Novo orçamento"
+      text: "Orcamento Teste"
     direction: DOWN
-- tapOn: "Novo orçamento"
-
-# Form
-- extendedWaitUntil:
-    visible:
-      text: "Criar orçamento"
-    timeout: 8000
-- tapOn:
-    below:
-      text: "Título"
-- inputText: "[e2e] Orcamento Teste"
-# Item 1: descrição (abaixo de "Itens"), depois Qtd (abaixo da descrição) e Preço
-# (à direita da Qtd) — esses inputs não têm label, só placeholder não-matchável.
-- tapOn:
-    below:
-      text: "Itens"
-- inputText: "Item teste"
-# Dispensa o teclado (toca o h3 "Itens") pra revelar a linha Qtd/Preço.
-# Qtd já vem com default 1; só preciso do preço (o input expõe o texto "Preço un.").
-- tapOn: "Itens"
-- tapOn: "Preço un."
-- inputText: "10,00"
-- tapOn: "Itens"
-
-# Salvar
-- scrollUntilVisible:
-    element:
-      text: "Criar orçamento"
-    direction: DOWN
-- tapOn: "Criar orçamento"
-
-# Sucesso: toast "Orçamento criado!" ou o item na lista (texto completo -> .*)
-- extendedWaitUntil:
-    visible:
-      text: ".*(Orcamento|Orçamento criado).*"
-    timeout: 12000
+    timeout: 20000
+    visibilityPercentage: 10
+    centerElement: true
 - takeScreenshot: .maestro/screenshots/12-orcamento

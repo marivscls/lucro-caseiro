@@ -65,7 +65,8 @@ Gerenciar vendas do negocio, incluindo registro de itens vendidos, forma de paga
 - Venda cancelada nao pode ser editada
 - Venda ja cancelada nao pode ser cancelada novamente
 - Se produto tem stockQuantity **e** `saleUnit !== 'kg'`, deve ter estoque suficiente ao criar venda
-- Se há variações, a variação é obrigatória e seu estoque é a fonte de verdade; linhas repetidas são agregadas antes da validação.
+- Se o item envia `variationId`, a variação precisa existir e o estoque dela é a fonte de verdade; linhas repetidas são agregadas antes da validação.
+- Sem `variationId`, a venda segue como produto base mesmo se o cadastro tiver variações (marcas sem `catalogoCores`). A baixa usa `stockQuantity` do produto; se ele for nulo, a venda não é bloqueada.
 - Editar itens aplica somente o delta de estoque; cancelar devolve ao mesmo produto/variação.
 - Produtos vendidos por peso (`saleUnit === 'kg'`) nao tem baixa de estoque por unidade
 - Toda query escopada por `userId`
@@ -195,7 +196,7 @@ invariants:
 
 ### UseCases (sales.usecases.test.ts)
 
-- createSale: valido com calculo auto, itens vazios, quantidade invalida, preco invalido, decrementa estoque, nao decrementa sem stockQuantity, **nao decrementa estoque para produto por peso (kg)**, **calcula total com quantidade decimal (kg)**, estoque insuficiente, baixa de insumos da receita (qtd×qtd), sem baixa quando produto nao tem receita
+- createSale: valido com calculo auto, itens vazios, quantidade invalida, preco invalido, decrementa estoque, nao decrementa sem stockQuantity, **nao decrementa estoque para produto por peso (kg)**, **calcula total com quantidade decimal (kg)**, estoque insuficiente, baixa de insumos da receita (qtd×qtd), sem baixa quando produto nao tem receita, **produto legado com variações sem variationId vende como base**, variationId inválido continua recusado
 - getById: encontrado, NotFoundError
 - list: paginacao
 - updateStatus: sucesso, NotFoundError, cancelar ja cancelado
@@ -236,3 +237,6 @@ PATCH /api/v1/sales/sale-1/status
   (migration `006_sell_by_weight.sql`) para aceitar peso (ex.: 1.5 kg). DTO `SaleItemDto.quantity`
   passou a aceitar decimal (`z.number().positive()`). Repo converte quantity string<->number na borda.
   Produtos com `saleUnit === 'kg'` nao tem validacao/baixa de estoque por unidade.
+- 2026-09-19: marcas sem `catalogoCores` (ex.: Lucro Caseiro) não enviam `variationId`.
+  Produto com variações no cadastro deixa de bloquear a venda; a baixa usa o estoque
+  do produto. `variationId` inválido continua recusado.

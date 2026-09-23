@@ -39,7 +39,7 @@ tags:
 - assertVisible: "Todas"
 - takeScreenshot: .maestro/screenshots/03-vendas
 
-# Agenda -> resumo exclusivo dessa tela
+# Agenda -> resumo exclusivo dessa tela (sem dia filtrado: "Resumo geral")
 - repeat:
     times: 8
     commands:
@@ -50,11 +50,11 @@ tags:
             - tapOn: "Dismiss"
       - runFlow:
           when:
-            notVisible: "Resumo do dia"
+            notVisible: "Resumo geral"
           commands:
             - tapOn:
                 point: "70%,94%"
-- assertVisible: "Resumo do dia"
+- assertVisible: "Resumo geral"
 - takeScreenshot: .maestro/screenshots/03-agenda
 
 # Mais -> cabeçalho "Mais opções"
@@ -75,7 +75,7 @@ tags:
 - assertVisible: "Mais opções"
 - takeScreenshot: .maestro/screenshots/03-mais
 
-# Volta pra Início -> card "VENDAS DE HOJE" (âncora estável da home, sem acento)
+# Volta pra Início -> seção de dinheiro da home
 - repeat:
     times: 8
     commands:
@@ -86,8 +86,8 @@ tags:
             - tapOn: "Dismiss"
       - runFlow:
           when:
-            notVisible: "VENDAS DE HOJE"
+            notVisible: "Dinheiro"
           commands:
             - tapOn:
                 point: "10%,94%"
-- assertVisible: "VENDAS DE HOJE"
+- assertVisible: "Dinheiro"

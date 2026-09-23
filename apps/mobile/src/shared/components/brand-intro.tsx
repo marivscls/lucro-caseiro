@@ -278,27 +278,30 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
           >
             Seu trabalho merece dar lucro.
           </Animated.Text>
+          <View
+            style={styles.footer}
+            accessible
+            accessibilityLabel="Preparando seu espaço"
+            accessibilityRole="progressbar"
+            accessibilityState={{ busy: true }}
+          >
+            <Animated.View
+              style={[
+                styles.statusDot,
+                {
+                  backgroundColor: theme.colors.primaryStrong,
+                  opacity: pulse.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.45, 1],
+                  }),
+                },
+              ]}
+            />
+            <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
+              Preparando seu espaço
+            </Text>
+          </View>
         </View>
-      </View>
-      <View
-        style={styles.footer}
-        accessible
-        accessibilityLabel="Preparando seu espaço"
-        accessibilityRole="progressbar"
-        accessibilityState={{ busy: true }}
-      >
-        <Animated.View
-          style={[
-            styles.statusDot,
-            {
-              backgroundColor: theme.colors.primaryStrong,
-              opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 1] }),
-            },
-          ]}
-        />
-        <Text style={[styles.statusText, { color: theme.colors.textSecondary }]}>
-          Preparando seu espaço
-        </Text>
       </View>
     </Animated.View>
   );
@@ -307,7 +310,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
 const styles = StyleSheet.create({
   root: { flex: 1, overflow: "hidden", paddingHorizontal: 24, paddingVertical: 40 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  identity: { alignItems: "center", width: "100%", maxWidth: 400, paddingBottom: 24 },
+  identity: { alignItems: "center", width: "100%", maxWidth: 400 },
   emblem: {
     pointerEvents: "none",
     width: 136,
@@ -349,7 +352,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    paddingTop: 16,
+    marginTop: 20,
   },
   statusDot: { width: 5, height: 5, borderRadius: 3 },
   statusText: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 20 },

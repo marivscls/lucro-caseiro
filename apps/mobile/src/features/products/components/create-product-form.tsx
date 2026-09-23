@@ -52,6 +52,7 @@ import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { ApiError } from "../../../shared/utils/api-client";
 import {
   currencyInput,
+  isPositiveCurrency,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
@@ -730,11 +731,7 @@ export function CreateProductForm({
     {
       name: !name.trim() && "Informe o nome do produto.",
       category: !category.trim() && "Selecione ou informe uma categoria.",
-      salePrice:
-        (!Number.isFinite(parseCurrencyInput(salePrice)) ||
-          parseCurrencyInput(salePrice) <= 0 ||
-          !Number.isFinite(parseCurrencyInput(salePrice))) &&
-        "Informe um preço maior que zero.",
+      salePrice: !isPositiveCurrency(salePrice) && "Informe um preço maior que zero.",
       components:
         isComposite &&
         (components.length === 0 ||
@@ -761,7 +758,7 @@ export function CreateProductForm({
         void trackAnalyticsAction(`product_${event}`, useAuth.getState().token);
       })
     ) {
-      if (!name.trim() || !category.trim() || parseCurrencyInput(salePrice) <= 0) {
+      if (!name.trim() || !category.trim() || !isPositiveCurrency(salePrice)) {
         setFormStep(1);
       } else if (isComposite) {
         setFormStep(2);
@@ -1031,9 +1028,7 @@ export function CreateProductForm({
             }}
           >
             <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
-              {attempted &&
-              (!Number.isFinite(parseCurrencyInput(salePrice)) ||
-                parseCurrencyInput(salePrice) <= 0) ? (
+              {attempted && !isPositiveCurrency(salePrice) ? (
                 <Typography variant="body" accessibilityRole="alert">
                   Informe um preço maior que zero. Exemplo: 25,00.
                 </Typography>
@@ -1365,7 +1360,24 @@ export function CreateProductForm({
           <Button
             title="Continuar"
             disabled={loading}
-            onPress={() => setFormStep((current) => current + 1)}
+            onPress={() => {
+              if (formStep === 1) {
+                if (!name.trim()) {
+                  alertValidation("Informe o nome do produto.");
+                  return;
+                }
+                if (!category.trim()) {
+                  alertValidation("Selecione ou informe uma categoria.");
+                  return;
+                }
+                if (!isPositiveCurrency(salePrice)) {
+                  alertValidation("Informe um preço maior que zero.");
+                  requestAnimationFrame(() => priceInput.current?.focus());
+                  return;
+                }
+              }
+              setFormStep((current) => current + 1);
+            }}
             style={{ flex: 1 }}
           />
         ) : (

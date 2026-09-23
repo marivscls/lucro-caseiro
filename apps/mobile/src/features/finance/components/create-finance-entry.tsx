@@ -264,7 +264,7 @@ export function CreateFinanceEntry({
         }
       >
         <View style={{ flexShrink: 1, gap: 12 }}>
-          <Typography variant="body" style={styles.subtitle} numberOfLines={2}>
+          <Typography variant="body" style={styles.subtitle}>
             Registre uma entrada ou saída para manter suas finanças organizadas.
           </Typography>
 
@@ -349,16 +349,12 @@ export function CreateFinanceEntry({
                   Escolha a categoria deste lançamento.
                 </Typography>
               ) : null}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.categoryScroller}
-                contentContainerStyle={styles.categoryGrid}
-              >
+              <View style={styles.categoryGrid}>
                 {categories.map((item) => (
                   <Pressable
                     key={item.key}
                     accessibilityRole="button"
+                    accessibilityState={{ selected: category === item.key }}
                     onPress={() => {
                       setCategory(item.key);
                       setCategoryNotice(false);
@@ -376,13 +372,13 @@ export function CreateFinanceEntry({
                           ? theme.colors.text
                           : theme.colors.textSecondary
                       }
-                      numberOfLines={1}
+                      style={{ flexShrink: 1, minWidth: 0 }}
                     >
                       {item.label}
                     </Typography>
                   </Pressable>
                 ))}
-              </ScrollView>
+              </View>
             </View>
           </ValidationField>
 
@@ -555,7 +551,9 @@ function createStyles(theme: Theme) {
       flexDirection: "row",
       gap: 8,
       minHeight: 48,
+      maxWidth: "100%",
       paddingHorizontal: 12,
+      paddingVertical: 8,
     },
     categoryButtonSelected: {
       backgroundColor: theme.colors.primaryBg,
@@ -563,11 +561,8 @@ function createStyles(theme: Theme) {
     },
     categoryGrid: {
       flexDirection: "row",
+      flexWrap: "wrap",
       gap: 8,
-      paddingHorizontal: 13,
-    },
-    categoryScroller: {
-      marginHorizontal: -13,
     },
     content: {
       gap: 12,
@@ -627,7 +622,6 @@ function createStyles(theme: Theme) {
     },
     subtitle: {
       marginTop: 4,
-      width: "86%",
     },
     title: {
       flex: 1,

@@ -50,47 +50,56 @@ export function ResponsiveModalSurface({
   const insets = useSafeAreaInsets();
 
   if (size === "hug") {
-    return (
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{
-          flex: 1,
-          justifyContent: isDesktop ? "center" : "flex-end",
-          ...hugModalSafeAreaStyle(isDesktop, insets.bottom),
-          backgroundColor: theme.colors.overlay,
-        }}
+    // Android usa softwareKeyboardLayoutMode=resize: a janela já encolhe com o
+    // teclado. Somar KeyboardAvoidingView "height" + marginBottom do teclado
+    // empurrava o sheet para o topo e escondia o formulário.
+    const shellStyle = {
+      flex: 1,
+      justifyContent: isDesktop ? "center" : ("flex-end" as const),
+      ...hugModalSafeAreaStyle(isDesktop, insets.bottom),
+      backgroundColor: theme.colors.overlay,
+    };
+    const sheet = (
+      <View
+        style={[
+          {
+            flexGrow: 0,
+            flexShrink: 1,
+            minHeight: 0,
+            overflow: "hidden",
+            backgroundColor: theme.colors.surfaceElevated,
+          },
+          isDesktop
+            ? {
+                alignSelf: "center",
+                width: "100%",
+                maxWidth,
+                maxHeight: "85%",
+                borderRadius: 24,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+              }
+            : {
+                maxHeight: "92%",
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+              },
+          theme.shadows.lg,
+        ]}
       >
-        <View
-          style={[
-            {
-              flexGrow: 0,
-              flexShrink: 1,
-              minHeight: 0,
-              overflow: "hidden",
-              backgroundColor: theme.colors.surfaceElevated,
-            },
-            isDesktop
-              ? {
-                  alignSelf: "center",
-                  width: "100%",
-                  maxWidth,
-                  maxHeight: "85%",
-                  borderRadius: 24,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                }
-              : {
-                  maxHeight: "92%",
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
-                },
-            theme.shadows.lg,
-          ]}
-        >
-          {children}
-        </View>
-      </KeyboardAvoidingView>
+        {children}
+      </View>
     );
+
+    if (Platform.OS === "ios") {
+      return (
+        <KeyboardAvoidingView behavior="padding" style={shellStyle}>
+          {sheet}
+        </KeyboardAvoidingView>
+      );
+    }
+
+    return <View style={shellStyle}>{sheet}</View>;
   }
 
   return (

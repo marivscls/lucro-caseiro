@@ -1,4 +1,4 @@
-# 17 — Configurações: abrir editar perfil e salvar. Edita dado real (conta de teste).
+# 17 — Edita o perfil: cartao da aba Mais abre Configuracoes, depois o lapis.
 appId: br.com.orionseven.lucrocaseiro
 name: 17 - Editar perfil
 tags:
@@ -10,38 +10,38 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Configurações
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
-- scrollUntilVisible:
-    element:
-      text: "Configurações"
-    direction: DOWN
-- tapOn: "Configurações"
-
-# Abre o editor de perfil
-- extendedWaitUntil:
-    visible:
-      text: "Editar perfil"
-    timeout: 8000
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Mais opções"
+          commands:
+            - tapOn:
+                point: "90%,94%"
 - tapOn: "Editar perfil"
 
-# Modal de edição -> define o nome do negócio e salva
 - extendedWaitUntil:
     visible:
-      text: "Salvar"
+      text: "Seu plano|Gratuito|do seu jeito"
+    timeout: 10000
+- tapOn: "Editar perfil"
+
+- extendedWaitUntil:
+    visible:
+      text: "Adicionar foto|Nome do neg|Salvar"
     timeout: 8000
-- tapOn:
-    below:
-      text: "Nome do negócio"
+- tapOn: "Nome do negocio"
 - eraseText
 - inputText: "[e2e] Negocio Teste"
-- tapOn: "Salvar"
-
-# Volta pra Configurações
-- extendedWaitUntil:
-    visible:
-      text: "Editar perfil"
-    timeout: 8000
+- tapOn:
+    text: "^Salvar$"
+    point: "50%, 20%"
+- tapOn:
+    point: "50%,55%"
 - takeScreenshot: .maestro/screenshots/17-perfil

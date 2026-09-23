@@ -10,8 +10,8 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Atalho "Finanças" na home
-- tapOn: "Finanças"
+# Atalho do dinheiro na home
+- tapOn: "Ver financeiro"
 - assertVisible: "Financeiro"
 # O botão mostra apenas o ícone; o nome da ação permanece acessível.
 - scrollUntilVisible:
@@ -41,12 +41,12 @@ tags:
     below:
       text: "Descrição"
 - inputText: "[e2e] Lancamento teste"
-# Categoria
+# Categoria de entrada
 - scrollUntilVisible:
     element:
-      text: "Material"
+      text: "Outra entrada|Venda"
     direction: DOWN
-- tapOn: "Material"
+- tapOn: "Outra entrada"
 
 # Salvar
 - scrollUntilVisible:

@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
+import { displayProductName, productNameMatchesSearch } from "../../products/display";
 import { useProducts } from "../../products/hooks";
 import { Skeleton } from "../../../shared/components/skeleton";
 
@@ -29,9 +30,7 @@ export function ProductPicker({
   const visibleProducts = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pt-BR");
     if (!query) return products;
-    return products.filter((product) =>
-      product.name.toLocaleLowerCase("pt-BR").includes(query),
-    );
+    return products.filter((product) => productNameMatchesSearch(product.name, query));
   }, [products, search]);
 
   return (
@@ -52,6 +51,7 @@ export function ProductPicker({
         <View style={{ gap: spacing.sm }}>
           <Input
             placeholder="Buscar produto..."
+            accessibilityLabel="Buscar produto"
             value={search}
             onChangeText={setSearch}
             icon={
@@ -98,7 +98,7 @@ export function ProductPicker({
                     numberOfLines={2}
                     style={{ flex: 1 }}
                   >
-                    {product.name}
+                    {displayProductName(product.name)}
                   </Typography>
                   {selected ? (
                     <AppIcon

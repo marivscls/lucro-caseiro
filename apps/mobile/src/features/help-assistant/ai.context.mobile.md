@@ -70,3 +70,5 @@ Plan regressions cover the reported question with and without accents, subscript
 ## Change log / Decisions
 
 - 2026-09-09: Added automatic instruction-based chat and email handoff, as requested by the owner.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Perguntas sugeridas permitem duas linhas nos botões em telas estreitas. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.

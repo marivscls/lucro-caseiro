@@ -261,3 +261,5 @@ Catálogo vazio prioriza conteúdo, mantém cópia do link e compartilhamento vo
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-09: editor e prévia lateral usam fade, leve escala e deslocamento de 18 px por 320 ms ao trocar de etapa; edições no mesmo passo não repetem a animação nem remontam os campos. Preferência por movimento reduzido respeitada.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Link público do catálogo é exibido com quebra de linha em vez de reticências. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.

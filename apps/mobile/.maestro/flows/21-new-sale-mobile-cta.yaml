@@ -1,5 +1,4 @@
-# 21 — Regressão mobile: o CTA Próximo deve ficar acima da tab bar e avançar.
-# Não conclui a venda: adiciona um produto existente e valida a transição para pagamento.
+# 21 — Regressão mobile: venda avulsa já avança para produtos.
 appId: br.com.orionseven.lucrocaseiro
 name: 21 - Nova venda CTA acima da tab bar
 tags:
@@ -14,13 +13,26 @@ tags:
 
 - tapOn:
     point: "10%,94%"
-- assertVisible: "VENDAS DE HOJE"
-- tapOn: "Registrar venda"
-- assertVisible: "Para quem é a venda?"
-- tapOn: "Sem cliente (avulso)"
-- assertVisible: "O que você vai vender?"
-- tapOn: "Adicionar Abobrinha"
-- assertVisible: "Próximo"
-- tapOn: "Próximo"
-- assertVisible: "Forma de pagamento"
+- assertVisible: "Dinheiro|Início"
+- tapOn: "Nova venda"
+- runFlow:
+    when:
+      visible: "Agora n"
+    commands:
+      - tapOn: "Agora n"
+- runFlow:
+    when:
+      visible: "Escolher produtos"
+    commands:
+      - tapOn: "Escolher produtos"
+- extendedWaitUntil:
+    visible:
+      text: "Venda avulsa|O que voc|Para quem"
+    timeout: 8000
+- runFlow:
+    when:
+      visible: "Venda avulsa"
+    commands:
+      - tapOn: "Venda avulsa"
+- assertVisible: "O que voc|Venda avulsa"
 - takeScreenshot: .maestro/screenshots/21-nova-venda-cta

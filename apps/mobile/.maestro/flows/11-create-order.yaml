@@ -1,4 +1,4 @@
-# 11 — Criar encomenda (agenda). Gera dado real.
+# 11 — Criar encomenda na Agenda.
 appId: br.com.orionseven.lucrocaseiro
 name: 11 - Criar encomenda
 tags:
@@ -10,39 +10,52 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Atalho "Agenda" na home
-- tapOn: "Agenda"
-- assertVisible: "Agenda"
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Sua agenda|Nova encomenda|Novo pedido|Adicionar compromisso"
+          commands:
+            - tapOn:
+                point: "70%,94%"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- runFlow:
+    when:
+      notVisible: "Bolo teste"
+    commands:
+      - tapOn: "Adicionar compromisso|Nova encomenda|Novo pedido|. Nova encomenda|. Novo pedido|Cadastrar encomenda"
+      - extendedWaitUntil:
+          visible:
+            text: "Nome da encomenda|Continuar"
+          timeout: 8000
+      - tapOn: "Nome da encomenda"
+      - inputText: "Bolo teste"
+      - tapOn: "Continuar"
+      - extendedWaitUntil:
+          visible:
+            text: "Hoje"
+          timeout: 8000
+      - tapOn: "Hoje"
+      - tapOn: "Continuar"
+      - tapOn: "Salvar encomenda|Salvar pedido"
+      - extendedWaitUntil:
+          notVisible:
+            text: "Salvar encomenda|Salvar pedido|Data de entrega"
+          timeout: 45000
+- tapOn: "Hoje, .*"
 - scrollUntilVisible:
     element:
-      text: "Nova encomenda"
+      text: "Bolo teste"
     direction: DOWN
-- tapOn: "Nova encomenda"
-
-# Form: âncora "Fechar" (header fixo, sempre visível). O título tem autoFocus -> digita
-# direto. Labels com "*" aninhado não casam como visíveis; por isso não asserto neles.
-- extendedWaitUntil:
-    visible:
-      text: "Fechar"
-    timeout: 8000
-- inputText: "[e2e] Bolo teste"
-# Data de entrega -> chip "Hoje" (rola até aparecer acima do teclado)
-- scrollUntilVisible:
-    element:
-      text: "Hoje"
-    direction: DOWN
-- tapOn: "Hoje"
-
-# Salvar
-- scrollUntilVisible:
-    element:
-      text: "Salvar encomenda"
-    direction: DOWN
-- tapOn: "Salvar encomenda"
-
-# Sucesso: a encomenda aparece na agenda
-- extendedWaitUntil:
-    visible:
-      text: "[e2e] Bolo teste"
-    timeout: 10000
+    timeout: 40000
+    speed: 90
+    visibilityPercentage: 10
+    centerElement: true
 - takeScreenshot: .maestro/screenshots/11-encomenda

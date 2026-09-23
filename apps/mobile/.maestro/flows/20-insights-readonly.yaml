@@ -11,7 +11,15 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Atalho "Insights" na home
+# Mais -> Insights
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- tapOn: "Ver tudo"
+- scrollUntilVisible:
+    element:
+      text: "Insights"
+    direction: DOWN
 - tapOn: "Insights"
 # Maestro casa o texto completo -> usa .* pra trecho
 - extendedWaitUntil:

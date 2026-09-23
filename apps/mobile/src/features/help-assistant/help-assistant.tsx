@@ -54,6 +54,7 @@ export function HelpAssistant({
             <Button
               key={question}
               title={question}
+              titleLines={2}
               variant="outline"
               onPress={() => ask(question)}
             />

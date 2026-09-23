@@ -9,6 +9,36 @@ export const MOBILE_TAB_BAR_HIDDEN_ROOT_SEGMENTS = [
 
 export type MobileTabKey = "index" | "sales" | "new-sale" | "agenda" | "clients" | "more";
 
+export type MobileTabItem = {
+  key: MobileTabKey;
+  label: string;
+  accessibilityLabel: string;
+  primary: boolean;
+};
+
+/** Destinos iguais + ação central curta. Leitor de tela guarda “Nova venda”. */
+export function mobileTabItems(hasScheduling: boolean): MobileTabItem[] {
+  return [
+    { key: "index", label: "Início", accessibilityLabel: "Início", primary: false },
+    { key: "sales", label: "Vendas", accessibilityLabel: "Vendas", primary: false },
+    {
+      key: "new-sale",
+      label: "Vender",
+      accessibilityLabel: "Nova venda",
+      primary: true,
+    },
+    hasScheduling
+      ? { key: "agenda", label: "Agenda", accessibilityLabel: "Agenda", primary: false }
+      : {
+          key: "clients",
+          label: "Clientes",
+          accessibilityLabel: "Clientes",
+          primary: false,
+        },
+    { key: "more", label: "Mais", accessibilityLabel: "Mais", primary: false },
+  ];
+}
+
 export function shouldShowMobileTabBar(args: {
   isDesktop: boolean;
   isAuthenticated: boolean;

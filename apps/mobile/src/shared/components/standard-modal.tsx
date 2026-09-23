@@ -1,7 +1,7 @@
 import { Typography, useReducedMotion, useTheme, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "./app-icon";
 import React from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 
 import { useScrollFocusedInputIntoView } from "./keyboard-aware-scroll-view";
 import { ResponsiveModal } from "./responsive-modal-surface";
@@ -43,8 +43,13 @@ export function StandardModal({
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const reducedMotion = useReducedMotion();
+  const { height: windowHeight } = useWindowDimensions();
+  const [headerHeight, setHeaderHeight] = React.useState(72);
+  const [footerHeight, setFooterHeight] = React.useState(footer ? 96 : 0);
   const modalContentRef = React.useRef<View>(null);
   const internalScrollRef = React.useRef<ScrollView>(null);
+  const sheetMaxHeight = Math.round(windowHeight * (isDesktop ? 0.85 : 0.92));
+  const scrollMaxHeight = Math.max(120, sheetMaxHeight - headerHeight - footerHeight);
   const { scrollFocusedInput, trackScroll, scrollValidationField } =
     useScrollFocusedInputIntoView(internalScrollRef, spacing.xl, visible);
 
@@ -101,10 +106,11 @@ export function StandardModal({
         role={Platform.OS === "web" ? "dialog" : undefined}
         accessibilityLabel={title}
         accessibilityViewIsModal
-        style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
+        style={{ flexGrow: 0, flexShrink: 1, minHeight: 0, maxHeight: sheetMaxHeight }}
       >
         {/* Header */}
         <View
+          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -116,7 +122,7 @@ export function StandardModal({
           }}
         >
           <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-            <Typography variant="h3" color={theme.colors.text} numberOfLines={2}>
+            <Typography variant="h3" color={theme.colors.text}>
               {title}
             </Typography>
             {subtitle ? (
@@ -158,7 +164,7 @@ export function StandardModal({
             internalScrollRef.current = node;
             if (scrollRef) scrollRef.current = node;
           }}
-          style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
+          style={{ flexGrow: 0, flexShrink: 1, minHeight: 0, maxHeight: scrollMaxHeight }}
           contentContainerStyle={{
             padding: isDesktop ? spacing.xl : spacing.lg,
             paddingBottom: spacing.xl,
@@ -183,13 +189,16 @@ export function StandardModal({
         {/* Footer */}
         {footer ? (
           <View
+            onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
             style={{
               flexDirection: "row",
               flexShrink: 0,
+              minHeight: 72,
               gap: spacing.md,
               justifyContent: isDesktop ? "flex-end" : undefined,
               paddingHorizontal: isDesktop ? spacing.xl : spacing.lg,
-              paddingVertical: spacing.md,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.lg,
               backgroundColor: theme.colors.surfaceElevated,
               borderTopWidth: 1,
               borderTopColor: theme.colors.border,

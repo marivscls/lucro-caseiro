@@ -9,6 +9,7 @@ import {
   LABEL_LIST_FILTERS,
   displayLabelName,
   formatLabelEditedAt,
+  labelPrintedName,
   labelCategory,
   labelThumbnailShape,
   labelUsageScore,
@@ -40,6 +41,18 @@ function makeLabel(
     ...rest,
   };
 }
+
+describe("labelPrintedName", () => {
+  it("devolve string vazia quando o nome impresso não veio da API", () => {
+    expect(labelPrintedName()).toBe("");
+    expect(labelPrintedName({})).toBe("");
+    expect(labelPrintedName({ productName: undefined })).toBe("");
+  });
+
+  it("preserva o nome impresso quando ele existe", () => {
+    expect(labelPrintedName({ productName: "Brownie" })).toBe("Brownie");
+  });
+});
 
 describe("displayLabelName", () => {
   it("remove prefixos técnicos do nome", () => {
@@ -142,6 +155,15 @@ describe("search and sort", () => {
     expect(matchesLabelSearch(newer, "massa", categories)).toBe(true);
     expect(matchesLabelSearch(newer, "brownie", categories)).toBe(true);
     expect(matchesLabelSearch(newer, "etiqueta", categories)).toBe(false);
+  });
+
+  it("tolera etiquetas antigas sem productName", () => {
+    const legacy = makeLabel({
+      data: { productName: undefined as unknown as string },
+    });
+
+    expect(() => matchesLabelSearch(legacy, "massa", categories)).not.toThrow();
+    expect(matchesLabelSearch(legacy, "produto inexistente", categories)).toBe(false);
   });
 
   it("Recentes ordena pelas mais novas", () => {

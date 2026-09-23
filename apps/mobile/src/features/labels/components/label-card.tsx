@@ -95,13 +95,12 @@ export function LabelCard({
             <Typography
               variant="bodyBold"
               color={palette.ink}
-              numberOfLines={1}
               style={{
                 fontFamily: fonts.bold,
                 fontSize: fontSizes.md,
                 flexGrow: 1,
                 flexShrink: 1,
-                minWidth: 72,
+                minWidth: 0,
               }}
             >
               {name}
@@ -130,6 +129,7 @@ export function LabelCard({
             <View
               style={{
                 alignSelf: "flex-start",
+                maxWidth: "100%",
                 backgroundColor: palette.softRose,
                 borderRadius: radii.full,
                 paddingHorizontal: spacing.sm,
@@ -138,7 +138,6 @@ export function LabelCard({
             >
               <Typography
                 color={palette.wine}
-                numberOfLines={1}
                 style={{
                   fontFamily: fonts.medium,
                   fontSize: 12,
@@ -153,7 +152,6 @@ export function LabelCard({
           <Typography
             variant="caption"
             color={palette.muted}
-            numberOfLines={1}
             style={{ fontFamily: fonts.medium }}
           >
             {formatLabelEditedAt(label.createdAt)}

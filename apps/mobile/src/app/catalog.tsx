@@ -835,9 +835,8 @@ function CatalogContentManager({
                 color={theme.colors.primaryStrong}
               />
               <Typography
-                numberOfLines={1}
                 color={theme.colors.textSecondary}
-                style={{ flex: 1, fontSize: spaciousLayout ? 18 : 13 }}
+                style={{ flex: 1, minWidth: 0, fontSize: spaciousLayout ? 18 : 13 }}
               >
                 {catalogUrl.replace(/^https?:\/\//, "")}
               </Typography>

@@ -1,6 +1,4 @@
-# 05 — Criar produto (CRUD). Gera dado real na conta (free, sem limpeza).
-# Inputs focados por seletor RELATIVO (`below: "<label>"`) — placeholders de TextInput
-# nem sempre são matcháveis. Categoria abre um modal (digita + "Usar categoria").
+# 05 — Criar produto (wizard de 3 etapas). Gera dado real na conta.
 appId: br.com.orionseven.lucrocaseiro
 name: 05 - Criar produto
 tags:
@@ -12,42 +10,90 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Atalho "Produtos" na home (área central, fora da tab bar/LogBox)
 - tapOn: "Produtos"
-- assertVisible: "Novo produto"
-- tapOn: "Novo produto"
-- assertVisible: "Nome do produto"
-
-# Nome
-- tapOn:
-    below:
-      text: "Nome do produto"
-- inputText: "[e2e] Brigadeiro teste"
-
-# Categoria (abre modal -> digita -> "Usar categoria")
-- tapOn: "Escolher categoria"
-- assertVisible: "Usar categoria"
-- inputText: "Doces"
-- tapOn: "Usar categoria"
-
-# Preço de venda (rola até o campo e foca o input abaixo do label)
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- runFlow:
+    when:
+      notVisible: "Brigadeiro teste"
+    commands:
+      - tapOn: "Novo produto|Cadastrar primeiro produto|. Novo produto"
+      - assertVisible: "Nome do produto"
+      - tapOn:
+          below:
+            text: "Nome do produto"
+      - inputText: "[e2e] Brigadeiro teste"
+      - tapOn: "Categoria"
+      - tapOn: "Escolher categoria"
+      - extendedWaitUntil:
+          visible:
+            text: "Usar categoria"
+          timeout: 8000
+      - inputText: "Doces"
+      - tapOn: "Categoria"
+      - tapOn: "Usar categoria"
+      - runFlow:
+          when:
+            visible: "Usar categoria"
+          commands:
+            - tapOn: "Usar categoria"
+      - extendedWaitUntil:
+          visible:
+            text: "1 de 3|Nome do produto|Continuar"
+          timeout: 8000
+      - tapOn: "Continuar"
+      - runFlow:
+          when:
+            visible: "OK"
+          commands:
+            - tapOn: "OK"
+      - inputText: "5,00"
+      - tapOn: "1 de 3"
+      - tapOn: "Continuar"
+      - tapOn: "Continuar"
+      - tapOn:
+          text: "Cadastrar produto"
+          point: "50%, 20%"
+      - extendedWaitUntil:
+          visible:
+            text: "Produto parecido|Voltar e editar"
+          timeout: 15000
+      - runFlow:
+          when:
+            visible: "Produto parecido"
+          commands:
+            - tapOn: "Continuar"
+            - extendedWaitUntil:
+                visible:
+                  text: "Voltar e editar"
+                timeout: 10000
+      - tapOn: "^Cadastrar$"
+      - tapOn:
+          point: "28%,58%"
+      - tapOn:
+          point: "50%,62%"
+      - runFlow:
+          when:
+            visible: "Agora n"
+          commands:
+            - tapOn: "Agora n"
+      - runFlow:
+          when:
+            visible: "OK"
+          commands:
+            - tapOn: "OK"
+- runFlow:
+    when:
+      visible: "Fechar"
+    commands:
+      - tapOn: "Fechar"
+- tapOn: "Buscar produto"
+- inputText: "Brigadeiro"
 - scrollUntilVisible:
     element:
-      text: "Preço de venda (R$)"
+      text: "Brigadeiro teste"
     direction: DOWN
-- tapOn:
-    below:
-      text: "Preço de venda (R$)"
-- inputText: "5,00"
-
-# Salvar (rola até o botão no rodapé)
-- scrollUntilVisible:
-    element:
-      text: "Cadastrar produto"
-    direction: DOWN
-- tapOn: "Cadastrar produto"
-
-# Sucesso
-- assertVisible: "Produto cadastrado!"
-- tapOn: "OK"
+    timeout: 20000
+    visibilityPercentage: 10
+    centerElement: true
 - takeScreenshot: .maestro/screenshots/05-produto

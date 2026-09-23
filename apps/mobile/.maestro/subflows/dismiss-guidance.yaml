@@ -1,0 +1,8 @@
+# Fecha o cartão de introdução ("Agora não") se estiver na tela.
+appId: br.com.orionseven.lucrocaseiro
+---
+- runFlow:
+    when:
+      visible: "Agora n"
+    commands:
+      - tapOn: "Agora n"

@@ -1,5 +1,6 @@
 import { hasActiveFeature, type Purchase } from "@lucro-caseiro/contracts";
 import {
+  FilterChipRow,
   Badge,
   Button,
   EmptyState,
@@ -179,7 +180,6 @@ export default function PurchasesScreen() {
           style={{ paddingHorizontal: isDesktop ? 0 : spacing.xl }}
           titleStyle={{ color: pal.wine }}
           subtitleStyle={{ color: pal.muted }}
-          subtitleNumberOfLines={2}
           right={
             <FAB
               icon="add"
@@ -219,7 +219,6 @@ export default function PurchasesScreen() {
         style={{ paddingHorizontal: isDesktop ? 0 : spacing.xl }}
         titleStyle={{ color: pal.wine }}
         subtitleStyle={{ color: pal.muted }}
-        subtitleNumberOfLines={2}
         right={
           <FAB
             icon="add"
@@ -273,18 +272,7 @@ export default function PurchasesScreen() {
                 isDesktop={isDesktop}
               />
 
-              <ScrollView
-                horizontal
-                nestedScrollEnabled
-                showsHorizontalScrollIndicator={false}
-                style={{ flexGrow: 0, marginTop: spacing.lg }}
-                contentContainerStyle={{
-                  height: 44,
-                  gap: spacing.sm,
-                  flexGrow: 0,
-                  alignItems: "center",
-                }}
-              >
+              <FilterChipRow style={{ marginTop: spacing.lg }}>
                 {FILTERS.map((option) => (
                   <PurchaseFilterChip
                     key={option.value}
@@ -293,7 +281,7 @@ export default function PurchasesScreen() {
                     onPress={() => setFilter(option.value)}
                   />
                 ))}
-              </ScrollView>
+              </FilterChipRow>
 
               <View
                 style={{
@@ -516,7 +504,9 @@ function PurchaseFilterChip({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       style={({ pressed }) => ({
-        height: 44,
+        minHeight: 44,
+        maxWidth: "100%",
+        paddingVertical: spacing.sm,
         flexShrink: 0,
         paddingHorizontal: spacing.lg,
         borderRadius: radii.xl,
@@ -531,7 +521,7 @@ function PurchaseFilterChip({
       <Typography
         variant="bodyBold"
         color={selected ? pal.wine : pal.ink}
-        numberOfLines={1}
+        style={{ flexShrink: 1, minWidth: 0 }}
       >
         {label}
       </Typography>

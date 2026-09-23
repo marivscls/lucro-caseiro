@@ -347,6 +347,7 @@ export function RecipeMaterialsEditor({
                         ? `Quantidade (${line.unit || material.unit})`
                         : "Quantidade"
                     }
+                    accessibilityLabel="Quantidade"
                     placeholder="Ex: 2"
                     value={line.quantity}
                     onChangeText={(v) => updateLine(index, { quantity: v })}

@@ -73,12 +73,14 @@ export function Chip({
           minHeight: controlSizes.regular,
           flexGrow: 0,
           flexShrink: 0,
+          maxWidth: "100%",
           alignSelf: "flex-start",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           gap: spacing.xs,
           paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.xs,
           borderRadius: radii.full,
           borderWidth: 1,
           borderColor,
@@ -89,8 +91,9 @@ export function Chip({
         style,
       ]}
     >
-      {icon ? <View>{icon}</View> : null}
+      {icon ? <View style={{ flexShrink: 0 }}>{icon}</View> : null}
       <Text
+        numberOfLines={1}
         style={{
           flexShrink: 0,
           fontSize: fontSizes.sm,
@@ -104,6 +107,7 @@ export function Chip({
         <View
           style={{
             minWidth: controlSizes.badge,
+            flexShrink: 0,
             height: controlSizes.badge,
             borderRadius: radii.full,
             paddingHorizontal: spacing.xs,

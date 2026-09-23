@@ -21,8 +21,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAdminAnalyticsDashboard } from "../features/analytics/hooks";
 import { ListCard, ListCardItem } from "../shared/components/list-card";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { Skeleton, SkeletonSummaryStrip, SkeletonList } from "../shared/components/skeleton";
-import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  Skeleton,
+  SkeletonSummaryStrip,
+  SkeletonList,
+} from "../shared/components/skeleton";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 
@@ -489,36 +497,37 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
         </Typography>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={{ flexDirection: "row", gap: spacing.sm }}>
-          {SECTIONS.map((item) => {
-            const selected = section === item.key;
-            return (
-              <Pressable
-                key={item.key}
-                accessibilityRole="tab"
-                accessibilityState={{ selected }}
-                onPress={() => setSection(item.key)}
-                style={{
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radii.full,
-                  backgroundColor: selected
-                    ? theme.colors.primary
-                    : theme.colors.surfaceElevated,
-                }}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        {SECTIONS.map((item) => {
+          const selected = section === item.key;
+          return (
+            <Pressable
+              key={item.key}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              onPress={() => setSection(item.key)}
+              style={{
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+                maxWidth: "100%",
+                minHeight: 44,
+                justifyContent: "center",
+                borderRadius: radii.full,
+                backgroundColor: selected
+                  ? theme.colors.primary
+                  : theme.colors.surfaceElevated,
+              }}
+            >
+              <Typography
+                variant="bodyBold"
+                color={selected ? theme.colors.textOnPrimary : theme.colors.text}
               >
-                <Typography
-                  variant="bodyBold"
-                  color={selected ? theme.colors.textOnPrimary : theme.colors.text}
-                >
-                  {item.label}
-                </Typography>
-              </Pressable>
-            );
-          })}
-        </View>
-      </ScrollView>
+                {item.label}
+              </Typography>
+            </Pressable>
+          );
+        })}
+      </View>
 
       {sectionContent}
       <Typography
@@ -547,7 +556,13 @@ export default function AdminMetricsScreen() {
   if (dashboard.isLoading) {
     content = (
       <View
-        style={{ flex: 1, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data), paddingVertical: spacing.xl, gap: spacing.lg }}
+        style={{
+          flex: 1,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+          paddingVertical: spacing.xl,
+          gap: spacing.lg,
+        }}
       >
         <Skeleton width="45%" height={18} />
         <SkeletonSummaryStrip tiles={3} />

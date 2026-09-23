@@ -12,6 +12,12 @@ export function parseCurrencyInput(value: string): number {
   return Number.parseFloat(normalized);
 }
 
+/** Campo vazio vira `NaN`; `NaN <= 0` é falso e deixava avançar etapas. */
+export function isPositiveCurrency(value: string): boolean {
+  const parsed = parseCurrencyInput(value);
+  return Number.isFinite(parsed) && parsed > 0;
+}
+
 export function currencyInput(value: number): string {
   return maskCurrencyInput(String(Math.round(value * 100)));
 }

@@ -40,6 +40,7 @@ import { brToIso, isoToBR } from "../features/labels/dates";
 import {
   LABEL_LIST_FILTERS,
   labelCategory,
+  labelPrintedName,
   labelsHeroIllustrationWidth,
   labelsHeroPanelHeight,
   mostUsedLabelId,
@@ -124,14 +125,16 @@ function LabelDetailModal({
   }
 
   function startEditing(current: Label) {
-    setName(current.name);
+    const data = current.data ?? {};
+    setName(current.name ?? "");
     setTemplateId(current.templateId);
     setSelectedProductId(current.productId);
     setIncludeQr(Boolean(current.qrCodeUrl));
     setLabelData({
-      ...current.data,
-      manufacturingDate: isoToBR(current.data.manufacturingDate),
-      expirationDate: isoToBR(current.data.expirationDate),
+      ...data,
+      productName: labelPrintedName(data),
+      manufacturingDate: isoToBR(data.manufacturingDate),
+      expirationDate: isoToBR(data.expirationDate),
     });
     setLogoRemoved(false);
     clearPickedLogo();
@@ -192,16 +195,17 @@ function LabelDetailModal({
 
   const formValidation = useFormValidation(
     {
-      name: !name.trim() && "Dê um nome para a etiqueta.",
+      name: !(name ?? "").trim() && "Dê um nome para a etiqueta.",
       selectedProductId: !selectedProductId && "Escolha o produto da etiqueta.",
-      productName: !labelData.productName.trim() && "Informe o nome que será impresso.",
+      productName:
+        !labelPrintedName(labelData).trim() && "Informe o nome que será impresso.",
     },
     editing,
   );
 
   async function handleSave() {
     if (!formValidation.validate()) return;
-    if (!name.trim()) {
+    if (!(name ?? "").trim()) {
       alertValidation("Dê um nome para a etiqueta");
       return;
     }
@@ -209,7 +213,7 @@ function LabelDetailModal({
       alertValidation("Escolha o produto da etiqueta");
       return;
     }
-    if (!labelData.productName.trim()) {
+    if (!labelPrintedName(labelData).trim()) {
       alertValidation("Preencha o nome que será impresso");
       return;
     }
@@ -225,7 +229,7 @@ function LabelDetailModal({
       await updateLabel.mutateAsync({
         id: labelId,
         data: {
-          name: name.trim(),
+          name: (name ?? "").trim(),
           templateId,
           productId: selectedProductId,
           data: { ...labelData, ...dates },
@@ -425,7 +429,7 @@ function LabelDetailModal({
           <ValidationField {...formValidation.field("productName")}>
             <Input
               label="Nome que será impresso"
-              value={labelData.productName}
+              value={labelPrintedName(labelData)}
               onChangeText={(value) => updateField("productName", value)}
             />
           </ValidationField>
@@ -746,7 +750,7 @@ export default function LabelsScreen() {
   const categoryByProductId = useMemo(() => {
     const map = new Map<string, string>();
     for (const product of products ?? []) {
-      if (product.category.trim()) map.set(product.id, product.category);
+      if (product.category?.trim()) map.set(product.id, product.category);
     }
     return map;
   }, [products]);
@@ -995,7 +999,6 @@ export default function LabelsScreen() {
         }}
         title={labelsLabel}
         subtitle="Organize seus rótulos para imprimir quando precisar."
-        subtitleNumberOfLines={2}
         onBack={handleBack}
         backLabel={backToHome ? "Ir para o início" : "Voltar"}
         hideBack={isDesktop}

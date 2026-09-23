@@ -110,6 +110,11 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 ## Change log / Decisions
 
+- 2026-09-10: detalhes do lançamento destacam valor e tipo em uma superfície
+  semântica, reutilizam a descrição limpa da lista e apresentam categoria, data
+  completa e tipo de gasto. Fechar é a ação principal; excluir mantém confirmação,
+  mostra carregamento e bloqueia o fechamento durante a exclusão.
+
 - 2026-09-10: modal de criação/edição de gastos fixos (`app/recurring-expenses`)
   tem descrição, valor e dia agrupados, categorias em duas colunas com estado
   selecionado acessível na web, resumo da recorrência e uma ação principal fixa.
@@ -152,3 +157,5 @@ Novos lançamentos oferecem categorias de entrada (sale/other) e saída (categor
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 Foco de erro é aplicado após o layout da mensagem; categoria inválida rola até a categoria, não até o fim do formulário. A rolagem automática web mantém o foco do campo.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Categorias de lançamento quebram em linhas; período usa largura natural, resumos empilham abaixo de 520px e valores extensos ganham a largura do hero sem sobrepor a ilustração. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { currencyInput, maskCurrencyInput, parseCurrencyInput } from "./currency-input";
+import {
+  currencyInput,
+  isPositiveCurrency,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "./currency-input";
 
 describe("maskCurrencyInput", () => {
   it("formata digitos como moeda BR (centavos)", () => {
@@ -36,6 +41,19 @@ describe("parseCurrencyInput", () => {
 
   it("retorna NaN para texto vazio", () => {
     expect(Number.isNaN(parseCurrencyInput(""))).toBe(true);
+  });
+});
+
+describe("isPositiveCurrency", () => {
+  it("rejeita vazio, zero e texto inválido", () => {
+    expect(isPositiveCurrency("")).toBe(false);
+    expect(isPositiveCurrency("0,00")).toBe(false);
+    expect(isPositiveCurrency("abc")).toBe(false);
+  });
+
+  it("aceita valores maiores que zero", () => {
+    expect(isPositiveCurrency("0,01")).toBe(true);
+    expect(isPositiveCurrency("24,25")).toBe(true);
   });
 });
 

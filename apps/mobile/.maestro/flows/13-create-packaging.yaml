@@ -1,6 +1,4 @@
-# 13 — Criar embalagem (CRUD) + limite freemium.
-# O form sempre abre; o limite (free = 3) é enforçado no SAVE: ou cria o item, ou
-# abre o paywall "Limite de embalagens atingido". Os dois são resultados válidos.
+# 13 — Criar embalagem, ou aceitar o paywall do limite free.
 appId: br.com.orionseven.lucrocaseiro
 name: 13 - Criar embalagem
 tags:
@@ -12,25 +10,21 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Embalagens
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
+- runFlow:
+    file: ../subflows/open-more.yaml
 - scrollUntilVisible:
     element:
       text: "Embalagens"
     direction: DOWN
-- tapOn: "Embalagens"
-- scrollUntilVisible:
-    element:
-      text: "Nova embalagem"
-    direction: DOWN
-- tapOn: "Nova embalagem"
+    centerElement: true
+- tapOn: "Embalagens. Custos|Embalagens"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- tapOn: "Cadastrar embalagem|Nova embalagem|. Nova embalagem|acabamento"
 
-# Form
 - extendedWaitUntil:
     visible:
-      text: "Cadastrar embalagem"
+      text: "Nova embalagem|Cadastrar"
     timeout: 8000
 - tapOn:
     below:
@@ -39,19 +33,14 @@ tags:
 - tapOn: "Caixa"
 - tapOn:
     below:
-      text: "Custo unitário (R$)"
+      text: "Valor em reais"
 - inputText: "1,50"
 - tapOn: "Tipo de embalagem"
-- scrollUntilVisible:
-    element:
-      text: "Cadastrar embalagem"
-    direction: DOWN
-- tapOn: "Cadastrar embalagem"
+- tapOn:
+    text: "^Cadastrar$"
 
-# Resultado: item criado (sob o limite) OU paywall de limite (free atingiu 3).
-# Maestro casa o TEXTO COMPLETO do elemento -> usa .* pra match parcial.
 - extendedWaitUntil:
     visible:
-      text: ".*(Caixa|Limite de embalagens).*"
+      text: ".*(Caixa|Limite de embalagens|Premium).*"
     timeout: 12000
 - takeScreenshot: .maestro/screenshots/13-embalagem

@@ -1,4 +1,6 @@
 import {
+  controlSizes,
+  iconSizes,
   radii,
   spacing,
   Typography,
@@ -14,8 +16,9 @@ import {
   ShoppingBag,
   Users,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Animated,
   Platform,
   Pressable,
   StyleSheet,
@@ -33,6 +36,7 @@ import {
   mobileTabBarSafeInset,
 } from "../layout/floating-tab-bar";
 import {
+  mobileTabItems,
   resolveActiveMobileTab,
   shouldShowMobileTabBar,
   type MobileTabKey,
@@ -47,6 +51,15 @@ const TAB_HREFS: Record<MobileTabKey, Href> = {
   clients: "/tabs/clients",
   more: "/tabs/more",
 };
+
+const TAB_ICONS = {
+  index: House,
+  sales: ShoppingBag,
+  "new-sale": Plus,
+  agenda: CalendarDays,
+  clients: Users,
+  more: Ellipsis,
+} as const;
 
 /** Shared mobile navigation for tab routes and stacked screens. */
 export function MobileFloatingTabBar() {
@@ -66,15 +79,7 @@ export function MobileFloatingTabBar() {
 
   const active = resolveActiveMobileTab(pathname, hasScheduling);
   const bottomInset = mobileTabBarSafeInset(insets.bottom);
-  const tabs: { key: MobileTabKey; label: string; icon: typeof House }[] = [
-    { key: "index", label: "Início", icon: House },
-    { key: "sales", label: "Vendas", icon: ShoppingBag },
-    { key: "new-sale", label: "Nova venda", icon: Plus },
-    hasScheduling
-      ? { key: "agenda", label: "Agenda", icon: CalendarDays }
-      : { key: "clients", label: "Clientes", icon: Users },
-    { key: "more", label: "Mais", icon: Ellipsis },
-  ];
+  const tabs = mobileTabItems(hasScheduling);
   const hostPosition: ViewStyle =
     Platform.OS === "web"
       ? ({ position: "fixed" } as unknown as ViewStyle)
@@ -108,11 +113,15 @@ export function MobileFloatingTabBar() {
           <TabItem
             key={tab.key}
             active={active === tab.key}
-            primary={tab.key === "new-sale"}
+            primary={tab.primary}
             label={tab.label}
-            icon={tab.icon}
+            accessibilityLabel={tab.accessibilityLabel}
+            icon={TAB_ICONS[tab.key]}
             onPress={() => {
-              if (active !== tab.key) router.replace(TAB_HREFS[tab.key]);
+              // navigate (não replace/push): a barra vive no root e aparece em
+              // telas empilhadas. replace disparava REPLACE { name: "sales" }
+              // num navigator que não tem essa rota.
+              if (active !== tab.key) router.navigate(TAB_HREFS[tab.key]);
             }}
           />
         ))}
@@ -125,53 +134,71 @@ function TabItem({
   active,
   primary,
   label,
+  accessibilityLabel,
   icon: Icon,
   onPress,
 }: Readonly<{
   active: boolean;
   primary: boolean;
   label: string;
+  accessibilityLabel: string;
   icon: typeof House;
   onPress: () => void;
 }>) {
   const pal = useBrandScreenPalette();
   const reducedMotion = useReducedMotion();
+  const scale = useRef(new Animated.Value(1)).current;
   const [focused, setFocused] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  let color = active ? pal.wine : pal.muted;
-  if (primary) color = pal.onWine;
-  const focusColor = primary ? pal.onWine : pal.wine;
-  const borderColor = focused ? focusColor : "transparent";
+  const selected = active && !primary;
+  let iconColor = pal.muted;
+  if (primary) iconColor = pal.onWine;
+  else if (selected) iconColor = pal.wine;
+  const labelColor = primary || selected ? pal.wine : pal.muted;
+  const borderColor = focused ? pal.wine : "transparent";
+
+  const animateIcon = (to: number) => {
+    Animated.spring(scale, {
+      toValue: to,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 0,
+    }).start();
+  };
 
   return (
     <Pressable
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
       onPress={onPress}
+      onPressIn={() => {
+        if (!reducedMotion) animateIcon(0.96);
+      }}
+      onPressOut={() => {
+        if (!reducedMotion) animateIcon(1);
+      }}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      onHoverIn={() => setHovered(true)}
-      onHoverOut={() => setHovered(false)}
-      style={({ pressed }) => {
-        let backgroundColor = active || pressed || hovered ? pal.surface : "transparent";
-        if (primary) backgroundColor = pal.wineFill;
-        return [
-          styles.tabItem,
-          primary && styles.primaryItem,
-          {
-            backgroundColor,
-            borderColor,
-            opacity: primary && (pressed || hovered) ? 0.88 : 1,
-            transform: [{ scale: pressed && !reducedMotion ? 0.96 : 1 }],
-          },
-        ];
-      }}
+      style={[styles.tabItem, { borderColor }]}
     >
-      <Icon size={22} color={color} strokeWidth={active || primary ? 2.2 : 1.8} />
+      <Animated.View
+        style={[
+          primary
+            ? [styles.primaryWell, { backgroundColor: pal.wineFill }]
+            : styles.iconSlot,
+          { transform: [{ scale }] },
+        ]}
+      >
+        <Icon
+          size={iconSizes.list}
+          color={iconColor}
+          strokeWidth={selected || primary ? 2 : 1.5}
+        />
+      </Animated.View>
       <Typography
         variant={active || primary ? "homeNavigationActive" : "homeNavigation"}
-        color={color}
+        color={labelColor}
+        numberOfLines={1}
         style={styles.tabLabel}
       >
         {label}
@@ -207,9 +234,21 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
     justifyContent: "center",
-    minHeight: 44,
-    minWidth: 0,
+    minHeight: controlSizes.large,
+    minWidth: controlSizes.large,
   },
-  primaryItem: { flex: 1.4, minWidth: 80 },
+  iconSlot: {
+    alignItems: "center",
+    height: controlSizes.compact,
+    justifyContent: "center",
+    width: controlSizes.compact,
+  },
+  primaryWell: {
+    alignItems: "center",
+    borderRadius: radii.full,
+    height: controlSizes.compact,
+    justifyContent: "center",
+    width: controlSizes.compact,
+  },
   tabLabel: { maxWidth: "100%", textAlign: "center" },
 });

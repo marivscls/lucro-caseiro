@@ -31,6 +31,15 @@ npm run dev
 npx remotion render
 ```
 
+**Render Reels (1080x1920, 15s)**
+
+```console
+npm run render:reels
+```
+
+The Reels composition is vertical 9:16, with safe area for Instagram UI
+(username, likes and caption). Output: `out/lucro-caseiro-reels.mp4`.
+
 **Render Play Store video**
 
 ```console

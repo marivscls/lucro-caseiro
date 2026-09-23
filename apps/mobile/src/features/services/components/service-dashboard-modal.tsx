@@ -264,7 +264,12 @@ export function ServiceDashboardModal({
                   />
                   <View style={{ gap: spacing.xs }}>
                     <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                      style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        alignItems: "stretch",
+                        gap: spacing.sm,
+                      }}
                     >
                       <Chip
                         label="Contato feito"
@@ -437,10 +442,9 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   notes: { borderLeftWidth: 2, paddingLeft: spacing.sm },
   bookingStatusChip: {
-    flexBasis: 100,
-    flexGrow: 1,
-    minWidth: 100,
-    paddingHorizontal: spacing.sm,
+    flexGrow: 0,
+    flexShrink: 0,
+    paddingHorizontal: spacing.md,
     borderRadius: radii.sm,
   },
   footer: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },

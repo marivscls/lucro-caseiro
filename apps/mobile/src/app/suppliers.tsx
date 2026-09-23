@@ -151,7 +151,6 @@ export default function SuppliersScreen() {
         }}
         title="Fornecedores"
         subtitle="Quem abastece o seu negócio, sempre à mão."
-        subtitleNumberOfLines={2}
         hideBack={isDesktop}
         fallbackRoute="/tabs/more"
         style={{ paddingBottom: spacing.sm }}

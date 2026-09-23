@@ -69,11 +69,11 @@ describe("tipografia do app", () => {
       progress: { fontSize: 12, fontFamily: fonts.semiBold, lineHeight: 16 },
       progressStrong: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
       shortcut: { fontSize: 13, fontFamily: fonts.semiBold, lineHeight: 18 },
-      navigation: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
+      navigation: { fontSize: 16, fontFamily: fonts.medium, lineHeight: 20 },
       navigationActive: {
-        fontSize: 12,
+        fontSize: 16,
         fontFamily: fonts.bold,
-        lineHeight: 16,
+        lineHeight: 20,
       },
     });
   });

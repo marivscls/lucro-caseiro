@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveActiveMobileTab, shouldShowMobileTabBar } from "./mobile-tab-bar";
+import {
+  mobileTabItems,
+  resolveActiveMobileTab,
+  shouldShowMobileTabBar,
+} from "./mobile-tab-bar";
 
 describe("shouldShowMobileTabBar", () => {
   it("esconde no layout desktop", () => {
@@ -52,6 +56,36 @@ describe("shouldShowMobileTabBar", () => {
         }),
       ).toBe(true);
     }
+  });
+});
+
+describe("mobileTabItems", () => {
+  it("usa colunas iguais e ação central curta com nome acessível completo", () => {
+    const tabs = mobileTabItems(true);
+
+    expect(tabs).toHaveLength(5);
+    expect(tabs.every((tab) => tab.primary === (tab.key === "new-sale"))).toBe(true);
+    expect(tabs.find((tab) => tab.key === "new-sale")).toMatchObject({
+      label: "Vender",
+      accessibilityLabel: "Nova venda",
+    });
+    expect(tabs.map((tab) => tab.key)).toEqual([
+      "index",
+      "sales",
+      "new-sale",
+      "agenda",
+      "more",
+    ]);
+  });
+
+  it("troca Agenda por Clientes quando o agendamento está desligado", () => {
+    expect(mobileTabItems(false).map((tab) => tab.key)).toEqual([
+      "index",
+      "sales",
+      "new-sale",
+      "clients",
+      "more",
+    ]);
   });
 });
 

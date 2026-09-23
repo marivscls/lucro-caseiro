@@ -251,29 +251,28 @@ export default function LoginScreen() {
                   if (passwordError) setPasswordError(undefined);
                 }}
                 error={passwordError}
+                rightIcon={
+                  <Pressable
+                    onPress={() => setShowPassword(!showPassword)}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    hitSlop={10}
+                    style={{
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 44,
+                      minHeight: 44,
+                    }}
+                  >
+                    <AppIcon
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color={theme.colors.primaryStrong}
+                    />
+                  </Pressable>
+                }
               />
             </ValidationField>
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              accessibilityRole="button"
-              accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
-              hitSlop={10}
-              style={{
-                position: "absolute",
-                right: spacing.xs,
-                top: spacing["2xl"],
-                alignItems: "center",
-                justifyContent: "center",
-                width: 44,
-                minHeight: 44,
-              }}
-            >
-              <AppIcon
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color={theme.colors.primaryStrong}
-              />
-            </Pressable>
           </View>
 
           <Pressable

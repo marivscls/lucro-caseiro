@@ -1,6 +1,4 @@
-# 18 — Ações de venda: abre uma venda existente e cancela. Altera dado real.
-# Age numa venda já criada (ex.: as Pix do flow 09), evitando o problema de
-# criar-e-agir-em-outra-tela com cache.
+# 18 — Abre uma venda da lista e cancela se ainda estiver ativa.
 appId: br.com.orionseven.lucrocaseiro
 name: 18 - Acoes de venda
 tags:
@@ -12,29 +10,34 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Aba Vendas (toque por coordenada no ícone)
-- tapOn:
-    point: "30%,94%"
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Todas"
+          commands:
+            - tapOn:
+                point: "30%,94%"
 - assertVisible: "Todas"
-
-# Abre a primeira venda da lista (card com o produto)
-- tapOn: "[e2e] Brigadeiro teste"
+- tapOn: "Ecobag personalizada|Brigadeiro teste|Marcador de p"
 - extendedWaitUntil:
     visible:
-      text: "Cancelar venda"
+      text: "Total|Cancelar venda"
     timeout: 8000
-
-# Cancela
-- tapOn: "Cancelar venda"
 - runFlow:
     when:
-      visible: "Sim, cancelar"
+      visible: "Cancelar venda"
     commands:
-      - tapOn: "Sim, cancelar"
-
-# Resultado: volta pra lista / status cancelada
-- extendedWaitUntil:
-    visible:
-      text: ".*(cancelada|Cancelada|Todas).*"
-    timeout: 10000
+      - tapOn: "Cancelar venda"
+      - runFlow:
+          when:
+            visible: "Sim, cancelar"
+          commands:
+            - tapOn: "Sim, cancelar"
 - takeScreenshot: .maestro/screenshots/18-venda-acao

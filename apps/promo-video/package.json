@@ -31,7 +31,9 @@
     "render:avatar-demo": "remotion render LucroCaseiroAvatarDemo out/lucro-caseiro-avatar-demo-ptbr-corrigido.mp4",
     "render:campaigns": "remotion render LucroCaseiroFinanceiro out/lucro-caseiro-financeiro.mp4 && remotion render LucroCaseiroCatalogo out/lucro-caseiro-catalogo.mp4 && remotion render LucroCaseiroProfissional out/lucro-caseiro-profissional.mp4",
     "render:tour": "remotion render LucroCaseiroTourReal out/lucro-caseiro-tour-real.mp4",
-    "render:play-store": "remotion render LucroCaseiroPlayStore out/lucro-caseiro-play-store.mp4"
+    "render:play-store": "remotion render LucroCaseiroPlayStore out/lucro-caseiro-play-store.mp4",
+    "render:reels": "remotion render LucroCaseiroReels out/lucro-caseiro-reels.mp4",
+    "render:reels-personagem": "remotion render LucroCaseiroReelsPersonagem out/lucro-caseiro-reels-personagem.mp4"
   },
   "sideEffects": [
     "*.css"

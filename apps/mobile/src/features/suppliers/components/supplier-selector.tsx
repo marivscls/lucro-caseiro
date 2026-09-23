@@ -76,6 +76,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
           flexDirection: "row",
           alignItems: "center",
           paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
           gap: spacing.md,
         }}
       >
@@ -83,8 +84,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
         <Typography
           variant="body"
           color={selected ? theme.colors.text : pal.placeholder}
-          numberOfLines={1}
-          style={{ flex: 1 }}
+          style={{ flex: 1, minWidth: 0 }}
         >
           {selected ? selected.name : "Selecionar fornecedor (opcional)"}
         </Typography>

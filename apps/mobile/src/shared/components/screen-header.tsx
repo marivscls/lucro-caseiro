@@ -2,7 +2,13 @@ import { ScreenGuidance, type ScreenGuidanceProps } from "../guidance/screen-gui
 import { AppIcon } from "./app-icon";
 import { type Href, useRouter } from "expo-router";
 import React from "react";
-import { Pressable, View, type TextStyle, type ViewStyle } from "react-native";
+import {
+  Pressable,
+  View,
+  useWindowDimensions,
+  type TextStyle,
+  type ViewStyle,
+} from "react-native";
 
 import { iconSizes, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
 
@@ -52,11 +58,13 @@ export function ScreenHeader({
   style,
   titleStyle,
   subtitleStyle,
-  subtitleNumberOfLines = 2,
+  subtitleNumberOfLines,
 }: ScreenHeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
   const isDesktop = useDesktopLayout();
+  const { width } = useWindowDimensions();
+  const subtitleBelow = !isDesktop && width < 400;
 
   function handleBack() {
     if (onBack) {
@@ -76,6 +84,7 @@ export function ScreenHeader({
       style={[
         {
           flexDirection: "row",
+          flexWrap: "wrap",
           alignItems: "center",
           gap: spacing.sm,
           paddingHorizontal: isDesktop ? 0 : spacing.lg,
@@ -113,8 +122,6 @@ export function ScreenHeader({
         <Typography
           variant="screenTitle"
           color={theme.colors.text}
-          numberOfLines={2}
-          ellipsizeMode="tail"
           style={[
             titleStyle,
             isDesktop ? { fontSize: 20, lineHeight: 26, letterSpacing: -0.2 } : undefined,
@@ -122,7 +129,7 @@ export function ScreenHeader({
         >
           {title}
         </Typography>
-        {subtitle ? (
+        {subtitle && !subtitleBelow ? (
           <Typography
             variant="caption"
             numberOfLines={subtitleNumberOfLines}
@@ -148,6 +155,14 @@ export function ScreenHeader({
       ) : (
         right
       )}
+      {subtitle && subtitleBelow ? (
+        <Typography
+          variant="caption"
+          style={[subtitleStyle, { width: "100%", fontSize: 13, lineHeight: 18 }]}
+        >
+          {subtitle}
+        </Typography>
+      ) : null}
     </View>
   );
   return guidance ? (

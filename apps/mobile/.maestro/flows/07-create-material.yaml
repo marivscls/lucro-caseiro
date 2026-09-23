@@ -1,4 +1,4 @@
-# 07 — Criar insumo (CRUD). Gera dado real. Nome tem autoFocus; unidade é chip.
+# 07 — Criar material/insumo. Gera dado real.
 appId: br.com.orionseven.lucrocaseiro
 name: 07 - Criar insumo
 tags:
@@ -10,40 +10,32 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Insumos
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
+- runFlow:
+    file: ../subflows/open-more.yaml
 - scrollUntilVisible:
     element:
-      text: "Insumos"
+      text: "Materiais"
     direction: DOWN
-- tapOn: "Insumos"
-- assertVisible: "Novo insumo"
-- tapOn: "Novo insumo"
+    centerElement: true
+- tapOn: "Materiais. Custos|Materiais"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- tapOn: "Cadastrar material|Adicionar primeiro material|Novo material|. Novo material"
 
-# Form (nome autoFocus)
 - extendedWaitUntil:
     visible:
-      text: "Nome do insumo"
+      text: "Nome do insumo|Nome do material"
     timeout: 8000
+- tapOn:
+    below:
+      text: "Nome do insumo|Nome do material"
 - inputText: "[e2e] Insumo Teste"
-# Unidade (chip "un")
-- scrollUntilVisible:
-    element:
-      text: "Unidade"
-    direction: DOWN
+- tapOn: "Unidade"
 - tapOn:
     text: "^un$"
+- tapOn: "Nome do insumo|Nome do material"
+- tapOn: "Salvar insumo|Salvar material"
 
-# Salvar
-- scrollUntilVisible:
-    element:
-      text: "Salvar insumo"
-    direction: DOWN
-- tapOn: "Salvar insumo"
-
-# Sucesso: o insumo aparece na lista
 - extendedWaitUntil:
     visible:
       text: "[e2e] Insumo Teste"

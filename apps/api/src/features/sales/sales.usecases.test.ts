@@ -290,6 +290,84 @@ describe("SalesUseCases", () => {
       ).rejects.toThrow("Estoque insuficiente para Brigadeiro");
     });
 
+    it("vende produto legado com variações sem exigir variationId", async () => {
+      const adjustStock = vi.fn(() => Promise.resolve(true));
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(
+            makeProduct({
+              name: "[massa] Bolo de pote morango",
+              stockQuantity: 27,
+              variations: [{ id: "var-massa", name: "Massa", stockQuantity: 10 }],
+            }),
+          ),
+        ),
+        adjustStock,
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      await expect(
+        sut.createSale(USER_ID, {
+          paymentMethod: "pix",
+          items: [{ productId: "prod-1", quantity: 1, unitPrice: 16 }],
+        }),
+      ).resolves.toMatchObject({ total: 16 });
+
+      expect(adjustStock).toHaveBeenCalledWith(USER_ID, "prod-1", -1, undefined);
+    });
+
+    it("não bloqueia venda sem variação quando só as variações controlam estoque", async () => {
+      const adjustStock = vi.fn(() => Promise.resolve(true));
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(
+            makeProduct({
+              stockQuantity: null,
+              variations: [{ id: "var-massa", name: "Massa", stockQuantity: 10 }],
+            }),
+          ),
+        ),
+        adjustStock,
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      await expect(
+        sut.createSale(USER_ID, {
+          paymentMethod: "cash",
+          items: [{ productId: "prod-1", quantity: 1, unitPrice: 16 }],
+        }),
+      ).resolves.toMatchObject({ total: 16 });
+
+      expect(adjustStock).not.toHaveBeenCalled();
+    });
+
+    it("ainda recusa variationId que não pertence ao produto", async () => {
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(
+            makeProduct({
+              variations: [{ id: "var-azul", name: "Azul", stockQuantity: 8 }],
+            }),
+          ),
+        ),
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      await expect(
+        sut.createSale(USER_ID, {
+          paymentMethod: "pix",
+          items: [
+            {
+              productId: "prod-1",
+              variationId: "var-inexistente",
+              quantity: 1,
+              unitPrice: 10,
+            },
+          ],
+        }),
+      ).rejects.toThrow("Escolha uma variação válida para Brigadeiro");
+    });
+
     it("baixa o estoque da variação escolhida e agrega linhas repetidas", async () => {
       const adjustStock = vi.fn(() => Promise.resolve(true));
       const productsRepo = makeProductsRepo({

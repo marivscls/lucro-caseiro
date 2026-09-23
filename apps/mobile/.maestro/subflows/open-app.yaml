@@ -6,6 +6,16 @@ appId: br.com.orionseven.lucrocaseiro
 ---
 - stopApp
 - openLink: "lucrocaseiro://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8083"
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+- runFlow:
+    when:
+      visible: "http://localhost:8083"
+    commands:
+      - tapOn: "http://localhost:8083"
 - extendedWaitUntil:
     visible:
       text: "Que bom te ver!|Início"

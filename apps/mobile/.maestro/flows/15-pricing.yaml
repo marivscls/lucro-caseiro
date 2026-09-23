@@ -1,4 +1,4 @@
-# 15 — Precificação: calculadora de 5 etapas + salvar cálculo. Gera dado real.
+# 15 — Precificacao unificada. Abre pelo atalho da home.
 appId: br.com.orionseven.lucrocaseiro
 name: 15 - Precificacao
 tags:
@@ -10,82 +10,32 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Precificação
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
-- scrollUntilVisible:
-    element:
-      text: "Precificação"
-    direction: DOWN
-- tapOn: "Precificação"
-
-# Etapa 1 — insumos
+- tapOn: "Calcular pre.o"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- runFlow:
+    when:
+      visible: "Come.ar c.lculo"
+    commands:
+      - tapOn: "Come.ar c.lculo"
 - extendedWaitUntil:
     visible:
-      text: "Valor dos insumos (R$)"
+      text: "Produto e custos|Precifica"
     timeout: 8000
+- scrollUntilVisible:
+    element:
+      text: "Ingredientes ou material"
+    direction: DOWN
 - tapOn:
     below:
-      text: "Valor dos insumos (R$)"
+      text: "Ingredientes ou material"
 - inputText: "10,00"
-- scrollUntilVisible:
-    element:
-      text: "Próximo"
-    direction: DOWN
-- tapOn: "Próximo"
-
-# Etapa 2 — embalagem
-- tapOn:
-    below:
-      text: "Valor da embalagem (R$)"
-- inputText: "2,00"
-- scrollUntilVisible:
-    element:
-      text: "Próximo"
-    direction: DOWN
-- tapOn: "Próximo"
-
-# Etapa 3 — mão de obra (valor da hora)
-- tapOn:
-    below:
-      text: "Valor da sua hora de trabalho (R$)"
-- inputText: "20,00"
-- scrollUntilVisible:
-    element:
-      text: "Próximo"
-    direction: DOWN
-- tapOn: "Próximo"
-
-# Etapa 4 — custos fixos
-- tapOn:
-    below:
-      text: "Custos fixos mensais (R$)"
-- inputText: "300,00"
-- scrollUntilVisible:
-    element:
-      text: "Próximo"
-    direction: DOWN
-- tapOn: "Próximo"
-
-# Etapa 5 — margem -> resultado
-- tapOn: "50%"
-- scrollUntilVisible:
-    element:
-      text: "Ver resultado"
-    direction: DOWN
-- tapOn: "Ver resultado"
-
-# Resultado -> salvar
-- scrollUntilVisible:
-    element:
-      text: "Salvar cálculo"
-    direction: DOWN
-- tapOn: "Salvar cálculo"
+- tapOn: "Produto e custos"
+- tapOn: "Continuar"
+- tapOn: "Continuar"
+- tapOn: "Salvar c.lculo"
 - extendedWaitUntil:
     visible:
-      text: ".*(Cálculo salvo|salvo).*"
+      text: ".*(salvo|Salvar|hist.rico|c.lculo).*"
     timeout: 10000
-- tapOn: "Ver histórico"
-- assertVisible: "Histórico"
 - takeScreenshot: .maestro/screenshots/15-precificacao

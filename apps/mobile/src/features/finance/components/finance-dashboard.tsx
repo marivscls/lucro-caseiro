@@ -118,7 +118,7 @@ export function FinanceDashboard({
   const { width: viewportWidth } = useWindowDimensions();
   const compactLayout = viewportWidth < 700;
   const narrowLayout = viewportWidth < 520;
-  const stackSummaryCards = viewportWidth < 380;
+  const stackSummaryCards = viewportWidth < 520;
   const mobileHeroHeight = Math.min(220, Math.max(196, Math.round(viewportWidth * 0.55)));
   const mobileHeroImageWidth = Math.min(
     176,
@@ -194,6 +194,7 @@ export function FinanceDashboard({
   const income = period === "month" ? monthlyIncome : periodTotals.income;
   const expenses = period === "month" ? monthlyExpenses : periodTotals.expenses;
   const profit = computeProfit(income, expenses);
+  const fullWidthHeroValue = narrowLayout && formatHeroCurrency(profit).length > 10;
   const prevProfit = computeProfit(
     prevSummary?.totalIncome ?? 0,
     prevSummary?.totalExpenses ?? 0,
@@ -575,14 +576,16 @@ export function FinanceDashboard({
           style={[
             styles.heroCardBase,
             narrowLayout ? styles.heroCardNarrow : styles.heroCard,
-            narrowLayout && { height: mobileHeroHeight },
+            narrowLayout && { minHeight: mobileHeroHeight },
           ]}
         >
           <View
             style={[
               styles.heroContent,
               narrowLayout && styles.heroContentNarrow,
-              narrowLayout && { maxWidth: mobileHeroTextWidth },
+              narrowLayout && {
+                maxWidth: fullWidthHeroValue ? "100%" : mobileHeroTextWidth,
+              },
             ]}
           >
             <View style={styles.heroLabelRow}>
@@ -648,6 +651,7 @@ export function FinanceDashboard({
             source={financeSummaryIllustration}
             style={[
               narrowLayout ? styles.heroImageNarrow : styles.heroImage,
+              fullWidthHeroValue && { display: "none" },
               compactLayout && !narrowLayout && styles.heroImageCompact,
               narrowLayout && {
                 height: mobileHeroImageHeight,
@@ -689,7 +693,9 @@ export function FinanceDashboard({
             </Typography>
           </View>
         )}
-        <View style={styles.summaryRow}>
+        <View
+          style={[styles.summaryRow, stackSummaryCards && { flexDirection: "column" }]}
+        >
           <SummaryCard
             label="Entradas"
             value={formatCurrency(income)}
@@ -713,7 +719,7 @@ export function FinanceDashboard({
         </View>
 
         <View style={styles.flowCard}>
-          <View style={styles.flowHeader}>
+          <View style={[styles.flowHeader, narrowLayout && { flexDirection: "column" }]}>
             <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
               <Typography
                 variant="h3"
@@ -721,16 +727,11 @@ export function FinanceDashboard({
                   styles.flowTitle,
                   compactLayout && styles.flowTitleCompact,
                   stackSummaryCards && styles.flowTitleTight,
-                  WEB_NOWRAP,
                 ]}
               >
                 Entradas x saídas
               </Typography>
-              <Typography
-                variant="caption"
-                color={theme.colors.textSecondary}
-                numberOfLines={compactLayout ? 2 : 1}
-              >
+              <Typography variant="caption" color={theme.colors.textSecondary}>
                 Comparação do período selecionado
               </Typography>
             </View>
@@ -1219,28 +1220,35 @@ export function FinanceDashboard({
         <StandardModal
           visible
           onClose={() => setSelectedEntry(null)}
-          title={selectedEntry.description}
-          subtitle={`${categoryLabel(
-            selectedEntry.category,
-            experienceCopy.materialNoun,
-            experienceCopy.packagingNoun,
-          )} • ${formatEntryDate(selectedEntry.date)}`}
+          title="Detalhes do lançamento"
+          closeAccessibilityLabel="Fechar detalhes do lançamento"
+          dismissDisabled={deleteEntry.isPending}
           footer={
-            <>
-              <Pressable
-                accessibilityRole="button"
-                style={styles.detailSecondaryButton}
-                onPress={() => setSelectedEntry(null)}
-              >
-                <Typography variant="bodyBold">Fechar</Typography>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
+            <View style={styles.detailActions}>
+              <Button
+                title="Fechar"
                 disabled={deleteEntry.isPending}
-                style={[
-                  styles.detailDeleteButton,
-                  deleteEntry.isPending && styles.disabled,
-                ]}
+                onPress={() => setSelectedEntry(null)}
+              />
+              <Button
+                title={deleteEntry.isPending ? "Excluindo…" : "Excluir lançamento"}
+                variant="alertOutline"
+                loading={deleteEntry.isPending}
+                accessibilityLabel={
+                  deleteEntry.isPending ? "Excluindo lançamento" : "Excluir lançamento"
+                }
+                accessibilityState={{
+                  disabled: deleteEntry.isPending,
+                  busy: deleteEntry.isPending,
+                }}
+                style={styles.detailDeleteButton}
+                icon={
+                  <AppIcon
+                    name="trash-outline"
+                    size={iconSizes.sm}
+                    color={theme.colors.alert}
+                  />
+                }
                 onPress={() => {
                   showAlert({
                     title: "Excluir lançamento",
@@ -1266,25 +1274,15 @@ export function FinanceDashboard({
                     ],
                   });
                 }}
-              >
-                <AppIcon
-                  name="trash-outline"
-                  size={iconSizes.sm}
-                  color={theme.colors.alert}
-                />
-                <Typography variant="bodyBold" color={theme.colors.alert}>
-                  Excluir
-                </Typography>
-              </Pressable>
-            </>
+              />
+            </View>
           }
         >
-          <View style={{ flexShrink: 1, gap: spacing.lg }}>
+          <View style={styles.detailContent}>
             <View
               style={[
-                styles.detailIcon,
+                styles.detailAmountCard,
                 {
-                  alignSelf: "center",
                   backgroundColor: toneColors(
                     selectedEntry.type === "income" ? "green" : "red",
                     theme,
@@ -1292,27 +1290,80 @@ export function FinanceDashboard({
                 },
               ]}
             >
-              <AppIcon
-                name={selectedEntry.type === "income" ? "add" : "remove"}
-                size={iconSizes.lg}
-                color={
-                  toneColors(selectedEntry.type === "income" ? "green" : "red", theme).fg
-                }
-              />
-            </View>
-            <View style={[styles.detailAmountRow, { marginTop: 0 }]}>
-              <Typography variant="bodyBold" color={theme.colors.textSecondary}>
-                {selectedEntry.type === "income" ? "Entrada" : "Saída"}
-              </Typography>
+              <View style={styles.detailType}>
+                <AppIcon
+                  name={selectedEntry.type === "income" ? "add" : "remove"}
+                  size={iconSizes.sm}
+                  color={
+                    toneColors(selectedEntry.type === "income" ? "green" : "red", theme)
+                      .fg
+                  }
+                />
+                <Typography
+                  variant="captionBold"
+                  color={
+                    toneColors(selectedEntry.type === "income" ? "green" : "red", theme)
+                      .fg
+                  }
+                >
+                  {selectedEntry.type === "income" ? "Entrada" : "Saída"}
+                </Typography>
+              </View>
               <Typography
-                variant="moneyLg"
+                variant="moneyHero"
+                style={styles.detailAmount}
                 color={
                   toneColors(selectedEntry.type === "income" ? "green" : "red", theme).fg
                 }
               >
-                {selectedEntry.type === "income" ? "+ " : "- "}
+                {selectedEntry.type === "income" ? "+ " : "− "}
                 {formatCurrency(selectedEntry.amount)}
               </Typography>
+            </View>
+            <Typography variant="h2" style={styles.detailDescription}>
+              {entryDisplayDescription(selectedEntry, selectedEntry.type === "income")}
+            </Typography>
+            <View>
+              {[
+                {
+                  label: "Categoria",
+                  value: categoryLabel(
+                    selectedEntry.category,
+                    experienceCopy.materialNoun,
+                    experienceCopy.packagingNoun,
+                  ),
+                },
+                {
+                  label: "Data",
+                  value: new Date(
+                    `${selectedEntry.date.slice(0, 10)}T12:00:00`,
+                  ).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  }),
+                },
+                ...(selectedEntry.type === "expense"
+                  ? [
+                      {
+                        label: "Tipo de gasto",
+                        value: selectedEntry.isFixed ? "Fixo" : "Variável",
+                      },
+                    ]
+                  : []),
+              ].map((detail, index) => (
+                <View
+                  key={detail.label}
+                  style={[styles.detailMetaRow, index > 0 && styles.detailMetaDivider]}
+                >
+                  <Typography variant="body" style={styles.detailMetaLabel}>
+                    {detail.label}
+                  </Typography>
+                  <Typography variant="bodyBold" style={styles.detailMetaValue}>
+                    {detail.value}
+                  </Typography>
+                </View>
+              ))}
             </View>
           </View>
         </StandardModal>
@@ -1500,11 +1551,7 @@ function SummaryCard({
         <Typography
           variant="caption"
           color={colors.warmGray}
-          style={[
-            styles.summaryDescription,
-            compact && styles.summaryDescriptionCompact,
-            WEB_NOWRAP,
-          ]}
+          style={[styles.summaryDescription, compact && styles.summaryDescriptionCompact]}
         >
           {description}
         </Typography>
@@ -1813,11 +1860,9 @@ function createStyles(theme: Theme) {
   const colors = brandScreenPalette(theme);
   const cardBg = colors.white;
   const cardBorder = colors.border;
-  const subtleFill = colors.surface;
   const chipBg = colors.white;
   const badgeBg = colors.surface;
   const badgeFg = colors.warmGray;
-  const deleteBorder = `${c.alert}73`;
 
   return StyleSheet.create({
     attentionIcon: {
@@ -1925,7 +1970,7 @@ function createStyles(theme: Theme) {
       minWidth: 0,
       overflow: "hidden",
       paddingHorizontal: spacing.sm,
-      width: "33.5%",
+      maxWidth: "100%",
     },
     customPeriodLabel: {
       fontSize: 11,
@@ -1939,40 +1984,54 @@ function createStyles(theme: Theme) {
     disabled: {
       opacity: 0.6,
     },
-    detailAmountRow: {
-      backgroundColor: subtleFill,
-      borderColor: cardBorder,
-      borderRadius: radii.xl,
-      borderWidth: 1,
+    detailContent: {
+      gap: spacing.lg,
+      minWidth: 0,
+    },
+    detailAmountCard: {
+      borderRadius: radii.lg,
       gap: spacing.sm,
-      marginTop: spacing.xl,
-      padding: spacing.lg,
+      padding: spacing.xl,
+      alignItems: "center",
+    },
+    detailType: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    detailAmount: {
+      textAlign: "center",
+      fontVariant: ["tabular-nums"],
+      maxWidth: "100%",
+    },
+    detailDescription: {
+      textAlign: "center",
+    },
+    detailMetaRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    detailMetaDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border,
+    },
+    detailMetaLabel: {
+      flexShrink: 1,
+    },
+    detailMetaValue: {
+      flexShrink: 1,
+      textAlign: "right",
+    },
+    detailActions: {
+      flex: 1,
+      gap: spacing.xs,
+      minWidth: 0,
     },
     detailDeleteButton: {
-      alignItems: "center",
-      borderColor: deleteBorder,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      flex: 1,
-      flexDirection: "row",
-      gap: spacing.sm,
-      height: 52,
-      justifyContent: "center",
-    },
-    detailIcon: {
-      alignItems: "center",
-      borderRadius: radii.full,
-      height: 52,
-      justifyContent: "center",
-      width: 52,
-    },
-    detailSecondaryButton: {
-      alignItems: "center",
-      backgroundColor: subtleFill,
-      borderRadius: radii.lg,
-      flex: 1,
-      height: 52,
-      justifyContent: "center",
+      borderWidth: 0,
     },
     emptyState: {
       alignItems: "center",
@@ -2392,7 +2451,7 @@ function createStyles(theme: Theme) {
       minWidth: 0,
       overflow: "hidden",
       paddingHorizontal: spacing.sm,
-      width: "17.5%",
+      maxWidth: "100%",
     },
     periodPillLabel: {
       fontSize: 13,

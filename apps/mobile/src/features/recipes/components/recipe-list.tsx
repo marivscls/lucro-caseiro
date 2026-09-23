@@ -1,4 +1,5 @@
 import {
+  FilterChipRow,
   Button,
   EmptyState,
   Input,
@@ -9,14 +10,7 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
-import {
-  FlatList,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { FlatList, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import {
@@ -443,13 +437,7 @@ function RecipesFilterRow({
   onSelect: (category: string) => void;
 }>) {
   return (
-    <ScrollView
-      horizontal
-      nestedScrollEnabled
-      keyboardShouldPersistTaps="handled"
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: spacing.sm, flexGrow: 0, paddingRight: spacing.sm }}
-    >
+    <FilterChipRow>
       {categories.map((category) => (
         <RecipeFilterChip
           key={category}
@@ -458,7 +446,7 @@ function RecipesFilterRow({
           onPress={() => onSelect(category)}
         />
       ))}
-    </ScrollView>
+    </FilterChipRow>
   );
 }
 
@@ -490,14 +478,14 @@ function RecipeFilterChip({
         borderWidth: selected ? 0 : 1,
         borderColor: pal.border,
         opacity: pressed ? 0.85 : 1,
-        ...(Platform.OS === "web" ? ({ whiteSpace: "nowrap" } as object) : null),
+        maxWidth: "100%",
+        paddingVertical: spacing.sm,
       })}
     >
       <Typography
         variant="bodyBold"
         color={selected ? pal.onRose : pal.wine}
-        numberOfLines={1}
-        style={{ flexShrink: 0 }}
+        style={{ flexShrink: 1, minWidth: 0 }}
       >
         {label}
       </Typography>

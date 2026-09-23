@@ -14,7 +14,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, ScrollView, View, useWindowDimensions } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   MonthlyBars,
@@ -495,7 +495,6 @@ export default function InsightsScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [months, setMonths] = useState<number>(12);
   const { data: profile, isLoading: loadingProfile } = useProfile();
   const isPremium =
@@ -556,10 +555,11 @@ export default function InsightsScreen() {
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
+            justifyContent: "flex-start",
             ...pageGutter(isDesktop),
             ...desktopStretch(isDesktop, desktopWidths.data),
             paddingTop: spacing.xl,
-            paddingBottom: spacing["2xl"] + insets.bottom,
+            paddingBottom: spacing.xl,
             gap: spacing.lg,
           }}
           showsVerticalScrollIndicator={false}

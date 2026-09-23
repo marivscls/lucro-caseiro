@@ -1,5 +1,4 @@
-# 06 — Criar cliente (CRUD). Gera dado real na conta.
-# O campo "Nome do cliente" tem autoFocus -> dá pra digitar direto.
+# 06 — Criar cliente. Gera dado real na conta.
 appId: br.com.orionseven.lucrocaseiro
 name: 06 - Criar cliente
 tags:
@@ -11,26 +10,54 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Atalho "Cliente" na home -> tela de Clientes
-- tapOn: "Cliente"
-- assertVisible: "Novo cliente"
-- tapOn: "Novo cliente"
-
-# Modal (slide) -> espera assentar; o campo Nome já vem focado (autoFocus)
-- extendedWaitUntil:
-    visible:
-      text: "Cadastrar cliente"
-    timeout: 8000
-- inputText: "[e2e] Cliente Teste"
-
-# Salvar
+- runFlow:
+    file: ../subflows/open-more.yaml
+- tapOn: "Clientes"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- runFlow:
+    when:
+      notVisible: "Cliente Teste"
+    commands:
+      - tapOn: "Novo cliente|. Novo cliente|Cadastrar cliente"
+      - extendedWaitUntil:
+          visible:
+            text: "Nome do cliente"
+          timeout: 8000
+      - tapOn: "Nome do cliente"
+      - inputText: "[e2e] Cliente Teste"
+      - tapOn:
+          text: "Cadastrar cliente"
+          point: "50%, 20%"
+      - runFlow:
+          when:
+            visible: "Informe o nome"
+          commands:
+            - tapOn: "Nome do cliente"
+            - eraseText
+            - inputText: "[e2e] Cliente Teste"
+            - tapOn:
+                text: "Cadastrar cliente"
+                point: "50%, 20%"
+      - tapOn:
+          point: "50%,55%"
+      - runFlow:
+          when:
+            visible: "OK"
+          commands:
+            - tapOn: "OK"
+- runFlow:
+    when:
+      visible: "Fechar"
+    commands:
+      - tapOn: "Fechar"
+- tapOn: "Buscar cliente"
+- inputText: "Cliente Teste"
 - scrollUntilVisible:
     element:
-      text: "Cadastrar cliente"
+      text: "Cliente Teste"
     direction: DOWN
-- tapOn: "Cadastrar cliente"
-
-# Sucesso
-- assertVisible: "Cliente cadastrado!"
-- tapOn: "OK"
+    timeout: 20000
+    visibilityPercentage: 10
+    centerElement: true
 - takeScreenshot: .maestro/screenshots/06-cliente

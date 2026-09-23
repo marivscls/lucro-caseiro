@@ -77,6 +77,7 @@ import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 import {
   currencyInput,
+  isPositiveCurrency,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../shared/utils/currency-input";
@@ -266,10 +267,7 @@ function ProductDetailModal({
     {
       name: !name.trim() && "Informe o nome do produto.",
       category: !category.trim() && "Informe uma categoria.",
-      salePrice:
-        (!Number.isFinite(parseCurrencyInput(salePrice)) ||
-          parseCurrencyInput(salePrice) <= 0) &&
-        "Informe um preço maior que zero.",
+      salePrice: !isPositiveCurrency(salePrice) && "Informe um preço maior que zero.",
       components:
         isComposite &&
         (components.length === 0 ||
@@ -1792,6 +1790,7 @@ export default function ProductsScreen() {
             value={search}
             onChangeText={setSearch}
             placeholder={`Buscar ${brand.copy.productNoun}`}
+            accessibilityLabel={`Buscar ${brand.copy.productNoun}`}
             placeholderTextColor={palette.warmGray}
             style={{
               flex: 1,

@@ -108,3 +108,5 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 Orientação usa dados do overview para suprimir convite em conta com registros, preserva modais e emite supplier_created após sucesso.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+- 2026-09-10: Revisão de cortes no PWA/mobile. Seletor de fornecedor permite nome e indicação de campo opcional em múltiplas linhas. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.

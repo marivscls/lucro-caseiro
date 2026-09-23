@@ -168,8 +168,8 @@ export const homeTypography = {
   progress: { fontSize: 12, fontFamily: fonts.semiBold, lineHeight: 16 },
   progressStrong: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
   shortcut: { fontSize: 13, fontFamily: fonts.semiBold, lineHeight: 18 },
-  navigation: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
-  navigationActive: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
+  navigation: { fontSize: fontSizes.md, fontFamily: fonts.medium, lineHeight: 20 },
+  navigationActive: { fontSize: fontSizes.md, fontFamily: fonts.bold, lineHeight: 20 },
 } as const;
 
 /**

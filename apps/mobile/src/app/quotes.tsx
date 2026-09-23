@@ -755,7 +755,6 @@ export default function QuotesScreen() {
         }}
         title="Orçamentos"
         subtitle="Propostas organizadas, pedidos mais perto."
-        subtitleNumberOfLines={2}
         onBack={handleBack}
         backLabel={backToMore ? "Ir para Mais opções" : "Voltar"}
         hideBack={isDesktop}

@@ -1,10 +1,13 @@
-import { spacing } from "@lucro-caseiro/ui";
+import { controlSizes, spacing } from "@lucro-caseiro/ui";
 import { Dimensions, Platform } from "react-native";
 
+/** Well 40 + gap + label 20 + padding da barra. iOS soma o respiro do indicador. */
+const TAB_BAR_STACK = controlSizes.compact + 2 + 20 + spacing.sm + spacing.sm;
+
 export const FLOATING_TAB_BAR_HEIGHT = Platform.select({
-  ios: 80,
-  web: 64,
-  default: 68,
+  ios: TAB_BAR_STACK - spacing.sm + spacing["2xl"],
+  web: TAB_BAR_STACK,
+  default: TAB_BAR_STACK,
 });
 
 /** Leave room for wrapped navigation labels when system text is enlarged. */
@@ -15,7 +18,9 @@ export function floatingTabBarHeight(
   const safePadding = Platform.OS === "ios" ? spacing["2xl"] : spacing.sm;
   return Math.max(
     FLOATING_TAB_BAR_HEIGHT,
-    Math.ceil(22 + 2 + 3 * 16 * fontScale + spacing.sm + safePadding + 4),
+    Math.ceil(
+      controlSizes.compact + 2 + 2 * 20 * fontScale + spacing.sm + safePadding + 4,
+    ),
   );
 }
 

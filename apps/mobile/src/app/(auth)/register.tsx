@@ -350,37 +350,36 @@ export default function RegisterScreen() {
                   if (passwordError) setPasswordError(undefined);
                 }}
                 error={passwordError}
+                rightIcon={
+                  <Pressable
+                    onPress={() => setShowPassword(!showPassword)}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    hitSlop={10}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      minHeight: 44,
+                      paddingHorizontal: spacing.xs,
+                    }}
+                  >
+                    <AppIcon
+                      name={showPassword ? "eye-off-outline" : "eye-outline"}
+                      size={20}
+                      color={theme.colors.primary}
+                    />
+                    <Typography
+                      variant="bodyBold"
+                      color={theme.colors.primary}
+                      style={{ fontSize: 14 }}
+                    >
+                      {showPassword ? "Ocultar" : "Mostrar"}
+                    </Typography>
+                  </Pressable>
+                }
               />
             </ValidationField>
-            <Pressable
-              onPress={() => setShowPassword(!showPassword)}
-              accessibilityRole="button"
-              accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
-              hitSlop={10}
-              style={{
-                position: "absolute",
-                right: spacing.md,
-                top: 30,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                minHeight: 44,
-                paddingHorizontal: spacing.xs,
-              }}
-            >
-              <AppIcon
-                name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={20}
-                color={theme.colors.primary}
-              />
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.primary}
-                style={{ fontSize: 14 }}
-              >
-                {showPassword ? "Ocultar" : "Mostrar"}
-              </Typography>
-            </Pressable>
             <PasswordStrengthBar password={password} />
             <PasswordRules password={password} />
           </View>

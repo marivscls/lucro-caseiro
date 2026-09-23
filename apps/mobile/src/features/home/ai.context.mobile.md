@@ -55,6 +55,8 @@ Venda de 100 com 25 recebidos apresenta 75 a receber. Consulta financeira penden
 
 ## Change log / Decisions
 
+2026-09-22: a navbar compartilhada passou a cinco colunas iguais. Destinos usam ícone outline/fill conforme o estado; a ação central mostra `Vender` (leitor de tela `Nova venda`) num poço de 40 dp. Rótulos têm 16 px. A reserva de altura acompanha o poço e a escala de fonte em `shared/layout/floating-tab-bar.ts`.
+
 2026-09-10: implementadas todas as prioridades aprovadas de conteúdo e clareza da home. Mantidas marca e escala de fonte; retirados limites de ampliação dos novos valores e ações. Textos refletem o cálculo existente da meta por entradas, corrigindo a interpretação inicial de vendas realizadas.
 
 A navegação compartilhada permite quebra de linha, com reserva adaptada à escala de fonte em `shared/layout/floating-tab-bar.ts`. Serviços usa duas colunas de atalhos em telas menores que 600 px. Evidências e limites da validação em `docs/home-ui-validation/README.md`.

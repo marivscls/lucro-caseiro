@@ -57,7 +57,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 ### `NewSaleScreen` (tela/wizard, definido no screen)
 
 - Wizard de 4 steps:
-  1. **Selecionar produtos:** grid 2 colunas com busca, tap para adicionar ao carrinho, long press para remover. Badge de quantidade. Barra de total no rodape.
+  1. **Selecionar produtos:** lista em 1 coluna no celular (card na largura útil) e grade no desktop, com busca, tap para adicionar ao carrinho, long press para remover. Badge de quantidade. Barra de total no rodape.
      - Produtos por peso (`saleUnit === "kg"`): tap abre um modal com campo de **peso em kg** (decimal-pad) e preview do subtotal; preco exibido como "R$X/kg"; badge mostra o peso (ex.: "1,5 kg"); long press remove a linha inteira (nao faz "−1 kg"). Itens do carrinho carregam `saleUnit` para calcular/exibir corretamente.
      - **Escanear / buscar por código:** o ícone de scan na busca e o atalho "Usar código" abrem a câmera (`BarcodeScanner`); o código lido vira o termo de busca (o back casa por nome OU código). Fallback "Digitar à mão" abre o campo de digitação manual.
   2. **Selecionar cliente:** opcao "Sem cliente (avulso)", busca de clientes, selecao com borda destacada.
@@ -71,7 +71,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   com reserva para a navegação, sem sobrepor as listas. Busca e atalhos de produto
   rolam junto com a grade; quantidades ficam em controles de 44 px na base do card.
 - Variações só aparecem e só entram no payload quando a marca ativa `catalogoCores`.
-  Produtos legados com variações continuam vendáveis nas demais marcas como produto base.
+  Produtos legados com variações continuam vendáveis nas demais marcas como produto base;
+  a API não exige `variationId` nesse caso.
 - Seleções e superfícies são neutras; as ações principais usam vinho no tema claro
   e o preenchimento acessível do tema escuro. A revisão permite editar itens,
   cliente e pagamento e mostra subtotal, desconto, total e observações.
@@ -136,11 +137,13 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Examples
 
-- Nova venda acessada via tab "Nova Venda" ou botao "Venda" na Home.
+- Nova venda acessada via tab "Vender" (leitor de tela: "Nova venda") ou botao "Venda" na Home.
 - Rota: `/tabs/new-sale`.
 - Fluxo: step 1 (produtos) -> 2 (cliente) -> 3 (pagamento) -> 4 (revisar) -> registrar.
 
 ## Change log / Decisions
+
+- 2026-09-22: a tab central da navbar passou a `Vender`; o leitor de tela continua ouvindo `Nova venda`.
 
 - 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
 

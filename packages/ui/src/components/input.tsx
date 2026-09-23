@@ -9,6 +9,8 @@ interface InputProps extends CenteredTextInputProps {
   label?: string;
   error?: string;
   icon?: React.ReactNode;
+  /** Conteúdo à direita dentro da caixa do input (ex.: botão "mostrar senha"). */
+  rightIcon?: React.ReactNode;
   containerStyle?: ViewStyle;
 }
 
@@ -16,6 +18,7 @@ export function Input({
   label,
   error,
   icon,
+  rightIcon,
   containerStyle,
   style,
   multiline,
@@ -90,6 +93,7 @@ export function Input({
             props.onBlur?.(event);
           }}
         />
+        {rightIcon}
       </View>
       {error && (
         <Text

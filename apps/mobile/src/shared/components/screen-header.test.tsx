@@ -20,6 +20,7 @@ vi.mock("expo-router", () => ({
 }));
 
 vi.mock("react-native", () => ({
+  useWindowDimensions: () => ({ width: 320, height: 844 }),
   Pressable: ({
     accessibilityLabel,
     children,

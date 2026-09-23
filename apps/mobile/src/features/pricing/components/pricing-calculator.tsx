@@ -3,6 +3,7 @@ import { ScreenGuidance } from "../../../shared/guidance/screen-guidance";
 import type { PricingChannelFee } from "@lucro-caseiro/contracts";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
+  FilterChipRow,
   CenteredTextInput,
   Button,
   Typography,
@@ -875,17 +876,14 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 <FieldLabel>
                   {`Puxar o custo de um ${experienceCopy.productNoun} (vem da ${experienceCopy.formulaNoun}):`}
                 </FieldLabel>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: spacing.sm }}
-                >
+                <FilterChipRow>
                   {costedProducts.map((p) => (
                     <Pressable
                       key={p.id}
                       onPress={() => selectProduct(p.id, p.costPrice)}
                       accessibilityRole="button"
                       style={{
+                        maxWidth: "100%",
                         paddingHorizontal: spacing.md,
                         paddingVertical: spacing.sm,
                         borderRadius: radii.full,
@@ -899,7 +897,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                       </Typography>
                     </Pressable>
                   ))}
-                </ScrollView>
+                </FilterChipRow>
               </View>
             ) : null}
 
@@ -1026,11 +1024,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 <FieldLabel>
                   {`Selecione no cadastro: ${experienceCopy.packagingNoun}`}
                 </FieldLabel>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ gap: spacing.sm }}
-                >
+                <FilterChipRow>
                   {packagingItems.map((item) => (
                     <Pressable
                       key={item.id}
@@ -1038,6 +1032,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                       accessibilityRole="button"
                       accessibilityLabel={`${item.name}, ${formatCurrency(item.unitCost)}`}
                       style={{
+                        maxWidth: "100%",
                         paddingHorizontal: spacing.md,
                         paddingVertical: spacing.sm,
                         borderRadius: radii.full,
@@ -1051,7 +1046,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                       </Typography>
                     </Pressable>
                   ))}
-                </ScrollView>
+                </FilterChipRow>
               </View>
             ) : null}
 
@@ -1231,6 +1226,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                           borderRadius: radii.md,
                           borderWidth: 1,
                           borderColor: selected ? theme.colors.primary : pal.border,
+                          maxWidth: "100%",
                           paddingHorizontal: spacing.md,
                           backgroundColor: selected
                             ? theme.colors.primaryBg

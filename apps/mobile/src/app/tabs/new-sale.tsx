@@ -194,6 +194,19 @@ function ClientPickerAvatar({ name }: Readonly<{ name: string }>) {
   );
 }
 
+function searchFieldAccessibilityLabel(placeholder: string): string {
+  let label = placeholder.trimEnd();
+  if (label.endsWith("…")) label = label.slice(0, -1);
+  while (label.endsWith(".")) label = label.slice(0, -1);
+  return label.trim();
+}
+
+function saleNextStepAccessibilityLabel(step: number): string {
+  if (step === 2) return "Ir para pagamento";
+  if (step === 3) return "Ir para revisao";
+  return "Confirmar venda";
+}
+
 function SearchBox({
   placeholder,
   value,
@@ -225,7 +238,7 @@ function SearchBox({
       <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
       <CenteredTextInput
         placeholder={placeholder}
-        accessibilityLabel={placeholder}
+        accessibilityLabel={searchFieldAccessibilityLabel(placeholder)}
         placeholderTextColor={theme.colors.textSecondary}
         value={value}
         onChangeText={onChangeText}
@@ -697,7 +710,7 @@ export default function NewSaleScreen() {
   const split = desktopSplitLayout(isDesktop);
   const productColumns = isDesktop
     ? Math.max(1, Math.min(3, Math.floor((mainWidth + spacing.md) / (200 + spacing.md))))
-    : 2;
+    : 1;
   const productCardWidth =
     (mainWidth - spacing.md * (productColumns - 1)) / productColumns;
   const paymentColumns = mainWidth >= 572 ? 2 : 1;
@@ -1291,6 +1304,7 @@ export default function NewSaleScreen() {
                     setStep(2);
                   }}
                   accessibilityRole="button"
+                  accessibilityLabel="Venda avulsa"
                   style={({ pressed }) => ({
                     minHeight: 72,
                     borderRadius: radii.lg,
@@ -1874,6 +1888,7 @@ export default function NewSaleScreen() {
             </View>
             <Button
               title={nextActionLabel}
+              accessibilityLabel={saleNextStepAccessibilityLabel(step)}
               loading={createSale.isPending}
               disabled={step === 2 && cart.length === 0}
               size="lg"

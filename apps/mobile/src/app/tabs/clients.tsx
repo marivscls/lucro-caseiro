@@ -136,6 +136,7 @@ function SearchBox({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        accessibilityLabel={placeholder}
         placeholderTextColor={pal.muted}
         style={{
           flex: 1,
@@ -896,7 +897,7 @@ function ClientsListScreen({
                       >
                         Clientes
                       </Typography>
-                      <Typography variant="body" color={pal.muted} numberOfLines={1}>
+                      <Typography variant="body" color={pal.muted}>
                         {clientsSubtitle}
                       </Typography>
                     </View>

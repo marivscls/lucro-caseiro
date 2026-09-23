@@ -24,7 +24,7 @@ export function ModalHeader({ title, onClose, closeLabel = "Fechar" }: ModalHead
         gap: spacing.md,
       }}
     >
-      <Typography variant="h3" style={{ flex: 1 }} numberOfLines={1}>
+      <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
         {title}
       </Typography>
       <Pressable

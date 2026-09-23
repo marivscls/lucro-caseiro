@@ -33,6 +33,7 @@ import { ApiError } from "../../../shared/utils/api-client";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
+  isPositiveCurrency,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
@@ -237,10 +238,7 @@ export function PackagingForm({
   const formValidation = useFormValidation(
     {
       name: !name.trim() && "Informe o nome da embalagem.",
-      unitCost:
-        (!Number.isFinite(parseCurrencyInput(unitCost)) ||
-          parseCurrencyInput(unitCost) <= 0) &&
-        "Informe um custo maior que zero.",
+      unitCost: !isPositiveCurrency(unitCost) && "Informe um custo maior que zero.",
     },
     visible,
   );

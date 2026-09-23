@@ -1,4 +1,4 @@
-import { ValidationField } from "@lucro-caseiro/ui";
+import { FilterChipRow, ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import type {
   CreateVerticalDocument,
@@ -826,11 +826,7 @@ export default function OperationsScreen() {
             ) : null}
 
             <View style={{ gap: spacing.md }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: spacing.sm }}
-              >
+              <FilterChipRow>
                 {definition.kinds.map((item) => (
                   <Chip
                     key={item.kind}
@@ -842,7 +838,7 @@ export default function OperationsScreen() {
                     }}
                   />
                 ))}
-              </ScrollView>
+              </FilterChipRow>
               <View>
                 <Typography variant="h3">{kindDefinition.label}</Typography>
                 <Typography variant="caption">
@@ -905,7 +901,7 @@ export default function OperationsScreen() {
             <ValidationField {...formValidation.field("referenceId")}>
               <View style={{ gap: spacing.sm }}>
                 <Typography variant="bodyBold">Vincular a</Typography>
-                <ScrollView horizontal contentContainerStyle={{ gap: spacing.sm }}>
+                <FilterChipRow>
                   {references.map((item) => (
                     <Chip
                       key={item.id}
@@ -914,7 +910,7 @@ export default function OperationsScreen() {
                       onPress={() => setReferenceId(item.id)}
                     />
                   ))}
-                </ScrollView>
+                </FilterChipRow>
                 {!references.length ? (
                   <Typography variant="caption" color={theme.colors.alert}>
                     Cadastre primeiro o registro necessário para este vínculo.
@@ -1031,7 +1027,7 @@ export default function OperationsScreen() {
         >
           <Typography variant="bodyBold">Produto</Typography>
           <ValidationField {...serialValidation.field("serialProductId")}>
-            <ScrollView horizontal contentContainerStyle={{ gap: spacing.sm }}>
+            <FilterChipRow>
               {(products.data ?? []).map((product) => (
                 <Chip
                   key={product.id}
@@ -1040,7 +1036,7 @@ export default function OperationsScreen() {
                   onPress={() => setSerialProductId(product.id)}
                 />
               ))}
-            </ScrollView>
+            </FilterChipRow>
           </ValidationField>
           <ValidationField {...serialValidation.field("serial")}>
             <Input

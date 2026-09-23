@@ -25,6 +25,11 @@ export function displayLabelName(name: string): string {
   return displayIngredientName(name);
 }
 
+/** Etiquetas antigas podem vir sem `productName`; o editor não pode chamar trim nisso. */
+export function labelPrintedName(data?: { productName?: string | null } | null): string {
+  return data?.productName ?? "";
+}
+
 /** Categoria do produto vinculado; se não houver, usa o modelo visual. */
 export function labelCategory(
   label: Label,
@@ -73,7 +78,7 @@ export function matchesLabelSearch(
     label.data.productName,
     labelCategory(label, categoryByProductId),
     label.templateId,
-  ];
+  ].filter((value): value is string => typeof value === "string" && value.length > 0);
   return haystacks.some((value) => value.toLocaleLowerCase("pt-BR").includes(needle));
 }
 

@@ -679,7 +679,6 @@ export default function ServicesScreen() {
           }}
           title="Serviços"
           subtitle="Organize o que você faz e quanto vale."
-          subtitleNumberOfLines={2}
           onBack={goBack}
           right={
             <FAB

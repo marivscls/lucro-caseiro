@@ -1,5 +1,6 @@
 import { formatCurrency } from "../shared/utils/format";
 import {
+  FilterChipRow,
   CenteredTextInput,
   Button,
   EmptyState,
@@ -438,14 +439,7 @@ function PackagingScreenContent() {
           </Pressable>
         </View>
 
-        <ScrollView
-          horizontal
-          nestedScrollEnabled
-          showsHorizontalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ gap: spacing.sm, paddingRight: spacing.sm }}
-          style={{ flexGrow: 0 }}
-        >
+        <FilterChipRow>
           {PACKAGING_LIST_FILTERS.map((filter) => (
             <CategoryChip
               key={filter.label}
@@ -454,7 +448,7 @@ function PackagingScreenContent() {
               onPress={() => setTypeFilter(filter.value)}
             />
           ))}
-        </ScrollView>
+        </FilterChipRow>
 
         {filtersOpen ? (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>

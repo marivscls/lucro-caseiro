@@ -88,21 +88,26 @@ export class SalesUseCases {
 
       let variationId: string | undefined;
       if (product.variations?.length) {
-        const variation = product.variations.find(
-          (candidate) => candidate.id === item.variationId,
-        );
-        if (!variation) {
+        const variation = item.variationId
+          ? product.variations.find((candidate) => candidate.id === item.variationId)
+          : undefined;
+        if (item.variationId && !variation) {
           if (multiplier < 0) {
             throw new ValidationError([
               `Escolha uma variação válida para ${product.name}`,
             ]);
           }
-          // Venda histórica sem variação: não há como adivinhar onde devolver.
+          // Venda histórica com variação inválida: não há como adivinhar onde devolver.
           continue;
         }
-        item.variationName = variation.name;
-        if (variation.stockQuantity === undefined) continue;
-        variationId = variation.id;
+        if (variation) {
+          item.variationName = variation.name;
+          if (variation.stockQuantity === undefined) continue;
+          variationId = variation.id;
+        } else if (product.stockQuantity === null) {
+          // Marca sem catálogo de cores: o app vende o produto base e não envia variação.
+          continue;
+        }
       } else if (product.stockQuantity === null) {
         continue;
       }

@@ -120,6 +120,8 @@ const { data } = useInsights(6);
 - 2026-08-31: tooltip do gráfico saiu da coluna da barra (preço quebrava em "R$" / "2.039"
   e, com 6–12 meses, virava faixa branca). Agora é overlay no corpo do gráfico; mês zerado
   não renderiza barra.
+- 2026-09-19: o padding inferior da lista não soma `insets.bottom` — o Stack já reserva a
+  tab bar (`stackTabBarReserve`). Somar de novo deixava uma faixa branca acima da navbar.
 
 ## Orientação contextual — 2026-09-07
 

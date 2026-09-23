@@ -66,14 +66,11 @@ function ExtensionCard({
           style={{ width: 56, height: 56, borderRadius: radii.lg }}
         />
         <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-          <Typography variant="h3" numberOfLines={1}>
-            {app.appName}
-          </Typography>
+          <Typography variant="h3">{app.appName}</Typography>
           <Typography
             variant="body"
             color={theme.colors.textSecondary}
             style={{ fontSize: fontSizes.sm }}
-            numberOfLines={2}
           >
             {app.vertical.operationDescription}
           </Typography>

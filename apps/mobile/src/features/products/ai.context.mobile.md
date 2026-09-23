@@ -227,3 +227,6 @@ O Essencial inclui catálogo completo, personalização e galeria com até 3 fot
 ## Cadastro em etapas — 2026-09-09
 
 No modal, o cadastro de produto usa três etapas: informações e preço; tipo, variações e apresentação; estoque e identificação. Os valores ficam no estado do formulário ao avançar ou voltar, e a validação final retorna à etapa que contém o erro. A versão inline em desktop continua exibindo o formulário completo.
+
+- 2026-09-16: o botão Continuar da etapa Essencial só avança com nome, categoria e preço maior que zero preenchidos (bloqueio imediato com `alertValidation`), sem depender só da validação final. Comparações de moeda usam `!(parseCurrencyInput(x) > 0)` porque valor vazio gera `NaN` e `NaN <= 0` é falso. Preço inválido também foca o campo de venda para o teclado abrir no valor.
+- 2026-09-19: as comparações de preço passaram a `isPositiveCurrency`. O `StandardModal` limita a altura do corpo para o rodapé Continuar/Cadastrar permanecer visível no celular.

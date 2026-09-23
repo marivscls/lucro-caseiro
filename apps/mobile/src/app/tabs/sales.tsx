@@ -1374,6 +1374,7 @@ export default function SalesScreen() {
                 accessibilityLabel="Status das vendas"
                 style={{
                   flexDirection: "row",
+                  flexWrap: "wrap",
                   paddingTop: spacing.xs,
                   paddingBottom: spacing.md,
                   ...pageGutter(isDesktop),
@@ -1390,6 +1391,7 @@ export default function SalesScreen() {
                     }}
                     style={({ pressed }) => ({
                       flex: isDesktop ? undefined : 1,
+                      minWidth: isDesktop ? undefined : 90,
                       minHeight: 44,
                       paddingHorizontal: isDesktop ? spacing.lg : spacing.xs,
                       alignItems: "center",
@@ -1407,9 +1409,7 @@ export default function SalesScreen() {
                           ? palette.wine
                           : theme.colors.textSecondary
                       }
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.9}
+                      style={{ textAlign: "center" }}
                     >
                       {tab.label}
                     </Typography>

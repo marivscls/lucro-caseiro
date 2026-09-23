@@ -1,6 +1,4 @@
-# 14 — Criar rótulo (CRUD) + limite freemium (free = 1).
-# Form longo; preenche o obrigatório "Nome do produto" e salva. No SAVE: ou cria, ou
-# (se no limite free) abre o paywall. Ambos válidos.
+# 14 — Criar etiqueta, ou aceitar o paywall do limite free.
 appId: br.com.orionseven.lucrocaseiro
 name: 14 - Criar rotulo
 tags:
@@ -12,46 +10,44 @@ tags:
       EMAIL: "${EMAIL}"
       PASSWORD: "${PASSWORD}"
 
-# Mais -> Rótulos
-- tapOn:
-    point: "90%,94%"
-- assertVisible: "Mais opções"
+- runFlow:
+    file: ../subflows/open-more.yaml
 - scrollUntilVisible:
     element:
-      text: "Rótulos"
+      text: "Etiquetas"
     direction: DOWN
-- tapOn: "Rótulos"
-- scrollUntilVisible:
-    element:
-      text: "Novo rótulo"
-    direction: DOWN
-- tapOn: "Novo rótulo"
+    centerElement: true
+- tapOn: "Etiquetas. Etiquetas|Etiquetas"
+- runFlow:
+    file: ../subflows/dismiss-guidance.yaml
+- tapOn: "Criar etiqueta|Nova etiqueta|. Nova etiqueta"
 
-# Form
 - extendedWaitUntil:
     visible:
-      text: "Nome do rótulo"
+      text: "Nova etiqueta|Nome da etiqueta|Produto e modelo|Limite de"
     timeout: 8000
-- tapOn:
-    below:
-      text: "Nome do rótulo"
-- inputText: "[e2e] Rotulo Teste"
-- tapOn: "Escolha um modelo"
-# Nome do produto também é obrigatório
-- tapOn:
-    below:
-      text: "Nome do produto"
-- inputText: "Brigadeiro Gourmet"
-- tapOn: "Ingredientes"
-- scrollUntilVisible:
-    element:
-      text: "Criar rótulo"
-    direction: DOWN
-- tapOn: "Criar rótulo"
-
-# Resultado: criado OU paywall de limite
-- extendedWaitUntil:
-    visible:
-      text: ".*(Rótulo criado|Rotulo|Limite de|Premium).*"
-    timeout: 12000
+- runFlow:
+    when:
+      visible: "Limite de"
+    commands:
+      - tapOn:
+          point: "50%,55%"
+- runFlow:
+    when:
+      visible: "Nome da etiqueta"
+    commands:
+      - tapOn: "Nome da etiqueta"
+      - inputText: "Rotulo Teste"
+      - tapOn: "Buscar produto"
+      - inputText: "teste"
+      - tapOn: ".*Brigadeiro teste"
+      - tapOn: "Continuar"
+      - extendedWaitUntil:
+          visible:
+            text: "Nome que.*"
+          timeout: 8000
+      - tapOn: "Continuar"
+      - tapOn: "Criar etiqueta"
+      - tapOn:
+          point: "50%,55%"
 - takeScreenshot: .maestro/screenshots/14-rotulo

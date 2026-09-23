@@ -244,117 +244,126 @@ export function MonthlyBars({
           <Typography variant="captionBold">Faturamento mensal</Typography>
         </View>
         <View style={{ flexDirection: "row", gap: spacing.sm, paddingTop: 8 }}>
-          <View style={{ width: 58, height: CHART_HEIGHT }}>
-            {gridValues.map((value, index) => (
-              <Typography
-                key={index}
-                variant="caption"
-                color={theme.colors.textSecondary}
-                numberOfLines={1}
-                style={{
-                  position: "absolute",
-                  top: (CHART_HEIGHT * index) / STEPS - 8,
-                  fontSize: 10,
-                  lineHeight: 16,
-                  fontVariant: ["tabular-nums"],
-                }}
-              >
-                {formatMoneyShort(value)}
-              </Typography>
-            ))}
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <View style={{ height: CHART_HEIGHT }}>
-              {gridValues.map((_, index) => (
-                <View
-                  key={index}
-                  pointerEvents="none"
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    top: (CHART_HEIGHT * index) / STEPS,
-                    borderTopWidth: 1,
-                    borderStyle: index === STEPS ? "solid" : "dashed",
-                    borderColor: theme.colors.border,
-                    opacity: index === STEPS ? 1 : 0.6,
-                  }}
-                />
-              ))}
-              <View style={{ flexDirection: "row", height: CHART_HEIGHT }}>
-                {series.map((month) => {
-                  const selected = month.month === focused?.month;
-                  return (
-                    <Pressable
-                      key={month.month}
-                      onPress={() => setSelectedMonth(month.month)}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      {...(Platform.OS === "web" ? { "aria-pressed": selected } : {})}
-                      accessibilityLabel={`${monthWithYear(month.month)}: ${formatMoney(month.revenue)}, ${month.salesCount} vendas`}
-                      accessibilityHint="Mostra os detalhes deste mês abaixo do gráfico"
-                      style={({ pressed }) => ({
-                        flex: 1,
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        backgroundColor: selected
-                          ? `${theme.colors.primary}09`
-                          : "transparent",
-                        borderTopLeftRadius: 6,
-                        borderTopRightRadius: 6,
-                        opacity: pressed ? 0.7 : 1,
-                      })}
-                    >
-                      {month.revenue > 0 ? (
-                        <View
-                          style={{
-                            width: "66%",
-                            maxWidth: 44,
-                            height: Math.max(3, (month.revenue / axisMax) * CHART_HEIGHT),
-                            borderTopLeftRadius: 5,
-                            borderTopRightRadius: 5,
-                            backgroundColor: selected
-                              ? theme.colors.primaryStrong
-                              : `${theme.colors.primary}85`,
-                          }}
-                        />
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
+          {total > 0 ? (
+            <>
+              <View style={{ width: 58, height: CHART_HEIGHT }}>
+                {gridValues.map((value, index) => (
+                  <Typography
+                    key={index}
+                    variant="caption"
+                    color={theme.colors.textSecondary}
+                    numberOfLines={1}
+                    style={{
+                      position: "absolute",
+                      top: (CHART_HEIGHT * index) / STEPS - 8,
+                      fontSize: 10,
+                      lineHeight: 16,
+                      fontVariant: ["tabular-nums"],
+                    }}
+                  >
+                    {formatMoneyShort(value)}
+                  </Typography>
+                ))}
               </View>
-            </View>
-            <View style={{ flexDirection: "row", marginTop: spacing.sm }}>
-              {series.map((month, index) => {
-                const selected = month.month === focused?.month;
-                const showLabel =
-                  series.length < 12 ||
-                  selected ||
-                  (index % 2 === 1 && Math.abs(index - focusedIndex) > 1);
-                return (
-                  <View key={month.month} style={{ flex: 1, alignItems: "center" }}>
-                    <Typography
-                      variant="caption"
-                      numberOfLines={1}
-                      color={
-                        selected ? theme.colors.primaryStrong : theme.colors.textSecondary
-                      }
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <View style={{ height: CHART_HEIGHT }}>
+                  {gridValues.map((_, index) => (
+                    <View
+                      key={index}
+                      pointerEvents="none"
                       style={{
-                        width: 32,
-                        maxWidth: 32,
-                        textAlign: "center",
-                        fontSize: 10,
-                        lineHeight: 16,
-                        fontFamily: selected ? "Manrope_700Bold" : undefined,
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        top: (CHART_HEIGHT * index) / STEPS,
+                        borderTopWidth: 1,
+                        borderStyle: index === STEPS ? "solid" : "dashed",
+                        borderColor: theme.colors.border,
+                        opacity: index === STEPS ? 1 : 0.6,
                       }}
-                    >
-                      {showLabel ? monthLabel(month.month) : ""}
-                    </Typography>
+                    />
+                  ))}
+                  <View style={{ flexDirection: "row", height: CHART_HEIGHT }}>
+                    {series.map((month) => {
+                      const selected = month.month === focused?.month;
+                      return (
+                        <Pressable
+                          key={month.month}
+                          onPress={() => setSelectedMonth(month.month)}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected }}
+                          {...(Platform.OS === "web" ? { "aria-pressed": selected } : {})}
+                          accessibilityLabel={`${monthWithYear(month.month)}: ${formatMoney(month.revenue)}, ${month.salesCount} vendas`}
+                          accessibilityHint="Mostra os detalhes deste mês abaixo do gráfico"
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            backgroundColor: selected
+                              ? `${theme.colors.primary}09`
+                              : "transparent",
+                            borderTopLeftRadius: 6,
+                            borderTopRightRadius: 6,
+                            opacity: pressed ? 0.7 : 1,
+                          })}
+                        >
+                          {month.revenue > 0 ? (
+                            <View
+                              style={{
+                                width: "66%",
+                                maxWidth: 44,
+                                height: Math.max(
+                                  3,
+                                  (month.revenue / axisMax) * CHART_HEIGHT,
+                                ),
+                                borderTopLeftRadius: 5,
+                                borderTopRightRadius: 5,
+                                backgroundColor: selected
+                                  ? theme.colors.primaryStrong
+                                  : `${theme.colors.primary}85`,
+                              }}
+                            />
+                          ) : null}
+                        </Pressable>
+                      );
+                    })}
                   </View>
-                );
-              })}
-            </View>
-          </View>
+                </View>
+                <View style={{ flexDirection: "row", marginTop: spacing.sm }}>
+                  {series.map((month, index) => {
+                    const selected = month.month === focused?.month;
+                    const showLabel =
+                      series.length < 12 ||
+                      selected ||
+                      (index % 2 === 1 && Math.abs(index - focusedIndex) > 1);
+                    return (
+                      <View key={month.month} style={{ flex: 1, alignItems: "center" }}>
+                        <Typography
+                          variant="caption"
+                          numberOfLines={1}
+                          color={
+                            selected
+                              ? theme.colors.primaryStrong
+                              : theme.colors.textSecondary
+                          }
+                          style={{
+                            width: 32,
+                            maxWidth: 32,
+                            textAlign: "center",
+                            fontSize: 10,
+                            lineHeight: 16,
+                            fontFamily: selected ? "Manrope_700Bold" : undefined,
+                          }}
+                        >
+                          {showLabel ? monthLabel(month.month) : ""}
+                        </Typography>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </>
+          ) : null}
         </View>
       </View>
       {focused ? (
@@ -377,7 +386,7 @@ export function MonthlyBars({
             }}
           >
             <View style={{ gap: 2 }}>
-              <Typography variant="captionBold">
+              <Typography variant="captionBold" numberOfLines={1}>
                 {monthWithYear(focused.month)}
               </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -387,7 +396,15 @@ export function MonthlyBars({
             <Typography
               variant="bodyBold"
               color={theme.colors.primaryStrong}
-              style={{ fontSize: 20, fontVariant: ["tabular-nums"] }}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={{
+                fontSize: 20,
+                lineHeight: 26,
+                fontVariant: ["tabular-nums"],
+                flexShrink: 0,
+              }}
             >
               {formatMoney(focused.revenue)}
             </Typography>
