@@ -50,7 +50,8 @@ export class SubscriptionUseCases {
     if (!profile) {
       throw new NotFoundError("Perfil não encontrado");
     }
-    await this.sendProfessionalTrialCampaignEmail(userId);
+    // Em segundo plano: falha no e-mail da campanha nunca derruba o perfil.
+    void this.sendProfessionalTrialCampaignEmail(userId);
     return profile;
   }
 
@@ -241,10 +242,12 @@ export class SubscriptionUseCases {
   private async sendProfessionalTrialCampaignEmail(userId: string): Promise<void> {
     if (!this.notifyProfessionalTrialCampaign) return;
 
-    const claim = await this.repo.claimProfessionalTrialCampaignEmail(userId);
-    if (!claim) return;
-
+    let claimed = false;
     try {
+      const claim = await this.repo.claimProfessionalTrialCampaignEmail(userId);
+      if (!claim) return;
+      claimed = true;
+
       const result = await this.notifyProfessionalTrialCampaign({
         ...claim,
         idempotencyKey: `professional-trial-campaign-2026-${claim.userId}`,
@@ -252,11 +255,20 @@ export class SubscriptionUseCases {
       await this.repo.completeProfessionalTrialCampaignEmail(userId, result.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      await this.repo.releaseProfessionalTrialCampaignEmail(userId, message);
       console.error("Professional trial campaign email failed", {
         userId,
         error: message,
       });
+      if (!claimed) return;
+      await this.repo
+        .releaseProfessionalTrialCampaignEmail(userId, message)
+        .catch((releaseError: unknown) => {
+          console.error("Professional trial campaign release failed", {
+            userId,
+            error:
+              releaseError instanceof Error ? releaseError.message : String(releaseError),
+          });
+        });
     }
   }
 }

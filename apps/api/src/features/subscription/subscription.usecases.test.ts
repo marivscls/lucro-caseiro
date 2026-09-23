@@ -136,6 +136,7 @@ describe("SubscriptionUseCases", () => {
 
       await sut.getProfile(USER_ID);
 
+      await vi.waitFor(() => expect(complete).toHaveBeenCalled());
       expect(notify).toHaveBeenCalledWith({
         userId: USER_ID,
         email: "maria@email.com",
@@ -165,7 +166,54 @@ describe("SubscriptionUseCases", () => {
       );
 
       await expect(sut.getProfile(USER_ID)).resolves.toMatchObject({ id: USER_ID });
-      expect(release).toHaveBeenCalledWith(USER_ID, "Resend indisponivel");
+      await vi.waitFor(() =>
+        expect(release).toHaveBeenCalledWith(USER_ID, "Resend indisponivel"),
+      );
+    });
+
+    it("returns the profile even when claiming the campaign email fails", async () => {
+      // Arrange
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      const notify = vi.fn(() => Promise.resolve({ id: "email-campaign-1" }));
+      const { sut } = makeSut(
+        {
+          claimProfessionalTrialCampaignEmail: () =>
+            Promise.reject(new Error("connection terminated")),
+        },
+        undefined,
+        undefined,
+        undefined,
+        notify,
+      );
+
+      // Act
+      const result = sut.getProfile(USER_ID);
+
+      // Assert
+      await expect(result).resolves.toMatchObject({ id: USER_ID });
+      expect(notify).not.toHaveBeenCalled();
+    });
+
+    it("does not wait for the campaign email before returning the profile", async () => {
+      // Arrange
+      const notify = vi.fn(() => new Promise<{ id: string }>(() => {}));
+      const { sut } = makeSut(
+        {
+          claimProfessionalTrialCampaignEmail: () =>
+            Promise.resolve({
+              userId: USER_ID,
+              email: "maria@email.com",
+              expiresAt: "2026-09-10T12:00:00.000Z",
+            }),
+        },
+        undefined,
+        undefined,
+        undefined,
+        notify,
+      );
+
+      // Act / Assert
+      await expect(sut.getProfile(USER_ID)).resolves.toMatchObject({ id: USER_ID });
     });
   });
 
