@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { isMockMode } from "../mock/mode";
+
 const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
@@ -100,14 +102,25 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: ExpoSecureStoreAdapter as unknown as Storage,
-    autoRefreshToken: true,
-    persistSession: true,
-    flowType: Platform.OS === "web" ? "pkce" : "implicit",
-    // No PWA, o proprio SDK aplica a sessao devolvida pelo OAuth na URL.
-    // No nativo, o deep link continua sendo processado pelo useAuth.
-    detectSessionInUrl: Platform.OS === "web",
-  },
-});
+type AppSupabaseClient = ReturnType<typeof createClient>;
+
+// Modo demonstração: auth e storage locais, sem nenhuma chamada ao Supabase.
+function loadMockSupabase(): AppSupabaseClient {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- only bundled path evaluated in demo builds.
+  const mock = require("../mock/auth") as typeof import("../mock/auth");
+  return mock.mockSupabase as unknown as AppSupabaseClient;
+}
+
+export const supabase: AppSupabaseClient = isMockMode
+  ? loadMockSupabase()
+  : createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: ExpoSecureStoreAdapter as unknown as Storage,
+        autoRefreshToken: true,
+        persistSession: true,
+        flowType: Platform.OS === "web" ? "pkce" : "implicit",
+        // No PWA, o proprio SDK aplica a sessao devolvida pelo OAuth na URL.
+        // No nativo, o deep link continua sendo processado pelo useAuth.
+        detectSessionInUrl: Platform.OS === "web",
+      },
+    });
