@@ -21,6 +21,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   robots: { index: true, follow: true },
+  // O manifesto do layout raiz é o da Central de Marketing, não do site.
+  manifest: null,
 };
 
 export default async function LandingLayout({ children }: { children: React.ReactNode }) {
