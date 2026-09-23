@@ -291,6 +291,40 @@ function OverviewSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>
       <ActivityTable data={data.active} />
 
       <Card variant="elevated" style={{ gap: spacing.md }}>
+        <View style={{ gap: spacing.xs }}>
+          <Typography variant="h3">Origem das instalações</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Últimos 30 dias, pela campanha do link que abriu o app pela primeira vez.
+          </Typography>
+        </View>
+        {data.acquisition.length === 0 ? (
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Ainda não há instalações nos últimos 30 dias.
+          </Typography>
+        ) : null}
+        {data.acquisition.map((item) => (
+          <View
+            key={`${item.source ?? "-"}:${item.content ?? "-"}`}
+            style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+          >
+            <View style={{ flex: 1 }}>
+              <Typography variant="bodyBold">
+                {item.source ?? "Sem origem identificada"}
+              </Typography>
+              {item.content ? (
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {item.content}
+                </Typography>
+              ) : null}
+            </View>
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              {item.installations} · {item.linkedToUser} com conta
+            </Typography>
+          </View>
+        ))}
+      </Card>
+
+      <Card variant="elevated" style={{ gap: spacing.md }}>
         <Typography variant="h3">Versões em uso</Typography>
         {data.versionAdoption.length === 0 ? (
           <Typography variant="body" color={theme.colors.textSecondary}>

@@ -12,6 +12,7 @@ const MIGRATIONS = [
   "035_analytics_behavior_events.sql",
   "037_activation_funnel_events.sql",
   "20260923100000_analytics_event_name_format.sql",
+  "20260923100100_analytics_installation_acquisition.sql",
 ];
 
 const INSTALLATION = "0cbd1c3e-1755-4f3f-a1bf-40c12b267ac3";
@@ -142,6 +143,55 @@ describe("Analytics persistence in PostgreSQL", () => {
         [USER],
       );
       expect(rows).toEqual([{ count: 1 }]);
+    });
+  });
+
+  describe("origem da instalação", () => {
+    it("grava a origem só na primeira abertura e agrega por fonte no painel", async () => {
+      // Arrange
+      const openedAt = new Date();
+      const open = { ...ENVELOPE, openedAt, activityDate: "2026-09-20" };
+
+      // Act
+      await repo.recordOpen(null, {
+        ...open,
+        acquisition: { utmSource: "site_publico", utmContent: "pwa_header" },
+      });
+      await repo.recordOpen(USER, {
+        ...open,
+        acquisition: { utmSource: "outra_campanha", referrer: "exemplo.com" },
+      });
+      await repo.recordOpen(null, {
+        ...open,
+        installationId: "0cbd1c3e-1755-4f3f-a1bf-40c12b267ac5",
+      });
+
+      // Assert
+      const stored = await pg.query(
+        `SELECT utm_source, utm_medium, utm_content, referrer
+         FROM analytics_installations WHERE id = $1`,
+        [INSTALLATION],
+      );
+      expect(stored.rows).toEqual([
+        {
+          utm_source: "site_publico",
+          utm_medium: null,
+          utm_content: "pwa_header",
+          referrer: null,
+        },
+      ]);
+      const { rows } = await pg.query<{ acquisition_sources: unknown }>(
+        ANALYTICS_DASHBOARD_QUERY,
+      );
+      expect(rows[0]?.acquisition_sources).toEqual([
+        {
+          source: "site_publico",
+          content: "pwa_header",
+          installations: 1,
+          linked_to_user: 1,
+        },
+        { source: null, content: null, installations: 1, linked_to_user: 0 },
+      ]);
     });
   });
 

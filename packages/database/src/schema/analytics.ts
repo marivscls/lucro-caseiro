@@ -19,6 +19,12 @@ export const analyticsInstallations = pgTable(
     platform: text("platform").notNull(),
     appVersion: text("app_version").notNull(),
     appBuild: text("app_build"),
+    // Origem gravada só no primeiro insert; nunca sobrescrita.
+    utmSource: text("utm_source"),
+    utmMedium: text("utm_medium"),
+    utmCampaign: text("utm_campaign"),
+    utmContent: text("utm_content"),
+    referrer: text("referrer"),
     firstOpenedAt: timestamp("first_opened_at", { withTimezone: true }).notNull(),
     lastOpenedAt: timestamp("last_opened_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

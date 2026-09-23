@@ -15,6 +15,7 @@ const DASHBOARD = {
   generatedAt: "2026-07-14T12:00:00.000Z",
   installations: { total: 10, last7Days: 4, last30Days: 10, linkedToUser: 6 },
   signups: { total: 6, last30Days: 6 },
+  acquisition: [],
   activation: {
     activatedUsers: 4,
     eligibleWithin7Days: 3,

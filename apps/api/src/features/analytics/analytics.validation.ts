@@ -1,5 +1,25 @@
-import { ANALYTICS_ACTION_NAMES, ANALYTICS_SCREEN_NAMES } from "@lucro-caseiro/contracts";
+import {
+  ANALYTICS_ACQUISITION_MAX_LENGTH,
+  ANALYTICS_ACTION_NAMES,
+  ANALYTICS_SCREEN_NAMES,
+} from "@lucro-caseiro/contracts";
 import { z } from "zod";
+
+const NO_CONTROL_CHARS = /^[^\p{Cc}\p{Cf}]+$/u;
+
+function acquisitionValue(max: number) {
+  return z.string().trim().min(1).max(max).regex(NO_CONTROL_CHARS).optional();
+}
+
+const AcquisitionDto = z
+  .object({
+    utmSource: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmSource),
+    utmMedium: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmMedium),
+    utmCampaign: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmCampaign),
+    utmContent: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmContent),
+    referrer: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.referrer),
+  })
+  .strict();
 
 const RecordOpenDto = z
   .object({
@@ -7,6 +27,7 @@ const RecordOpenDto = z
     platform: z.enum(["android", "ios", "web"]),
     appVersion: z.string().trim().min(1).max(32),
     appBuild: z.string().trim().min(1).max(32).optional(),
+    acquisition: AcquisitionDto.optional(),
   })
   .strict();
 

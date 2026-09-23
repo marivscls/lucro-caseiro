@@ -9,7 +9,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Non-goals
 
-- Não rastreia toques livres, campanhas, crashes, texto digitado ou conteúdo criado.
+- Não rastreia toques livres, crashes, texto digitado ou conteúdo criado; de campanha guarda só os
+  UTM e o host de origem da primeira abertura.
 - Não substitui métricas de download e aquisição da Google Play.
 - Não oferece endpoint público de relatório; o painel exige autenticação e allowlist.
 
@@ -31,6 +32,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
 - `packages/database/src/migrations/034_product_analytics.sql`: instalações e atividade.
 - `packages/database/src/migrations/035_analytics_behavior_events.sql`: eventos e segurança.
+- `packages/database/src/migrations/20260923100100_analytics_installation_acquisition.sql`:
+  colunas de origem da instalação.
 - `packages/database/src/migrations/20260923100000_analytics_event_name_format.sql`: troca a
   lista fechada de nomes no banco por uma checagem de formato.
 - `analytics.pglite.test.ts`: persistência e relatório contra as migrations reais em PGlite.
@@ -38,7 +41,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 ## Data Model
 
 - `analytics_installations`: uma linha por UUID local; primeira/última abertura, plataforma,
-  versão e build.
+  versão, build e origem (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `referrer`,
+  cada uma anuláveis e gravadas só no primeiro insert).
 - `analytics_installation_users`: vínculos muitos-para-muitos entre instalações e contas.
 - `analytics_activity_days`: chave composta instalação + data UTC; no máximo um dia ativo.
 - `analytics_user_activity_days`: chave composta usuário + data UTC para usuários ativos.
@@ -46,7 +50,7 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Invariants
 
-- A primeira abertura nunca é sobrescrita.
+- A primeira abertura nunca é sobrescrita, nem a origem da instalação.
 - Trocar de conta na mesma instalação não reatribui o histórico da conta anterior.
 - A atividade diária é idempotente pela chave composta.
 - A allowlist de nomes vive no contrato e no zod da API; o banco só garante o formato
@@ -71,7 +75,9 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Contracts (Zod/DTO)
 
-O envelope usa `{ installationId, platform, appVersion, appBuild? }`. Eventos são uma união
+O envelope usa `{ installationId, platform, appVersion, appBuild?, acquisition? }`.
+`acquisition` é estrito: `utmSource`, `utmMedium`, `utmCampaign`, `utmContent` (1–100) e
+`referrer` (host, 1–200), sem caracteres de controle nem chaves extras. Eventos são uma união
 discriminada: `screen_view` exige nome permitido e duração de 250 ms a 6 h; `action` aceita apenas
 as dez ações do contrato. Metadata arbitrária é rejeitada.
 
@@ -154,3 +160,12 @@ substitui a lista por `analytics_events_event_name_format_check` (formato apenas
 - O app não envia mais o evento; versões antigas ainda enviam e a API o descarta
   (`withoutServerOwnedEvents`) antes de persistir, sem rejeitar o lote.
 - `signups.total`/`last30Days` continuam vindo de `users`; o evento alimenta uso de funções e funil.
+
+## Origem da instalação — 2026-09-23
+
+- `/open`, `/identify` e os lotes de eventos aceitam `acquisition` opcional; o repositório só o usa
+  no `INSERT` e o `ON CONFLICT` não toca nessas colunas.
+- Painel: `acquisition` agrega as instalações dos últimos 30 dias por `utm_source` + `utm_content`
+  (até 20 linhas, `null` = sem origem) com quantas já têm conta vinculada.
+- A web envia os UTM da URL do PWA. No Android a origem fica vazia até existir leitura do Play
+  Install Referrer no app, que depende de um módulo nativo ainda não aprovado.

@@ -54,6 +54,15 @@ describe("AnalyticsRepoPg.getDashboard", () => {
           version_adoption: [
             { app_version: "1.2.0", installations: 8, percent: "80.00" },
           ],
+          acquisition_sources: [
+            {
+              source: "site_publico",
+              content: "pwa_header",
+              installations: "3",
+              linked_to_user: 2,
+            },
+            { source: null, content: null, installations: 5, linked_to_user: 1 },
+          ],
           behavior_retention: [
             {
               behavior: "pricing_completed",
@@ -85,6 +94,15 @@ describe("AnalyticsRepoPg.getDashboard", () => {
         },
       ],
       featureUsage: [{ action: "pricing_completed", events: 7, people: 4 }],
+      acquisition: [
+        {
+          source: "site_publico",
+          content: "pwa_header",
+          installations: 3,
+          linkedToUser: 2,
+        },
+        { source: null, content: null, installations: 5, linkedToUser: 1 },
+      ],
       funnel: [{ stage: "pricing", installations: 4, previousStagePercent: 80 }],
       versionAdoption: [{ appVersion: "1.2.0", installations: 8, percent: 80 }],
       behaviorRetention: [

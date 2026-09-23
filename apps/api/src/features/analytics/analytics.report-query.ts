@@ -247,6 +247,22 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     FROM version_counts
     ORDER BY installations DESC, app_version DESC
   ),
+  acquisition_sources AS (
+    SELECT
+      installation.utm_source AS source,
+      installation.utm_content AS content,
+      COUNT(*)::int AS installations,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1
+        FROM analytics_installation_users linked
+        WHERE linked.installation_id = installation.id
+      ))::int AS linked_to_user
+    FROM analytics_installations installation
+    WHERE installation.first_opened_at >= NOW() - INTERVAL '30 days'
+    GROUP BY installation.utm_source, installation.utm_content
+    ORDER BY installations DESC, source NULLS LAST, content NULLS LAST
+    LIMIT 20
+  ),
   behavior_names(behavior) AS (
     VALUES ('pricing_completed'), ('catalog_shared')
   ),
@@ -309,6 +325,11 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     COALESCE((SELECT jsonb_agg(to_jsonb(feature_usage)) FROM feature_usage), '[]'::jsonb) AS feature_usage,
     COALESCE((SELECT jsonb_agg(to_jsonb(funnel_rows) - 'position' ORDER BY position) FROM funnel_rows), '[]'::jsonb) AS funnel,
     COALESCE((SELECT jsonb_agg(to_jsonb(version_adoption)) FROM version_adoption), '[]'::jsonb) AS version_adoption,
-    COALESCE((SELECT jsonb_agg(to_jsonb(behavior_retention_rows)) FROM behavior_retention_rows), '[]'::jsonb) AS behavior_retention
+    COALESCE((SELECT jsonb_agg(to_jsonb(behavior_retention_rows)) FROM behavior_retention_rows), '[]'::jsonb) AS behavior_retention,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(acquisition_sources)
+        ORDER BY installations DESC, source NULLS LAST, content NULLS LAST)
+      FROM acquisition_sources
+    ), '[]'::jsonb) AS acquisition_sources
   FROM overview, signups, active, active_users, retained
 `;

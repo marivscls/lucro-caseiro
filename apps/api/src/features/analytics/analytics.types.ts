@@ -1,4 +1,5 @@
 import type {
+  AnalyticsAcquisition,
   AnalyticsActionName,
   ProductAnalyticsDashboard,
   ProductAnalyticsEvent,
@@ -13,6 +14,7 @@ export interface RecordOpenInput {
   platform: AnalyticsPlatform;
   appVersion: string;
   appBuild?: string;
+  acquisition?: AnalyticsAcquisition;
 }
 
 export interface PersistedOpen extends RecordOpenInput {

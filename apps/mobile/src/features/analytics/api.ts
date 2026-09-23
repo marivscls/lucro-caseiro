@@ -1,4 +1,5 @@
 import type {
+  AnalyticsAcquisition,
   ProductAnalyticsDashboard,
   ProductAnalyticsEvent,
 } from "@lucro-caseiro/contracts";
@@ -10,6 +11,8 @@ export interface AppOpenPayload {
   platform: "android" | "ios" | "web";
   appVersion: string;
   appBuild?: string;
+  /** Só nas aberturas; a API grava apenas no primeiro registro da instalação. */
+  acquisition?: AnalyticsAcquisition;
 }
 
 export async function recordAppOpen(

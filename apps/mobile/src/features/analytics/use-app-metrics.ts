@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { getInstallationAcquisition } from "./acquisition";
 import { recordAppOpen } from "./api";
 import { getOrCreateInstallationId } from "./installation";
 import { appMetadata } from "./metadata";
@@ -14,8 +15,14 @@ export function useAppMetrics(): void {
 
   const sendOpen = useCallback(async () => {
     try {
-      const installationId = await getOrCreateInstallationId();
-      await recordAppOpen({ installationId, ...appMetadata() }, latestToken.current);
+      const [installationId, acquisition] = await Promise.all([
+        getOrCreateInstallationId(),
+        getInstallationAcquisition(),
+      ]);
+      await recordAppOpen(
+        { installationId, ...appMetadata(), ...(acquisition ? { acquisition } : {}) },
+        latestToken.current,
+      );
     } catch (error) {
       if (__DEV__) console.warn("[analytics] abertura não registrada", error);
     }

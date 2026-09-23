@@ -54,6 +54,14 @@ interface DashboardRow {
   funnel: unknown;
   version_adoption: unknown;
   behavior_retention: unknown;
+  acquisition_sources: unknown;
+}
+
+interface RawAcquisitionSource {
+  source: string | null;
+  content: string | null;
+  installations: number;
+  linked_to_user: number;
 }
 
 interface RawScreenUsage {
@@ -115,6 +123,11 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
           platform: input.platform,
           appVersion: input.appVersion,
           appBuild: input.appBuild ?? null,
+          utmSource: input.acquisition?.utmSource ?? null,
+          utmMedium: input.acquisition?.utmMedium ?? null,
+          utmCampaign: input.acquisition?.utmCampaign ?? null,
+          utmContent: input.acquisition?.utmContent ?? null,
+          referrer: input.acquisition?.referrer ?? null,
           firstOpenedAt: input.openedAt,
           lastOpenedAt: input.openedAt,
           updatedAt: input.openedAt,
@@ -219,6 +232,7 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
       platform: input.platform,
       appVersion: input.appVersion,
       appBuild: input.appBuild,
+      acquisition: input.acquisition,
       openedAt: input.occurredAt,
       activityDate: input.activityDate,
     });
@@ -294,6 +308,14 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
         total: Number(row.signups_total),
         last30Days: Number(row.signups_30d),
       },
+      acquisition: parsedArray<RawAcquisitionSource>(row.acquisition_sources).map(
+        (item) => ({
+          source: item.source,
+          content: item.content,
+          installations: Number(item.installations),
+          linkedToUser: Number(item.linked_to_user),
+        }),
+      ),
       activation: {
         activatedUsers: Number(row.activated_users_total),
         eligibleWithin7Days: Number(row.eligible_activation_7d),

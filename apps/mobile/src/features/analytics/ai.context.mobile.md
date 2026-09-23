@@ -10,7 +10,8 @@ conta autorizada pelo backend.
 
 ## Non-goals
 
-- Não rastreia toques livres, texto, conteúdo, buscas, crashes ou origem de campanha.
+- Não rastreia toques livres, texto, conteúdo, buscas ou crashes; de campanha envia só UTM e host
+  de origem da primeira abertura.
 - Não mostra métricas a contas comuns.
 - Não adiciona SDK ou dependência analítica externa.
 
@@ -31,6 +32,11 @@ conta autorizada pelo backend.
 - `hooks.ts`: acesso administrativo e consulta do painel com React Query.
 - `app/admin-metrics.tsx`: painel visual interno.
 - `installation.test.ts`: persistência e formato do UUID.
+- `acquisition-parse.ts`: leitura pura de UTM (URL do PWA ou Install Referrer) e host de origem.
+- `acquisition.ts`: captura única por instalação, persistida em `analytics:acquisition`.
+- `acquisition-source.web.ts`: guarda a query e o `document.referrer` ao carregar o bundle.
+- `acquisition-source.ts`: nativo; `readNativeInstallReferrer` é o ponto de extensão do Play
+  Install Referrer e hoje retorna null (exige módulo nativo, ex.: `expo-application`).
 
 ## Components
 
@@ -49,7 +55,7 @@ relógio no foreground. Segmentos menores que 250 ms são ignorados e os demais 
 
 - Sem token: `POST /api/v1/analytics/open`.
 - Com token: `POST /api/v1/analytics/identify`.
-- Payload: UUID da instalação, plataforma, versão e build.
+- Payload: UUID da instalação, plataforma, versão, build e `acquisition` opcional (só aberturas).
 - Eventos: `POST /events` sem token e `POST /events/identify` com token.
 - `GET /api/v1/analytics/admin/access`: decide se o item aparece em “Mais”.
 - `GET /api/v1/analytics/admin/dashboard`: carrega os dados; o servidor continua sendo a barreira.
@@ -107,3 +113,9 @@ primeira identificação da instalação, além do cadastro por e-mail.
 
 O app não envia mais `signup_completed` (antes só a tela de cadastro por e-mail enviava). A API
 registra o evento na primeira identificação de uma conta recém-criada, cobrindo também o Google.
+
+## Origem da instalação — 2026-09-23
+
+Na primeira execução o app lê a origem uma única vez e grava o resultado (inclusive "sem origem"),
+para que links abertos depois não troquem a origem original. Toda abertura reenvia esse valor; a
+API só o grava no primeiro registro. O painel mostra "Origem das instalações" em Visão geral.

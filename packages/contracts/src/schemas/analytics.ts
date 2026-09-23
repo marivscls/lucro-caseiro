@@ -69,6 +69,26 @@ export const ANALYTICS_ACTION_NAMES = [
 export type AnalyticsScreenName = (typeof ANALYTICS_SCREEN_NAMES)[number];
 export type AnalyticsActionName = (typeof ANALYTICS_ACTION_NAMES)[number];
 
+/** Origem da instalação, lida na primeira abertura (UTM na web; Install Referrer no Android). */
+export const ANALYTICS_ACQUISITION_FIELDS = [
+  "utmSource",
+  "utmMedium",
+  "utmCampaign",
+  "utmContent",
+  "referrer",
+] as const;
+export type AnalyticsAcquisitionField = (typeof ANALYTICS_ACQUISITION_FIELDS)[number];
+export type AnalyticsAcquisition = Partial<Record<AnalyticsAcquisitionField, string>>;
+/** `referrer` guarda só o host de origem; os UTM, o valor da campanha. */
+export const ANALYTICS_ACQUISITION_MAX_LENGTH: Record<AnalyticsAcquisitionField, number> =
+  {
+    utmSource: 100,
+    utmMedium: 100,
+    utmCampaign: 100,
+    utmContent: 100,
+    referrer: 200,
+  };
+
 export type ProductAnalyticsEvent =
   | { type: "screen_view"; name: AnalyticsScreenName; durationMs: number }
   | { type: "action"; name: AnalyticsActionName };
@@ -85,6 +105,8 @@ export interface ProductAnalyticsDashboard {
     total: number;
     last30Days: number;
   };
+  /** Instalações dos últimos 30 dias por `utm_source` + `utm_content`; null = sem origem. */
+  acquisition: AcquisitionSourceMetric[];
   activation: {
     activatedUsers: number;
     eligibleWithin7Days: number;
@@ -105,6 +127,13 @@ export interface ProductAnalyticsDashboard {
   funnel: FunnelMetric[];
   versionAdoption: VersionAdoptionMetric[];
   behaviorRetention: BehaviorRetentionMetric[];
+}
+
+export interface AcquisitionSourceMetric {
+  source: string | null;
+  content: string | null;
+  installations: number;
+  linkedToUser: number;
 }
 
 export interface RetentionMetric {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { isAdminUser } from "./analytics.admin";
-import { parseRecordEvents } from "./analytics.validation";
+import { parseRecordEvents, parseRecordOpen } from "./analytics.validation";
 
 const ENVELOPE = {
   installationId: "0cbd1c3e-1755-4f3f-a1bf-40c12b267ac3",
@@ -50,6 +50,47 @@ describe("parseRecordEvents", () => {
           events: [{ type: "screen_view", name: "home", durationMs }],
         }),
       ).toThrow();
+    }
+  });
+});
+
+describe("parseRecordOpen — origem da instalação", () => {
+  it("aceita origem opcional com campos conhecidos e remove espaços", () => {
+    // Arrange
+    const payload = {
+      ...ENVELOPE,
+      acquisition: {
+        utmSource: " site_publico ",
+        utmContent: "pwa_header",
+        referrer: "google.com",
+      },
+    };
+
+    // Act
+    const result = parseRecordOpen(payload);
+
+    // Assert
+    expect(result.acquisition).toEqual({
+      utmSource: "site_publico",
+      utmContent: "pwa_header",
+      referrer: "google.com",
+    });
+    expect(parseRecordOpen(ENVELOPE).acquisition).toBeUndefined();
+  });
+
+  it("rejeita chave desconhecida, valor longo demais ou com caractere de controle", () => {
+    // Arrange
+    const invalid = [
+      { utmSource: "site", email: "pessoa@exemplo.com" },
+      { utmSource: "x".repeat(101) },
+      { referrer: "x".repeat(201) },
+      { utmCampaign: "linha\nquebrada" },
+      { utmMedium: "" },
+    ];
+
+    // Act / Assert
+    for (const acquisition of invalid) {
+      expect(() => parseRecordOpen({ ...ENVELOPE, acquisition })).toThrow();
     }
   });
 });
