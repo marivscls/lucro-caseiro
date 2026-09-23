@@ -25,6 +25,7 @@ import { StandardModal } from "../../../shared/components/standard-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { DesktopStepper } from "../../../shared/layout/desktop-stepper";
 import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
@@ -351,11 +352,24 @@ export function CreateLabelForm({
         }
       >
         <View style={[{ width: "100%", minWidth: 0, gap: spacing.xl }, split.outer]}>
-          <FormStepProgress
-            current={formStep}
-            steps={LABEL_FORM_STEPS}
-            onStepPress={setFormStep}
-          />
+          {isDesktop ? (
+            <View style={{ gap: spacing.xl }}>
+              <DesktopStepper
+                current={formStep}
+                steps={LABEL_FORM_STEPS}
+                onStepPress={setFormStep}
+              />
+              <Typography variant="desktopSection" accessibilityRole="header">
+                {LABEL_FORM_STEPS[formStep - 1]?.title}
+              </Typography>
+            </View>
+          ) : (
+            <FormStepProgress
+              current={formStep}
+              steps={LABEL_FORM_STEPS}
+              onStepPress={setFormStep}
+            />
+          )}
           <View
             style={
               isDesktop
