@@ -47,6 +47,7 @@ import {
 } from "../../features/orders/hooks";
 import { openWhatsApp, waMessages } from "../../shared/utils/whatsapp";
 import { showAlert } from "../../shared/components/alert-store";
+import { alertError } from "../../shared/utils/alerts";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
@@ -135,7 +136,14 @@ function ModernOrderDetail({
   const statusVisual = statusMeta[order.status];
 
   function setStatus(status: OrderStatus) {
-    updateOrder.mutate({ id: order.id, data: { status } });
+    updateOrder.mutate(
+      { id: order.id, data: { status } },
+      { onError: () => alertError("Não foi possível mudar o status da encomenda.") },
+    );
+  }
+
+  function onDeliverError() {
+    alertError("Não foi possível marcar a encomenda como entregue.");
   }
 
   function handleDeliver() {
@@ -149,7 +157,7 @@ function ModernOrderDetail({
           onPress: () => {
             deliverOrder.mutate(
               { id: order.id, data: { registerIncome: false } },
-              { onSuccess: onClose },
+              { onSuccess: onClose, onError: onDeliverError },
             );
           },
         },
@@ -158,7 +166,7 @@ function ModernOrderDetail({
           onPress: () => {
             deliverOrder.mutate(
               { id: order.id, data: { registerIncome: true } },
-              { onSuccess: onClose },
+              { onSuccess: onClose, onError: onDeliverError },
             );
           },
         },
@@ -176,7 +184,10 @@ function ModernOrderDetail({
           text: "Excluir",
           style: "destructive",
           onPress: () => {
-            deleteOrder.mutate(order.id, { onSuccess: onClose });
+            deleteOrder.mutate(order.id, {
+              onSuccess: onClose,
+              onError: () => alertError("Não foi possível excluir a encomenda."),
+            });
           },
         },
       ],
@@ -563,10 +574,13 @@ function ModernOrderDetail({
                 label={status.label}
                 selected={order.appointmentStatus === status.value}
                 onPress={() =>
-                  updateOrder.mutate({
-                    id: order.id,
-                    data: { appointmentStatus: status.value },
-                  })
+                  updateOrder.mutate(
+                    { id: order.id, data: { appointmentStatus: status.value } },
+                    {
+                      onError: () =>
+                        alertError("Não foi possível atualizar o atendimento."),
+                    },
+                  )
                 }
               />
             ))}

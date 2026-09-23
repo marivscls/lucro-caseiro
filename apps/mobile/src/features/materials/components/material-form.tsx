@@ -451,7 +451,10 @@ export function MaterialForm({
           text: "Excluir",
           style: "destructive",
           onPress: () => {
-            deleteMaterial.mutate(material.id, { onSuccess });
+            deleteMaterial.mutate(material.id, {
+              onSuccess,
+              onError: () => alertError("Não foi possível excluir. Tente novamente."),
+            });
           },
         },
       ],

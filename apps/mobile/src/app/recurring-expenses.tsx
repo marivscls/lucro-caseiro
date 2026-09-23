@@ -173,7 +173,9 @@ export default function RecurringExpensesScreen() {
           text: "Remover",
           style: "destructive",
           onPress: () => {
-            remove.mutate(id);
+            remove.mutate(id, {
+              onError: () => alertError("Não foi possível remover o gasto fixo."),
+            });
             setSelectedExpense(null);
             setEditingExpense(null);
           },
