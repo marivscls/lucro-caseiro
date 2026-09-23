@@ -20,6 +20,7 @@ Aprovado em 2026-09-04: a prévia foi integrada ao primeiro acesso real do Lucro
 - Ideias para divulgar: orientações determinísticas e recolhíveis para cada canal selecionado, adaptadas ao segmento. Não enviam mensagens, não publicam conteúdos e não fazem chamadas de IA.
 - `useBusinessCopy` reaproveita o tipo canônico e especializa serviços, peças de artesanato e exemplos de confeitaria. Marcas verticais mantêm seus próprios termos.
 - `components/welcome-hero.tsx`: boas-vindas de quem nunca entrou no aparelho (renderizada por `(auth)/login.tsx` no modo `welcome`). Ilustração, promessa, três benefícios e as saídas "Criar conta grátis" e "Já tenho conta" (no computador, título alinhado ao topo da ilustração e botões à base). A partir de 880 px vira duas colunas; no celular os detalhes dos benefícios somem para os botões caberem na primeira tela.
+- `components/auth-layout.tsx`: moldura comum da boas-vindas e do login (`(auth)/login.tsx` no modo `login`). Nome da marca no topo; a partir de 880 px, painel ilustrado à esquerda e conteúdo à direita. No celular o login esconde o painel para o formulário caber na tela.
 - “Primeiros passos” permanece separado. Depois da decisão de perfil, fica disponível sob demanda. O guia de produtos não é exibido para prestadores de serviço.
 - O convite de demonstração foi retirado do Início. A recomendação só aparece após concluir; o acesso continua em Configurações. Contas antigas não são forçadas a responder novamente.
 

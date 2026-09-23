@@ -6,7 +6,6 @@ import {
   Typography,
   useBrand,
   useTheme,
-  radii,
   spacing,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
@@ -23,18 +22,22 @@ import { validateEmail } from "../../shared/utils/validation";
 import { suggestEmailFix } from "../../shared/utils/email";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
-import { desktopContained } from "../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { brandLogoByMode } from "../../shared/brand-logo";
 import { hasSignedInOnDevice } from "../../shared/utils/returning-user";
 import { WelcomeHero } from "../../features/onboarding/components/welcome-hero";
+import {
+  AuthHeadline,
+  AuthLayout,
+  GROUP_GAP,
+  ITEM_GAP,
+} from "../../features/onboarding/components/auth-layout";
+import notebookIllustration from "../../assets/finance-summary-illustration.png";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
   const brand = useBrand();
   const brandName = getBrandDisplayName(brand);
-  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const [resetLoading, setResetLoading] = useState(false);
@@ -177,172 +180,181 @@ export default function LoginScreen() {
     );
   }
 
+  if (mode === "loading") {
+    return <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} />;
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAwareScrollView
-        contentContainerStyle={[
-          {
-            flexGrow: 1,
-            justifyContent: "center",
-            padding: spacing.xl,
-            gap: spacing["2xl"],
-          },
-          desktopContained(isDesktop, 420),
-        ]}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Um único lockup reduz a competição entre símbolo, nome e saudação. */}
-        <View style={{ alignItems: "center", gap: spacing.lg }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <Image
-              source={brandLogoByMode[theme.mode][brand.id]}
-              resizeMode="contain"
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: radii.xl,
-                borderWidth: 1,
-                borderColor: controlBorder,
-              }}
-            />
-            <Typography variant="wordmark">{brandName}</Typography>
-          </View>
-
-          <View style={{ alignItems: "center", gap: spacing.sm }}>
-            <Typography variant="screenTitle" style={{ textAlign: "center" }}>
-              Que bom te ver!
-            </Typography>
-          </View>
-        </View>
-
-        {mode === "login" ? (
-          <View style={{ gap: spacing.lg }}>
-            <Button
-              title="Entrar com Google"
-              variant="outline"
-              size="lg"
-              icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
-              onPress={() => {
-                void handleGoogleLogin();
-              }}
-              loading={googleLoading}
-              disabled={emailLoading || googleLoading}
-              style={{
-                width: "100%",
-                backgroundColor: theme.colors.surfaceElevated,
-                borderColor: controlBorder,
-              }}
-            />
-
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
-              <Typography variant="caption">ou</Typography>
-              <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
+        <AuthLayout
+          brandName={brandName}
+          logo={brandLogoByMode[theme.mode][brand.id]}
+          aside={
+            <>
+              <Image
+                source={notebookIllustration}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="Calculadora, caderno de anotações e moedas"
+                style={{ width: 380, height: 294 }}
+              />
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.primaryStrong}
+                style={{ textAlign: "center", maxWidth: 320 }}
+              >
+                Suas vendas, o lucro e o fiado continuam do jeito que você deixou.
+              </Typography>
+            </>
+          }
+        >
+          <View style={{ flex: 1, justifyContent: "center", gap: GROUP_GAP }}>
+            <View style={{ gap: ITEM_GAP }}>
+              <AuthHeadline>Que bom te ver!</AuthHeadline>
+              <Typography variant="body">
+                Entre para ver suas vendas e o lucro do mês.
+              </Typography>
             </View>
 
-            <ValidationField {...formValidation.field("email")}>
-              <Input
-                label="E-mail"
-                placeholder="seu@email.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (emailError) setEmailError(undefined);
-                  if (emailSuggestion) setEmailSuggestion(undefined);
+            <View style={{ gap: spacing.lg }}>
+              <Button
+                title="Entrar com Google"
+                variant="outline"
+                size="lg"
+                icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
+                onPress={() => {
+                  void handleGoogleLogin();
                 }}
-                onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-                error={emailError}
+                loading={googleLoading}
+                disabled={emailLoading || googleLoading}
+                style={{
+                  width: "100%",
+                  backgroundColor: theme.colors.surfaceElevated,
+                  borderColor: controlBorder,
+                }}
               />
-            </ValidationField>
-            <EmailTypoHint
-              suggestion={emailSuggestion}
-              onAccept={() => {
-                if (!emailSuggestion) return;
-                setEmail(emailSuggestion);
-                setEmailSuggestion(undefined);
-                setEmailError(undefined);
-              }}
-            />
-            <View>
-              <ValidationField {...formValidation.field("password")}>
+
+              <View style={{ flexDirection: "row", alignItems: "center", gap: ITEM_GAP }}>
+                <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
+                <Typography variant="caption">ou com e-mail</Typography>
+                <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
+              </View>
+
+              <ValidationField {...formValidation.field("email")}>
                 <Input
-                  ref={passwordRef}
-                  label="Senha"
-                  placeholder="Sua senha"
-                  returnKeyType="go"
-                  onSubmitEditing={() => {
-                    void handleLogin();
-                  }}
-                  secureTextEntry={!showPassword}
-                  autoComplete="password"
-                  value={password}
+                  label="E-mail"
+                  placeholder="seu@email.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  value={email}
                   onChangeText={(text) => {
-                    setPassword(text);
-                    if (passwordError) setPasswordError(undefined);
+                    setEmail(text);
+                    if (emailError) setEmailError(undefined);
+                    if (emailSuggestion) setEmailSuggestion(undefined);
                   }}
-                  error={passwordError}
-                  rightIcon={
-                    <Pressable
-                      onPress={() => setShowPassword(!showPassword)}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        showPassword ? "Ocultar senha" : "Mostrar senha"
-                      }
-                      hitSlop={10}
-                      style={{
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 44,
-                        minHeight: 44,
-                      }}
-                    >
-                      <AppIcon
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color={theme.colors.primaryStrong}
-                      />
-                    </Pressable>
-                  }
+                  onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
+                  error={emailError}
                 />
               </ValidationField>
+              <EmailTypoHint
+                suggestion={emailSuggestion}
+                onAccept={() => {
+                  if (!emailSuggestion) return;
+                  setEmail(emailSuggestion);
+                  setEmailSuggestion(undefined);
+                  setEmailError(undefined);
+                }}
+              />
+              <View>
+                <ValidationField {...formValidation.field("password")}>
+                  <Input
+                    ref={passwordRef}
+                    label="Senha"
+                    placeholder="Sua senha"
+                    returnKeyType="go"
+                    onSubmitEditing={() => {
+                      void handleLogin();
+                    }}
+                    secureTextEntry={!showPassword}
+                    autoComplete="password"
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      if (passwordError) setPasswordError(undefined);
+                    }}
+                    error={passwordError}
+                    rightIcon={
+                      <Pressable
+                        onPress={() => setShowPassword(!showPassword)}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          showPassword ? "Ocultar senha" : "Mostrar senha"
+                        }
+                        hitSlop={10}
+                        style={{
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 44,
+                          minHeight: 44,
+                        }}
+                      >
+                        <AppIcon
+                          name={showPassword ? "eye-off-outline" : "eye-outline"}
+                          size={20}
+                          color={theme.colors.primaryStrong}
+                        />
+                      </Pressable>
+                    }
+                  />
+                </ValidationField>
+              </View>
+
+              <Pressable
+                style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
+                disabled={resetLoading}
+                accessibilityRole="button"
+                onPress={handleForgotPassword}
+              >
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  {resetLoading ? "Enviando..." : "Esqueci minha senha"}
+                </Typography>
+              </Pressable>
+
+              <Button
+                title="Entrar"
+                size="lg"
+                icon={
+                  <AppIcon
+                    name="arrow-forward"
+                    size={20}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
+                onPress={() => {
+                  void handleLogin();
+                }}
+                loading={emailLoading}
+                disabled={emailLoading || googleLoading}
+              />
             </View>
 
-            <Pressable
-              style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
-              disabled={resetLoading}
-              accessibilityRole="button"
-              onPress={handleForgotPassword}
-            >
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                {resetLoading ? "Enviando..." : "Esqueci minha senha"}
-              </Typography>
-            </Pressable>
-
-            <Button
-              title="Entrar"
-              size="lg"
-              icon={
-                <AppIcon
-                  name="arrow-forward"
-                  size={20}
-                  color={theme.colors.textOnPrimary}
-                />
-              }
-              onPress={() => {
-                void handleLogin();
+            <View
+              style={{
+                gap: ITEM_GAP,
+                paddingTop: GROUP_GAP,
+                borderTopWidth: 1,
+                borderTopColor: controlBorder,
               }}
-              loading={emailLoading}
-              disabled={emailLoading || googleLoading}
-            />
-
-            <View style={{ gap: spacing.sm, alignItems: "center" }}>
+            >
               <Typography variant="body">Primeira vez aqui?</Typography>
               <Button
                 title="Criar conta grátis"
@@ -353,7 +365,7 @@ export default function LoginScreen() {
               />
             </View>
           </View>
-        ) : null}
+        </AuthLayout>
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
