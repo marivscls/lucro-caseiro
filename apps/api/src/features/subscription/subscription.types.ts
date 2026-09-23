@@ -92,3 +92,20 @@ export interface ProviderPlanState {
 export interface ISubscriptionStatusProvider {
   getPlanState(userId: string, purchase: AndroidPurchaseData): Promise<ProviderPlanState>;
 }
+
+/** Estado de um purchase token do Google Play (subscriptionsv2), sem o token. */
+export interface GooglePlaySubscriptionSnapshot {
+  /** Tier resolvido pelo product id / base plan; `null` se nao for um SKU pago nosso. */
+  plan: PaidPlan | null;
+  /** Ativo, em carencia ou cancelado com expiracao futura. */
+  active: boolean;
+  expiresAt: Date | null;
+  purchaseOwnerId: string | null;
+}
+
+export interface IGooglePlaySubscriptionLookup {
+  getSubscription(
+    purchaseToken: string,
+    productIdHint?: string,
+  ): Promise<GooglePlaySubscriptionSnapshot | null>;
+}
