@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { handleMockRequest, paginate, type MockRequest } from "./api";
+import {
+  activeSaleDays,
+  historyStart,
+  homePhase,
+  priceAlert,
+  salesStreak,
+  setupSteps,
+} from "../../features/home/domain";
 import { emptyDemoData, seededDemoData, type DemoData } from "./fixtures";
 
 const NOW = new Date("2026-09-23T12:00:00").getTime();
@@ -102,13 +110,20 @@ describe("mock api — produtos e vendas", () => {
 
   it("resume as vendas de hoje sem contar canceladas", () => {
     // Arrange
-    const { request } = makeSut(seededDemoData(account, NOW));
+    const data = seededDemoData(account, NOW);
+    const today = data.sales.filter(
+      (sale) => new Date(sale.soldAt).toDateString() === new Date(NOW).toDateString(),
+    );
+    data.sales.push({ ...today[0], id: "cancelada", status: "cancelled", total: 500 });
+    const { request } = makeSut(data);
+    const expected = today.reduce((sum, sale) => sum + sale.total, 0);
 
     // Act
     const summary = request("GET", "/api/v1/sales/summary/today");
 
     // Assert
-    expect(summary.body).toEqual({ totalSales: 2, totalAmount: 59, averageTicket: 29.5 });
+    expect(today).toHaveLength(2);
+    expect(summary.body).toMatchObject({ totalSales: 2, totalAmount: expected });
   });
 });
 
@@ -226,5 +241,77 @@ describe("paginate", () => {
       limit: 20,
       totalPages: 3,
     });
+  });
+});
+
+describe("mock api — Início da confeitaria de exemplo", () => {
+  it("filtra vendas por data como a API", () => {
+    // Arrange
+    const { request } = makeSut(seededDemoData(account, NOW));
+    const from = new Date(2026, 8, 1).toISOString();
+
+    // Act
+    const page = request("GET", `/api/v1/sales?dateFrom=${from}&limit=100`).body as {
+      items: { soldAt: string }[];
+      total: number;
+    };
+
+    // Assert
+    expect(page.total).toBeGreaterThan(40);
+    expect(page.items.every((sale) => sale.soldAt >= from)).toBe(true);
+  });
+
+  it("tem histórico e custos para o Início abrir no mês", () => {
+    // Arrange
+    const data = seededDemoData(account, NOW);
+    const now = new Date(NOW);
+    const history = data.sales.filter((sale) => sale.soldAt >= historyStart(now));
+
+    // Act
+    const phase = homePhase({
+      steps: setupSteps({
+        hasProduct: data.products.length > 0,
+        hasPricing: false,
+        products: data.products,
+        hasSale: data.sales.length > 0,
+      }),
+      activeDays: activeSaleDays(history),
+      olderHistory: false,
+    });
+
+    // Assert
+    expect(phase).toBe("month");
+    expect(salesStreak(history, now)).toBeGreaterThanOrEqual(30);
+    expect(priceAlert(data.products, history, now)?.name).toBe("Brigadeiro gourmet");
+  });
+
+  it("calcula a meta de exemplo e grava a meta editada", () => {
+    // Arrange
+    const { request } = makeSut(seededDemoData(account, NOW));
+
+    // Act
+    const before = request("GET", "/api/v1/goals/prolabore").body as {
+      config: { monthlyProlaboreGoal: number };
+      progress: { requiredRevenue: number; currentRevenue: number };
+    };
+    request("PUT", "/api/v1/goals/prolabore", { monthlyProlaboreGoal: 3000 });
+    const after = request("GET", "/api/v1/goals/prolabore").body as typeof before;
+
+    // Assert
+    expect(before.config.monthlyProlaboreGoal).toBe(2000);
+    expect(before.progress.requiredRevenue).toBeGreaterThan(2000);
+    expect(before.progress.currentRevenue).toBeGreaterThan(0);
+    expect(after.config.monthlyProlaboreGoal).toBe(3000);
+  });
+
+  it("conta nova começa sem meta", () => {
+    // Arrange
+    const { request } = makeSut();
+
+    // Act
+    const status = request("GET", "/api/v1/goals/prolabore").body as { config: unknown };
+
+    // Assert
+    expect(status.config).toBeNull();
   });
 });

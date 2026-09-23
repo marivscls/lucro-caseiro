@@ -227,9 +227,13 @@ function updateSaleStatus({ body, data }: MockRequest, [id]: string[]): MockResu
 function listSales({ query, data }: MockRequest): MockResult {
   const status = query.get("status");
   const clientId = query.get("clientId");
+  const from = query.get("dateFrom");
+  const to = query.get("dateTo");
   const sales = data.sales
     .filter((sale) => !status || sale.status === status)
     .filter((sale) => !clientId || sale.clientId === clientId)
+    .filter((sale) => !from || new Date(sale.soldAt) >= new Date(from))
+    .filter((sale) => !to || new Date(sale.soldAt) <= new Date(to))
     .sort((a, b) => b.soldAt.localeCompare(a.soldAt));
   return ok(paginate(sales, query));
 }
@@ -419,20 +423,66 @@ function createOrder({ body, data, now }: MockRequest): MockResult {
 
 function prolabore({ data, query, now }: MockRequest): MockResult {
   const summary = financeSummary(data, query, now);
+  const config = data.prolaboreGoal ?? null;
+  if (!config) {
+    return ok({
+      config: null,
+      progress: {
+        requiredRevenue: 0,
+        currentRevenue: summary.totalIncome,
+        remainingRevenue: 0,
+        progressPct: 0,
+        salesNeeded: null,
+        salesRemaining: null,
+        avgTicket: null,
+        reached: false,
+        period: summary.period,
+      },
+    });
+  }
+  // Mesma conta do servidor: meta + max(despesas do mês, custos estimados).
+  const requiredRevenue = roundMoney(
+    config.monthlyProlaboreGoal +
+      Math.max(summary.totalExpenses, config.estimatedMonthlyCosts ?? 0),
+  );
+  const paid = data.sales.filter(
+    (sale) => sale.status === "paid" && sale.soldAt.startsWith(summary.period),
+  );
+  const avgTicket =
+    config.avgTicketOverride ?? (paid.length ? summary.totalIncome / paid.length : null);
+  const remainingRevenue = roundMoney(Math.max(0, requiredRevenue - summary.totalIncome));
   return ok({
-    config: null,
+    config,
     progress: {
-      requiredRevenue: 0,
+      requiredRevenue,
       currentRevenue: summary.totalIncome,
-      remainingRevenue: 0,
-      progressPct: 0,
-      salesNeeded: null,
-      salesRemaining: null,
-      avgTicket: null,
-      reached: false,
+      remainingRevenue,
+      progressPct:
+        requiredRevenue > 0
+          ? Math.min(100, Math.round((summary.totalIncome / requiredRevenue) * 100))
+          : 0,
+      salesNeeded: avgTicket ? Math.ceil(requiredRevenue / avgTicket) : null,
+      salesRemaining: avgTicket ? Math.ceil(remainingRevenue / avgTicket) : null,
+      avgTicket,
+      reached: requiredRevenue > 0 && summary.totalIncome >= requiredRevenue,
       period: summary.period,
     },
   });
+}
+
+function upsertProlabore({ data, body, now }: MockRequest): MockResult {
+  const goal = {
+    id: data.prolaboreGoal?.id ?? mockUuid(),
+    userId: data.profile.id,
+    monthlyProlaboreGoal: Number(body.monthlyProlaboreGoal ?? 0),
+    estimatedMonthlyCosts:
+      body.estimatedMonthlyCosts == null ? null : Number(body.estimatedMonthlyCosts),
+    avgTicketOverride:
+      body.avgTicketOverride == null ? null : Number(body.avgTicketOverride),
+    updatedAt: new Date(now).toISOString(),
+  };
+  data.prolaboreGoal = goal;
+  return ok(goal, true);
 }
 
 function insights({ data, query, now }: MockRequest): MockResult {
@@ -678,6 +728,15 @@ const routes: [string, RegExp, Handler][] = [
 
   // Meta de pró-labore
   ["GET", /^\/api\/v1\/goals\/prolabore$/, prolabore],
+  ["PUT", /^\/api\/v1\/goals\/prolabore$/, upsertProlabore],
+  [
+    "DELETE",
+    /^\/api\/v1\/goals\/prolabore$/,
+    ({ data }) => {
+      data.prolaboreGoal = null;
+      return noContent(true);
+    },
+  ],
 ];
 
 /** Rotas atendidas sem conta: coleta de uso e notificações viram no-op. */

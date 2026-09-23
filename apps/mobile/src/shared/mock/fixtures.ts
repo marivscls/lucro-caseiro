@@ -4,6 +4,7 @@ import type {
   Order,
   PaymentMethod,
   Product,
+  ProlaboreGoal,
   Sale,
   UserProfile,
 } from "@lucro-caseiro/contracts";
@@ -18,6 +19,8 @@ export interface DemoData {
   sales: Sale[];
   financeEntries: FinanceEntry[];
   orders: Order[];
+  /** Meta de retirada; ausente = conta sem meta. */
+  prolaboreGoal?: ProlaboreGoal | null;
 }
 
 interface DemoAccount {
@@ -254,7 +257,8 @@ export function seededDemoData(
     name: "Brigadeiro gourmet",
     description: "Chocolate belga com granulado.",
     salePrice: 3.5,
-    costPrice: 1.2,
+    // Custo alto de propósito: o Início mostra o alerta de margem abaixo de 20%.
+    costPrice: 2.95,
     stockQuantity: 120,
     stockAlertThreshold: 30,
   });
@@ -336,21 +340,56 @@ export function seededDemoData(
       uuid,
     );
 
+  // Duas encomendas no fiado, em aberto.
   const sales = [
-    sale(0, 9, "pix", [{ product: boloPote, quantity: 2 }], mariana),
-    sale(0, 8, "cash", [{ product: brigadeiro, quantity: 10 }]),
     sale(-1, 16, "credit", [{ product: caixa, quantity: 2 }], juliana),
-    sale(-2, 15, "card", [{ product: boloCenoura, quantity: 1 }], cida),
-    sale(-3, 11, "pix", [
-      { product: brownie, quantity: 4 },
-      { product: brigadeiro, quantity: 6 },
-    ]),
     sale(-5, 17, "credit", [{ product: brownie, quantity: 3 }], rafael),
-    sale(-6, 10, "pix", [{ product: pudim, quantity: 1 }], carla),
-    sale(-8, 14, "cash", [{ product: boloPote, quantity: 3 }]),
-    sale(-10, 9, "transfer", [{ product: caixa, quantity: 1 }], mariana),
-    sale(-13, 15, "pix", [{ product: brigadeiro, quantity: 25 }], cida),
   ];
+
+  // Histórico de ~8 semanas: vendas diárias no último mês (sequência longa),
+  // sábado como melhor dia e o mês anterior um pouco mais fraco.
+  const baskets: SaleLine[][] = [
+    [{ product: boloPote, quantity: 2 }],
+    [{ product: brigadeiro, quantity: 10 }],
+    [{ product: brownie, quantity: 3 }],
+    [{ product: caixa, quantity: 1 }],
+    [
+      { product: boloPote, quantity: 1 },
+      { product: brigadeiro, quantity: 6 },
+    ],
+    [{ product: pudim, quantity: 1 }],
+    [{ product: boloCenoura, quantity: 1 }],
+    [
+      { product: brownie, quantity: 2 },
+      { product: brigadeiro, quantity: 4 },
+    ],
+  ];
+  const payments: PaymentMethod[] = ["pix", "cash", "pix", "card", "pix", "transfer"];
+  const buyers = [mariana, null, cida, null, carla, mariana, null, juliana, cida, null];
+  const perWeekday = [3, 3, 4, 3, 4, 6, 2]; // segunda … domingo
+  const thisMonth = new Date(now).getMonth();
+  let turn = 0;
+  for (let day = -55; day <= 0; day++) {
+    if (day === -34 || day === -45) continue; // pausas antes da sequência atual
+    const date = new Date(now + day * DAY_MS);
+    const weekday = (date.getDay() + 6) % 7;
+    let count = perWeekday[weekday] ?? 2;
+    if (date.getMonth() !== thisMonth && day % 2 === 0) count -= 1;
+    if (day === 0) count = 2;
+    for (let index = 0; index < count; index++) {
+      turn += 1;
+      sales.push(
+        sale(
+          day,
+          day === 0 ? 8 + index : 9 + index * 2,
+          payments[turn % payments.length],
+          baskets[(turn * 3) % baskets.length],
+          buyers[turn % buyers.length] ?? null,
+        ),
+      );
+    }
+  }
+  sales.sort((a, b) => b.soldAt.localeCompare(a.soldAt));
 
   for (const buyer of clients) {
     buyer.totalSpent = roundMoney(
@@ -386,10 +425,23 @@ export function seededDemoData(
     ...sales
       .filter((item) => item.status === "paid")
       .map((item) => buildSaleIncome(item, uuid)),
-    expense(-1, "material", 89.9, "Leite condensado, chocolate e creme de leite"),
+    ...Array.from({ length: 16 }, (_, week) =>
+      expense(
+        -1 - week * 3.5,
+        "material",
+        92 + (week % 3) * 11,
+        "Leite condensado, chocolate e creme de leite",
+      ),
+    ),
     expense(-4, "packaging", 34.9, "Potes, forminhas e fitas"),
+    expense(-18, "packaging", 41.5, "Caixas e fitas"),
+    expense(-34, "packaging", 38, "Potes e colheres"),
     expense(-7, "utility", 115, "Botijão de gás", true),
+    expense(-37, "utility", 115, "Botijão de gás", true),
+    expense(-12, "utility", 168, "Conta de luz", true),
+    expense(-42, "utility", 159, "Conta de luz", true),
     expense(-9, "transport", 18, "Entrega por motoboy"),
+    expense(-21, "transport", 24, "Entrega por motoboy"),
   ];
 
   const order = (input: Partial<Order> & Pick<Order, "title" | "deliveryDate">) =>
@@ -441,5 +493,13 @@ export function seededDemoData(
     sales,
     financeEntries,
     orders,
+    prolaboreGoal: {
+      id: uuid(),
+      userId,
+      monthlyProlaboreGoal: 2000,
+      estimatedMonthlyCosts: 900,
+      avgTicketOverride: null,
+      updatedAt: since,
+    },
   };
 }
