@@ -15,22 +15,28 @@ import {
 
 const CLIENTS_KEY = ["clients"];
 
-export function useClients(opts?: { page?: number; search?: string }) {
+export function useClients(
+  opts?: { page?: number; search?: string },
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...CLIENTS_KEY, opts],
     queryFn: () => fetchClients(token!, opts),
-    enabled: !!token,
+    enabled: !!token && enabled,
   });
 }
 
 /** Todos os clientes (todas as páginas). */
-export function useAllClients() {
+export function useAllClients(
+  opts?: { search?: string },
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   const { token } = useAuth();
   return useQuery({
-    queryKey: [...CLIENTS_KEY, "all"],
-    queryFn: () => fetchAllClients(token!),
-    enabled: !!token,
+    queryKey: [...CLIENTS_KEY, "all", opts],
+    queryFn: () => fetchAllClients(token!, opts),
+    enabled: !!token && enabled,
   });
 }
 

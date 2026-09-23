@@ -54,8 +54,13 @@ export async function fetchClients(
 }
 
 /** Todos os clientes, para telas que cruzam a lista inteira. */
-export async function fetchAllClients(token: string): Promise<PaginatedClients> {
-  return fetchAllPages((page) => fetchClients(token, { page, limit: MAX_PAGE_SIZE }));
+export async function fetchAllClients(
+  token: string,
+  opts?: { search?: string },
+): Promise<PaginatedClients> {
+  return fetchAllPages((page) =>
+    fetchClients(token, { ...opts, page, limit: MAX_PAGE_SIZE }),
+  );
 }
 
 export async function fetchClient(token: string, id: string): Promise<Client> {

@@ -34,7 +34,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ClientDetail } from "../../features/clients/components/client-detail";
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { EditClientForm } from "../../features/clients/components/edit-client-form";
-import { useClient, useClients, useCreateClient } from "../../features/clients/hooks";
+import {
+  useAllClients,
+  useClient,
+  useClients,
+  useCreateClient,
+} from "../../features/clients/hooks";
 import {
   buildClientListInsights,
   countClientListFilters,
@@ -77,6 +82,9 @@ type Screen =
   | { name: "list" }
   | { name: "detail"; clientId: string }
   | { name: "create" };
+
+/** Quantos clientes aparecem por vez na lista do celular. */
+const CLIENTS_BATCH = 30;
 
 const FILTER_OPTIONS: ReadonlyArray<{ key: ClientListFilter; label: string }> = [
   { key: "all", label: "Todos" },
@@ -698,13 +706,22 @@ function ClientsListScreen({
   const [sort, setSort] = useState<ClientListSort>("recent");
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [sortModalOpen, setSortModalOpen] = useState(false);
-  const baseClientsQuery = useClients({
-    page: isDesktop ? page : undefined,
-  });
-  const listClientsQuery = useClients({
-    page: isDesktop ? page : undefined,
-    search: search.trim() || undefined,
-  });
+  // Computador: paginação numerada. Celular: busca todos os clientes para
+  // filtros e contagens valerem para a lista inteira, e mostra aos poucos.
+  const searchTerm = search.trim() || undefined;
+  const pagedBaseClients = useClients({ page }, { enabled: isDesktop });
+  const pagedListClients = useClients(
+    { page, search: searchTerm },
+    { enabled: isDesktop },
+  );
+  const allBaseClients = useAllClients(undefined, { enabled: !isDesktop });
+  const allListClients = useAllClients({ search: searchTerm }, { enabled: !isDesktop });
+  const baseClientsQuery = isDesktop ? pagedBaseClients : allBaseClients;
+  const listClientsQuery = isDesktop ? pagedListClients : allListClients;
+  const [visibleCount, setVisibleCount] = useState(CLIENTS_BATCH);
+  useEffect(() => {
+    setVisibleCount(CLIENTS_BATCH);
+  }, [filter, sort, searchTerm]);
   const salesQuery = useAllSales();
   const summaryInsights = useMemo(
     () =>
@@ -801,9 +818,10 @@ function ClientsListScreen({
       />
     );
   } else {
+    const hiddenCount = visibleInsights.length - visibleCount;
     clientsContent = (
       <View style={{ gap: spacing.sm }}>
-        {visibleInsights.map((insight, index) => (
+        {visibleInsights.slice(0, visibleCount).map((insight, index) => (
           <AnimatedListItem key={insight.client.id} index={index}>
             <ClientCard
               insight={insight}
@@ -811,6 +829,13 @@ function ClientsListScreen({
             />
           </AnimatedListItem>
         ))}
+        {hiddenCount > 0 ? (
+          <Button
+            title={`Ver mais ${Math.min(hiddenCount, CLIENTS_BATCH)} clientes`}
+            variant="secondary"
+            onPress={() => setVisibleCount((count) => count + CLIENTS_BATCH)}
+          />
+        ) : null}
       </View>
     );
   }

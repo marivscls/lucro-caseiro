@@ -21,6 +21,7 @@ import { AppIcon } from "../../shared/components/app-icon";
 import { useQueries } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   Pressable,
@@ -42,6 +43,7 @@ import { SaleDetail } from "../../features/sales/components/sale-detail";
 import {
   useSale,
   useSales,
+  useSalesFeed,
   useUpdateSale,
   useUpdateSaleStatus,
 } from "../../features/sales/hooks";
@@ -527,6 +529,9 @@ type SalesContentProps = {
   readonly onNewSalePress: () => void;
   readonly onRetry: () => void;
   readonly onPageChange: (page: number) => void;
+  readonly hasMore?: boolean;
+  readonly loadingMore?: boolean;
+  readonly onLoadMore?: () => void;
   readonly compactEmpty?: boolean;
 };
 
@@ -1045,6 +1050,9 @@ function SalesContent({
   onNewSalePress,
   onRetry,
   onPageChange,
+  hasMore = false,
+  loadingMore = false,
+  onLoadMore,
   compactEmpty = false,
 }: SalesContentProps) {
   const { theme } = useTheme();
@@ -1148,6 +1156,18 @@ function SalesContent({
         paddingBottom: listBottomPadding,
       }}
       showsVerticalScrollIndicator={false}
+      // Carrega a próxima página ao chegar perto do fim da lista.
+      onEndReached={hasMore && !loadingMore ? onLoadMore : undefined}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={
+        loadingMore ? (
+          <ActivityIndicator
+            accessibilityLabel="Carregando mais vendas"
+            color={theme.colors.primary}
+            style={{ marginTop: spacing.lg }}
+          />
+        ) : null
+      }
       renderItem={({ item: group }) => (
         <View style={{ marginTop: spacing.md }}>
           <GroupHeader title={group.title} count={group.data.length} />
@@ -1188,10 +1208,10 @@ export default function SalesScreen() {
   }, [saleId]);
 
   const statusParam = activeFilter === "all" ? undefined : activeFilter;
-  const { data, isLoading, error, refetch } = useSales({
-    page: isDesktop ? page : undefined,
-    status: statusParam,
-  });
+  // Computador: paginação numerada. Celular: carrega mais ao rolar.
+  const pagedSales = useSales({ page, status: statusParam }, { enabled: isDesktop });
+  const salesFeed = useSalesFeed({ status: statusParam }, { enabled: !isDesktop });
+  const { data, isLoading, error, refetch } = isDesktop ? pagedSales : salesFeed;
   const { data: orders = [] } = useOrders();
   const { data: selectedSale } = useSale(selectedSaleId ?? "");
   // Abre o detalhe imediatamente com a venda que a lista já carregou (inclui
@@ -1480,6 +1500,9 @@ export default function SalesScreen() {
                   onNewSalePress={() => router.push("/tabs/new-sale")}
                   onRetry={() => void refetch()}
                   onPageChange={setPage}
+                  hasMore={!isDesktop && salesFeed.hasNextPage}
+                  loadingMore={salesFeed.isFetchingNextPage}
+                  onLoadMore={() => void salesFeed.fetchNextPage()}
                   compactEmpty={activeFilter !== "all"}
                 />
               </View>
