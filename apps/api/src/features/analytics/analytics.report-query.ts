@@ -130,7 +130,8 @@ export const ANALYTICS_DASHBOARD_QUERY = `
       ('business_profile_skipped'),
       ('plan_chosen'),
       ('purchase_result'),
-      ('ad_impression')
+      ('ad_impression'),
+      ('app_crashed')
   ),
   action_counts AS (
     SELECT

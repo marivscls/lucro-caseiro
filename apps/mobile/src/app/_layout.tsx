@@ -21,6 +21,7 @@ import { AppState, useColorScheme } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
+import { reportAppCrash } from "../features/analytics/crash-report";
 import { useAppMetrics } from "../features/analytics/use-app-metrics";
 import { useScreenMetrics } from "../features/analytics/use-screen-metrics";
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
@@ -31,6 +32,7 @@ import { useNotificationPrefs } from "../shared/hooks/notification-prefs";
 import { useThemePref } from "../shared/hooks/theme-pref";
 import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-notifier";
 import { AlertHost } from "../shared/components/alert-host";
+import { AppErrorBoundary } from "../shared/components/app-error-boundary";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { DesktopShell } from "../shared/components/desktop-shell";
 import { MobileFloatingTabBar } from "../shared/components/mobile-floating-tab-bar";
@@ -537,7 +539,9 @@ export default function RootLayout() {
       >
         <BrandProvider brand={activeBrand}>
           <QueryClientProvider client={queryClient}>
-            <AppContent />
+            <AppErrorBoundary onError={reportAppCrash}>
+              <AppContent />
+            </AppErrorBoundary>
           </QueryClientProvider>
         </BrandProvider>
       </ThemeProvider>

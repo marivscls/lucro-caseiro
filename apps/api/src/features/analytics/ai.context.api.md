@@ -9,7 +9,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Non-goals
 
-- Não rastreia toques livres, crashes, texto digitado ou conteúdo criado; de campanha guarda só os
+- Não rastreia toques livres, texto digitado ou conteúdo criado; de crashes guarda só
+  `app_crashed` com tipo do erro e tela; de campanha guarda só os
   UTM e o host de origem da primeira abertura.
 - Não substitui métricas de download e aquisição da Google Play.
 - Não oferece endpoint público de relatório; o painel exige autenticação e allowlist.
@@ -188,5 +189,6 @@ substitui a lista por `analytics_events_event_name_format_check` (formato apenas
 
 Ações novas no contrato e em "Funcionalidades mais usadas": `business_profile_completed`,
 `business_profile_skipped`, `plan_chosen`, `purchase_result` (props `result` = `success`,
-`failure` ou `cancel`, `provider`, `plan`, `period`) e `ad_impression`. São emitidas pelo app; a
+`failure` ou `cancel`, `provider`, `plan`, `period`), `ad_impression` e `app_crashed` (props
+`error` = tipo do erro e `screen`). São emitidas pelo app; a
 API só valida e persiste.

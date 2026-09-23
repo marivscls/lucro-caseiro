@@ -100,6 +100,7 @@ const ACTION_LABELS: Record<string, string> = {
   plan_chosen: "Plano escolhido",
   purchase_result: "Resultado da compra",
   ad_impression: "Anúncio exibido",
+  app_crashed: "Erro que derrubou a tela",
 };
 
 const FUNNEL_LABELS: Record<string, string> = {

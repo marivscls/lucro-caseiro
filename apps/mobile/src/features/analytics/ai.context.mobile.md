@@ -10,7 +10,8 @@ conta autorizada pelo backend.
 
 ## Non-goals
 
-- Não rastreia toques livres, texto, conteúdo, buscas ou crashes; de campanha envia só UTM e host
+- Não rastreia toques livres, texto, conteúdo ou buscas; de crashes envia só o tipo do erro e a
+  tela; de campanha envia só UTM e host
   de origem da primeira abertura.
 - Não mostra métricas a contas comuns.
 - Não adiciona SDK ou dependência analítica externa.
@@ -29,6 +30,9 @@ conta autorizada pelo backend.
 - `use-screen-metrics.ts`: troca de rota, foreground/background e duração ativa.
 - `screen-tracking.ts`: allowlist de rotas e cálculo puro de duração.
 - `tracker.ts`: envio best effort de telas e ações.
+- `crash-report.ts`: `reportAppCrash` envia `app_crashed` (tipo do erro + tela), no máximo 5 por
+  sessão; nunca mensagem, pilha ou dados digitados.
+- `shared/components/app-error-boundary.tsx`: barreira raiz montada em `app/_layout.tsx`.
 - `event-props.ts`: remove props que a API recusaria (vazio, espaço, chave inválida) e corta texto
   longo, para não perder o lote inteiro.
 - `hooks.ts`: acesso administrativo e consulta do painel com React Query.
@@ -145,3 +149,10 @@ Os eventos só saem depois de sucesso confirmado (perfil salvo, anúncio carrega
 `cancel` para `user-cancelled`, `failure` para o resto. Na Stripe, `success` quando o plano pago
 aparece em até cerca de 15 s depois de fechar o checkout, `cancel` quando não aparece e `failure`
 quando o checkout não abre. Nome e nome do negócio nunca entram nas props.
+
+## Erros que derrubam a tela — 2026-09-23
+
+`AppErrorBoundary` envolve `AppContent` no layout raiz (dentro dos providers de tema e de dados).
+Quando uma tela quebra, mostra "Algo deu errado" com o botão "Tentar de novo", que reinicia a
+barreira, e chama `reportAppCrash`. Props de `app_crashed`: `error` (nome do tipo, só `\w`, até 40) e `screen`. Erros fora da árvore React (promessas soltas, crash nativo) não são capturados;
+um serviço dedicado (ex.: Sentry) exigiria conta e DSN do responsável.
