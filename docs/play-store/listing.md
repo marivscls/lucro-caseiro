@@ -2,18 +2,22 @@
 
 Textos prontos pra colar em **Play Console → Main store listing** (Português Brasil).
 
+> Atualizado em 2026-09-23. A ficha publicada hoje usa o título "Lucro Caseiro: Gestão e Vendas"
+> e declara "Contém anúncios" e "Compras no app". Os textos abaixo são a nova versão proposta,
+> com as palavras que o público busca (vendas, fiado, precificação, confeitaria, marmita).
+
 ## Nome do app (max 30 caracteres)
 
 ```
-Lucro Caseiro: Gestao
+Lucro Caseiro: Vendas e Preço
 ```
 
-(21 caracteres — atualizar o titulo cadastrado na proxima revisao da ficha)
+(29 caracteres. Na tela do celular o nome aparece só como "Lucro Caseiro".)
 
 ## Descricao curta (max 80 caracteres)
 
 ```
-Precos, vendas, clientes e financeiro para organizar e fazer o negocio crescer.
+Controle de vendas, fiado e precificação para confeitaria, marmita e artesanato
 ```
 
 (79 caracteres)
@@ -31,6 +35,8 @@ Vendas, clientes, financeiro e precos. Tudo do seu negocio num so app.
 ## Descricao completa (max 4000 caracteres)
 
 ```
+Seu caderno de vendas no celular: anote cada venda e veja quanto sobrou de lucro. Controle de vendas, clientes, fiado e precificação para quem vende doces, bolos, marmitas, salgados, artesanato ou atende em casa (manicure, cabeleireira, costura). Grátis para começar, com vendas ilimitadas.
+
 Lucro Caseiro e o app de gestao para quem produz, vende ou presta servicos. Ele acompanha desde quem trabalha por conta propria ate negocios estruturados e em crescimento — sem complicacao tecnica e em poucos toques. Doces, marmitas, salgados, artesanato, beleza e costura sao alguns exemplos, nao limites.
 
 VENDAS
@@ -143,6 +149,13 @@ https://orionseven.com.br/apps/lucro-caseiro/privacidade
 
 ## Conteudo do app
 
-- **Anuncios**: NAO contem (decisao v1)
+- **Anuncios**: SIM, contem (banner do AdMob no plano gratuito; sem anuncio em tela cheia depois de registrar venda). Planos pagos nao mostram anuncios.
 - **Compras no app**: SIM (assinaturas Essencial e Profissional)
 - **App contem conteudo gerado pelo usuario**: NAO (clientes/produtos so sao visiveis pra propria conta)
+
+## Legendas das screenshots (2026-09-23)
+
+1. Anote a venda em poucos toques
+2. Descubra o preço certo do seu bolo
+3. Saiba quem está te devendo
+4. Veja quanto sobrou de lucro no mês
