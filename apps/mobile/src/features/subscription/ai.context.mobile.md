@@ -168,3 +168,9 @@ O Essencial inclui catálogo completo, personalização e galeria com até 3 fot
 - 2026-09-09: Plans combines tier and billing-period selection with the complete charge amount. The primary action skips the intermediate paywall and calls `useSubscription().subscribe` on Android or `useStripeCheckout().checkout` elsewhere. Existing provider verification, errors, profile refresh and Android restore are preserved. Monthly is the initial period; annual prices show the full yearly charge with a monthly equivalent and savings underneath.
 - 2026-09-23: Free plan sales are unlimited (`maxSalesPerMonth: null`), clients 50 and products 30. `LimitBanner`/`useLimitCheck("sales")` stay wired but never trigger for sales because the limit is `null`. Plans header and Essencial benefits no longer sell "vendas ilimitadas" as a paid perk.
 - 2026-09-23: Paywall shows the amount actually charged as the hero price ("R$ 299,00/ano" on annual, "/mês" on monthly); the monthly equivalent moved to the secondary line and the sticky footer caption.
+
+## Métricas de compra — 2026-09-23
+
+Planos emite `plan_chosen` ao continuar para o pagamento. `useSubscription` e `useStripeCheckout`
+emitem `purchase_result` (`success`, `failure` ou `cancel`) com provedor, plano e período;
+`purchaseErrorResult` classifica o erro do Google Play. Detalhes em `features/analytics`.

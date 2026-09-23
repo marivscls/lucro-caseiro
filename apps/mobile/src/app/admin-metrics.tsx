@@ -95,6 +95,11 @@ const ACTION_LABELS: Record<string, string> = {
   subscription_started: "Assinatura iniciada",
   subscription_completed: "Assinatura concluída",
   subscription_cancelled: "Assinatura cancelada",
+  business_profile_completed: "Perfil do negócio respondido",
+  business_profile_skipped: "Perfil do negócio pulado",
+  plan_chosen: "Plano escolhido",
+  purchase_result: "Resultado da compra",
+  ad_impression: "Anúncio exibido",
 };
 
 const FUNNEL_LABELS: Record<string, string> = {

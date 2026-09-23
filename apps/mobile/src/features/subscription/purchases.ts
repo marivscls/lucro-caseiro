@@ -75,3 +75,12 @@ export function isSyncablePaidPurchase(purchase: Purchase): boolean {
   if ("isSuspendedAndroid" in purchase && purchase.isSuspendedAndroid) return false;
   return resolvePaidProductId(purchase) !== null;
 }
+
+export type PurchaseResult = "success" | "failure" | "cancel";
+
+/** Cancelamento pela pessoa (react-native-iap usa `user-cancelled`; versões antigas, `E_USER_CANCELLED`). */
+export function purchaseErrorResult(error: unknown): Exclude<PurchaseResult, "success"> {
+  const code =
+    error && typeof error === "object" && "code" in error ? String(error.code) : "";
+  return /cancel/i.test(code) ? "cancel" : "failure";
+}

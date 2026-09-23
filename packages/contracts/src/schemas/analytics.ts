@@ -62,6 +62,11 @@ export const ANALYTICS_ACTION_NAMES = [
   "subscription_started",
   "subscription_completed",
   "subscription_cancelled",
+  "business_profile_completed",
+  "business_profile_skipped",
+  "plan_chosen",
+  "purchase_result",
+  "ad_impression",
   ...GUIDANCE_ACTION_NAMES,
   ...GUIDANCE_VALIDATION_ACTIONS,
 ] as const;

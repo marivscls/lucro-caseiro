@@ -29,6 +29,8 @@ conta autorizada pelo backend.
 - `use-screen-metrics.ts`: troca de rota, foreground/background e duração ativa.
 - `screen-tracking.ts`: allowlist de rotas e cálculo puro de duração.
 - `tracker.ts`: envio best effort de telas e ações.
+- `event-props.ts`: remove props que a API recusaria (vazio, espaço, chave inválida) e corta texto
+  longo, para não perder o lote inteiro.
 - `hooks.ts`: acesso administrativo e consulta do painel com React Query.
 - `app/admin-metrics.tsx`: painel visual interno.
 - `installation.test.ts`: persistência e formato do UUID.
@@ -127,3 +129,19 @@ API só o grava no primeiro registro. O painel mostra "Origem das instalações"
 (`currentAnalyticsScreen`), atualizada por `useScreenMetrics`. `useLimitCheck` envia
 `plan_limit_reached` com `resource` e `screen`; `usePaywall.show(resource, plan?, trigger?)` envia
 `paid_feature_requested` com `feature`, `trigger`, `screen` e `plan`.
+
+## Novos marcos — 2026-09-23
+
+| Ação                         | Onde                                                       | Props                                                        |
+| ---------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| `business_profile_completed` | `useBusinessOnboarding.save` com respostas                 | `first`, `segment`, `stage`, `goal`, `channels` (quantidade) |
+| `business_profile_skipped`   | `useBusinessOnboarding.save(null)`                         | `first`                                                      |
+| `plan_chosen`                | Planos → "Continuar para pagamento"                        | `plan`, `period`, `current`, `provider`                      |
+| `purchase_result`            | `useSubscription` (Google Play) e `useStripeCheckout`      | `result`, `provider`, `plan`, `period`                       |
+| `ad_impression`              | `AdBanner` nativo, primeiro `onAdLoaded` do banner montado | `size`, `screen`                                             |
+
+Os eventos só saem depois de sucesso confirmado (perfil salvo, anúncio carregado). No Google Play,
+`purchase_result` só vale para compras iniciadas na sessão: `success` após a verificação no backend,
+`cancel` para `user-cancelled`, `failure` para o resto. Na Stripe, `success` quando o plano pago
+aparece em até cerca de 15 s depois de fechar o checkout, `cancel` quando não aparece e `failure`
+quando o checkout não abre. Nome e nome do negócio nunca entram nas props.

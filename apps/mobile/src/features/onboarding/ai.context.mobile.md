@@ -76,3 +76,7 @@ Home preserva prioridade do BusinessProfileCard e perfil recente. Orientação g
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-09: transições do perfil usam 360 ms e deslocamento horizontal de 36 px, invertido ao voltar. O onboarding das outras marcas compartilha o mesmo padrão; dados e salvamento permanecem imediatos, com movimento reduzido respeitado.
+
+- 2026-09-23: salvar o perfil emite `business_profile_completed` (segmento, estágio, objetivo e
+  quantidade de canais) ou `business_profile_skipped`, com `first` indicando a primeira decisão.
+  Nome e nome do negócio não são enviados.

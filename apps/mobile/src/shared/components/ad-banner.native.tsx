@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 
+import { currentAnalyticsScreen } from "../../features/analytics/screen-tracking";
+import { trackAnalyticsAction } from "../../features/analytics/tracker";
 import { ensureAdsInitialized } from "../ads-init";
+import { useAuth } from "../hooks/use-auth";
 import { useShowAds } from "../hooks/use-show-ads";
 import type { AdBannerProps } from "./ad-banner.shared";
 export { AD_ITEM_MARKER, interleaveAds } from "./ad-banner.shared";
@@ -79,6 +82,18 @@ export function AdBanner({ style }: AdBannerProps) {
   const [adsReady, setAdsReady] = useState(false);
   const [adLoaded, setAdLoaded] = useState(false);
   const [adLoadFailed, setAdLoadFailed] = useState(false);
+  // Uma impressão por banner montado; as recargas automáticas do AdMob não contam de novo.
+  const impressionTracked = useRef(false);
+  function handleAdLoaded() {
+    setAdLoaded(true);
+    if (impressionTracked.current) return;
+    impressionTracked.current = true;
+    const screen = currentAnalyticsScreen();
+    void trackAnalyticsAction("ad_impression", useAuth.getState().token, {
+      size: "banner",
+      ...(screen ? { screen } : {}),
+    });
+  }
   useEffect(() => {
     if (__DEV__ || !showAds) return;
     let active = true;
@@ -118,7 +133,7 @@ export function AdBanner({ style }: AdBannerProps) {
       <BannerAd
         unitId={unitId}
         size={BannerAdSize.BANNER}
-        onAdLoaded={() => setAdLoaded(true)}
+        onAdLoaded={handleAdLoaded}
         onAdFailedToLoad={() => setAdLoadFailed(true)}
       />
     </View>

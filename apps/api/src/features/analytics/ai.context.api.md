@@ -183,3 +183,10 @@ substitui a lista por `analytics_events_event_name_format_check` (formato apenas
 - Uso atual: `plan_limit_reached` → `resource`, `screen`; `paid_feature_requested` → `feature`,
   `trigger` (`limit` ou `feature`), `screen`, `plan` recomendado.
 - O relatório ainda não agrega por `props`; a consulta ad hoc lê `props->>'chave'`.
+
+## Novos marcos — 2026-09-23
+
+Ações novas no contrato e em "Funcionalidades mais usadas": `business_profile_completed`,
+`business_profile_skipped`, `plan_chosen`, `purchase_result` (props `result` = `success`,
+`failure` ou `cancel`, `provider`, `plan`, `period`) e `ad_impression`. São emitidas pelo app; a
+API só valida e persiste.

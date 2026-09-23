@@ -19,6 +19,8 @@ import {
   ALL_PRODUCT_IDS,
   isSyncablePaidPurchase,
   productIdFor,
+  purchaseErrorResult,
+  type PurchaseResult,
   resolvePaidProductId,
 } from "./purchases";
 
@@ -27,7 +29,7 @@ const SUBSCRIPTION_LIMITS_KEY = ["subscription", "limits"] as const;
 
 type IapHookArgs = {
   onPurchaseSuccess: (purchase: Purchase) => void;
-  onPurchaseError: () => void;
+  onPurchaseError: (error?: unknown) => void;
 };
 
 type IapHookResult = {
@@ -111,6 +113,22 @@ export function useSubscription() {
   const { token, userId } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  // Compra iniciada nesta sessão; compras pendentes antigas não geram purchase_result.
+  const pendingPurchase = useRef<{ plan: PaidPlan; period: BillingPeriod } | null>(null);
+  const reportPurchase = useCallback(
+    (result: PurchaseResult) => {
+      const pending = pendingPurchase.current;
+      if (!pending) return;
+      pendingPurchase.current = null;
+      void trackAnalyticsAction("purchase_result", token, {
+        result,
+        provider: "google_play",
+        plan: pending.plan,
+        period: pending.period,
+      });
+    },
+    [token],
+  );
   const finishTransactionRef = useRef<
     ((args: { purchase: Purchase; isConsumable?: boolean }) => Promise<void>) | null
   >(null);
@@ -168,9 +186,15 @@ export function useSubscription() {
     getAvailablePurchases,
   } = useSafeIAP({
     onPurchaseSuccess: (purchase) => {
-      void verifyPurchase(purchase).finally(() => setLoading(false));
+      void verifyPurchase(purchase)
+        .then(
+          (verified) => reportPurchase(verified ? "success" : "failure"),
+          () => reportPurchase("failure"),
+        )
+        .finally(() => setLoading(false));
     },
-    onPurchaseError: () => {
+    onPurchaseError: (error) => {
+      reportPurchase(purchaseErrorResult(error));
       setLoading(false);
     },
   });
@@ -231,6 +255,7 @@ export function useSubscription() {
       }
 
       setLoading(true);
+      pendingPurchase.current = { plan: tier, period };
       try {
         await requestPurchase({
           type: "subs",
@@ -244,11 +269,12 @@ export function useSubscription() {
         });
         void trackAnalyticsAction("subscription_started", token);
       } catch {
+        reportPurchase("failure");
         setLoading(false);
         alertError("Não foi possível iniciar a compra. Tente novamente.");
       }
     },
-    [connected, requestPurchase, subscriptions, token, userId],
+    [connected, reportPurchase, requestPurchase, subscriptions, token, userId],
   );
 
   const restore = useCallback(async () => {

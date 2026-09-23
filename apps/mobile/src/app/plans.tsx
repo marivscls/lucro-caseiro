@@ -17,7 +17,9 @@ import { tierBenefitsFor } from "../features/subscription/plan-benefits";
 import { businessCopyFor } from "../features/subscription/business-copy";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
+import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
+import { useAuth } from "../shared/hooks/use-auth";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import {
@@ -100,6 +102,12 @@ export default function PlansScreen() {
 
   function continueToPayment() {
     if (checkoutLoading || !isUpgrade) return;
+    void trackAnalyticsAction("plan_chosen", useAuth.getState().token, {
+      plan: selectedPlan,
+      period,
+      current,
+      provider: Platform.OS === "android" ? "google_play" : "stripe",
+    });
     if (Platform.OS === "android") {
       void subscribe(selectedPlan, period);
     } else {

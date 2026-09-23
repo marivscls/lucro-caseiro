@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { supabase } from "../../shared/utils/supabase";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import { useProfile, useUpdateProfile } from "../subscription/hooks";
 import {
   profileAnswers,
@@ -41,6 +42,7 @@ export function useBusinessOnboarding() {
   async function save(value: BusinessProfileAnswers | null) {
     if (lock.current || !userId) return false;
     lock.current = true;
+    const firstDecision = !query.data;
     setSaving(true);
     setError(null);
     try {
@@ -59,6 +61,20 @@ export function useBusinessOnboarding() {
         completedUserIds: [...new Set([...state.completedUserIds, userId])],
         pendingUserIds: state.pendingUserIds.filter((id) => id !== userId),
       }));
+      // Só identificadores das opções escolhidas; nome e negócio nunca vão para a coleta.
+      void trackAnalyticsAction(
+        value ? "business_profile_completed" : "business_profile_skipped",
+        useAuth.getState().token ?? null,
+        value
+          ? {
+              first: firstDecision,
+              segment: value.segment,
+              stage: value.stage,
+              goal: value.goal,
+              channels: value.channels.length,
+            }
+          : { first: firstDecision },
+      );
       return true;
     } catch {
       setError(

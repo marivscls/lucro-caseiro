@@ -8,6 +8,7 @@ import type {
 } from "@lucro-caseiro/contracts";
 
 import { recordProductAnalyticsEvents } from "./api";
+import { sanitizeEventProps } from "./event-props";
 import { getOrCreateInstallationId } from "./installation";
 import { appMetadata } from "./metadata";
 
@@ -55,8 +56,9 @@ export function trackAnalyticsAction(
       })
       .catch(() => undefined);
   }
+  const clean = sanitizeEventProps(props);
   return trackAnalyticsEvent(
-    props ? { type: "action", name, props } : { type: "action", name },
+    clean ? { type: "action", name, props: clean } : { type: "action", name },
     token,
   );
 }

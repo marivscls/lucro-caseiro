@@ -125,7 +125,12 @@ export const ANALYTICS_DASHBOARD_QUERY = `
       ('paid_feature_requested'),
       ('subscription_started'),
       ('subscription_completed'),
-      ('subscription_cancelled')
+      ('subscription_cancelled'),
+      ('business_profile_completed'),
+      ('business_profile_skipped'),
+      ('plan_chosen'),
+      ('purchase_result'),
+      ('ad_impression')
   ),
   action_counts AS (
     SELECT
