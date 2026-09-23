@@ -1,3 +1,5 @@
+// Primeiro import: no modo demonstração trata `?reset=1` antes das stores.
+import "../shared/mock/boot";
 import { Manrope_400Regular } from "@expo-google-fonts/manrope/400Regular";
 import { Manrope_500Medium } from "@expo-google-fonts/manrope/500Medium";
 import { Manrope_600SemiBold } from "@expo-google-fonts/manrope/600SemiBold";
