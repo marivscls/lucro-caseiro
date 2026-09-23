@@ -53,9 +53,9 @@ export function ResponsiveModalSurface({
     // Android usa softwareKeyboardLayoutMode=resize: a janela já encolhe com o
     // teclado. Somar KeyboardAvoidingView "height" + marginBottom do teclado
     // empurrava o sheet para o topo e escondia o formulário.
-    const shellStyle = {
+    const shellStyle: ViewStyle = {
       flex: 1,
-      justifyContent: isDesktop ? "center" : ("flex-end" as const),
+      justifyContent: isDesktop ? "center" : "flex-end",
       ...hugModalSafeAreaStyle(isDesktop, insets.bottom),
       backgroundColor: theme.colors.overlay,
     };
