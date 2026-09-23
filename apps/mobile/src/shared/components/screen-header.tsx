@@ -119,22 +119,25 @@ export function ScreenHeader({
         </Pressable>
       ) : null}
       <View style={{ flex: 1, minWidth: 0 }}>
+        {/* Desktop: mesma escala do Início (título 36px, subtítulo 17px). */}
         <Typography
-          variant="screenTitle"
+          variant={isDesktop ? "desktopPageTitle" : "screenTitle"}
+          accessibilityRole={isDesktop ? "header" : undefined}
           color={theme.colors.text}
-          style={[
-            titleStyle,
-            isDesktop ? { fontSize: 20, lineHeight: 26, letterSpacing: -0.2 } : undefined,
-          ]}
+          style={isDesktop ? undefined : titleStyle}
         >
           {title}
         </Typography>
         {subtitle && !subtitleBelow ? (
           <Typography
-            variant="caption"
+            variant={isDesktop ? "desktopPageSubtitle" : "caption"}
             numberOfLines={subtitleNumberOfLines}
             ellipsizeMode="tail"
-            style={[subtitleStyle, { fontSize: 13, lineHeight: 18, marginTop: 2 }]}
+            style={
+              isDesktop
+                ? { marginTop: spacing.xs, maxWidth: 720 }
+                : [subtitleStyle, { fontSize: 13, lineHeight: 18, marginTop: 2 }]
+            }
           >
             {subtitle}
           </Typography>
