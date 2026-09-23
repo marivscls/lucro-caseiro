@@ -7,6 +7,7 @@ import { fonts, fontSizes, homeTypography, moneyTypography } from "../theme";
 type TypographyVariant =
   | "display"
   | "screenTitle"
+  | "wordmark"
   | "h1"
   | "h2"
   | "h3"
@@ -62,6 +63,14 @@ export function Typography({
       lineHeight: 34,
       color: theme.colors.text,
       letterSpacing: -0.5,
+    },
+    // Nome da marca no lockup com o logo: caixa normal e peso alto leem como marca.
+    wordmark: {
+      fontSize: 20,
+      fontFamily: fonts.brand,
+      lineHeight: 24,
+      color: theme.colors.primaryStrong,
+      letterSpacing: -0.4,
     },
     screenTitle: {
       fontSize: 18,

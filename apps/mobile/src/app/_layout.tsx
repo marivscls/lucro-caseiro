@@ -15,6 +15,7 @@ import {
 import { getActiveBrand } from "@lucro-caseiro/brands";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { useFonts } from "expo-font";
+import plusJakartaSansExtraBold from "../assets/fonts/PlusJakartaSans-ExtraBold.ttf";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -522,6 +523,7 @@ export default function RootLayout() {
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,
+    PlusJakartaSans_800ExtraBold: plusJakartaSansExtraBold,
   });
 
   // Preferencias ou fontes indisponiveis nao podem manter o app inteiro em

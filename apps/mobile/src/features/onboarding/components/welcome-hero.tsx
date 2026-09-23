@@ -71,13 +71,7 @@ export function WelcomeHero({
           borderColor: theme.colors.border,
         }}
       />
-      <Typography
-        variant="captionBold"
-        color={theme.colors.primaryStrong}
-        style={{ letterSpacing: 1.6, textTransform: "uppercase" }}
-      >
-        {brandName}
-      </Typography>
+      <Typography variant="wordmark">{brandName}</Typography>
     </View>
   );
 

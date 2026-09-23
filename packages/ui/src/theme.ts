@@ -147,6 +147,8 @@ export const fonts = {
   semiBold: "Manrope_600SemiBold",
   bold: "Manrope_700Bold",
   extraBold: "Manrope_800ExtraBold",
+  /** Só no nome da marca ao lado do logo (Plus Jakarta Sans, OFL). */
+  brand: "PlusJakartaSans_800ExtraBold",
 } as const;
 
 /** Escala semantica da Home. Mantem os ajustes locais sem reduzir o app inteiro. */

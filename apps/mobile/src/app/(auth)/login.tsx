@@ -206,13 +206,7 @@ export default function LoginScreen() {
                 borderColor: controlBorder,
               }}
             />
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.primaryStrong}
-              style={{ letterSpacing: 1.8, textTransform: "uppercase" }}
-            >
-              {brandName}
-            </Typography>
+            <Typography variant="wordmark">{brandName}</Typography>
           </View>
 
           <View style={{ alignItems: "center", gap: spacing.sm }}>
