@@ -28,14 +28,17 @@ describe("paleta do Lucro Caseiro", () => {
 });
 
 describe("tipografia do app", () => {
-  it("usa apenas pesos da Manrope no design system", () => {
-    expect(Object.values(fonts)).toEqual([
+  it("usa apenas pesos da Manrope nos textos do design system", () => {
+    const { brand, ...textFonts } = fonts;
+
+    expect(Object.values(textFonts)).toEqual([
       "Manrope_400Regular",
       "Manrope_500Medium",
       "Manrope_600SemiBold",
       "Manrope_700Bold",
       "Manrope_800ExtraBold",
     ]);
+    expect(brand).toBe("PlusJakartaSans_800ExtraBold");
   });
 
   it("mantem a escala semantica compacta da Home", () => {
