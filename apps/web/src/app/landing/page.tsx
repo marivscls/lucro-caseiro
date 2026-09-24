@@ -3,7 +3,12 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 
 import { LandingPage, landingFaqs } from "@/features/landing/landing-page";
-import { PLAY_STORE_URL, PWA_URL, SITE_URL } from "@/features/landing/site-constants";
+import {
+  PLAY_STORE_URL,
+  PWA_URL,
+  SITE_URL,
+  SOCIAL_LINKS,
+} from "@/features/landing/site-constants";
 import { PLAN_PRICING } from "@lucro-caseiro/contracts";
 
 export const metadata: Metadata = publicMetadata({
@@ -83,6 +88,7 @@ export default async function Page() {
               url: SITE_URL,
               logo: `${SITE_URL}/landing/logo.png`,
               email: "contato@orionseven.com.br",
+              sameAs: SOCIAL_LINKS.map((social) => social.url),
             },
           ]),
         }}

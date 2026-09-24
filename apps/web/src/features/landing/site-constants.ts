@@ -42,8 +42,9 @@ export function pwaUrl(content: string): string {
 export const WHATSAPP_URL: string | null = null;
 
 /** Perfis oficiais. Só entram no rodapé quando o endereço for preenchido. */
-export const SOCIAL_LINKS: readonly { readonly name: string; readonly url: string }[] =
-  [];
+export const SOCIAL_LINKS: readonly { readonly name: string; readonly url: string }[] = [
+  { name: "Instagram", url: "https://www.instagram.com/lucrocaseiro.app/" },
+];
 
 export const PUBLIC_PATHS = [
   "/",
