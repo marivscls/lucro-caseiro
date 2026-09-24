@@ -67,8 +67,8 @@ aprovado em encomenda na agenda (com sinal opcional).
 
 ## Error Handling
 
-- Validações locais com Alert ("Opa!") antes do submit; erros da API mostram a
-  mensagem do backend.
+- Validações locais aparecem no campo (`useFormValidation`), etapa por etapa, no
+  formulário e na conversão em encomenda; erros da API mostram a mensagem do backend.
 - Sucessos usam toast global.
 
 ## Performance

@@ -5,11 +5,25 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("@lucro-caseiro/ui", async (original) => ({
   ...(await original<object>()),
   Typography: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  fontSizes: { sm: 14, md: 16 },
+  fonts: { regular: "System", semiBold: "System", bold: "System" },
   Button: ({ title, onPress }: { title: string; onPress: () => void }) => (
     <button onClick={onPress}>{title}</button>
   ),
-  Chip: ({ label, onPress }: { label: string; onPress: () => void }) => (
-    <button onClick={onPress}>{label}</button>
+  CenteredTextInput: ({
+    accessibilityLabel,
+    value,
+    onChangeText,
+  }: {
+    accessibilityLabel?: string;
+    value: string;
+    onChangeText: (value: string) => void;
+  }) => (
+    <input
+      aria-label={accessibilityLabel}
+      value={value}
+      onChange={(event) => onChangeText(event.target.value)}
+    />
   ),
   Input: ({
     label,
@@ -46,6 +60,9 @@ vi.mock("../../../shared/components/standard-modal", () => ({
 vi.mock("../../../shared/components/form-step-progress", () => ({
   FormStepProgress: () => null,
 }));
+vi.mock("../../../shared/components/form-section", () => ({
+  FormSection: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 vi.mock("../../../shared/layout/use-desktop-layout", () => ({
   useDesktopLayout: () => false,
 }));
@@ -68,15 +85,17 @@ describe("avanço do orçamento", () => {
   it("não avança com quantidade vazia", () => {
     render(<QuoteForm visible onClose={() => {}} />);
 
-    fireEvent.change(screen.getByLabelText("Título"), {
+    fireEvent.change(screen.getByLabelText("Título do orçamento"), {
       target: { value: "Kit festa" },
     });
     fireEvent.click(screen.getByText("Continuar"));
-    fireEvent.change(screen.getByLabelText("Item 1, ex.: Convite personalizado"), {
+    fireEvent.change(screen.getByLabelText("Descrição do item 1"), {
       target: { value: "Convites" },
     });
-    fireEvent.change(screen.getByLabelText("Qtd."), { target: { value: "" } });
-    fireEvent.change(screen.getByLabelText("Preço un."), {
+    fireEvent.change(screen.getByLabelText("Quantidade do item 1"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByLabelText("Preço unitário do item 1, em reais"), {
       target: { value: "1000" },
     });
     fireEvent.click(screen.getByText("Continuar"));

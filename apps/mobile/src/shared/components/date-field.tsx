@@ -8,6 +8,9 @@ import { CalendarModal } from "./calendar-modal";
 
 interface DateFieldProps {
   label: string;
+  /** Mostra "(opcional)" discreto ao lado do rótulo. */
+  optional?: boolean;
+  hint?: string;
   value: string;
   onChange: (br: string) => void;
   placeholder?: string;
@@ -16,6 +19,8 @@ interface DateFieldProps {
 
 export function DateField({
   label,
+  optional,
+  hint,
   value,
   onChange,
   placeholder = "DD/MM/AAAA",
@@ -28,6 +33,8 @@ export function DateField({
     <>
       <Input
         label={label}
+        optional={optional}
+        hint={hint}
         placeholder={placeholder}
         value={value}
         onChangeText={(v) => onChange(maskDateBR(v))}
