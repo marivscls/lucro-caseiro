@@ -10,6 +10,8 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { DesktopTag } from "../../../shared/layout/desktop-kit";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import React, { useState } from "react";
 import { Image, View } from "react-native";
 
@@ -94,6 +96,7 @@ export function SaleDetail({
     }
   }
 
+  const isDesktop = useDesktopLayout();
   const status = STATUS_MAP[sale.status] ?? {
     label: sale.status,
     variant: "neutral" as const,
@@ -161,7 +164,11 @@ export function SaleDetail({
           }}
         >
           <Typography variant="caption">Total da venda</Typography>
-          <Badge label={status.label} variant={status.variant} />
+          {isDesktop ? (
+            <DesktopTag label={status.label} variant={status.variant} strong />
+          ) : (
+            <Badge label={status.label} variant={status.variant} />
+          )}
         </View>
         <Typography variant="moneyHero" color={theme.colors.text}>
           {formatCurrency(sale.total)}

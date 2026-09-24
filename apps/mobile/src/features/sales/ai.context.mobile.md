@@ -271,3 +271,5 @@ A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida n
   importam o kit pelas rotas em `app/`, não pelas suas features.
 - O espaço entre o cabeçalho (ou a faixa de orientação) e o conteúdo vem do
   `ScreenHeader`/`ScreenGuidance` compartilhados (32px); as telas não medem o cabeçalho.
+- Detalhe da venda (modal) no desktop: situação em `DesktopTag` de 14 px no lugar do
+  `Badge` de 12 px.
