@@ -89,6 +89,7 @@ import {
 } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
+import { ChipChoiceField } from "../../shared/components/form-field";
 import { FormActions, FormBody } from "../../shared/components/form-layout";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
 import { formatCurrency } from "../../shared/utils/format";
@@ -477,43 +478,17 @@ function OptionsModal<T extends string>({
   onSelect: (value: T) => void;
   onClose: () => void;
 }>) {
-  const pal = useBrandScreenPalette();
-
   return (
     <StandardModal visible={visible} onClose={onClose} title={title}>
-      <View style={{ gap: spacing.sm }}>
-        {options.map((option) => {
-          const active = option.key === selected;
-          return (
-            <Pressable
-              key={option.key}
-              onPress={() => {
-                onSelect(option.key);
-                onClose();
-              }}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={({ pressed }) => ({
-                minHeight: 52,
-                paddingHorizontal: spacing.lg,
-                borderRadius: radii.xl,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                backgroundColor: active ? pal.softRose : pal.white,
-                borderWidth: 1,
-                borderColor: active ? pal.rose : pal.border,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Typography variant="bodyBold" color={active ? pal.wine : pal.muted}>
-                {option.label}
-              </Typography>
-              {active ? <AppIcon name="checkmark" size={20} color={pal.rose} /> : null}
-            </Pressable>
-          );
-        })}
-      </View>
+      <ChipChoiceField
+        accessibilityLabel={title}
+        value={selected}
+        options={options.map((option) => ({ value: option.key, label: option.label }))}
+        onChange={(value) => {
+          onSelect(value);
+          onClose();
+        }}
+      />
     </StandardModal>
   );
 }

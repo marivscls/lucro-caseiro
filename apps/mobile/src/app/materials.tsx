@@ -42,6 +42,8 @@ import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
+import { ChipChoiceField, ChoiceField, FormField } from "../shared/components/form-field";
+import { FormActions, FormBody } from "../shared/components/form-layout";
 import { displayIngredientName } from "../shared/ingredient-image/resolve";
 import {
   desktopStretch,
@@ -53,6 +55,15 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 type StockFilter = "all" | "low" | "attention";
+
+const STOCK_FILTER_OPTIONS: ReadonlyArray<{ value: StockFilter; label: string }> = [
+  { value: "all", label: "Todos" },
+  { value: "low", label: "Estoque baixo" },
+  { value: "attention", label: "Atenção" },
+];
+
+/** Valor da opção "Todas as categorias" (a categoria vazia é `null`). */
+const ALL_CATEGORIES = "__all__";
 type SortOption = "name" | "stock" | "proximity" | "value";
 
 const SORT_OPTIONS: ReadonlyArray<{ key: SortOption; label: string }> = [
@@ -408,43 +419,6 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
         </View>
       )}
       <AppIcon name="chevron-forward" size={20} color={palette.wine} />
-    </Pressable>
-  );
-}
-
-function ModalChoice({
-  label,
-  selected,
-  onPress,
-}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
-  const { theme } = useTheme();
-  const palette = brandScreenPalette(theme);
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
-      style={({ pressed }) => ({
-        minHeight: 48,
-        borderRadius: radii.md,
-        borderWidth: 1,
-        borderColor: selected ? palette.rose : palette.border,
-        backgroundColor: selected ? palette.softRose : palette.white,
-        paddingHorizontal: spacing.lg,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
-        opacity: pressed ? 0.72 : 1,
-      })}
-    >
-      <AppIcon
-        name={selected ? "radio-button-on" : "radio-button-off"}
-        size={20}
-        color={selected ? palette.rose : palette.muted}
-      />
-      <Typography variant="body" color={palette.ink} style={{ flex: 1 }}>
-        {label}
-      </Typography>
     </Pressable>
   );
 }
@@ -991,17 +965,18 @@ function MaterialsScreenContent() {
         onClose={() => setShowSort(false)}
         title="Ordenar materiais"
       >
-        {SORT_OPTIONS.map((option) => (
-          <ModalChoice
-            key={option.key}
-            label={option.label}
-            selected={sort === option.key}
-            onPress={() => {
-              setSort(option.key);
-              setShowSort(false);
-            }}
-          />
-        ))}
+        <ChipChoiceField
+          accessibilityLabel="Ordenar materiais"
+          value={sort}
+          options={SORT_OPTIONS.map((option) => ({
+            value: option.key,
+            label: option.label,
+          }))}
+          onChange={(value) => {
+            setSort(value);
+            setShowSort(false);
+          }}
+        />
       </StandardModal>
 
       <StandardModal
@@ -1009,53 +984,33 @@ function MaterialsScreenContent() {
         onClose={() => setShowFilters(false)}
         title="Filtrar estoque"
         footer={
-          <Button
-            title="Limpar filtros"
-            variant="secondary"
-            onPress={clearFilters}
-            style={{ flex: 1 }}
-          />
+          <FormActions>
+            <Button title="Limpar filtros" variant="outline" onPress={clearFilters} />
+            <Button title="Ver resultados" onPress={() => setShowFilters(false)} />
+          </FormActions>
         }
       >
-        <Typography variant="bodyBold" color={palette.ink}>
-          Estado do estoque
-        </Typography>
-        <ModalChoice
-          label="Todos"
-          selected={stockFilter === "all"}
-          onPress={() => setStockFilter("all")}
-        />
-        <ModalChoice
-          label="Estoque baixo"
-          selected={stockFilter === "low"}
-          onPress={() => setStockFilter("low")}
-        />
-        <ModalChoice
-          label="Atenção"
-          selected={stockFilter === "attention"}
-          onPress={() => setStockFilter("attention")}
-        />
-        <Typography
-          variant="bodyBold"
-          color={palette.ink}
-          style={{ marginTop: spacing.sm }}
-        >
-          Categoria
-        </Typography>
-        <ModalChoice
-          label="Todas as categorias"
-          selected={category == null}
-          onPress={() => setCategory(null)}
-        />
-        {categories.map((option) => (
-          <ModalChoice
-            key={option}
-            label={option}
-            selected={category === option}
-            onPress={() => setCategory(option)}
-          />
-        ))}
-        <Button title="Ver resultados" onPress={() => setShowFilters(false)} />
+        <FormBody>
+          <FormField label="Estado do estoque">
+            <ChoiceField
+              accessibilityLabel="Estado do estoque"
+              value={stockFilter}
+              options={STOCK_FILTER_OPTIONS}
+              onChange={setStockFilter}
+            />
+          </FormField>
+          <FormField label="Categoria">
+            <ChipChoiceField
+              accessibilityLabel="Categoria"
+              value={category ?? ALL_CATEGORIES}
+              options={[
+                { value: ALL_CATEGORIES, label: "Todas as categorias" },
+                ...categories.map((option) => ({ value: option, label: option })),
+              ]}
+              onChange={(value) => setCategory(value === ALL_CATEGORIES ? null : value)}
+            />
+          </FormField>
+        </FormBody>
       </StandardModal>
     </SafeAreaView>
   );
