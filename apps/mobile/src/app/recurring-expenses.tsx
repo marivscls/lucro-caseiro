@@ -1,4 +1,3 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { ScreenGuidance } from "../shared/guidance/screen-guidance";
@@ -8,7 +7,6 @@ import {
   Button,
   EmptyState,
   iconSizes,
-  Input,
   radii,
   spacing,
   Typography,
@@ -50,6 +48,8 @@ import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
+import { FormField, TextField, useFieldPalette } from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { desktopStretch, pageGutter } from "../shared/layout/desktop-density";
@@ -70,7 +70,7 @@ import {
   type RecurringDesktopRow,
 } from "../features/finance/components/recurring-expenses-desktop";
 import { ApiError } from "../shared/utils/api-client";
-import { alertError, alertValidation } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 import { formatCurrency } from "../shared/utils/format";
 
@@ -665,6 +665,61 @@ function ExpenseRow({
   );
 }
 
+/**
+ * Escolha única com mais de 4 opções: chips no mesmo visual das categorias do
+ * cadastro de produto (44 px, borda do campo, selecionado em vinho).
+ */
+function CategoryChips({
+  value,
+  options,
+  onChange,
+}: Readonly<{
+  value: ExpenseCategory;
+  options: readonly { key: ExpenseCategory; label: string }[];
+  onChange: (value: ExpenseCategory) => void;
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel="Categoria do gasto"
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {options.map((option) => {
+        const selected = option.key === value;
+        return (
+          <Pressable
+            key={option.key}
+            onPress={() => onChange(option.key)}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected, checked: selected }}
+            aria-checked={selected}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: spacing.lg,
+              justifyContent: "center",
+              borderRadius: radii.full,
+              borderWidth: selected ? 2 : 1,
+              borderColor: selected ? theme.colors.primaryStrong : pal.border,
+              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant="body"
+              color={selected ? theme.colors.primaryStrong : theme.colors.text}
+            >
+              {option.label}
+            </Typography>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function RecurringFormModal({
   item,
   onClose,
@@ -678,7 +733,7 @@ function RecurringFormModal({
 }>) {
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
-  const { theme, styles, palette } = useRecurringTheme();
+  const { styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
@@ -713,19 +768,6 @@ function RecurringFormModal({
     if (isSaving) return;
 
     const parsedAmount = parseCurrencyInput(amount);
-
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      alertValidation("Informe um valor maior que zero.");
-      return;
-    }
-    if (!description.trim()) {
-      alertValidation("Adicione uma descrição (ex.: Aluguel).");
-      return;
-    }
-    if (!validDay) {
-      alertValidation("O dia deve estar entre 1 e 28.");
-      return;
-    }
 
     try {
       const payload = {
@@ -766,6 +808,7 @@ function RecurringFormModal({
       visible
       onClose={onClose}
       dismissDisabled={isSaving}
+      size="form"
       title={isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
       subtitle={
         isEditing
@@ -773,99 +816,63 @@ function RecurringFormModal({
           : "Cadastre uma vez. O caixa lança todo mês."
       }
       footer={
-        <Button
-          disabled={isSaving}
-          loading={isSaving}
-          onPress={() => void handleSave()}
-          size="lg"
-          style={styles.saveAction}
-          title={isEditing ? "Salvar alterações" : "Salvar gasto"}
-          icon={<AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />}
-        />
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            disabled={isSaving}
+            onPress={onClose}
+          />
+          <Button
+            loading={isSaving}
+            onPress={() => void handleSave()}
+            title={isEditing ? "Salvar alterações" : "Salvar gasto fixo"}
+          />
+        </FormActions>
       }
     >
-      <View style={{ gap: spacing.lg }}>
-        <ValidationField {...formValidation.field("description")}>
-          <Input
-            accessibilityLabel="Descrição"
-            autoCapitalize="sentences"
+      <FormBody>
+        <FormGrid>
+          <FormField
             label="Descrição"
-            maxLength={120}
-            onChangeText={setDescription}
-            placeholder="Ex.: Aluguel da cozinha"
-            returnKeyType="next"
-            style={styles.formInput}
-            value={description}
-          />
-        </ValidationField>
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
-          <ValidationField {...formValidation.field("amount")} style={{ flex: 1.3 }}>
-            <Input
+            validation={formValidation.field("description")}
+            span="full"
+          >
+            <TextField
+              accessibilityLabel="Descrição"
+              autoCapitalize="sentences"
+              maxLength={120}
+              onChangeText={setDescription}
+              placeholder="Ex.: Aluguel da cozinha"
+              returnKeyType="next"
+              value={description}
+            />
+          </FormField>
+          <FormField label="Valor mensal" validation={formValidation.field("amount")}>
+            <TextField
+              prefix="R$"
               accessibilityLabel="Valor em reais"
               keyboardType="decimal-pad"
-              label="Valor mensal (R$)"
               onChangeText={(value) => setAmount(maskCurrencyInput(value))}
               placeholder="0,00"
-              style={styles.formInput}
               value={amount}
             />
-          </ValidationField>
-          <ValidationField {...formValidation.field("day")} style={{ flex: 1 }}>
-            <Input
+          </FormField>
+          <FormField label="Dia do mês" validation={formValidation.field("day")}>
+            <TextField
+              icon="calendar-outline"
               accessibilityLabel="Dia do mês, de 1 a 28"
-              label="Dia do mês"
               keyboardType="number-pad"
               maxLength={2}
               onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
               placeholder="De 1 a 28"
-              style={styles.formInput}
               value={day}
             />
-          </ValidationField>
-        </View>
-        <View style={styles.fieldBlock}>
-          <Typography variant="captionBold" color={palette.ink}>
-            Categoria
-          </Typography>
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel="Categoria do gasto"
-            style={styles.categoryGrid}
-          >
-            {categories.map((categoryOption) => {
-              const selected = categoryOption.key === category;
-              return (
-                <Pressable
-                  key={categoryOption.key}
-                  accessibilityLabel={categoryOption.label}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: selected }}
-                  aria-checked={selected}
-                  onPress={() => setCategory(categoryOption.key)}
-                  style={({ pressed }) => [
-                    styles.categoryOption,
-                    selected && styles.categoryOptionSelected,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppIcon
-                    name={selected ? "checkmark-circle" : categoryOption.icon}
-                    size={20}
-                    color={selected ? palette.wine : palette.warmGray}
-                    strokeWidth={selected ? 2 : 1.5}
-                  />
-                  <Typography
-                    variant={selected ? "captionBold" : "caption"}
-                    color={selected ? palette.wine : palette.ink}
-                    style={{ flex: 1 }}
-                  >
-                    {categoryOption.label}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+          </FormField>
+          <FormField label="Categoria" span="full">
+            <CategoryChips value={category} options={categories} onChange={setCategory} />
+          </FormField>
+        </FormGrid>
         <View style={styles.recurrenceNotice}>
           <AppIcon name="repeat-outline" size={20} color={palette.wine} />
           <View style={{ flex: 1, gap: spacing.xs }}>
@@ -879,7 +886,7 @@ function RecurringFormModal({
             </Typography>
           </View>
         </View>
-      </View>
+      </FormBody>
     </StandardModal>
   );
 }
@@ -1068,31 +1075,6 @@ function createStyles(theme: Theme) {
   const palette = brandScreenPalette(theme);
 
   return StyleSheet.create({
-    categoryGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.sm,
-    },
-    categoryOption: {
-      alignItems: "center",
-      backgroundColor: palette.white,
-      borderColor: palette.border,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      flexBasis: "46%",
-      flexGrow: 1,
-      flexDirection: "row",
-      gap: spacing.sm,
-      justifyContent: "flex-start",
-      minHeight: 48,
-      minWidth: 0,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-    },
-    categoryOptionSelected: {
-      backgroundColor: palette.softRose,
-      borderColor: palette.wine,
-    },
     commitmentBlob: {
       backgroundColor: theme.colors.primaryBg,
       borderRadius: radii.full,
@@ -1247,13 +1229,6 @@ function createStyles(theme: Theme) {
     },
     expenseRowSelected: {
       backgroundColor: palette.neutral,
-    },
-    fieldBlock: {
-      gap: spacing.sm,
-    },
-    formInput: {
-      height: 48,
-      minWidth: 0,
     },
     gateBadge: {
       alignItems: "center",
