@@ -55,6 +55,7 @@ import {
   TextField,
   fieldMetrics,
   OptionChip,
+  ChipRow,
 } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { FormSection } from "../shared/components/form-section";
@@ -1234,9 +1235,7 @@ export default function OperationsScreen() {
                   validation={formValidation.field("referenceId")}
                 >
                   {references.length ? (
-                    <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                    >
+                    <ChipRow accessibilityLabel="Vincular a">
                       {references.map((item) => (
                         <OptionChip
                           key={item.id}
@@ -1245,7 +1244,7 @@ export default function OperationsScreen() {
                           onPress={() => setReferenceId(item.id)}
                         />
                       ))}
-                    </View>
+                    </ChipRow>
                   ) : (
                     <Typography variant="caption" color={theme.colors.textSecondary}>
                       Cadastre primeiro o registro necessário para este vínculo.
@@ -1388,7 +1387,7 @@ export default function OperationsScreen() {
               label="Produto"
               validation={serialValidation.field("serialProductId")}
             >
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              <ChipRow accessibilityLabel="Produto">
                 {(products.data ?? []).map((product) => (
                   <OptionChip
                     key={product.id}
@@ -1397,7 +1396,7 @@ export default function OperationsScreen() {
                     onPress={() => setSerialProductId(product.id)}
                   />
                 ))}
-              </View>
+              </ChipRow>
             </FormField>
             <FormGrid>
               <FormField

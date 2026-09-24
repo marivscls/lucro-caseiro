@@ -18,6 +18,8 @@ import {
 import { useRouter } from "expo-router";
 import { AppIcon } from "../components/app-icon";
 import { StandardModal } from "../components/standard-modal";
+import { FormActions } from "../components/form-layout";
+import { FormSection } from "../components/form-section";
 import { useAuth } from "../hooks/use-auth";
 import { guidanceContent } from "./guidance-content";
 import {
@@ -331,20 +333,14 @@ export function ScreenGuidance({
         title={content.helpTitle}
         scrollRef={helpScroll}
         footer={
-          <View
-            style={{
-              flex: 1,
-              alignItems: isDesktop ? "flex-end" : "center",
-            }}
-          >
+          <FormActions>
             <Button
               title={actionLabel ?? content.action}
               onPress={() => start()}
-              size="lg"
               fitTitle={false}
               titleLines={2}
             />
-          </View>
+          </FormActions>
         }
       >
         <Typography variant="h3">{title ?? content.title}</Typography>
@@ -354,20 +350,18 @@ export function ScreenGuidance({
             {index + 1}. {step}
           </Typography>
         ))}
-        <Typography variant="bodyBold">Depois de concluir</Typography>
-        <Typography variant="body">{content.next}</Typography>
-        <Pressable
-          accessibilityRole="button"
+        <FormSection collapsible={false} title="Depois de concluir">
+          <Typography variant="body">{content.next}</Typography>
+        </FormSection>
+        <Button
+          title="Ainda preciso de ajuda"
+          variant="text"
+          style={{ alignSelf: "flex-start" }}
           onPress={() => {
             setHelpFor(null);
             router.push("/support");
           }}
-          style={{ minHeight: 48, justifyContent: "center" }}
-        >
-          <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-            Ainda preciso de ajuda
-          </Typography>
-        </Pressable>
+        />
       </StandardModal>
     </>
   );
