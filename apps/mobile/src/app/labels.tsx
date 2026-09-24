@@ -1,14 +1,11 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { hasActiveFeature, type Label, type LabelData } from "@lucro-caseiro/contracts";
 import {
   CenteredTextInput,
-  Badge,
   Button,
   EmptyState,
   fonts,
   fontSizes,
-  Input,
   radii,
   spacing,
   Typography,
@@ -17,25 +14,21 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  Switch,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogProductUrl } from "../features/catalog/api";
 import { useCatalogSettings } from "../features/catalog/hooks";
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
 import { LabelCard } from "../features/labels/components/label-card";
-import { LabelLayoutEditor } from "../features/labels/components/label-layout-editor";
+import {
+  LabelBrandFields,
+  LabelContentFields,
+  LabelFormFrame,
+  LabelPreviewPanel,
+  LabelProductFields,
+} from "../features/labels/components/label-form-fields";
 import { LabelPreview } from "../features/labels/components/label-preview";
-import { LabelProductPicker } from "../features/labels/components/label-product-picker";
-import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
-import { TemplatePicker } from "../features/labels/components/template-picker";
 import { brToIso, isoToBR } from "../features/labels/dates";
 import {
   LABEL_LIST_FILTERS,
@@ -60,8 +53,7 @@ import { AppIcon } from "../shared/components/app-icon";
 import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { showAlert } from "../shared/components/alert-store";
-import { DateField } from "../shared/components/date-field";
-import { FormSection } from "../shared/components/form-section";
+import { FormActions, FormBody } from "../shared/components/form-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
@@ -78,7 +70,6 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
 import { LabelDesktopCard } from "../features/labels/components/labels-desktop";
 import { alertError, alertValidation } from "../shared/utils/alerts";
-import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
@@ -207,19 +198,7 @@ function LabelDetailModal({
   );
 
   async function handleSave() {
-    if (!formValidation.validate()) return;
-    if (!(name ?? "").trim()) {
-      alertValidation("Dê um nome para a etiqueta");
-      return;
-    }
-    if (!selectedProductId) {
-      alertValidation("Escolha o produto da etiqueta");
-      return;
-    }
-    if (!labelPrintedName(labelData).trim()) {
-      alertValidation("Preencha o nome que será impresso");
-      return;
-    }
+    if (!formValidation.validate() || !selectedProductId) return;
     if (!layoutValid) {
       alertValidation("Confira o tamanho e a quantidade de etiquetas por folha");
       return;
@@ -291,23 +270,7 @@ function LabelDetailModal({
 
   let footerButtons: React.ReactNode;
   if (!isLoading && label) {
-    footerButtons = editing ? (
-      <>
-        <Button
-          title="Cancelar"
-          variant="secondary"
-          onPress={() => setEditing(false)}
-          style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
-        />
-        <Button
-          title={uploading ? "Enviando logo..." : "Salvar"}
-          size="lg"
-          onPress={() => void handleSave()}
-          loading={updateLabel.isPending || uploading}
-          style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
-        />
-      </>
-    ) : (
+    footerButtons = editing ? null : (
       <>
         <Button
           title="Excluir etiqueta"
@@ -336,7 +299,7 @@ function LabelDetailModal({
     );
   }
 
-  const footer = footerButtons ? (
+  let footer: React.ReactNode = footerButtons ? (
     <View
       style={{
         width: "100%",
@@ -347,6 +310,23 @@ function LabelDetailModal({
       {footerButtons}
     </View>
   ) : undefined;
+  if (!isLoading && label && editing) {
+    footer = (
+      <FormActions>
+        <Button
+          title="Cancelar"
+          variant="outline"
+          disabled={updateLabel.isPending || uploading}
+          onPress={() => setEditing(false)}
+        />
+        <Button
+          title={uploading ? "Enviando logo..." : "Salvar alterações"}
+          onPress={() => void handleSave()}
+          loading={updateLabel.isPending || uploading}
+        />
+      </FormActions>
+    );
+  }
 
   return (
     <StandardModal
@@ -382,184 +362,76 @@ function LabelDetailModal({
       {isLoading ? <SkeletonList rows={4} variant="label" /> : null}
 
       {!isLoading && label && editing ? (
-        <View
-          style={{
-            width: "100%",
-            minWidth: 0,
-            alignSelf: "stretch",
-            gap: isDesktop ? spacing["3xl"] : spacing["2xl"],
-          }}
+        <LabelFormFrame
+          preview={
+            <LabelPreviewPanel
+              data={labelData}
+              templateId={templateId}
+              logoUrl={editingLogo}
+              qrUrl={editingQrUrl}
+            />
+          }
         >
-          <View
-            style={{
-              borderRadius: radii.md,
-              backgroundColor: theme.colors.surface,
-              padding: spacing.md,
-            }}
-          >
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Etiqueta para identificar seu produto. Não substitui a rotulagem obrigatória
-              quando aplicável.
-            </Typography>
-          </View>
-          <ValidationField {...formValidation.field("name")}>
-            <Input label="Nome da etiqueta" value={name} onChangeText={setName} />
-          </ValidationField>
-          <ValidationField {...formValidation.field("selectedProductId")}>
-            <LabelProductPicker
-              selectedId={selectedProductId}
-              onSelect={(product) => {
+          <FormBody>
+            <LabelProductFields
+              name={name}
+              onNameChange={setName}
+              nameValidation={formValidation.field("name")}
+              productValidation={formValidation.field("selectedProductId")}
+              selectedProductId={selectedProductId}
+              onSelectProduct={(product) => {
                 setSelectedProductId(product.id);
                 updateField("productName", product.name);
               }}
-            />
-          </ValidationField>
-          <TemplatePicker selected={templateId} onSelect={setTemplateId} />
-          <FormSection
-            title="Formato de impressão"
-            subtitle="Tamanho exato e quantidade na folha A4"
-            icon="grid-outline"
-            titleAccessory={<Badge label="Profissional" variant="premium" />}
-          >
-            <LabelLayoutEditor
-              value={labelData.layout}
-              onChange={(layout) => updateField("layout", layout)}
-              onValidityChange={setLayoutValid}
+              templateId={templateId}
+              onTemplateChange={setTemplateId}
+              labelData={labelData}
+              updateField={updateField}
+              onLayoutValidityChange={setLayoutValid}
               locked={!isPremium}
               onLockedPress={() => showPaywall("labels")}
             />
-          </FormSection>
-          <ValidationField {...formValidation.field("productName")}>
-            <Input
-              label="Nome que será impresso"
-              value={labelPrintedName(labelData)}
-              onChangeText={(value) => updateField("productName", value)}
+            <LabelContentFields
+              labelData={labelData}
+              printedName={labelPrintedName(labelData)}
+              updateField={updateField}
+              productNameValidation={formValidation.field("productName")}
             />
-          </ValidationField>
-          <Input
-            label="Observação (opcional)"
-            placeholder="Ex: Manter refrigerado"
-            value={labelData.note ?? ""}
-            onChangeText={(value) => updateField("note", value)}
-            multiline
-            numberOfLines={3}
-            style={{
-              height: 88,
-              lineHeight: 24,
-              paddingTop: spacing["3xl"],
-              paddingBottom: spacing["3xl"],
-              textAlignVertical: "center",
-            }}
-          />
-          <View style={{ gap: spacing.md }}>
-            <Typography variant="h3">Datas (opcional)</Typography>
-            <DateField
-              label="Feito em"
-              value={labelData.manufacturingDate ?? ""}
-              onChange={(value) => updateField("manufacturingDate", value)}
-            />
-            <DateField
-              label="Validade"
-              value={labelData.expirationDate ?? ""}
-              onChange={(value) => updateField("expirationDate", value)}
-            />
-          </View>
-          <Typography variant="h3">Contato e marca</Typography>
-          <Input
-            label="Seu nome / nome do negócio"
-            value={labelData.producerName ?? ""}
-            onChangeText={(value) => updateField("producerName", value)}
-          />
-          <Input
-            label="Telefone"
-            value={labelData.producerPhone ?? ""}
-            onChangeText={(value) => updateField("producerPhone", maskPhoneBR(value))}
-            keyboardType="phone-pad"
-          />
-          <View>
-            <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-              Logo do negócio (opcional)
-            </Typography>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <Pressable
-                onPress={showPicker}
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                {editingLogo ? (
-                  <Image
-                    source={{ uri: editingLogo }}
-                    style={{ width: 80, height: 80 }}
-                  />
-                ) : (
-                  <AppIcon
-                    name="image-outline"
-                    size={28}
-                    color={theme.colors.textSecondary}
-                  />
-                )}
-              </Pressable>
-              {editingLogo ? (
-                <Pressable
-                  onPress={() => {
-                    clearPickedLogo();
-                    setLogoRemoved(true);
-                  }}
-                  hitSlop={8}
-                >
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Remover logo
-                  </Typography>
-                </Pressable>
-              ) : null}
-            </View>
-          </View>
-          {catalogSettings || label.qrCodeUrl ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: spacing.md,
+            <LabelBrandFields
+              labelData={labelData}
+              updateField={updateField}
+              logoUri={editingLogo}
+              onPickLogo={showPicker}
+              onRemoveLogo={() => {
+                clearPickedLogo();
+                setLogoRemoved(true);
               }}
-            >
-              <View style={{ flex: 1 }}>
-                <Typography variant="bodyBold">Incluir QR Code do catálogo</Typography>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Opcional: abre o produto diretamente no catálogo.
-                </Typography>
-              </View>
-              <Switch
-                value={includeQr}
-                onValueChange={setIncludeQr}
-                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+              qr={
+                catalogSettings || label.qrCodeUrl
+                  ? {
+                      value: includeQr,
+                      onChange: setIncludeQr,
+                      description: "Abre o produto diretamente no catálogo.",
+                    }
+                  : undefined
+              }
+              locked={!isPremium}
+              onStyleLockedPress={() => {
+                if (isPremium) return false;
+                showPaywall("labels");
+                return true;
+              }}
+            />
+            {isDesktop ? null : (
+              <LabelPreviewPanel
+                data={labelData}
+                templateId={templateId}
+                logoUrl={editingLogo}
+                qrUrl={editingQrUrl}
               />
-            </View>
-          ) : null}
-          <LabelStyleEditor
-            value={labelData.style}
-            onChange={(style) => updateField("style", style)}
-            locked={!isPremium}
-            onLockedPress={() => {
-              if (isPremium) return false;
-              showPaywall("labels");
-              return true;
-            }}
-          />
-          <LabelPreview
-            data={labelData}
-            templateId={templateId}
-            logoUrl={editingLogo}
-            qrUrl={editingQrUrl}
-          />
-        </View>
+            )}
+          </FormBody>
+        </LabelFormFrame>
       ) : null}
 
       {!isLoading && label && !editing ? (

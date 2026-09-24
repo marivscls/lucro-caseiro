@@ -1,4 +1,4 @@
-import { FilterChipRow, ValidationField } from "@lucro-caseiro/ui";
+import { FilterChipRow } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { localIsoDate } from "../shared/utils/date";
 import type {
@@ -14,7 +14,6 @@ import {
   Card,
   Chip,
   EmptyState,
-  Input,
   Typography,
   iconSizes,
   radii,
@@ -23,7 +22,7 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAllProducts } from "../features/products/hooks";
@@ -51,6 +50,14 @@ import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { StandardModal } from "../shared/components/standard-modal";
+import {
+  FormField,
+  TextField,
+  fieldMetrics,
+  useFieldPalette,
+} from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
+import { FormSection } from "../shared/components/form-section";
 import { showToast } from "../shared/components/toast";
 import {
   desktopStretch,
@@ -66,7 +73,7 @@ import {
   desktopPageContent,
 } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { alertError, alertValidation } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 
 type LineDraft = {
@@ -402,6 +409,69 @@ function DocumentCard({
   );
 }
 
+/** "Desconto (%)" → rótulo "Desconto" com "%" dentro do campo. */
+function splitUnit(label: string): { label: string; suffix?: string } {
+  const open = label.lastIndexOf(" (");
+  if (open <= 0 || !label.endsWith(")")) return { label };
+  return { label: label.slice(0, open), suffix: label.slice(open + 2, -1) };
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+}: Readonly<{ label: string; value: string; onChange: (value: string) => void }>) {
+  const field = splitUnit(label);
+  return (
+    <FormField label={field.label} optional>
+      <TextField
+        accessibilityLabel={label}
+        suffix={field.suffix}
+        placeholder="0"
+        value={value}
+        onChangeText={onChange}
+        keyboardType="decimal-pad"
+        numericMode="decimal"
+      />
+    </FormField>
+  );
+}
+
+/** Opção em pílula (mesmo visual das categorias do cadastro de produto). */
+function OptionChip({
+  label,
+  selected,
+  onPress,
+}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      style={({ pressed }) => ({
+        minHeight: 44,
+        maxWidth: "100%",
+        paddingHorizontal: spacing.lg,
+        justifyContent: "center",
+        borderRadius: radii.full,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primaryStrong : pal.border,
+        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+        opacity: pressed ? 0.85 : 1,
+      })}
+    >
+      <Typography
+        variant="body"
+        color={selected ? theme.colors.primaryStrong : theme.colors.text}
+      >
+        {label}
+      </Typography>
+    </Pressable>
+  );
+}
+
 function LineItemCard({
   index,
   line,
@@ -411,40 +481,60 @@ function LineItemCard({
   line: LineDraft;
   onChange: (line: LineDraft) => void;
 }>) {
+  const { theme } = useTheme();
   return (
-    <Card variant="elevated">
-      <Input
-        label={`Item ${index + 1}`}
-        value={line.name}
-        onChangeText={(name) => onChange({ ...line, name })}
-      />
-      <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.md }}>
-        <Input
-          label="Qtd."
-          value={line.quantity}
-          keyboardType="decimal-pad"
-          numericMode="decimal"
-          onChangeText={(quantity) => onChange({ ...line, quantity })}
-          containerStyle={{ flex: 0.7 }}
-        />
-        <Input
-          label="Custo un."
-          value={line.unitCost}
-          keyboardType="decimal-pad"
-          numericMode="decimal"
-          onChangeText={(unitCost) => onChange({ ...line, unitCost })}
-          containerStyle={{ flex: 1 }}
-        />
-        <Input
-          label="Preço un."
-          value={line.unitPrice}
-          keyboardType="decimal-pad"
-          numericMode="decimal"
-          onChangeText={(unitPrice) => onChange({ ...line, unitPrice })}
-          containerStyle={{ flex: 1 }}
-        />
+    <View
+      style={{
+        gap: fieldMetrics.fieldGap,
+        paddingTop: index === 0 ? 0 : spacing.lg,
+        borderTopWidth: index === 0 ? 0 : 1,
+        borderTopColor: theme.colors.border,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.lg }}>
+        <FormField label={`Item ${index + 1}`} style={{ flex: 1 }}>
+          <TextField
+            placeholder="Ex.: Troca de óleo"
+            accessibilityLabel={`Item ${index + 1}`}
+            value={line.name}
+            onChangeText={(name) => onChange({ ...line, name })}
+          />
+        </FormField>
+        <FormField label="Quantidade" style={{ width: 112 }}>
+          <TextField
+            accessibilityLabel={`Quantidade do item ${index + 1}`}
+            value={line.quantity}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            onChangeText={(quantity) => onChange({ ...line, quantity })}
+          />
+        </FormField>
       </View>
-    </Card>
+      <FormGrid minColumnWidth={150}>
+        <FormField label="Custo por unidade">
+          <TextField
+            prefix="R$"
+            placeholder="0,00"
+            accessibilityLabel={`Custo por unidade do item ${index + 1}`}
+            value={line.unitCost}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            onChangeText={(unitCost) => onChange({ ...line, unitCost })}
+          />
+        </FormField>
+        <FormField label="Preço por unidade">
+          <TextField
+            prefix="R$"
+            placeholder="0,00"
+            accessibilityLabel={`Preço por unidade do item ${index + 1}`}
+            value={line.unitPrice}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            onChangeText={(unitPrice) => onChange({ ...line, unitPrice })}
+          />
+        </FormField>
+      </FormGrid>
+    </View>
   );
 }
 
@@ -558,10 +648,6 @@ export default function OperationsScreen() {
 
   async function submitDocument() {
     if (!formValidation.validate()) return;
-    if (!title.trim() || !detail.trim())
-      return alertValidation("Preencha o título e os detalhes da operação.");
-    if (kindDefinition.reference && !referenceId)
-      return alertValidation("Selecione o vínculo desta operação.");
     const items: VerticalDocumentItemInput[] = lines
       .filter((line) => line.name.trim())
       .map((line) => ({
@@ -616,8 +702,6 @@ export default function OperationsScreen() {
 
   async function submitAsset() {
     if (!assetValidation.validate()) return;
-    if (!assetName.trim())
-      return alertValidation("Informe o nome do equipamento ou veículo.");
     try {
       await createAsset.mutateAsync({
         domain: "oficina",
@@ -644,8 +728,6 @@ export default function OperationsScreen() {
 
   async function submitSerial() {
     if (!serialValidation.validate()) return;
-    if (!serialProductId || serial.trim().length < 3)
-      return alertValidation("Selecione o produto e informe um serial válido.");
     try {
       await createSerial.mutateAsync({
         productId: serialProductId,
@@ -1137,189 +1219,236 @@ export default function OperationsScreen() {
           onClose={() => setCreateVisible(false)}
           title={`Nova ${kindDefinition.singular}`}
           subtitle={kindDefinition.label}
-          wide
+          size="form"
           footer={
-            <>
+            <FormActions stack>
               <Button
                 title="Cancelar"
-                variant="ghost"
-                style={{ flex: 1 }}
+                variant="outline"
+                disabled={createDocument.isPending}
                 onPress={() => setCreateVisible(false)}
               />
               <Button
-                title="Salvar operação"
+                title={`Salvar ${kindDefinition.singular}`}
                 loading={createDocument.isPending}
-                style={{ flex: 1 }}
                 onPress={() => void submitDocument()}
               />
-            </>
+            </FormActions>
           }
         >
-          <ValidationField {...formValidation.field("title")}>
-            <Input
-              label="Título"
-              value={title}
-              onChangeText={setTitle}
-              placeholder="Identifique esta operação"
-            />
-          </ValidationField>
-          <ValidationField {...formValidation.field("detail")}>
-            <Input
-              label={kindDefinition.detailLabel}
-              value={detail}
-              onChangeText={setDetail}
-              multiline
-            />
-          </ValidationField>
-          {kindDefinition.reference ? (
-            <ValidationField {...formValidation.field("referenceId")}>
-              <View style={{ gap: spacing.sm }}>
-                <Typography variant="bodyBold">Vincular a</Typography>
-                <FilterChipRow>
-                  {references.map((item) => (
-                    <Chip
-                      key={item.id}
-                      label={item.label}
-                      selected={referenceId === item.id}
-                      onPress={() => setReferenceId(item.id)}
-                    />
-                  ))}
-                </FilterChipRow>
-                {!references.length ? (
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Cadastre primeiro o registro necessário para este vínculo.
-                  </Typography>
+          <FormBody>
+            <FormGrid>
+              <FormField
+                label="Título"
+                span="full"
+                validation={formValidation.field("title")}
+              >
+                <TextField
+                  placeholder="Identifique esta operação"
+                  accessibilityLabel="Título"
+                  value={title}
+                  onChangeText={setTitle}
+                />
+              </FormField>
+              <FormField
+                label={kindDefinition.detailLabel}
+                span="full"
+                validation={formValidation.field("detail")}
+              >
+                <TextField
+                  accessibilityLabel={kindDefinition.detailLabel}
+                  value={detail}
+                  onChangeText={setDetail}
+                  multiline
+                />
+              </FormField>
+              {kindDefinition.reference ? (
+                <FormField
+                  label="Vincular a"
+                  span="full"
+                  validation={formValidation.field("referenceId")}
+                >
+                  {references.length ? (
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                    >
+                      {references.map((item) => (
+                        <OptionChip
+                          key={item.id}
+                          label={item.label}
+                          selected={referenceId === item.id}
+                          onPress={() => setReferenceId(item.id)}
+                        />
+                      ))}
+                    </View>
+                  ) : (
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Cadastre primeiro o registro necessário para este vínculo.
+                    </Typography>
+                  )}
+                </FormField>
+              ) : null}
+            </FormGrid>
+
+            <FormSection collapsible={false} title="Valores">
+              <FormGrid>
+                {kindDefinition.numberOneLabel ? (
+                  <NumberField
+                    label={kindDefinition.numberOneLabel}
+                    value={numberOne}
+                    onChange={setNumberOne}
+                  />
                 ) : null}
-              </View>
-            </ValidationField>
-          ) : null}
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            {kindDefinition.numberOneLabel ? (
-              <Input
-                label={kindDefinition.numberOneLabel}
-                value={numberOne}
-                onChangeText={setNumberOne}
-                keyboardType="decimal-pad"
-                numericMode="decimal"
-                containerStyle={{ flex: 1 }}
-              />
-            ) : null}
-            {kindDefinition.numberTwoLabel ? (
-              <Input
-                label={kindDefinition.numberTwoLabel}
-                value={numberTwo}
-                onChangeText={setNumberTwo}
-                keyboardType="decimal-pad"
-                numericMode="decimal"
-                containerStyle={{ flex: 1 }}
-              />
-            ) : null}
-          </View>
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <Input
-              label="Valor previsto"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
-              containerStyle={{ flex: 1 }}
-            />
-            <Input
-              label="Custo previsto"
-              value={cost}
-              onChangeText={setCost}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
-              containerStyle={{ flex: 1 }}
-            />
-          </View>
-          <View style={{ gap: spacing.md }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Typography variant="h3" style={{ flex: 1 }}>
-                Itens e serviços
-              </Typography>
+                {kindDefinition.numberTwoLabel ? (
+                  <NumberField
+                    label={kindDefinition.numberTwoLabel}
+                    value={numberTwo}
+                    onChange={setNumberTwo}
+                  />
+                ) : null}
+                <FormField label="Valor previsto" optional>
+                  <TextField
+                    prefix="R$"
+                    placeholder="0,00"
+                    accessibilityLabel="Valor previsto, em reais"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="decimal-pad"
+                    numericMode="decimal"
+                  />
+                </FormField>
+                <FormField label="Custo previsto" optional>
+                  <TextField
+                    prefix="R$"
+                    placeholder="0,00"
+                    accessibilityLabel="Custo previsto, em reais"
+                    value={cost}
+                    onChangeText={setCost}
+                    keyboardType="decimal-pad"
+                    numericMode="decimal"
+                  />
+                </FormField>
+              </FormGrid>
+            </FormSection>
+
+            <FormSection
+              collapsible={false}
+              title="Itens e serviços"
+              subtitle={`Total dos itens: ${formatCurrency(lineTotal)}`}
+            >
+              {lines.map((line, index) => (
+                <LineItemCard
+                  key={line.key}
+                  index={index}
+                  line={line}
+                  onChange={changeLine}
+                />
+              ))}
               <Button
                 title="Adicionar item"
-                size="sm"
-                variant="secondary"
+                variant="outline"
+                icon={<AppIcon name="add" size={20} color={theme.colors.primary} />}
+                style={{ alignSelf: isDesktop ? "flex-start" : "stretch" }}
                 onPress={() => setLines((current) => [...current, freshLine()])}
               />
-            </View>
-            {lines.map((line, index) => (
-              <LineItemCard
-                key={line.key}
-                index={index}
-                line={line}
-                onChange={changeLine}
-              />
-            ))}
-            <Typography variant="bodyBold">
-              Total dos itens: {formatCurrency(lineTotal)}
-            </Typography>
-          </View>
+            </FormSection>
+          </FormBody>
         </StandardModal>
 
         <StandardModal
           visible={assetVisible}
           onClose={() => setAssetVisible(false)}
           title="Novo equipamento"
+          size="form"
           footer={
-            <Button
-              title="Cadastrar equipamento"
-              loading={createAsset.isPending}
-              style={{ flex: 1 }}
-              onPress={() => void submitAsset()}
-            />
+            <FormActions stack>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                disabled={createAsset.isPending}
+                onPress={() => setAssetVisible(false)}
+              />
+              <Button
+                title="Cadastrar equipamento"
+                loading={createAsset.isPending}
+                onPress={() => void submitAsset()}
+              />
+            </FormActions>
           }
         >
-          <ValidationField {...assetValidation.field("assetName")}>
-            <Input
-              label="Nome"
-              value={assetName}
-              onChangeText={setAssetName}
-              placeholder="Ex.: Honda Civic 2019"
-            />
-          </ValidationField>
-          <Input
-            label="Placa, série ou IMEI"
-            value={assetIdentifier}
-            onChangeText={setAssetIdentifier}
-          />
+          <FormBody>
+            <FormGrid>
+              <FormField label="Nome" validation={assetValidation.field("assetName")}>
+                <TextField
+                  placeholder="Ex.: Honda Civic 2019"
+                  accessibilityLabel="Nome do equipamento"
+                  value={assetName}
+                  onChangeText={setAssetName}
+                />
+              </FormField>
+              <FormField label="Placa, série ou IMEI" optional>
+                <TextField
+                  placeholder="Ex.: ABC1D23"
+                  accessibilityLabel="Placa, série ou IMEI"
+                  value={assetIdentifier}
+                  onChangeText={setAssetIdentifier}
+                />
+              </FormField>
+            </FormGrid>
+          </FormBody>
         </StandardModal>
         <StandardModal
           visible={serialVisible}
           onClose={() => setSerialVisible(false)}
           title="Rastrear produto por serial"
+          size="form"
           footer={
-            <Button
-              title="Salvar serial"
-              loading={createSerial.isPending}
-              style={{ flex: 1 }}
-              onPress={() => void submitSerial()}
-            />
+            <FormActions>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                disabled={createSerial.isPending}
+                onPress={() => setSerialVisible(false)}
+              />
+              <Button
+                title="Salvar serial"
+                loading={createSerial.isPending}
+                onPress={() => void submitSerial()}
+              />
+            </FormActions>
           }
         >
-          <Typography variant="bodyBold">Produto</Typography>
-          <ValidationField {...serialValidation.field("serialProductId")}>
-            <FilterChipRow>
-              {(products.data ?? []).map((product) => (
-                <Chip
-                  key={product.id}
-                  label={product.name}
-                  selected={serialProductId === product.id}
-                  onPress={() => setSerialProductId(product.id)}
+          <FormBody>
+            <FormField
+              label="Produto"
+              validation={serialValidation.field("serialProductId")}
+            >
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {(products.data ?? []).map((product) => (
+                  <OptionChip
+                    key={product.id}
+                    label={product.name}
+                    selected={serialProductId === product.id}
+                    onPress={() => setSerialProductId(product.id)}
+                  />
+                ))}
+              </View>
+            </FormField>
+            <FormGrid>
+              <FormField
+                label="Número de série"
+                validation={serialValidation.field("serial")}
+              >
+                <TextField
+                  placeholder="Ex.: SN123456"
+                  accessibilityLabel="Número de série"
+                  value={serial}
+                  onChangeText={setSerial}
+                  autoCapitalize="characters"
                 />
-              ))}
-            </FilterChipRow>
-          </ValidationField>
-          <ValidationField {...serialValidation.field("serial")}>
-            <Input
-              label="Número de série"
-              value={serial}
-              onChangeText={setSerial}
-              autoCapitalize="characters"
-            />
-          </ValidationField>
+              </FormField>
+            </FormGrid>
+          </FormBody>
         </StandardModal>
       </SafeAreaView>
     </FeatureRouteGuard>

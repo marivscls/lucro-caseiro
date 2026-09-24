@@ -42,6 +42,7 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 | `apps/mobile/src/features/labels/components/label-card.tsx`           | Card da lista (miniatura, categoria, menu, selo)        |
 | `apps/mobile/src/features/labels/components/label-thumbnail.tsx`      | Miniatura real no formato do modelo                     |
 | `apps/mobile/src/features/labels/components/create-label-form.tsx`    | Criacao e preview ao vivo                               |
+| `apps/mobile/src/features/labels/components/label-form-fields.tsx`    | Grupos de campos comuns a criacao e edicao              |
 | `apps/mobile/src/features/labels/components/label-preview.tsx`        | Preview simples da etiqueta                             |
 | `apps/mobile/src/features/labels/components/label-product-picker.tsx` | Busca e selecao do produto                              |
 | `apps/mobile/src/features/labels/components/template-picker.tsx`      | Selecao dos cinco modelos                               |

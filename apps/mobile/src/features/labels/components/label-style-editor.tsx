@@ -1,68 +1,41 @@
 import type { LabelStyle } from "@lucro-caseiro/contracts";
-import { Badge, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { ColorPickerModal } from "../../../shared/components/color-picker-modal";
+import {
+  ChoiceField,
+  FormField,
+  fieldMetrics,
+  type ChoiceOption,
+} from "../../../shared/components/form-field";
 
 // Cores de destaque sugeridas (mesma vibe dos templates + extras).
 const ACCENT_PRESETS = ["#92400E", "#9D174D", "#5B21B6", "#1E40AF", "#166534", "#111827"];
 
-const BORDER_OPTIONS: {
-  key: NonNullable<LabelStyle["borderStyle"]>;
-  label: string;
-}[] = [
-  { key: "solid", label: "Linha" },
-  { key: "dashed", label: "Tracejada" },
-  { key: "double", label: "Dupla" },
-  { key: "none", label: "Sem borda" },
+type BorderKey = NonNullable<LabelStyle["borderStyle"]>;
+type CornerKey = NonNullable<LabelStyle["corner"]>;
+
+const BORDER_OPTIONS: readonly ChoiceOption<BorderKey>[] = [
+  { value: "solid", label: "Linha" },
+  { value: "dashed", label: "Tracejada" },
+  { value: "double", label: "Dupla" },
+  { value: "none", label: "Sem borda" },
 ];
 
-const CORNER_OPTIONS: { key: NonNullable<LabelStyle["corner"]>; label: string }[] = [
-  { key: "rounded", label: "Arredondado" },
-  { key: "square", label: "Reto" },
+const CORNER_OPTIONS: readonly ChoiceOption<CornerKey>[] = [
+  { value: "rounded", label: "Arredondado" },
+  { value: "square", label: "Reto" },
 ];
 
 function LockedWrapper({
   locked,
   children,
 }: Readonly<{ locked: boolean; children: React.ReactNode }>) {
-  if (!locked) return <>{children}</>;
-  return <View style={{ opacity: 0.65, gap: spacing.md }}>{children}</View>;
-}
-
-interface PillProps {
-  readonly label: string;
-  readonly selected: boolean;
-  readonly onPress: () => void;
-}
-
-function Pill({ label, selected, onPress }: PillProps) {
-  const { theme } = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={{
-        minHeight: 44,
-        paddingHorizontal: spacing.lg,
-        borderRadius: radii.full,
-        justifyContent: "center",
-        backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-        borderWidth: 1,
-        borderColor: selected ? theme.colors.primary : theme.colors.border,
-      }}
-    >
-      <Typography
-        variant="bodyBold"
-        color={selected ? theme.colors.textOnPrimary : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
+  if (!locked) return <View style={{ gap: fieldMetrics.fieldGap }}>{children}</View>;
+  return <View style={{ opacity: 0.65, gap: fieldMetrics.fieldGap }}>{children}</View>;
 }
 
 interface LabelStyleEditorProps {
@@ -102,91 +75,91 @@ export function LabelStyleEditor({
   return (
     <View style={{ gap: spacing.md }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <Typography variant="caption" style={{ flex: 1 }}>
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ flex: 1 }}
+        >
           {locked
             ? "Veja como sua etiqueta pode ficar. Desbloqueie com o Profissional."
             : "Deixe a etiqueta com a sua cara ou mantenha o visual do modelo."}
         </Typography>
         {locked && <AppIcon name="lock-closed" size={16} color={theme.colors.premium} />}
-        <Badge label="Profissional" variant="premium" />
       </View>
 
       <LockedWrapper locked={locked}>
-        <Typography variant="caption">Cor de destaque</Typography>
-        <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
-          {ACCENT_PRESETS.map((color) => {
-            const selected = style.accentColor === color;
-            return (
-              <Pressable
-                key={color}
-                onPress={() => set("accentColor", color)}
-                accessibilityRole="button"
-                accessibilityLabel={`Cor ${color}`}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: radii.full,
-                  backgroundColor: color,
-                  borderWidth: selected ? 3 : 0,
-                  borderColor: theme.colors.text,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {selected && <AppIcon name="checkmark" size={20} color="#fff" />}
-              </Pressable>
-            );
-          })}
-          <Pressable
-            onPress={() => {
-              if (onLockedPress?.()) return;
-              setPickerVisible(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Escolher cor personalizada"
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: radii.full,
-              backgroundColor: isCustomAccent ? style.accentColor : theme.colors.surface,
-              borderWidth: isCustomAccent ? 3 : 1.5,
-              borderStyle: isCustomAccent ? "solid" : "dashed",
-              borderColor: isCustomAccent ? theme.colors.text : theme.colors.border,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon
-              name={isCustomAccent ? "checkmark" : "add"}
-              size={22}
-              color={isCustomAccent ? "#fff" : theme.colors.primaryLight}
-            />
-          </Pressable>
-        </View>
+        <FormField label="Cor de destaque">
+          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
+            {ACCENT_PRESETS.map((color) => {
+              const selected = style.accentColor === color;
+              return (
+                <Pressable
+                  key={color}
+                  onPress={() => set("accentColor", color)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Cor ${color}`}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: radii.full,
+                    backgroundColor: color,
+                    borderWidth: selected ? 3 : 0,
+                    borderColor: theme.colors.text,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {selected && <AppIcon name="checkmark" size={20} color="#fff" />}
+                </Pressable>
+              );
+            })}
+            <Pressable
+              onPress={() => {
+                if (onLockedPress?.()) return;
+                setPickerVisible(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Escolher cor personalizada"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: radii.full,
+                backgroundColor: isCustomAccent
+                  ? style.accentColor
+                  : theme.colors.surface,
+                borderWidth: isCustomAccent ? 3 : 1.5,
+                borderStyle: isCustomAccent ? "solid" : "dashed",
+                borderColor: isCustomAccent ? theme.colors.text : theme.colors.border,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AppIcon
+                name={isCustomAccent ? "checkmark" : "add"}
+                size={22}
+                color={isCustomAccent ? "#fff" : theme.colors.primaryLight}
+              />
+            </Pressable>
+          </View>
+        </FormField>
 
-        <Typography variant="caption">Borda</Typography>
-        <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-          {BORDER_OPTIONS.map((option) => (
-            <Pill
-              key={option.key}
-              label={option.label}
-              selected={style.borderStyle === option.key}
-              onPress={() => set("borderStyle", option.key)}
-            />
-          ))}
-        </View>
+        <FormField label="Borda">
+          <ChoiceField
+            accessibilityLabel="Borda da etiqueta"
+            value={(style.borderStyle ?? "") as BorderKey}
+            options={BORDER_OPTIONS}
+            onChange={(next) => set("borderStyle", next)}
+          />
+        </FormField>
 
-        <Typography variant="caption">Cantos</Typography>
-        <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-          {CORNER_OPTIONS.map((option) => (
-            <Pill
-              key={option.key}
-              label={option.label}
-              selected={style.corner === option.key}
-              onPress={() => set("corner", option.key)}
-            />
-          ))}
-        </View>
+        <FormField label="Cantos">
+          <ChoiceField
+            accessibilityLabel="Cantos da etiqueta"
+            value={(style.corner ?? "") as CornerKey}
+            options={CORNER_OPTIONS}
+            onChange={(next) => set("corner", next)}
+          />
+        </FormField>
 
         {value && (
           <Pressable
