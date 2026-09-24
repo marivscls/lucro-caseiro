@@ -51,8 +51,18 @@ import {
   unusualExpenses,
   type FinancePeriod,
 } from "../calc";
+import {
+  categoryLabel,
+  entryCountLabel,
+  entryDisplayDescription,
+  formatEntryDate,
+} from "../entry-display";
 import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../hooks";
 import { CreateFinanceEntry } from "./create-finance-entry";
+import {
+  FinanceDashboardDesktop,
+  type FinanceAttention,
+} from "./finance-dashboard-desktop";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ScreenHeader } from "../../../shared/components/screen-header";
@@ -415,36 +425,36 @@ export function FinanceDashboard({
     );
   }
 
-  return (
-    <>
-      <ScreenHeader
-        guidance={{
-          area: "finance",
-          onStart: () => {
-            setInitialEntryType("income");
+  const header = (
+    <ScreenHeader
+      guidance={{
+        area: "finance",
+        onStart: () => {
+          setInitialEntryType("income");
+          openCreateEntry();
+        },
+        actionLabel: "Registrar entrada",
+        secondary: {
+          label: "Registrar despesa",
+          onPress: () => {
+            setInitialEntryType("expense");
             openCreateEntry();
           },
-          actionLabel: "Registrar entrada",
-          secondary: {
-            label: "Registrar despesa",
-            onPress: () => {
-              setInitialEntryType("expense");
-              openCreateEntry();
-            },
-          },
-          hasRecords: !hasNoMovements,
-          loading: isLoading || !!error,
-          suspended: showCreateEntry || !!selectedEntry,
-        }}
-        title="Financeiro"
-        subtitle="Acompanhe seu lucro e fluxo financeiro"
-        fallbackRoute="/tabs"
-        hideBack={isDesktop}
-        style={styles.financeHeader}
-        titleStyle={styles.financeHeaderTitle}
-        subtitleStyle={styles.financeHeaderSubtitle}
-        right={
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+        },
+        hasRecords: !hasNoMovements,
+        loading: isLoading || !!error,
+        suspended: showCreateEntry || !!selectedEntry,
+      }}
+      title="Financeiro"
+      subtitle="Acompanhe seu lucro e fluxo financeiro"
+      fallbackRoute="/tabs"
+      hideBack={isDesktop}
+      style={styles.financeHeader}
+      titleStyle={styles.financeHeaderTitle}
+      subtitleStyle={styles.financeHeaderSubtitle}
+      right={
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+          {isDesktop ? null : (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Escolher mês"
@@ -459,15 +469,403 @@ export function FinanceDashboard({
             >
               <AppIcon name="calendar-outline" size={iconSizes.lg} color={colors.wine} />
             </Pressable>
-            <FAB
-              icon="add"
-              header
-              accessibilityLabel="Novo lançamento"
-              onPress={openCreateEntry}
-            />
-          </View>
-        }
+          )}
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel="Novo lançamento"
+            onPress={openCreateEntry}
+          />
+        </View>
+      }
+    />
+  );
+
+  const overlays = (
+    <>
+      <CreateFinanceEntry
+        key={`${showCreateEntry}:${initialEntryType}`}
+        initialType={initialEntryType}
+        visible={showCreateEntry}
+        onClose={() => setShowCreateEntry(false)}
+        onSuccess={() => setShowCreateEntry(false)}
       />
+
+      {selectedEntry && (
+        <StandardModal
+          visible
+          onClose={() => setSelectedEntry(null)}
+          title="Detalhes do lançamento"
+          closeAccessibilityLabel="Fechar detalhes do lançamento"
+          dismissDisabled={deleteEntry.isPending}
+          footer={
+            <View style={styles.detailActions}>
+              <Button
+                title="Fechar"
+                disabled={deleteEntry.isPending}
+                onPress={() => setSelectedEntry(null)}
+              />
+              <Button
+                title={deleteEntry.isPending ? "Excluindo…" : "Excluir lançamento"}
+                variant="alertOutline"
+                loading={deleteEntry.isPending}
+                accessibilityLabel={
+                  deleteEntry.isPending ? "Excluindo lançamento" : "Excluir lançamento"
+                }
+                accessibilityState={{
+                  disabled: deleteEntry.isPending,
+                  busy: deleteEntry.isPending,
+                }}
+                style={styles.detailDeleteButton}
+                icon={
+                  <AppIcon
+                    name="trash-outline"
+                    size={iconSizes.sm}
+                    color={theme.colors.alert}
+                  />
+                }
+                onPress={() => {
+                  showAlert({
+                    title: "Excluir lançamento",
+                    message: "Deseja remover este lançamento do financeiro?",
+                    buttons: [
+                      { text: "Cancelar", style: "cancel" },
+                      {
+                        text: "Excluir",
+                        style: "destructive",
+                        onPress: () => {
+                          void deleteEntry
+                            .mutateAsync(selectedEntry.id)
+                            .then(() => setSelectedEntry(null))
+                            .catch(() =>
+                              showAlert({
+                                title: "Erro",
+                                message:
+                                  "Não foi possível excluir o lançamento. Tente novamente.",
+                              }),
+                            );
+                        },
+                      },
+                    ],
+                  });
+                }}
+              />
+            </View>
+          }
+        >
+          <View style={styles.detailContent}>
+            <View
+              style={[
+                styles.detailAmountCard,
+                {
+                  backgroundColor: toneColors(
+                    selectedEntry.type === "income" ? "green" : "red",
+                    theme,
+                  ).iconBg,
+                },
+              ]}
+            >
+              <View style={styles.detailType}>
+                <AppIcon
+                  name={selectedEntry.type === "income" ? "add" : "remove"}
+                  size={iconSizes.sm}
+                  color={
+                    toneColors(selectedEntry.type === "income" ? "green" : "red", theme)
+                      .fg
+                  }
+                />
+                <Typography
+                  variant="captionBold"
+                  color={
+                    toneColors(selectedEntry.type === "income" ? "green" : "red", theme)
+                      .fg
+                  }
+                >
+                  {selectedEntry.type === "income" ? "Entrada" : "Saída"}
+                </Typography>
+              </View>
+              <Typography
+                variant="moneyHero"
+                style={styles.detailAmount}
+                color={
+                  toneColors(selectedEntry.type === "income" ? "green" : "red", theme).fg
+                }
+              >
+                {selectedEntry.type === "income" ? "+ " : "− "}
+                {formatCurrency(selectedEntry.amount)}
+              </Typography>
+            </View>
+            <Typography variant="h2" style={styles.detailDescription}>
+              {entryDisplayDescription(selectedEntry, selectedEntry.type === "income")}
+            </Typography>
+            <View>
+              {[
+                {
+                  label: "Categoria",
+                  value: categoryLabel(
+                    selectedEntry.category,
+                    experienceCopy.materialNoun,
+                    experienceCopy.packagingNoun,
+                  ),
+                },
+                {
+                  label: "Data",
+                  value: new Date(
+                    `${selectedEntry.date.slice(0, 10)}T12:00:00`,
+                  ).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  }),
+                },
+                ...(selectedEntry.type === "expense"
+                  ? [
+                      {
+                        label: "Tipo de gasto",
+                        value: selectedEntry.isFixed ? "Fixo" : "Variável",
+                      },
+                    ]
+                  : []),
+              ].map((detail, index) => (
+                <View
+                  key={detail.label}
+                  style={[styles.detailMetaRow, index > 0 && styles.detailMetaDivider]}
+                >
+                  <Typography variant="body" style={styles.detailMetaLabel}>
+                    {detail.label}
+                  </Typography>
+                  <Typography variant="bodyBold" style={styles.detailMetaValue}>
+                    {detail.value}
+                  </Typography>
+                </View>
+              ))}
+            </View>
+          </View>
+        </StandardModal>
+      )}
+
+      {/* Seletor de mês/ano */}
+      <StandardModal
+        visible={showMonthPicker}
+        onClose={() => setShowMonthPicker(false)}
+        title="Escolher mês"
+      >
+        <View style={{ flexShrink: 1, gap: spacing.md }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Pressable
+              onPress={() => setPickerYear((y) => y - 1)}
+              hitSlop={12}
+              accessibilityLabel="Ano anterior"
+              accessibilityRole="button"
+            >
+              <AppIcon
+                name="chevron-back"
+                size={iconSizes.md}
+                color={theme.colors.text}
+              />
+            </Pressable>
+            <Typography variant="h3" color={theme.colors.text}>
+              {pickerYear}
+            </Typography>
+            <Pressable
+              onPress={() => setPickerYear((y) => y + 1)}
+              hitSlop={12}
+              accessibilityLabel="Próximo ano"
+              accessibilityRole="button"
+            >
+              <AppIcon
+                name="chevron-forward"
+                size={iconSizes.md}
+                color={theme.colors.text}
+              />
+            </Pressable>
+          </View>
+
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {MONTH_NAMES.map((name, i) => {
+              const m = i + 1;
+              const isSel = m === month && pickerYear === year;
+              return (
+                <Pressable
+                  key={name}
+                  onPress={() => {
+                    setMonth(m);
+                    setYear(pickerYear);
+                    setShowMonthPicker(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSel }}
+                  style={{
+                    width: "30%",
+                    flexGrow: 1,
+                    minHeight: 48,
+                    borderRadius: radii.md,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: isSel
+                      ? theme.colors.primaryBg
+                      : theme.colors.surface,
+                  }}
+                >
+                  <Typography
+                    variant="bodyBold"
+                    color={isSel ? theme.colors.primaryStrong : theme.colors.text}
+                  >
+                    {name.slice(0, 3)}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Pressable
+            onPress={() => {
+              setMonth(now.getMonth() + 1);
+              setYear(now.getFullYear());
+              setShowMonthPicker(false);
+            }}
+            accessibilityRole="button"
+            style={{ alignItems: "center", paddingVertical: spacing.sm }}
+          >
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+              Ir para o mês atual
+            </Typography>
+          </Pressable>
+        </View>
+      </StandardModal>
+    </>
+  );
+
+  if (isDesktop) {
+    const createOfType = (type: "income" | "expense") => {
+      setInitialEntryType(type);
+      openCreateEntry();
+    };
+    const attention: FinanceAttention[] = [
+      ...overduePurchases.slice(0, 3).map((purchase) => ({
+        key: `overdue:${purchase.id}`,
+        icon: "alert-circle-outline" as const,
+        tone: "alert" as const,
+        title: `Conta vencida · ${formatCurrency(purchase.amount)}`,
+        detail: `${purchase.description} · venceu em ${purchase.dueDate}`,
+        actionLabel: "Marcar como paga",
+        onPress: () => confirmPayPurchase(purchase.id, purchase.description),
+      })),
+      ...(dueSoonPurchases.length > 0
+        ? [
+            {
+              key: "due-soon",
+              icon: "time-outline" as const,
+              title: `${dueSoonPurchases.length} conta${dueSoonPurchases.length === 1 ? "" : "s"} vence${dueSoonPurchases.length === 1 ? "" : "m"} em até 7 dias`,
+              onPress: () => router.push("/purchases"),
+            },
+          ]
+        : []),
+      ...(expiringQuotes.length > 0
+        ? [
+            {
+              key: "quotes",
+              icon: "document-text-outline" as const,
+              title: `${expiringQuotes.length} orçamento${expiringQuotes.length === 1 ? "" : "s"} perto do vencimento`,
+              onPress: () => router.push("/quotes"),
+            },
+          ]
+        : []),
+      ...(unusual.length > 0
+        ? [
+            {
+              key: "unusual",
+              icon: "analytics-outline" as const,
+              title: `Despesa acima do padrão: ${formatCurrency(unusual[0].amount)}`,
+              detail: unusual[0].description,
+              onPress: () => showEntries("expense", unusual[0].description),
+            },
+          ]
+        : []),
+    ];
+    let deltaLabel: string | null = null;
+    if (!hasNoMovements && profitDeltaPct !== null) {
+      const sign = profitDeltaPct >= 0 ? "+" : "";
+      deltaLabel = `${sign}${profitDeltaPct}% vs. ${MONTH_NAMES[previousMonth(month)]} ${previousYear(month, year)}`;
+    }
+    let exportBadge: string | null = null;
+    if (!canExportFull)
+      exportBadge = canExportBasic ? "Excel no Profissional" : "Premium";
+
+    return (
+      <>
+        <FinanceDashboardDesktop
+          header={header}
+          scrollRef={scrollViewRef}
+          onEntriesLayout={(y) => {
+            entriesSectionYRef.current = y;
+          }}
+          period={period}
+          periodOptions={PERIOD_OPTIONS}
+          onPeriodChange={setPeriod}
+          monthLabel={`${MONTH_NAMES[month - 1]} ${year}`}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onOpenMonthPicker={handleOpenMonthPicker}
+          hasNoMovements={hasNoMovements}
+          profitLabel={
+            hasNoMovements ? "Sem movimentações no período" : "Resultado dos registros"
+          }
+          profit={profit}
+          deltaLabel={deltaLabel}
+          deltaUp={(profitDeltaPct ?? 0) >= 0}
+          income={income}
+          expenses={expenses}
+          incomeCount={incomeCount}
+          expenseCount={expenseCount}
+          onShowEntries={(type) => showEntries(type)}
+          balanceLabel={balanceLabel}
+          negativeBalance={negativeBalance}
+          attention={attention}
+          receivables={
+            ordersSummary && ordersSummary.totalOrders > 0
+              ? {
+                  received: ordersSummary.received,
+                  toReceive: ordersSummary.toReceive,
+                  progress: receivedProgress,
+                }
+              : null
+          }
+          onOpenReceivables={() => router.push("/tabs/agenda")}
+          exportBadge={exportBadge}
+          exporting={exporting}
+          onExport={(format) => void handleExport(format)}
+          allCount={allEntries.length}
+          entries={filteredEntries}
+          filter={filter}
+          onFilterChange={setFilter}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onEntryPress={(entry) => {
+            if (onEntryPress) {
+              onEntryPress(entry.id);
+              return;
+            }
+            setSelectedEntry(entry);
+          }}
+          onCreate={createOfType}
+          materialNoun={experienceCopy.materialNoun}
+          packagingNoun={experienceCopy.packagingNoun}
+        />
+        {overlays}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {header}
 
       <ScrollView
         ref={scrollViewRef}
@@ -1195,271 +1593,9 @@ export function FinanceDashboard({
         <ScreenCreateBar title="+ Novo lançamento" onPress={openCreateEntry} />
       ) : null}
 
-      <CreateFinanceEntry
-        key={`${showCreateEntry}:${initialEntryType}`}
-        initialType={initialEntryType}
-        visible={showCreateEntry}
-        onClose={() => setShowCreateEntry(false)}
-        onSuccess={() => setShowCreateEntry(false)}
-      />
-
-      {selectedEntry && (
-        <StandardModal
-          visible
-          onClose={() => setSelectedEntry(null)}
-          title="Detalhes do lançamento"
-          closeAccessibilityLabel="Fechar detalhes do lançamento"
-          dismissDisabled={deleteEntry.isPending}
-          footer={
-            <View style={styles.detailActions}>
-              <Button
-                title="Fechar"
-                disabled={deleteEntry.isPending}
-                onPress={() => setSelectedEntry(null)}
-              />
-              <Button
-                title={deleteEntry.isPending ? "Excluindo…" : "Excluir lançamento"}
-                variant="alertOutline"
-                loading={deleteEntry.isPending}
-                accessibilityLabel={
-                  deleteEntry.isPending ? "Excluindo lançamento" : "Excluir lançamento"
-                }
-                accessibilityState={{
-                  disabled: deleteEntry.isPending,
-                  busy: deleteEntry.isPending,
-                }}
-                style={styles.detailDeleteButton}
-                icon={
-                  <AppIcon
-                    name="trash-outline"
-                    size={iconSizes.sm}
-                    color={theme.colors.alert}
-                  />
-                }
-                onPress={() => {
-                  showAlert({
-                    title: "Excluir lançamento",
-                    message: "Deseja remover este lançamento do financeiro?",
-                    buttons: [
-                      { text: "Cancelar", style: "cancel" },
-                      {
-                        text: "Excluir",
-                        style: "destructive",
-                        onPress: () => {
-                          void deleteEntry
-                            .mutateAsync(selectedEntry.id)
-                            .then(() => setSelectedEntry(null))
-                            .catch(() =>
-                              showAlert({
-                                title: "Erro",
-                                message:
-                                  "Não foi possível excluir o lançamento. Tente novamente.",
-                              }),
-                            );
-                        },
-                      },
-                    ],
-                  });
-                }}
-              />
-            </View>
-          }
-        >
-          <View style={styles.detailContent}>
-            <View
-              style={[
-                styles.detailAmountCard,
-                {
-                  backgroundColor: toneColors(
-                    selectedEntry.type === "income" ? "green" : "red",
-                    theme,
-                  ).iconBg,
-                },
-              ]}
-            >
-              <View style={styles.detailType}>
-                <AppIcon
-                  name={selectedEntry.type === "income" ? "add" : "remove"}
-                  size={iconSizes.sm}
-                  color={
-                    toneColors(selectedEntry.type === "income" ? "green" : "red", theme)
-                      .fg
-                  }
-                />
-                <Typography
-                  variant="captionBold"
-                  color={
-                    toneColors(selectedEntry.type === "income" ? "green" : "red", theme)
-                      .fg
-                  }
-                >
-                  {selectedEntry.type === "income" ? "Entrada" : "Saída"}
-                </Typography>
-              </View>
-              <Typography
-                variant="moneyHero"
-                style={styles.detailAmount}
-                color={
-                  toneColors(selectedEntry.type === "income" ? "green" : "red", theme).fg
-                }
-              >
-                {selectedEntry.type === "income" ? "+ " : "− "}
-                {formatCurrency(selectedEntry.amount)}
-              </Typography>
-            </View>
-            <Typography variant="h2" style={styles.detailDescription}>
-              {entryDisplayDescription(selectedEntry, selectedEntry.type === "income")}
-            </Typography>
-            <View>
-              {[
-                {
-                  label: "Categoria",
-                  value: categoryLabel(
-                    selectedEntry.category,
-                    experienceCopy.materialNoun,
-                    experienceCopy.packagingNoun,
-                  ),
-                },
-                {
-                  label: "Data",
-                  value: new Date(
-                    `${selectedEntry.date.slice(0, 10)}T12:00:00`,
-                  ).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  }),
-                },
-                ...(selectedEntry.type === "expense"
-                  ? [
-                      {
-                        label: "Tipo de gasto",
-                        value: selectedEntry.isFixed ? "Fixo" : "Variável",
-                      },
-                    ]
-                  : []),
-              ].map((detail, index) => (
-                <View
-                  key={detail.label}
-                  style={[styles.detailMetaRow, index > 0 && styles.detailMetaDivider]}
-                >
-                  <Typography variant="body" style={styles.detailMetaLabel}>
-                    {detail.label}
-                  </Typography>
-                  <Typography variant="bodyBold" style={styles.detailMetaValue}>
-                    {detail.value}
-                  </Typography>
-                </View>
-              ))}
-            </View>
-          </View>
-        </StandardModal>
-      )}
-
-      {/* Seletor de mês/ano */}
-      <StandardModal
-        visible={showMonthPicker}
-        onClose={() => setShowMonthPicker(false)}
-        title="Escolher mês"
-      >
-        <View style={{ flexShrink: 1, gap: spacing.md }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Pressable
-              onPress={() => setPickerYear((y) => y - 1)}
-              hitSlop={12}
-              accessibilityLabel="Ano anterior"
-              accessibilityRole="button"
-            >
-              <AppIcon
-                name="chevron-back"
-                size={iconSizes.md}
-                color={theme.colors.text}
-              />
-            </Pressable>
-            <Typography variant="h3" color={theme.colors.text}>
-              {pickerYear}
-            </Typography>
-            <Pressable
-              onPress={() => setPickerYear((y) => y + 1)}
-              hitSlop={12}
-              accessibilityLabel="Próximo ano"
-              accessibilityRole="button"
-            >
-              <AppIcon
-                name="chevron-forward"
-                size={iconSizes.md}
-                color={theme.colors.text}
-              />
-            </Pressable>
-          </View>
-
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {MONTH_NAMES.map((name, i) => {
-              const m = i + 1;
-              const isSel = m === month && pickerYear === year;
-              return (
-                <Pressable
-                  key={name}
-                  onPress={() => {
-                    setMonth(m);
-                    setYear(pickerYear);
-                    setShowMonthPicker(false);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSel }}
-                  style={{
-                    width: "30%",
-                    flexGrow: 1,
-                    minHeight: 48,
-                    borderRadius: radii.md,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: isSel
-                      ? theme.colors.primaryBg
-                      : theme.colors.surface,
-                  }}
-                >
-                  <Typography
-                    variant="bodyBold"
-                    color={isSel ? theme.colors.primaryStrong : theme.colors.text}
-                  >
-                    {name.slice(0, 3)}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <Pressable
-            onPress={() => {
-              setMonth(now.getMonth() + 1);
-              setYear(now.getFullYear());
-              setShowMonthPicker(false);
-            }}
-            accessibilityRole="button"
-            style={{ alignItems: "center", paddingVertical: spacing.sm }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              Ir para o mês atual
-            </Typography>
-          </Pressable>
-        </View>
-      </StandardModal>
+      {overlays}
     </>
   );
-}
-
-/** Contagem humana, sem "0 lançamentos". */
-function entryCountLabel(count: number): string {
-  if (count === 0) return "Nenhum lançamento";
-  if (count === 1) return "1 lançamento";
-  return `${count} lançamentos`;
 }
 
 function previousMonth(month: number) {
@@ -1744,35 +1880,6 @@ function EntryRow({
   );
 }
 
-function categoryLabel(
-  category: string,
-  materialNoun = "material",
-  packagingNoun = "embalagem",
-) {
-  const labels: Record<string, string> = {
-    material: capitalize(materialNoun),
-    packaging: capitalize(packagingNoun),
-    transport: "Transporte",
-    fee: "Taxa",
-    utility: "Utilidade",
-    other: "Outro",
-    sale: "Venda",
-  };
-  return labels[category] ?? category;
-}
-
-function capitalize(value: string): string {
-  return value.replace(/^./, (letter) => letter.toUpperCase());
-}
-
-function entryDisplayDescription(entry: FinanceEntry, isIncome: boolean): string {
-  const cleaned = entry.description
-    .replace(/^Compra:\s*/i, "")
-    .replace(/^\[[^\]]+\]\s*/, "")
-    .trim();
-  return cleaned || (isIncome ? "Entrada" : "Saída");
-}
-
 function groupEntriesByDate(entries: FinanceEntry[]) {
   const groups = new Map<string, FinanceEntry[]>();
   for (const entry of entries) {
@@ -1799,12 +1906,6 @@ function formatEntryGroupLabel(date: string): string {
     day: "2-digit",
     month: "long",
   });
-}
-
-function formatEntryDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
 function formatHeroCurrency(value: number): string {
