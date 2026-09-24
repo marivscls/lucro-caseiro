@@ -59,6 +59,7 @@ import {
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
+import { DesktopTag } from "../shared/layout/desktop-kit";
 
 type Filter = "all" | "pending" | "paid";
 
@@ -663,7 +664,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
         }}
       >
         <View style={{ flex: 1, minWidth: 0, gap: spacing.lg }}>
-          <Badge label="Recurso Profissional" variant="premium" />
+          <DesktopTag label="Recurso Profissional" variant="premium" strong />
           <View style={{ gap: spacing.sm }}>
             <Typography variant="desktopSection" accessibilityRole="header">
               Compras de fornecedor organizadas
