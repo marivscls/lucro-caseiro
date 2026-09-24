@@ -109,8 +109,13 @@ export function FormActions({
     <View
       style={[
         {
-          flex: 1,
+          // Cresce na largura do rodapé sem colapsar a altura quando fica no corpo.
+          flexGrow: 1,
+          flexShrink: 1,
+          flexBasis: "auto",
           flexDirection: column ? "column-reverse" : "row",
+          // No computador, várias ações quebram linha em vez de estourar a janela.
+          flexWrap: isDesktop ? "wrap" : "nowrap",
           justifyContent: isDesktop ? "flex-end" : undefined,
           alignItems: isDesktop ? "center" : "stretch",
           gap: spacing.md,
