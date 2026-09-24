@@ -110,8 +110,8 @@ const FILTER_OPTIONS: ReadonlyArray<{ key: ClientListFilter; label: string }> = 
 ];
 
 const SORT_OPTIONS: ReadonlyArray<{ key: ClientListSort; label: string }> = [
-  { key: "recent", label: "Mais recentes" },
   { key: "alphabetical", label: "Ordem A–Z" },
+  { key: "recent", label: "Mais recentes" },
   { key: "highest", label: "Maior valor comprado" },
   { key: "frequent", label: "Clientes frequentes" },
 ];
@@ -663,7 +663,7 @@ function ClientsListScreen({
   const showPaywall = usePaywall((s) => s.show);
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<ClientListFilter>("all");
-  const [sort, setSort] = useState<ClientListSort>("recent");
+  const [sort, setSort] = useState<ClientListSort>("alphabetical");
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [sortModalOpen, setSortModalOpen] = useState(false);
   // Computador: paginação numerada. Celular: busca todos os clientes para

@@ -100,6 +100,11 @@ export function countClientListFilters(
   return counts;
 }
 
+/** Ordem alfabética pt-BR, sem diferenciar maiúsculas nem acentos. */
+function compareClientNames(a: string, b: string): number {
+  return a.localeCompare(b, "pt-BR", { sensitivity: "base" });
+}
+
 export function filterAndSortClientInsights(
   insights: readonly ClientListInsight[],
   filter: ClientListFilter,
@@ -112,20 +117,20 @@ export function filterAndSortClientInsights(
 
   return [...filtered].sort((a, b) => {
     if (sort === "alphabetical") {
-      return a.client.name.localeCompare(b.client.name, "pt-BR");
+      return compareClientNames(a.client.name, b.client.name);
     }
     if (sort === "highest") return b.client.totalSpent - a.client.totalSpent;
     if (sort === "frequent") {
       return (
         Number(b.frequent) - Number(a.frequent) ||
         b.saleCount - a.saleCount ||
-        a.client.name.localeCompare(b.client.name, "pt-BR")
+        compareClientNames(a.client.name, b.client.name)
       );
     }
 
     const aTime = a.lastSaleAt ? new Date(a.lastSaleAt).getTime() : 0;
     const bTime = b.lastSaleAt ? new Date(b.lastSaleAt).getTime() : 0;
-    return bTime - aTime || a.client.name.localeCompare(b.client.name, "pt-BR");
+    return bTime - aTime || compareClientNames(a.client.name, b.client.name);
   });
 }
 
