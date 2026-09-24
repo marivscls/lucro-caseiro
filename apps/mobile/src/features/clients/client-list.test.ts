@@ -93,6 +93,25 @@ describe("client list insights", () => {
     ).toBe("Bruna");
   });
 
+  it("ordena de A a Z sem diferenciar acentos nem maiúsculas", () => {
+    const insights = buildClientListInsights(
+      [
+        client("c1", "bruna"),
+        client("c2", "Álvaro"),
+        client("c3", "Carla"),
+        client("c4", "Aline"),
+      ],
+      [sale("s1", "c3", "2026-08-14T12:00:00.000Z", "paid")],
+      now,
+    );
+
+    expect(
+      filterAndSortClientInsights(insights, "all", "alphabetical", now).map(
+        (insight) => insight.client.name,
+      ),
+    ).toEqual(["Aline", "Álvaro", "bruna", "Carla"]);
+  });
+
   it("conta cada filtro a partir dos insights ja carregados", () => {
     const insights = buildClientListInsights(
       [client("c1", "Aline", 86, ["Cliente frequente"]), client("c2", "Bruna", 142)],

@@ -371,13 +371,6 @@ function TodayOverviewCard({
 
 const TOOL_ICON_BACKGROUNDS = ["softRose", "neutral", "lime"] as const;
 
-const LUCRO_APPS_ITEM: ToolItem = {
-  title: "Conheça também",
-  description: "Outros aplicativos da família Lucro",
-  icon: "apps-outline",
-  route: "/lucro-apps",
-};
-
 function ToolIcon({
   dense,
   icon,
@@ -483,37 +476,6 @@ function ToolCard({
       {dense ? null : (
         <AppIcon name="chevron-forward" size={iconSizes.sm} color={palette.muted} />
       )}
-    </InteractiveSurface>
-  );
-}
-
-function ExtensionsBanner({ onPress }: Readonly<{ onPress: () => void }>) {
-  const palette = useBrandScreenPalette();
-
-  return (
-    <InteractiveSurface
-      accessibilityLabel="Conheça também. Outros aplicativos da família Lucro, em breve."
-      onPress={onPress}
-      style={[
-        styles.extensionsBanner,
-        { backgroundColor: palette.softRose, borderColor: palette.border },
-      ]}
-    >
-      <View style={[styles.editorialCurve, { backgroundColor: palette.white }]} />
-      <View style={[styles.extensionsIcon, { backgroundColor: palette.rose }]}>
-        <AppIcon name="apps-outline" size={iconSizes.md} color={palette.onRose} />
-      </View>
-      <View style={styles.bannerCopy}>
-        <Typography variant="h3" color={palette.wine}>
-          Conheça também
-        </Typography>
-        <Typography variant="body" color={palette.muted}>
-          Abra suas extensões com a mesma conta
-        </Typography>
-      </View>
-      <View style={[styles.bannerAction, { backgroundColor: palette.rose }]}>
-        <AppIcon name="chevron-forward" size={iconSizes.md} color={palette.onRose} />
-      </View>
     </InteractiveSurface>
   );
 }
@@ -985,10 +947,7 @@ export default function MoreScreen() {
 
             <DesktopSection title="Conta e ajuda">
               <DesktopGrid minColumnWidth={240} maxColumns={3}>
-                {[
-                  ...ACCOUNT_HELP_ITEMS,
-                  ...(brand.features.familiaLucro ? [LUCRO_APPS_ITEM] : []),
-                ].map((item, index) => (
+                {ACCOUNT_HELP_ITEMS.map((item, index) => (
                   <DesktopToolTile
                     key={item.title}
                     index={index}
@@ -1107,10 +1066,6 @@ export default function MoreScreen() {
               </View>
             </View>
 
-            {brand.features.familiaLucro ? (
-              <ExtensionsBanner onPress={() => router.push("/lucro-apps")} />
-            ) : null}
-
             <View style={styles.section}>
               <SectionHeader title="CONTA E AJUDA" />
               <AccountHelpCard onNavigate={(route) => router.push(route)} />
@@ -1165,18 +1120,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
   },
-  bannerAction: {
-    width: 40,
-    height: 40,
-    flexShrink: 0,
-    borderRadius: radii.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bannerCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
   badgedToolCard: {
     paddingVertical: spacing.xs,
   },
@@ -1202,33 +1145,6 @@ const styles = StyleSheet.create({
   },
   editProfileButtonInline: {
     marginTop: 2,
-  },
-  editorialCurve: {
-    position: "absolute",
-    width: 220,
-    height: 140,
-    right: 74,
-    bottom: -88,
-    borderRadius: radii.full,
-    opacity: 0.32,
-  },
-  extensionsBanner: {
-    minHeight: 88,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    padding: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    overflow: "hidden",
-  },
-  extensionsIcon: {
-    width: 48,
-    height: 48,
-    flexShrink: 0,
-    borderRadius: radii.lg,
-    alignItems: "center",
-    justifyContent: "center",
   },
   gridItem: {
     width: "48%",
