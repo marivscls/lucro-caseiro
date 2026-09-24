@@ -27,7 +27,6 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 - `hooks.ts`, `api.ts`: integração HTTP e cache.
 - `pricing-improvements.test.ts`, `calc.test.ts`: cenários e regressões de cálculo.
 - `components/pricing-history-modal.tsx`: histórico compartilhado.
-- Os componentes antigos SimplePricingCalculator/PricingCalculator foram preservados, mas não são usados pelas rotas de precificação.
 
 ## Components
 
