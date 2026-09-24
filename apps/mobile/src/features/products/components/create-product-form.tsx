@@ -95,7 +95,8 @@ const PRODUCT_FORM_STEPS = [
   { label: "Estoque", title: "Estoque e identificação" },
 ] as const;
 
-function CategoryField({
+/** Campo de categoria: abre a escolha entre as categorias da pessoa ou uma nova. */
+export function CategoryField({
   value,
   onChange,
   categories,
@@ -212,7 +213,7 @@ function CategoryField({
   );
 }
 
-function PhotoField({
+export function PhotoField({
   imageUri,
   onPress,
 }: Readonly<{
@@ -396,7 +397,10 @@ function ExtraPhotosField({
 }
 
 /** Estimativa de ganho enquanto a pessoa preenche preço e custo. */
-function GainEstimate({ gain, margin }: Readonly<{ gain: number; margin: number }>) {
+export function GainEstimate({
+  gain,
+  margin,
+}: Readonly<{ gain: number; margin: number }>) {
   const { theme } = useTheme();
   const positive = gain >= 0;
   return (
