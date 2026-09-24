@@ -74,6 +74,17 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
   );
 }
 
+/** Erro de um campo: vazio ou fora da regra (nome curto, e-mail inválido, senha curta). */
+function fieldProblem(
+  value: string,
+  emptyMessage: string,
+  validate: (value: string) => { valid: boolean; errors: string[] },
+): string | undefined {
+  if (!value.trim()) return emptyMessage;
+  const result = validate(value);
+  return result.valid ? undefined : result.errors.join(". ");
+}
+
 export default function RegisterScreen() {
   const { theme } = useTheme();
   const brand = useBrand();
@@ -89,52 +100,19 @@ export default function RegisterScreen() {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const [nameError, setNameError] = useState<string>();
-  const [emailError, setEmailError] = useState<string>();
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
-  function validateForm(): boolean {
-    let valid = true;
-
-    const nameResult = validateName(name);
-    if (!nameResult.valid) {
-      setNameError(nameResult.errors[0]);
-      valid = false;
-    } else {
-      setNameError(undefined);
-    }
-
-    const emailResult = validateEmail(email);
-    if (!emailResult.valid) {
-      setEmailError(emailResult.errors[0]);
-      valid = false;
-    } else {
-      setEmailError(undefined);
-    }
-
-    const passwordResult = validatePassword(password);
-    if (!passwordResult.valid) {
-      setPasswordError(passwordResult.errors.join(". "));
-      valid = false;
-    } else {
-      setPasswordError(undefined);
-    }
-
-    return valid;
-  }
-
+  // Um só sistema de erro: a mensagem aparece no campo, e o foco vai para ele.
   const formValidation = useFormValidation({
-    name: !name.trim() && "Informe seu nome.",
-    email: !email.trim() && "Informe seu e-mail.",
-    password: !password.trim() && "Crie uma senha.",
+    name: fieldProblem(name, "Informe seu nome.", validateName),
+    email: fieldProblem(email, "Informe seu e-mail.", validateEmail),
+    password: fieldProblem(password, "Crie uma senha.", validatePassword),
   });
 
   async function handleRegister() {
     if (!formValidation.validate()) return;
-    if (!validateForm()) return;
 
     setRegisterLoading(true);
     // O nome do negócio é perguntado no primeiro acesso, não aqui.
@@ -201,13 +179,7 @@ export default function RegisterScreen() {
             resizeMode="contain"
             style={{ width: 104, height: 104 }}
           />
-          <Typography
-            variant="caption"
-            color={theme.colors.primaryStrong}
-            style={{ letterSpacing: 3, textTransform: "uppercase" }}
-          >
-            {brandName}
-          </Typography>
+          <Typography variant="wordmark">{brandName}</Typography>
           <Typography variant="screenTitle" style={{ textAlign: "center" }}>
             Crie sua conta
           </Typography>
@@ -258,11 +230,7 @@ export default function RegisterScreen() {
               submitBehavior="submit"
               onSubmitEditing={() => emailRef.current?.focus()}
               value={name}
-              onChangeText={(text) => {
-                setName(text);
-                if (nameError) setNameError(undefined);
-              }}
-              error={nameError}
+              onChangeText={setName}
             />
           </ValidationField>
 
@@ -280,11 +248,9 @@ export default function RegisterScreen() {
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
-                if (emailError) setEmailError(undefined);
                 if (emailSuggestion) setEmailSuggestion(undefined);
               }}
               onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-              error={emailError}
             />
           </ValidationField>
           <EmailTypoHint
@@ -293,7 +259,6 @@ export default function RegisterScreen() {
               if (!emailSuggestion) return;
               setEmail(emailSuggestion);
               setEmailSuggestion(undefined);
-              setEmailError(undefined);
             }}
           />
 
@@ -310,11 +275,7 @@ export default function RegisterScreen() {
                   void handleRegister();
                 }}
                 value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (passwordError) setPasswordError(undefined);
-                }}
-                error={passwordError}
+                onChangeText={setPassword}
                 rightIcon={
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}

@@ -160,13 +160,7 @@ function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
         <AppIcon name="chevron-back" size={24} color={theme.colors.text} />
       </Pressable>
       <View style={{ flex: 1, alignItems: "center" }}>
-        <Typography
-          variant="caption"
-          color={theme.colors.primaryLight}
-          style={{ letterSpacing: 3, textTransform: "uppercase" }}
-        >
-          {getBrandDisplayName(brand)}
-        </Typography>
+        <Typography variant="wordmark">{getBrandDisplayName(brand)}</Typography>
       </View>
       <View style={{ width: 48 }} />
     </View>
@@ -203,13 +197,7 @@ function WelcomeStep({
   return (
     <View style={{ flex: 1, justifyContent: "space-between", padding: spacing["2xl"] }}>
       <View style={{ alignItems: "center", paddingTop: spacing.lg }}>
-        <Typography
-          variant="caption"
-          color={theme.colors.primaryLight}
-          style={{ letterSpacing: 3, textTransform: "uppercase" }}
-        >
-          {getBrandDisplayName(brand)}
-        </Typography>
+        <Typography variant="wordmark">{getBrandDisplayName(brand)}</Typography>
       </View>
 
       <View style={{ alignItems: "center", gap: spacing.lg }}>

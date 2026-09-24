@@ -34,6 +34,13 @@ import {
 } from "../../features/onboarding/components/auth-layout";
 import notebookIllustration from "../../assets/finance-summary-illustration.png";
 
+/** Erro do campo de e-mail: vazio ou fora do formato nome@exemplo.com. */
+function emailProblem(email: string): string | undefined {
+  if (!email.trim()) return "Informe seu e-mail.";
+  const result = validateEmail(email);
+  return result.valid ? undefined : result.errors[0];
+}
+
 export default function LoginScreen() {
   const { theme } = useTheme();
   const brand = useBrand();
@@ -47,9 +54,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [emailError, setEmailError] = useState<string>();
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
   const passwordRef = useRef<TextInput>(null);
   // Quem nunca entrou neste aparelho vê primeiro as boas-vindas, com
   // "Criar conta grátis" em destaque; quem já entrou vai direto ao login.
@@ -67,35 +72,14 @@ export default function LoginScreen() {
 
   const controlBorder = theme.colors.border;
 
-  function validateForm(): boolean {
-    let valid = true;
-
-    const emailResult = validateEmail(email);
-    if (!emailResult.valid) {
-      setEmailError(emailResult.errors[0]);
-      valid = false;
-    } else {
-      setEmailError(undefined);
-    }
-
-    if (!password.trim()) {
-      setPasswordError("Senha é obrigatória");
-      valid = false;
-    } else {
-      setPasswordError(undefined);
-    }
-
-    return valid;
-  }
-
+  // Um só sistema de erro: a mensagem aparece no campo, e o foco vai para ele.
   const formValidation = useFormValidation({
-    email: !email.trim() && "Informe seu e-mail.",
+    email: emailProblem(email),
     password: !password.trim() && "Informe sua senha.",
   });
 
   async function handleLogin() {
     if (!formValidation.validate()) return;
-    if (!validateForm()) return;
 
     setEmailLoading(true);
     try {
@@ -258,11 +242,9 @@ export default function LoginScreen() {
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
-                    if (emailError) setEmailError(undefined);
                     if (emailSuggestion) setEmailSuggestion(undefined);
                   }}
                   onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-                  error={emailError}
                 />
               </ValidationField>
               <EmailTypoHint
@@ -271,7 +253,6 @@ export default function LoginScreen() {
                   if (!emailSuggestion) return;
                   setEmail(emailSuggestion);
                   setEmailSuggestion(undefined);
-                  setEmailError(undefined);
                 }}
               />
               <View>
@@ -287,11 +268,7 @@ export default function LoginScreen() {
                     secureTextEntry={!showPassword}
                     autoComplete="password"
                     value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      if (passwordError) setPasswordError(undefined);
-                    }}
-                    error={passwordError}
+                    onChangeText={setPassword}
                     rightIcon={
                       <Pressable
                         onPress={() => setShowPassword(!showPassword)}

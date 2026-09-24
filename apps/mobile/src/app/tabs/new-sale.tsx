@@ -19,7 +19,6 @@ import {
   Card,
   fonts,
   iconSizes,
-  Input,
   Typography,
   useBrand,
   useFeature,
@@ -35,8 +34,6 @@ import {
   BackHandler,
   FlatList,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   View,
@@ -88,12 +85,19 @@ import { QuantityPulse } from "../../shared/components/motion-feedback";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
+import { StandardModal } from "../../shared/components/standard-modal";
+import { FormSection } from "../../shared/components/form-section";
+import {
+  ChoiceField,
+  FormField,
+  TextField,
+  type ChoiceOption,
+} from "../../shared/components/form-field";
+import { FormActions, FormGrid } from "../../shared/components/form-layout";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import {
   DesktopCard,
-  DesktopField,
-  DesktopFormGrid,
   DesktopGrid,
   DesktopSection,
   DesktopSplit,
@@ -102,7 +106,6 @@ import {
 } from "../../shared/layout/desktop-page";
 import { DesktopStepper } from "../../shared/layout/desktop-stepper";
 import {
-  desktopCompactField,
   desktopModalSurface,
   desktopSplitLayout,
   desktopStretch,
@@ -381,6 +384,91 @@ function ReviewDetail({
   );
 }
 
+type DiscountType = "fixed" | "percentage";
+type DiscountChoice = "none" | DiscountType;
+
+const DISCOUNT_OPTIONS: readonly ChoiceOption<DiscountChoice>[] = [
+  { value: "none", label: "Nenhum" },
+  { value: "fixed", label: "Em reais" },
+  { value: "percentage", label: "Em %" },
+];
+
+/** Erro sempre visível (não depende de tentar salvar) e sem alvo de foco. */
+const noFocusTarget = () => () => undefined;
+
+/**
+ * Desconto e observações da venda: os mesmos campos no computador e no
+ * celular (o `FormGrid` decide as colunas pela largura).
+ */
+function SaleAdjustmentsFields({
+  discountType,
+  discountInput,
+  notes,
+  discountTooHigh,
+  onDiscountTypeChange,
+  onDiscountInputChange,
+  onNotesChange,
+}: Readonly<{
+  discountType: DiscountType | null;
+  discountInput: string;
+  notes: string;
+  discountTooHigh: boolean;
+  onDiscountTypeChange: (value: DiscountType | null) => void;
+  onDiscountInputChange: (value: string) => void;
+  onNotesChange: (value: string) => void;
+}>) {
+  return (
+    <FormGrid>
+      <FormField label="Desconto" span="full">
+        <ChoiceField
+          accessibilityLabel="Tipo de desconto"
+          value={discountType ?? "none"}
+          options={DISCOUNT_OPTIONS}
+          onChange={(value) => {
+            onDiscountTypeChange(value === "none" ? null : value);
+            if (value === "none") onDiscountInputChange("");
+          }}
+        />
+      </FormField>
+      {discountType ? (
+        <FormField
+          label="Valor do desconto"
+          validation={{
+            error: discountTooHigh
+              ? "O desconto deve ser menor que o subtotal."
+              : undefined,
+            registerFocus: noFocusTarget,
+          }}
+        >
+          <TextField
+            accessibilityLabel={
+              discountType === "percentage"
+                ? "Desconto, em porcentagem"
+                : "Desconto, em reais"
+            }
+            prefix={discountType === "fixed" ? "R$" : undefined}
+            suffix={discountType === "percentage" ? "%" : undefined}
+            value={discountInput}
+            onChangeText={onDiscountInputChange}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            placeholder={discountType === "percentage" ? "Ex: 10" : "Ex: 5,00"}
+          />
+        </FormField>
+      ) : null}
+      <FormField label="Observações do pedido" optional span="full">
+        <TextField
+          value={notes}
+          onChangeText={onNotesChange}
+          placeholder="Ex: separar em duas embalagens"
+          maxLength={500}
+          multiline
+        />
+      </FormField>
+    </FormGrid>
+  );
+}
+
 export default function NewSaleScreen() {
   const guidanceUserId = useAuth((state) => state.userId);
   const { theme } = useTheme();
@@ -449,6 +537,20 @@ export default function NewSaleScreen() {
   const { data: salesData } = useSales();
   const createSale = useCreateSale();
 
+  const weightValue = parseFloat(weightInput.replace(",", "."));
+  const weightValidation = useFormValidation(
+    {
+      weight:
+        (isNaN(weightValue) || weightValue <= 0) &&
+        "Digite um peso maior que zero (em kg).",
+    },
+    weightProduct?.id,
+  );
+  const barcodeValidation = useFormValidation(
+    { code: !barcodeInput.trim() && "Digite ou cole um código para buscar." },
+    showBarcodeSearch,
+  );
+
   const cartTotal = computeCartTotal(cart);
   const parsedDiscount = Number.parseFloat(discountInput.replace(",", ".")) || 0;
   const pricing = salePricing(cartTotal, discountType, parsedDiscount);
@@ -498,11 +600,8 @@ export default function NewSaleScreen() {
 
   function confirmWeight() {
     if (!weightProduct) return;
+    if (!weightValidation.validate()) return;
     const weight = parseFloat(weightInput.replace(",", "."));
-    if (isNaN(weight) || weight <= 0) {
-      alertValidation("Digite um peso maior que zero (em kg)");
-      return;
-    }
     const product = weightProduct;
     setCart((prev) => {
       const others = prev.filter(
@@ -622,12 +721,8 @@ export default function NewSaleScreen() {
   }
 
   function handleBarcodeSearch() {
-    const query = barcodeInput.trim();
-    if (!query) {
-      alertValidation("Digite ou cole um código para buscar.");
-      return;
-    }
-    void handleProductCode(query);
+    if (!barcodeValidation.validate()) return;
+    void handleProductCode(barcodeInput.trim());
   }
 
   async function handleSubmit(paymentOverride?: PaymentOption["value"]) {
@@ -1049,12 +1144,6 @@ export default function NewSaleScreen() {
     </>
   );
 
-  const discountOptions = [
-    { value: null, label: "Sem desconto" },
-    { value: "fixed" as const, label: "Valor em R$" },
-    { value: "percentage" as const, label: "Porcentagem" },
-  ];
-
   const desktopPaymentStep = (
     <>
       <ValidationField {...formValidation.field("paymentMethod")}>
@@ -1094,72 +1183,15 @@ export default function NewSaleScreen() {
         title="Ajustes da venda"
         description="Desconto e observações são opcionais. Na próxima etapa você confere tudo."
       >
-        <DesktopFormGrid>
-          <DesktopField span="full">
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="desktopFieldLabel">Desconto</Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {discountOptions.map((option) => {
-                  const selected = discountType === option.value;
-                  return (
-                    <Pressable
-                      key={option.label}
-                      onPress={() => {
-                        setDiscountType(option.value);
-                        if (option.value === null) setDiscountInput("");
-                      }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      style={{
-                        minHeight: 48,
-                        justifyContent: "center",
-                        paddingHorizontal: spacing.lg,
-                        borderRadius: radii.full,
-                        backgroundColor: selected ? pal.softRose : theme.colors.surface,
-                        borderWidth: 1,
-                        borderColor: selected ? pal.wine : theme.colors.border,
-                      }}
-                    >
-                      <Typography
-                        variant={selected ? "desktopBodyStrong" : "desktopBody"}
-                        color={selected ? pal.wine : theme.colors.text}
-                      >
-                        {option.label}
-                      </Typography>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          </DesktopField>
-          {discountType ? (
-            <Input
-              label={discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"}
-              value={discountInput}
-              onChangeText={setDiscountInput}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
-              placeholder={discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"}
-              error={
-                pricing.total <= 0
-                  ? "O desconto deve ser menor que o subtotal."
-                  : undefined
-              }
-            />
-          ) : null}
-          <DesktopField span="full">
-            <Input
-              label="Observações do pedido"
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Ex.: separar em duas embalagens"
-              maxLength={500}
-              multiline
-              numberOfLines={3}
-              style={{ height: 96, textAlignVertical: "top" }}
-            />
-          </DesktopField>
-        </DesktopFormGrid>
+        <SaleAdjustmentsFields
+          discountType={discountType}
+          discountInput={discountInput}
+          notes={notes}
+          discountTooHigh={pricing.total <= 0}
+          onDiscountTypeChange={setDiscountType}
+          onDiscountInputChange={setDiscountInput}
+          onNotesChange={setNotes}
+        />
       </DesktopSection>
     </>
   );
@@ -2036,94 +2068,21 @@ export default function NewSaleScreen() {
                         ...(isDesktop ? { width: "100%" } : null),
                       }}
                     >
-                      <Typography variant="h3">Ajustes da venda</Typography>
-                      <Typography
-                        variant="caption"
-                        color={theme.colors.textSecondary}
-                        style={{ marginTop: spacing.xs, marginBottom: spacing.md }}
+                      <FormSection
+                        collapsible={false}
+                        title="Ajustes da venda"
+                        subtitle="Desconto e observações são opcionais."
                       >
-                        Adicione desconto e observações antes da revisão.
-                      </Typography>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          flexWrap: "wrap",
-                          gap: spacing.sm,
-                          marginBottom: spacing.md,
-                        }}
-                      >
-                        {[
-                          { value: null, label: "Sem desconto" },
-                          { value: "fixed" as const, label: "Valor em R$" },
-                          { value: "percentage" as const, label: "Porcentagem" },
-                        ].map((option) => {
-                          const selected = discountType === option.value;
-                          return (
-                            <Pressable
-                              key={option.label}
-                              onPress={() => {
-                                setDiscountType(option.value);
-                                if (option.value === null) setDiscountInput("");
-                              }}
-                              accessibilityRole="button"
-                              accessibilityState={{ selected }}
-                              style={{
-                                minHeight: 44,
-                                justifyContent: "center",
-                                paddingHorizontal: spacing.md,
-                                borderRadius: radii.full,
-                                backgroundColor: theme.colors.surface,
-                                borderWidth: 1,
-                                borderColor: selected ? pal.wine : theme.colors.border,
-                              }}
-                            >
-                              <Typography
-                                variant="caption"
-                                color={selected ? pal.wine : theme.colors.textSecondary}
-                              >
-                                {option.label}
-                              </Typography>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                      {discountType ? (
-                        <View style={desktopCompactField(isDesktop)}>
-                          <Input
-                            label={
-                              discountType === "percentage"
-                                ? "Desconto (%)"
-                                : "Desconto (R$)"
-                            }
-                            value={discountInput}
-                            onChangeText={setDiscountInput}
-                            keyboardType="decimal-pad"
-                            numericMode="decimal"
-                            placeholder={
-                              discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"
-                            }
-                            error={
-                              pricing.total <= 0
-                                ? "O desconto deve ser menor que o subtotal."
-                                : undefined
-                            }
-                            containerStyle={{ marginBottom: spacing.md }}
-                          />
-                        </View>
-                      ) : null}
-                      <Input
-                        label="Observações do pedido"
-                        value={notes}
-                        onChangeText={setNotes}
-                        placeholder="Ex.: separar em duas embalagens"
-                        maxLength={500}
-                        multiline
-                        numberOfLines={3}
-                        style={{
-                          height: 80,
-                          textAlignVertical: "center",
-                        }}
-                      />
+                        <SaleAdjustmentsFields
+                          discountType={discountType}
+                          discountInput={discountInput}
+                          notes={notes}
+                          discountTooHigh={pricing.total <= 0}
+                          onDiscountTypeChange={setDiscountType}
+                          onDiscountInputChange={setDiscountInput}
+                          onNotesChange={setNotes}
+                        />
+                      </FormSection>
                     </Card>
                     <Typography variant="caption" color={theme.colors.textSecondary}>
                       Na próxima etapa, você confere tudo antes de registrar.
@@ -2402,92 +2361,40 @@ export default function NewSaleScreen() {
           setShowBarcodeSearch(true);
         }}
       />
-      <ResponsiveOverlayModal
+      <StandardModal
         visible={showBarcodeSearch}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowBarcodeSearch(false)}
+        onClose={() => setShowBarcodeSearch(false)}
+        title="Buscar por código"
+        subtitle="Digite ou cole o código do produto para filtrar a lista."
+        footer={
+          <FormActions>
+            <Button
+              title="Cancelar"
+              variant="outline"
+              onPress={() => setShowBarcodeSearch(false)}
+            />
+            <Button
+              title="Buscar produto"
+              onPress={handleBarcodeSearch}
+              loading={productCodeLookup.isPending}
+            />
+          </FormActions>
+        }
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <Pressable
-            onPress={() => setShowBarcodeSearch(false)}
-            style={{
-              flex: 1,
-              backgroundColor: theme.colors.overlay,
-              justifyContent: isDesktop ? "center" : "flex-end",
-              padding: isDesktop ? spacing.xl : 0,
-            }}
-          >
-            <Pressable
-              onPress={(event) => event.stopPropagation()}
-              style={[
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderTopLeftRadius: radii["2xl"],
-                  borderTopRightRadius: radii["2xl"],
-                  padding: spacing.xl,
-                  paddingBottom: isDesktop
-                    ? spacing.xl
-                    : Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
-                  gap: spacing.lg,
-                },
-                desktopModalSurface(isDesktop, 640),
-              ]}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <Typography variant="h3">Buscar por código</Typography>
-                <Pressable
-                  onPress={() => setShowBarcodeSearch(false)}
-                  accessibilityLabel="Fechar"
-                  hitSlop={12}
-                >
-                  <AppIcon
-                    name="close-outline"
-                    size={26}
-                    color={theme.colors.textSecondary}
-                  />
-                </Pressable>
-              </View>
-              <Typography variant="body">
-                Digite ou cole o código do produto para filtrar a lista.
-              </Typography>
-              <Input
-                label="Código"
-                placeholder="Ex: 789... ou LC-ABC123"
-                value={barcodeInput}
-                onChangeText={setBarcodeInput}
-                autoCapitalize="characters"
-                returnKeyType="search"
-                onSubmitEditing={handleBarcodeSearch}
-                autoFocus
-              />
-              <Button
-                title="Buscar produto"
-                size="lg"
-                style={{ borderRadius: radii.md }}
-                icon={
-                  <AppIcon
-                    name="search-outline"
-                    size={18}
-                    color={theme.colors.textOnPrimary}
-                  />
-                }
-                onPress={handleBarcodeSearch}
-                loading={productCodeLookup.isPending}
-              />
-            </Pressable>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </ResponsiveOverlayModal>
+        <FormField label="Código" validation={barcodeValidation.field("code")}>
+          <TextField
+            icon="barcode-outline"
+            placeholder="Ex: 789... ou LC-ABC123"
+            accessibilityLabel="Código do produto"
+            value={barcodeInput}
+            onChangeText={setBarcodeInput}
+            autoCapitalize="characters"
+            returnKeyType="search"
+            onSubmitEditing={handleBarcodeSearch}
+            autoFocus
+          />
+        </FormField>
+      </StandardModal>
       {showCreateProduct ? (
         <CreateProductForm
           key={createProductInitial?.code ?? "manual"}
@@ -2663,66 +2570,48 @@ export default function NewSaleScreen() {
       </ResponsiveOverlayModal>
 
       {/* Peso (kg) para produtos vendidos por quilo */}
-      <ResponsiveOverlayModal
+      <StandardModal
         visible={weightProduct !== null}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setWeightProduct(null)}
+        onClose={() => setWeightProduct(null)}
+        title={weightProduct?.name ?? "Peso"}
+        subtitle={
+          weightProduct ? `${formatCurrency(weightProduct.salePrice)}/kg` : undefined
+        }
+        footer={
+          <FormActions>
+            <Button
+              title="Cancelar"
+              variant="outline"
+              onPress={() => setWeightProduct(null)}
+            />
+            <Button title="Adicionar à venda" onPress={confirmWeight} />
+          </FormActions>
+        }
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1, minHeight: 0 }}
-        >
-          <Pressable
-            onPress={() => setWeightProduct(null)}
-            style={{
-              flex: 1,
-              minHeight: 0,
-              backgroundColor: theme.colors.overlay,
-              justifyContent: "center",
-              padding: spacing.xl,
-            }}
-          >
-            <Pressable
-              onPress={(e) => e.stopPropagation()}
-              style={[
-                {
-                  backgroundColor: theme.colors.background,
-                  borderRadius: radii.xl,
-                  padding: spacing.xl,
-                  gap: spacing.lg,
-                },
-                desktopModalSurface(isDesktop, 480),
-              ]}
-            >
-              <Typography variant="h3">{weightProduct?.name}</Typography>
-              {weightProduct && (
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {formatCurrency(weightProduct.salePrice)}/kg
-                </Typography>
-              )}
-              <Input
-                label="Peso (kg)"
-                placeholder="Ex: 1,5"
-                value={weightInput}
-                onChangeText={setWeightInput}
-                keyboardType="decimal-pad"
-                numericMode="decimal"
-                autoFocus
-              />
-              {weightProduct && !isNaN(parseFloat(weightInput.replace(",", "."))) && (
-                <Typography variant="bodyBold" color={theme.colors.text}>
-                  Subtotal:{" "}
-                  {formatCurrency(
-                    parseFloat(weightInput.replace(",", ".")) * weightProduct.salePrice,
-                  )}
-                </Typography>
-              )}
-              <Button title="Adicionar" size="lg" onPress={confirmWeight} />
-            </Pressable>
-          </Pressable>
-        </KeyboardAvoidingView>
-      </ResponsiveOverlayModal>
+        <FormField label="Peso" validation={weightValidation.field("weight")}>
+          <TextField
+            icon="scale-outline"
+            placeholder="Ex: 1,5"
+            accessibilityLabel="Peso, em quilos"
+            suffix="kg"
+            value={weightInput}
+            onChangeText={setWeightInput}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            returnKeyType="done"
+            onSubmitEditing={confirmWeight}
+            autoFocus
+          />
+        </FormField>
+        {weightProduct && !isNaN(parseFloat(weightInput.replace(",", "."))) && (
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            Subtotal:{" "}
+            {formatCurrency(
+              parseFloat(weightInput.replace(",", ".")) * weightProduct.salePrice,
+            )}
+          </Typography>
+        )}
+      </StandardModal>
     </SafeAreaView>
   );
 }
