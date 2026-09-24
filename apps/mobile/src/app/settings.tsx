@@ -38,6 +38,7 @@ import {
   businessCopyFor,
 } from "../features/subscription/business-copy";
 import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
+import { isProfileOnTrial, trialEndLabel } from "../features/subscription/trial";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { showAlert } from "../shared/components/alert-store";
@@ -288,7 +289,10 @@ export default function SettingsScreen() {
   const experienceCopy = businessCopyFor(businessType);
   const avatarUrl = profile?.avatarUrl ?? null;
   const currentPlan = activePlan(profile);
-  const hasPaidPlan = currentPlan !== "free";
+  // Teste grátis do Essencial: usa os recursos, mas não há assinatura para
+  // cancelar nem gerenciar.
+  const onTrial = isProfileOnTrial(profile);
+  const hasPaidPlan = currentPlan !== "free" && !onTrial;
   const canUsePremiumNotifications =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
@@ -489,11 +493,11 @@ export default function SettingsScreen() {
         }
       : { gap: spacing.sm };
 
-    if (currentPlan === "free") {
+    if (currentPlan === "free" || onTrial) {
       return (
         <View style={actionRowStyle}>
           <Button
-            title="Conhecer os planos"
+            title={onTrial ? "Assinar um plano" : "Conhecer os planos"}
             variant="premium"
             size="md"
             icon={
@@ -694,6 +698,15 @@ export default function SettingsScreen() {
       </Card>
     </>
   );
+  let planTitle = "Gratuito";
+  let planDescription = "Conheça os recursos para facilitar sua rotina.";
+  if (onTrial) {
+    planTitle = `${PLAN_LABELS[currentPlan]} (teste grátis)`;
+    planDescription = `Seu teste termina ${trialEndLabel(profile?.planExpiresAt ?? null)}. Depois, a conta volta para o Gratuito.`;
+  } else if (hasPaidPlan) {
+    planTitle = PLAN_LABELS[currentPlan];
+    planDescription = `Seus recursos ${brandName} em um só lugar.`;
+  }
   const planSection = (
     <>
       <Card variant="elevated" padding="xl" style={{ gap: spacing.lg }}>
@@ -712,17 +725,13 @@ export default function SettingsScreen() {
             >
               Seu plano
             </Typography>
-            <Typography variant="h2">
-              {hasPaidPlan ? PLAN_LABELS[currentPlan] : "Gratuito"}
-            </Typography>
+            <Typography variant="h2">{planTitle}</Typography>
             <Typography
               variant={isDesktop ? "desktopBody" : "caption"}
               color={theme.colors.textSecondary}
               style={{ maxWidth: 440 }}
             >
-              {hasPaidPlan
-                ? `Seus recursos ${brandName} em um só lugar.`
-                : "Conheça os recursos para facilitar sua rotina."}
+              {planDescription}
             </Typography>
           </View>
         </View>
