@@ -282,3 +282,11 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
   de 2 colunas; o botão de ver a lista completa tem largura do texto.
 - Cabeçalho: `DesktopToolbarButton` "Mais opções" (ícone com texto); a folha de
   "Mais opções" abre centralizada com até 480 px.
+- 2026-09-24 — Personalizar vitrine no desktop: `ScreenHeader` (36 px) com
+  `DesktopToolbarButton` "Catálogo" para voltar; etapas com círculos de 32 px e rótulos
+  de 16 px (continuam navegáveis em qualquer ordem). Textos do editor passam por
+  `useCustomizerText()`: 11–12 px viram 14 px e 13–14 px viram 16 px; títulos de seção
+  22 px. "Ver prévia" aparece uma vez, no rodapé ao lado de salvar (sem o ícone do
+  cabeçalho nem o botão "Ver prévia desta edição"). O cartão de prévia usa título em
+  caixa normal (16 px) e selo de status de 14 px. A miniatura da vitrine continua na
+  escala do celular, porque reproduz a página pública.

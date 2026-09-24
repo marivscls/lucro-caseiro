@@ -28,6 +28,7 @@ import {
   ScrollView,
   Share,
   Switch,
+  type TextStyle,
   View,
   type ViewStyle,
   useWindowDimensions,
@@ -42,11 +43,13 @@ import {
   floatingTabBarReserve,
   mobileTabBarSafeInset,
 } from "../../../shared/layout/floating-tab-bar";
+import { DesktopToolbarButton } from "../../../shared/layout/desktop-page";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { SvgXml } from "react-native-svg";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { ScreenHeader } from "../../../shared/components/screen-header";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ColorPickerModal } from "../../../shared/components/color-picker-modal";
 import { showToast } from "../../../shared/components/toast";
@@ -107,25 +110,47 @@ type CatalogCustomizerProps = Readonly<{
 
 type ColorTarget = "actionColor" | "primaryColor" | "textColor" | null;
 
+/**
+ * Desktop: nada abaixo de 14 px. Legendas de 11–12 px sobem para 14 px e textos
+ * de apoio de 13–14 px para 16 px; no celular os tamanhos continuam os mesmos.
+ */
+const DESKTOP_TEXT: Readonly<Record<number, TextStyle>> = {
+  11: { fontSize: 14, lineHeight: 20 },
+  12: { fontSize: 14, lineHeight: 20 },
+  13: { fontSize: 16, lineHeight: 24 },
+  14: { fontSize: 16, lineHeight: 24 },
+};
+
+function useCustomizerText() {
+  const isDesktop = useDesktopLayout();
+  return (fontSize: number, lineHeight?: number): TextStyle => {
+    const desktop = isDesktop ? DESKTOP_TEXT[fontSize] : undefined;
+    if (desktop) return desktop;
+    return lineHeight === undefined ? { fontSize } : { fontSize, lineHeight };
+  };
+}
+
 function SectionHeading({
   title,
   description,
 }: Readonly<{ title: string; description?: string }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
+  const isDesktop = useDesktopLayout();
   return (
     <View style={{ gap: 3 }}>
       <Typography
         style={{
           color: colors.ink,
           fontFamily: fonts.extraBold,
-          fontSize: 20,
-          lineHeight: 26,
+          fontSize: isDesktop ? 22 : 20,
+          lineHeight: isDesktop ? 30 : 26,
         }}
       >
         {title}
       </Typography>
       {description ? (
-        <Typography style={{ color: colors.warmGray, fontSize: 13, lineHeight: 19 }}>
+        <Typography style={{ color: colors.warmGray, ...text(13, 19) }}>
           {description}
         </Typography>
       ) : null}
@@ -170,6 +195,7 @@ function StyleOption<T extends string>({
   }>
 >) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   return (
     <Pressable
       accessibilityRole="radio"
@@ -204,10 +230,10 @@ function StyleOption<T extends string>({
           </View>
         ) : null}
       </View>
-      <Typography style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 13 }}>
+      <Typography style={{ color: colors.ink, fontFamily: fonts.bold, ...text(13) }}>
         {title}
       </Typography>
-      <Typography style={{ color: colors.warmGray, fontSize: 11, lineHeight: 15 }}>
+      <Typography style={{ color: colors.warmGray, ...text(11, 15) }}>
         {description}
       </Typography>
     </Pressable>
@@ -216,8 +242,9 @@ function StyleOption<T extends string>({
 
 function FieldHint({ value, limit }: Readonly<{ value: string; limit: number }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   return (
-    <Typography style={{ color: colors.warmGray, fontSize: 11, textAlign: "right" }}>
+    <Typography style={{ color: colors.warmGray, ...text(11), textAlign: "right" }}>
       {value.length} de {limit} caracteres
     </Typography>
   );
@@ -248,6 +275,7 @@ function SwitchRow({
   disabled?: boolean;
 }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   return (
     <Pressable
       accessibilityRole="switch"
@@ -261,12 +289,12 @@ function SwitchRow({
     >
       <View style={{ flex: 1, gap: 2 }}>
         <Typography
-          style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
+          style={{ color: colors.ink, fontFamily: fonts.semiBold, ...text(13) }}
         >
           {label}
         </Typography>
         {description ? (
-          <Typography style={{ color: colors.warmGray, fontSize: 11, lineHeight: 16 }}>
+          <Typography style={{ color: colors.warmGray, ...text(11, 16) }}>
             {description}
           </Typography>
         ) : null}
@@ -303,6 +331,7 @@ function ColorField({
   onOpen: () => void;
 }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   return (
     <View
       style={{
@@ -312,7 +341,7 @@ function ColorField({
         gap: 8,
       }}
     >
-      <Typography style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 12 }}>
+      <Typography style={{ color: colors.ink, fontFamily: fonts.semiBold, ...text(12) }}>
         {label}
       </Typography>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
@@ -351,6 +380,9 @@ function StepNavigation({
   onNavigate: (step: StorefrontEditorStep) => void;
 }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
+  const isDesktop = useDesktopLayout();
+  const circle = isDesktop ? 32 : 24;
   const steps: ReadonlyArray<{
     id: StorefrontEditorStep;
     label: string;
@@ -392,7 +424,7 @@ function StepNavigation({
                 onPress={() => onNavigate(item.id)}
                 style={({ pressed }) => ({
                   flex: 1,
-                  minHeight: 44,
+                  minHeight: isDesktop ? 48 : 44,
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
@@ -402,8 +434,8 @@ function StepNavigation({
               >
                 <View
                   style={{
-                    width: 24,
-                    height: 24,
+                    width: circle,
+                    height: circle,
                     borderRadius: 999,
                     alignItems: "center",
                     justifyContent: "center",
@@ -420,7 +452,7 @@ function StepNavigation({
                       style={{
                         color: active ? colors.onWine : colors.warmGray,
                         fontFamily: fonts.bold,
-                        fontSize: 11,
+                        ...text(11),
                       }}
                     >
                       {item.number}
@@ -431,7 +463,7 @@ function StepNavigation({
                   style={{
                     color: active ? colors.wine : colors.warmGray,
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    fontSize: 11,
+                    ...(isDesktop ? { fontSize: 16, lineHeight: 24 } : text(11)),
                     flexShrink: 1,
                   }}
                   numberOfLines={1}
@@ -461,6 +493,7 @@ function UploadButton({
   loading?: boolean;
 }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   return (
     <View
       style={{ flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap" }}
@@ -489,10 +522,10 @@ function UploadButton({
         )}
       </View>
       <View style={{ flex: 1, minWidth: 180, gap: 7 }}>
-        <Typography style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}>
+        <Typography style={{ color: colors.ink, fontFamily: fonts.bold, ...text(14) }}>
           {title}
         </Typography>
-        <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+        <Typography style={{ color: colors.warmGray, ...text(12) }}>
           PNG ou JPG • até 5 MB
         </Typography>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
@@ -532,6 +565,7 @@ function FeaturedPicker({
   onAddMedia: () => void;
 }>) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   const [query, setQuery] = useState("");
   const normalized = query.trim().toLocaleLowerCase("pt-BR");
   const productItems = products.filter(
@@ -651,12 +685,12 @@ function FeaturedPicker({
                       style={{
                         color: colors.ink,
                         fontFamily: fonts.semiBold,
-                        fontSize: 13,
+                        ...text(13),
                       }}
                     >
                       {displayCatalogItemName(item.name)}
                     </Typography>
-                    <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                    <Typography style={{ color: colors.warmGray, ...text(11) }}>
                       {kind === "product" ? "Produto" : "Serviço"}
                     </Typography>
                   </View>
@@ -703,6 +737,7 @@ function PreviewModal({
   }>
 >) {
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   const isDesktop = useDesktopLayout();
   const allowPublished = Platform.OS === "web";
   const showPublished = allowPublished && source === "published";
@@ -853,7 +888,7 @@ function PreviewModal({
                         style={{
                           color: active ? colors.wine : colors.warmGray,
                           fontFamily: fonts.semiBold,
-                          fontSize: 12,
+                          ...text(12),
                         }}
                       >
                         {label}
@@ -883,6 +918,7 @@ export function CatalogCustomizer({
   const analyticsToken = useAuth((state) => state.token);
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
+  const text = useCustomizerText();
   const router = useRouter();
   const params = useLocalSearchParams<{ step?: string; section?: string }>();
   const { width } = useWindowDimensions();
@@ -1269,50 +1305,67 @@ export function CatalogCustomizer({
           backgroundColor: colors.background,
         }}
       >
-        <View
-          style={{
-            minHeight: 56,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <IconButton
-            accessibilityLabel="Voltar"
-            onPress={requestClose}
-            icon={<AppIcon name="arrow-back" size={22} color={colors.wine} />}
+        {isDesktop ? (
+          // Desktop: mesmo cabeçalho das outras páginas (título de 36 px).
+          <ScreenHeader
+            title="Personalizar vitrine"
+            subtitle="Deixe seu catálogo com a cara do seu negócio."
+            hideBack
+            // "Ver prévia" fica uma vez só, no rodapé, ao lado de salvar.
+            right={
+              <DesktopToolbarButton
+                icon="chevron-back"
+                label="Catálogo"
+                onPress={requestClose}
+              />
+            }
           />
-          <View style={{ flex: 1 }}>
-            <Typography
-              style={{
-                color: colors.wine,
-                fontFamily: fonts.bold,
-                fontSize: isDesktop ? 20 : 18,
-                lineHeight: isDesktop ? 26 : 24,
-                textAlign: isDesktop ? "left" : "center",
-              }}
-            >
-              Personalizar vitrine
-            </Typography>
-            {wide ? (
+        ) : (
+          <View
+            style={{
+              minHeight: 56,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <IconButton
+              accessibilityLabel="Voltar"
+              onPress={requestClose}
+              icon={<AppIcon name="arrow-back" size={22} color={colors.wine} />}
+            />
+            <View style={{ flex: 1 }}>
               <Typography
                 style={{
-                  color: colors.warmGray,
-                  fontSize: 13,
+                  color: colors.wine,
+                  fontFamily: fonts.bold,
+                  fontSize: isDesktop ? 20 : 18,
+                  lineHeight: isDesktop ? 26 : 24,
                   textAlign: isDesktop ? "left" : "center",
-                  marginTop: 2,
                 }}
               >
-                Deixe seu catálogo com a cara do seu negócio.
+                Personalizar vitrine
               </Typography>
-            ) : null}
+              {wide ? (
+                <Typography
+                  style={{
+                    color: colors.warmGray,
+                    ...text(13),
+                    textAlign: isDesktop ? "left" : "center",
+                    marginTop: 2,
+                  }}
+                >
+                  Deixe seu catálogo com a cara do seu negócio.
+                </Typography>
+              ) : null}
+            </View>
+            <IconButton
+              accessibilityLabel="Ver prévia"
+              onPress={() => openPreview()}
+              icon={<AppIcon name="eye-outline" size={21} color={colors.wine} />}
+            />
           </View>
-          <IconButton
-            accessibilityLabel="Ver prévia"
-            onPress={() => openPreview()}
-            icon={<AppIcon name="eye-outline" size={21} color={colors.wine} />}
-          />
-        </View>
+        )}
         <StepNavigation step={step} onNavigate={navigate} />
       </View>
 
@@ -1339,7 +1392,7 @@ export function CatalogCustomizer({
           }}
         >
           <ContentTransition transitionKey={step} style={{ gap: isDesktop ? 22 : 18 }}>
-            {splitDesktop ? null : (
+            {isDesktop ? null : (
               <Button
                 title="Ver prévia desta edição"
                 variant="outline"
@@ -1389,7 +1442,7 @@ export function CatalogCustomizer({
                   {imageError ? (
                     <Typography
                       accessibilityLiveRegion="polite"
-                      style={{ color: theme.colors.alert, fontSize: 12 }}
+                      style={{ color: theme.colors.alert, ...text(12) }}
                     >
                       {imageError}
                     </Typography>
@@ -1578,11 +1631,11 @@ export function CatalogCustomizer({
                 />
                 <EditorCard>
                   <Typography
-                    style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}
+                    style={{ color: colors.ink, fontFamily: fonts.bold, ...text(14) }}
                   >
                     Capa da vitrine
                   </Typography>
-                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                  <Typography style={{ color: colors.warmGray, ...text(12) }}>
                     A arte principal é o arquivo enviado. Logo e destaques ficam
                     separados.
                   </Typography>
@@ -1613,13 +1666,13 @@ export function CatalogCustomizer({
                       }
                     />
                   ) : (
-                    <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
                       Sem capa, o topo fica neutro. Destaques só aparecem quando não
                       houver capa.
                     </Typography>
                   )}
                   <Typography
-                    style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}
+                    style={{ color: colors.ink, fontFamily: fonts.bold, ...text(14) }}
                   >
                     Destaques do topo
                   </Typography>
@@ -1663,12 +1716,12 @@ export function CatalogCustomizer({
                             style={{
                               color: colors.ink,
                               fontFamily: fonts.semiBold,
-                              fontSize: 12,
+                              ...text(12),
                             }}
                           >
                             {displayCatalogItemName(item.altText)}
                           </Typography>
-                          <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                          <Typography style={{ color: colors.warmGray, ...text(11) }}>
                             {item.kind === "product"
                               ? "Produto"
                               : item.kind === "service"
@@ -1720,13 +1773,13 @@ export function CatalogCustomizer({
                           style={{
                             color: colors.rose,
                             fontFamily: fonts.semiBold,
-                            fontSize: 12,
+                            ...text(12),
                             textAlign: "center",
                           }}
                         >
                           Selecionar itens ou mídia
                         </Typography>
-                        <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                        <Typography style={{ color: colors.warmGray, ...text(11) }}>
                           Até 3 destaques
                         </Typography>
                       </Pressable>
@@ -1866,7 +1919,7 @@ export function CatalogCustomizer({
                         }))
                       }
                     />
-                    <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
                       Abre o WhatsApp. Deixe em branco se não quiser o botão no topo.
                     </Typography>
                     <FieldHint
@@ -1886,7 +1939,7 @@ export function CatalogCustomizer({
                       }))
                     }
                   />
-                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                  <Typography style={{ color: colors.warmGray, ...text(12) }}>
                     Se preencher, a faixa aparece no topo da vitrine.
                   </Typography>
                 </EditorCard>
@@ -1896,7 +1949,7 @@ export function CatalogCustomizer({
                 />
                 <EditorCard>
                   {draft.hero.quickInfo.length === 0 ? (
-                    <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
                       Nenhum texto extra no banner. Adicione se quiser destacar um recado.
                     </Typography>
                   ) : (
@@ -2027,7 +2080,7 @@ export function CatalogCustomizer({
                     </View>
                   ) : null}
                   {catalogItems.length === 0 ? (
-                    <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
                       Cadastre produtos ou serviços para personalizar o botão de cada
                       item.
                     </Typography>
@@ -2085,14 +2138,12 @@ export function CatalogCustomizer({
                                 style={{
                                   color: colors.ink,
                                   fontFamily: fonts.semiBold,
-                                  fontSize: 13,
+                                  ...text(13),
                                 }}
                               >
                                 {displayCatalogItemName(entry.item.name)}
                               </Typography>
-                              <Typography
-                                style={{ color: colors.warmGray, fontSize: 11 }}
-                              >
+                              <Typography style={{ color: colors.warmGray, ...text(11) }}>
                                 {entry.kind === "product" ? "Produto" : "Serviço"}
                               </Typography>
                             </View>
@@ -2141,7 +2192,7 @@ export function CatalogCustomizer({
                       );
                     })
                   )}
-                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                  <Typography style={{ color: colors.warmGray, ...text(12) }}>
                     Deixe em branco no item para usar o texto padrão. Exemplo: Pedir.
                   </Typography>
                 </EditorCard>
@@ -2258,7 +2309,7 @@ export function CatalogCustomizer({
                       style={{
                         flex: 1,
                         color: slugAvailable ? colors.wine : colors.warmGray,
-                        fontSize: 12,
+                        ...text(12),
                       }}
                     >
                       {slugAvailability.isFetching
@@ -2341,7 +2392,7 @@ export function CatalogCustomizer({
                             color={item.valid ? colors.onLime : colors.warmGray}
                           />
                         </View>
-                        <Typography style={{ flex: 1, color: colors.ink, fontSize: 13 }}>
+                        <Typography style={{ flex: 1, color: colors.ink, ...text(13) }}>
                           {item.label}
                         </Typography>
                         <AppIcon
@@ -2374,7 +2425,7 @@ export function CatalogCustomizer({
                       style={{
                         color: publishingReady ? theme.colors.success : colors.ink,
                         fontFamily: fonts.semiBold,
-                        fontSize: 12,
+                        ...text(12),
                       }}
                     >
                       {publishingReady
@@ -2583,8 +2634,7 @@ export function CatalogCustomizer({
               <Typography
                 style={{
                   color: colors.warmGray,
-                  fontSize: 13,
-                  lineHeight: 19,
+                  ...text(13, 19),
                   textAlign: "center",
                 }}
               >
@@ -2593,7 +2643,7 @@ export function CatalogCustomizer({
             </View>
             <Typography
               selectable
-              style={{ color: colors.warmGray, fontSize: 12, textAlign: "center" }}
+              style={{ color: colors.warmGray, ...text(12), textAlign: "center" }}
             >
               {publicCatalogUrl(normalizedSlug)}
             </Typography>
@@ -2645,7 +2695,7 @@ export function CatalogCustomizer({
             />
             <Typography
               selectable
-              style={{ color: colors.warmGray, fontSize: 12, textAlign: "center" }}
+              style={{ color: colors.warmGray, ...text(12), textAlign: "center" }}
             >
               {catalogUrl}
             </Typography>
