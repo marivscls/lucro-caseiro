@@ -10,12 +10,15 @@ export interface HelpAssistantProps {
   profile: string;
   onNavigate: (route: NonNullable<HelpAnswer["action"]>["route"]) => void;
   onContactSupport: (question: string) => void;
+  /** Web >= 1024px: sugestões na largura do texto e ações alinhadas à direita. */
+  desktop?: boolean;
 }
 
 export function HelpAssistant({
   profile,
   onNavigate,
   onContactSupport,
+  desktop = false,
 }: Readonly<HelpAssistantProps>) {
   const { theme } = useTheme();
   const [draft, setDraft] = useState("");
@@ -39,17 +42,45 @@ export function HelpAssistant({
     ]);
     setDraft("");
   };
+  const caption = desktop ? "desktopMeta" : "caption";
+  const contact = () =>
+    onContactSupport(draft.trim() || conversation.at(-1)?.question || "");
   return (
-    <Card variant="surface" padding="xl" style={{ gap: spacing.lg }}>
+    <Card
+      variant="surface"
+      padding={desktop ? "2xl" : "xl"}
+      style={
+        desktop
+          ? {
+              gap: spacing.xl,
+              // Mesma superfície dos cartões do desktop: branco com borda fina.
+              backgroundColor: theme.colors.surfaceElevated,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+            }
+          : { gap: spacing.lg }
+      }
+    >
       <View style={{ gap: spacing.sm }}>
-        <Typography variant="h3">Pergunte ao assistente</Typography>
-        <Typography variant="body" color={theme.colors.textSecondary}>
+        <Typography variant={desktop ? "desktopSection" : "h3"}>
+          Pergunte ao assistente
+        </Typography>
+        <Typography
+          variant={desktop ? "desktopBody" : "body"}
+          color={theme.colors.textSecondary}
+        >
           Escreva o que você quer fazer. As respostas usam as instruções do app e
           funcionam sem internet.
         </Typography>
       </View>
       {conversation.length === 0 && (
-        <View style={{ gap: spacing.sm }}>
+        <View
+          style={
+            desktop
+              ? { flexDirection: "row", flexWrap: "wrap", gap: spacing.md }
+              : { gap: spacing.sm }
+          }
+        >
           {suggestions.map((question) => (
             <Button
               key={question}
@@ -57,6 +88,7 @@ export function HelpAssistant({
               titleLines={2}
               variant="outline"
               onPress={() => ask(question)}
+              style={desktop ? { minHeight: 48 } : undefined}
             />
           ))}
         </View>
@@ -66,19 +98,19 @@ export function HelpAssistant({
           <View
             style={{
               alignSelf: "flex-end",
-              maxWidth: "94%",
+              maxWidth: desktop ? "72%" : "94%",
               padding: spacing.md,
               borderRadius: 14,
               backgroundColor: theme.colors.background,
             }}
           >
-            <Typography variant="caption" color={theme.colors.textSecondary}>
+            <Typography variant={caption} color={theme.colors.textSecondary}>
               Você
             </Typography>
             <Typography variant="body">{question}</Typography>
           </View>
           <View accessibilityLiveRegion="polite" style={{ gap: spacing.sm }}>
-            <Typography variant="caption" color={theme.colors.primaryStrong}>
+            <Typography variant={caption} color={theme.colors.primaryStrong}>
               Assistente · Ajuda do app
             </Typography>
             <Typography variant="body">{answer.text}</Typography>
@@ -92,6 +124,7 @@ export function HelpAssistant({
                 title={answer.action.label}
                 variant="outline"
                 onPress={() => onNavigate(answer.action!.route)}
+                style={desktop ? { alignSelf: "flex-start", minHeight: 48 } : undefined}
               />
             )}
           </View>
@@ -122,22 +155,52 @@ export function HelpAssistant({
             borderRadius: 12,
           }}
         />
-        <Button
-          title="Perguntar"
-          size="lg"
-          disabled={!draft.trim()}
-          onPress={() => ask(draft)}
-        />
-        <Button
-          title="Falar por email"
-          variant="outline"
-          onPress={() =>
-            onContactSupport(draft.trim() || conversation.at(-1)?.question || "")
-          }
-        />
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          O assistente orienta sobre o app. Não consulta nem altera os dados da sua conta.
-        </Typography>
+        {desktop ? (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: spacing.md,
+            }}
+          >
+            <Typography
+              variant="desktopMeta"
+              color={theme.colors.textSecondary}
+              style={{ flex: 1, minWidth: 240 }}
+            >
+              O assistente orienta sobre o app. Não consulta nem altera os dados da sua
+              conta.
+            </Typography>
+            <Button
+              title="Falar por email"
+              variant="outline"
+              onPress={contact}
+              style={{ minWidth: 160, minHeight: 48 }}
+            />
+            <Button
+              title="Perguntar"
+              size="lg"
+              disabled={!draft.trim()}
+              onPress={() => ask(draft)}
+              style={{ minWidth: 160, minHeight: 48 }}
+            />
+          </View>
+        ) : (
+          <>
+            <Button
+              title="Perguntar"
+              size="lg"
+              disabled={!draft.trim()}
+              onPress={() => ask(draft)}
+            />
+            <Button title="Falar por email" variant="outline" onPress={contact} />
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              O assistente orienta sobre o app. Não consulta nem altera os dados da sua
+              conta.
+            </Typography>
+          </>
+        )}
       </View>
     </Card>
   );

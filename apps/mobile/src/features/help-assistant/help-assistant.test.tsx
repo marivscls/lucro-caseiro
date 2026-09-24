@@ -84,6 +84,24 @@ describe("HelpAssistant", () => {
     fireEvent.click(screen.getByRole("button", { name: "Falar por email" }));
     expect(contact).toHaveBeenCalledWith("Minha tela travou");
   });
+  it("keeps the same questions and actions in the desktop layout", () => {
+    const contact = vi.fn();
+    render(
+      <HelpAssistant
+        desktop
+        profile="food"
+        onNavigate={() => {}}
+        onContactSupport={contact}
+      />,
+    );
+    fireEvent.click(screen.getAllByRole("button")[0]);
+    expect(screen.getByText("Você")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Sua pergunta"), {
+      target: { value: "Minha tela travou" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Falar por email" }));
+    expect(contact).toHaveBeenCalledWith("Minha tela travou");
+  });
   it("disables sending an empty question", () => {
     render(
       <HelpAssistant profile="other" onNavigate={() => {}} onContactSupport={() => {}} />,
