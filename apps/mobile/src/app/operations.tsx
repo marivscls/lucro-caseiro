@@ -22,7 +22,7 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAllProducts } from "../features/products/hooks";
@@ -54,7 +54,7 @@ import {
   FormField,
   TextField,
   fieldMetrics,
-  useFieldPalette,
+  OptionChip,
 } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { FormSection } from "../shared/components/form-section";
@@ -434,41 +434,6 @@ function NumberField({
         numericMode="decimal"
       />
     </FormField>
-  );
-}
-
-/** Opção em pílula (mesmo visual das categorias do cadastro de produto). */
-function OptionChip({
-  label,
-  selected,
-  onPress,
-}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => ({
-        minHeight: 44,
-        maxWidth: "100%",
-        paddingHorizontal: spacing.lg,
-        justifyContent: "center",
-        borderRadius: radii.full,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.primaryStrong : pal.border,
-        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <Typography
-        variant="body"
-        color={selected ? theme.colors.primaryStrong : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
   );
 }
 

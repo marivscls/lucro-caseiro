@@ -70,7 +70,7 @@ import {
   FormField,
   TextField,
   fieldMetrics,
-  useFieldPalette,
+  ChipChoiceField,
 } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import {
@@ -178,55 +178,6 @@ function StockValue({ product }: Readonly<{ product: Product }>) {
     <Typography variant="bodyBold" color={color}>
       {stockLabel(product)}
     </Typography>
-  );
-}
-
-/** Escolha única entre opções curtas, no mesmo visual das categorias do cadastro. */
-function OptionChips({
-  options,
-  value,
-  onChange,
-}: Readonly<{
-  options: ReadonlyArray<{ value: string; label: string }>;
-  value: string | null;
-  onChange: (value: string) => void;
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            accessibilityRole="radio"
-            accessibilityState={{ selected, checked: selected }}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              paddingHorizontal: spacing.lg,
-              justifyContent: "center",
-              borderRadius: radii.full,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Typography
-              variant="body"
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option.label}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
 
@@ -850,7 +801,8 @@ function ProductDetailModal({
                       label="Variação"
                       validation={stockValidation.field("stockVariation")}
                     >
-                      <OptionChips
+                      <ChipChoiceField
+                        accessibilityLabel="Variação"
                         options={(product.variations ?? []).map((variation) => ({
                           value: variation.id,
                           label: variation.name,

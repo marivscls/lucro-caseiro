@@ -1,9 +1,9 @@
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Material } from "@lucro-caseiro/contracts";
-import { Button, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Button, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
@@ -15,6 +15,7 @@ import {
   TextField,
   fieldMetrics,
   useFieldPalette,
+  ChipChoiceField,
 } from "../../../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
@@ -114,46 +115,13 @@ function UnitChips({
   onChange: (value: string) => void;
   accessibilityLabel: string;
 }>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
   return (
-    <View
-      accessibilityRole="radiogroup"
+    <ChipChoiceField
+      value={value}
+      options={options.map((option) => ({ value: option, label: option }))}
+      onChange={onChange}
       accessibilityLabel={accessibilityLabel}
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {options.map((option) => {
-        const selected = option === value;
-        return (
-          <Pressable
-            key={option}
-            onPress={() => onChange(option)}
-            accessibilityRole="radio"
-            accessibilityLabel={option}
-            accessibilityState={{ selected, checked: selected }}
-            style={({ pressed }) => ({
-              minWidth: 56,
-              minHeight: 44,
-              paddingHorizontal: spacing.lg,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: radii.full,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Typography
-              variant={selected ? "bodyBold" : "body"}
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
+    />
   );
 }
 

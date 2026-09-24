@@ -48,7 +48,11 @@ export function DateField({
             accessibilityLabel={`Escolher ${label} no calendário`}
             hitSlop={12}
           >
-            <AppIcon name="calendar-outline" size={22} color={theme.colors.primary} />
+            <AppIcon
+              name="calendar-outline"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
           </Pressable>
         }
       />

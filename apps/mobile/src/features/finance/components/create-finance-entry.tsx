@@ -3,10 +3,9 @@ import { compatibleEntryCategory } from "../entry-guidance";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
-import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
+import { Button } from "@lucro-caseiro/ui";
+import { type AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
 
 import { brToIso, localIsoDate } from "../../../shared/utils/date";
 import {
@@ -24,8 +23,8 @@ import {
   FormField,
   SelectField,
   TextField,
-  useFieldPalette,
   type ChoiceOption,
+  ChipChoiceField,
 } from "../../../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 
@@ -62,65 +61,6 @@ const EXPENSE_CATEGORIES: readonly CategoryOption[] = [
   { value: "utility", label: "Utilidade", icon: "flash-outline" },
   { value: "other", label: "Outro", icon: "ellipsis-horizontal-circle-outline" },
 ];
-
-/** Categorias em pílulas (mesmo visual das categorias do cadastro de produto). */
-function CategoryChips({
-  value,
-  options,
-  onChange,
-}: Readonly<{
-  value: EntryCategory | "";
-  options: readonly CategoryOption[];
-  onChange: (value: EntryCategory) => void;
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel="Categoria do lançamento"
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            accessibilityRole="radio"
-            accessibilityLabel={option.label}
-            accessibilityState={{ selected, checked: selected }}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              maxWidth: "100%",
-              paddingHorizontal: spacing.lg,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.sm,
-              borderRadius: radii.full,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <AppIcon
-              name={option.icon}
-              size={20}
-              color={selected ? theme.colors.primaryStrong : pal.icon}
-            />
-            <Typography
-              variant="body"
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option.label}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
 
 function capitalize(value: string): string {
   return value.replace(/^./, (letter) => letter.toUpperCase());
@@ -289,7 +229,8 @@ export function CreateFinanceEntry({
               }
               validation={formValidation.field("category")}
             >
-              <CategoryChips
+              <ChipChoiceField
+                accessibilityLabel="Categoria do lançamento"
                 value={category}
                 options={categories}
                 onChange={(next) => {

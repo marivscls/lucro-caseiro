@@ -19,7 +19,8 @@ import {
   ChoiceField,
   FormField,
   TextField,
-  useFieldPalette,
+  OptionChip,
+  ChipRow,
 } from "../../../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { DateField } from "../../../shared/components/date-field";
@@ -36,7 +37,6 @@ import { PURCHASE_CATEGORIES, type PurchaseCategoryValue } from "../domain";
 import { useCreatePurchase, useUpdatePurchase } from "../hooks";
 import { useProducts } from "../../products/hooks";
 import { AppIcon } from "../../../shared/components/app-icon";
-import type { AppIconName } from "../../../shared/components/app-icon";
 import { useBusinessCopy } from "../../subscription/business-copy";
 
 type PurchaseItemDraft = {
@@ -98,78 +98,6 @@ function enrichItemProducts(
     const product = products.find((candidate) => candidate.id === item.product.id);
     return product ? { ...item, product } : item;
   });
-}
-
-/** Ficha no visual das categorias do produto (44 px, raio cheio). */
-function OptionChip({
-  label,
-  selected = false,
-  icon,
-  onPress,
-  accessibilityLabel,
-  accessibilityRole = "radio",
-}: Readonly<{
-  label: string;
-  selected?: boolean;
-  icon?: AppIconName;
-  onPress: () => void;
-  accessibilityLabel?: string;
-  accessibilityRole?: "radio" | "button";
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole={accessibilityRole}
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={
-        accessibilityRole === "radio" ? { selected, checked: selected } : undefined
-      }
-      style={({ pressed }) => ({
-        minHeight: 44,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.xs,
-        paddingHorizontal: spacing.lg,
-        justifyContent: "center",
-        borderRadius: radii.full,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.primaryStrong : pal.border,
-        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      {icon ? (
-        <AppIcon
-          name={icon}
-          size={18}
-          color={selected ? theme.colors.primaryStrong : pal.icon}
-        />
-      ) : null}
-      <Typography
-        variant={selected ? "bodyBold" : "body"}
-        color={selected ? theme.colors.primaryStrong : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
-
-function ChipRow({
-  children,
-  accessibilityLabel,
-}: Readonly<{ children: React.ReactNode; accessibilityLabel?: string }>) {
-  return (
-    <View
-      accessibilityRole={accessibilityLabel ? "radiogroup" : undefined}
-      accessibilityLabel={accessibilityLabel}
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {children}
-    </View>
-  );
 }
 
 function stepVisibility(visible: boolean) {

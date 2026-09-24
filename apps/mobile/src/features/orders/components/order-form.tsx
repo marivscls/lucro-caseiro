@@ -21,6 +21,8 @@ import {
   fieldMetrics,
   useFieldPalette,
   type ChoiceOption,
+  OptionChip,
+  ChipRow,
 } from "../../../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
@@ -121,55 +123,6 @@ function toggleColorName(value: string, name: string): string {
   if (idx >= 0) parts.splice(idx, 1);
   else parts.push(name);
   return parts.join(", ");
-}
-
-/** Opção em pílula (mesmo visual das categorias do cadastro de produto). */
-function OptionChip({
-  label,
-  selected,
-  onPress,
-  accessibilityLabel,
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  accessibilityLabel?: string;
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ selected }}
-      style={({ pressed }) => ({
-        minHeight: 44,
-        paddingHorizontal: spacing.lg,
-        justifyContent: "center",
-        borderRadius: radii.full,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.primaryStrong : pal.border,
-        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <Typography
-        variant="body"
-        color={selected ? theme.colors.primaryStrong : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
-
-function ChipRow({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-      {children}
-    </View>
-  );
 }
 
 /** Campo que abre o seletor de cliente; "Remover" fica ao lado do rótulo. */

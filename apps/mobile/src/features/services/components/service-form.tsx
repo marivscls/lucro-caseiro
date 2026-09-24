@@ -9,7 +9,7 @@ import type {
 } from "@lucro-caseiro/contracts";
 import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, Switch, View } from "react-native";
+import { Switch, View } from "react-native";
 
 import { FormSection } from "../../../shared/components/form-section";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
@@ -20,8 +20,9 @@ import {
   FieldLinkAction,
   FormField,
   TextField,
-  useFieldPalette,
   type ChoiceOption,
+  OptionChip,
+  ChipRow,
 } from "../../../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
@@ -102,55 +103,6 @@ function itemKey(
   field: ServiceItemValidationError["field"],
 ): string {
   return `${kind}-${index}-${field}`;
-}
-
-/** Atalho em pílula (mesmo visual das categorias do cadastro de produto). */
-function OptionChip({
-  label,
-  selected,
-  onPress,
-  accessibilityLabel,
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  accessibilityLabel?: string;
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? label}
-      accessibilityState={{ selected }}
-      style={({ pressed }) => ({
-        minHeight: 44,
-        paddingHorizontal: spacing.lg,
-        justifyContent: "center",
-        borderRadius: radii.full,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.primaryStrong : pal.border,
-        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <Typography
-        variant="body"
-        color={selected ? theme.colors.primaryStrong : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
-
-function ChipRow({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-      {children}
-    </View>
-  );
 }
 
 /** Um item de lista (variação, adicional ou pacote): título, remover e campos. */

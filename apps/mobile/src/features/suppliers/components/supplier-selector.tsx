@@ -82,7 +82,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
           color={selected ? theme.colors.text : pal.placeholder}
           style={{ flex: 1, minWidth: 0 }}
         >
-          {selected ? selected.name : "Selecionar fornecedor (opcional)"}
+          {selected ? selected.name : "Escolher fornecedor"}
         </Typography>
         {selected ? (
           <Pressable

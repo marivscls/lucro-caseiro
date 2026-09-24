@@ -52,8 +52,8 @@ import {
   FormField,
   TextField,
   fieldMetrics,
-  useFieldPalette,
   type ChoiceOption,
+  OptionChip,
 } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { FormSection } from "../shared/components/form-section";
@@ -141,41 +141,6 @@ const LABEL_TEMPLATE_OPTIONS: readonly ChoiceOption<"product" | "shelf">[] = [
   { value: "product", label: "Produto", icon: "pricetag-outline" },
   { value: "shelf", label: "Gôndola", icon: "albums-outline" },
 ];
-
-/** Opção em pílula (mesmo visual das categorias do cadastro de produto). */
-function OptionChip({
-  label,
-  selected,
-  onPress,
-}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => ({
-        minHeight: 44,
-        maxWidth: "100%",
-        paddingHorizontal: spacing.lg,
-        justifyContent: "center",
-        borderRadius: radii.full,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.primaryStrong : pal.border,
-        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      <Typography
-        variant="body"
-        color={selected ? theme.colors.primaryStrong : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
 
 const PAYMENT_METHODS: Array<{ id: PaymentMethod; label: string }> = [
   { id: "pix", label: "Pix" },

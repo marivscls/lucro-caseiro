@@ -19,6 +19,7 @@ import {
   TextField,
   fieldMetrics,
   useFieldPalette,
+  OptionChip,
 } from "../../../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
@@ -38,59 +39,6 @@ const YIELD_UNIT_ICONS: Record<string, AppIconName> = {
   kg: "barbell-outline",
   g: "flask-outline",
 };
-
-/** Ficha de escolha no visual das categorias do produto (44 px, raio cheio). */
-function Chip({
-  label,
-  selected,
-  icon,
-  onPress,
-  accessibilityRole = "button",
-}: Readonly<{
-  label: string;
-  selected: boolean;
-  icon?: AppIconName;
-  onPress: () => void;
-  accessibilityRole?: "button" | "radio";
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole={accessibilityRole}
-      accessibilityLabel={label}
-      accessibilityState={{ selected, checked: selected }}
-      style={({ pressed }) => ({
-        minHeight: 44,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.xs,
-        paddingHorizontal: spacing.lg,
-        justifyContent: "center",
-        borderRadius: radii.full,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? theme.colors.primaryStrong : pal.border,
-        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-        opacity: pressed ? 0.85 : 1,
-      })}
-    >
-      {icon ? (
-        <AppIcon
-          name={icon}
-          size={18}
-          color={selected ? theme.colors.primaryStrong : pal.icon}
-        />
-      ) : null}
-      <Typography
-        variant={selected ? "bodyBold" : "body"}
-        color={selected ? theme.colors.primaryStrong : theme.colors.text}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
 
 /**
  * Categoria da receita: campo de escolha que abre a janela com "Nova
@@ -163,7 +111,7 @@ export function CategoryField({
           <FormField label="Sugestões">
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
               {categories.map((cat) => (
-                <Chip
+                <OptionChip
                   key={cat}
                   label={cat}
                   selected={cat === value}
@@ -293,7 +241,7 @@ export function YieldUnitChips({
         style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
       >
         {YIELD_UNIT_PRESETS.map((preset) => (
-          <Chip
+          <OptionChip
             key={preset}
             label={preset}
             icon={YIELD_UNIT_ICONS[preset] ?? "ellipse-outline"}
