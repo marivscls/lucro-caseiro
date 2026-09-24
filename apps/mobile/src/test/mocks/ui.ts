@@ -4,8 +4,10 @@ export { ValidationField } from "../../../../../packages/ui/src/components/valid
 export {
   ValidationScrollContext,
   useFieldValidationError,
+  useFieldOutlineError,
 } from "../../../../../packages/ui/src/components/validation-context";
 export { controlSizes } from "../../../../../packages/ui/src/theme";
+export { fieldColors, fieldMetrics } from "../../../../../packages/ui/src/field-tokens";
 export const CenteredTextInput = () => null;
 
 export const Button = ({ children }: { children?: React.ReactNode }) => children;

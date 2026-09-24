@@ -16,6 +16,7 @@ export {
   buildThemes,
 } from "./theme";
 export type { Theme, ThemeMode, ShadowStyle, ThemeOverrides } from "./theme";
+export { fieldColors, fieldMetrics } from "./field-tokens";
 export {
   BrandProvider,
   ThemeProvider,
@@ -34,6 +35,7 @@ export { ValidationField } from "./components/validation-field";
 export {
   ValidationScrollContext,
   useFieldValidationError,
+  useFieldOutlineError,
 } from "./components/validation-context";
 export { CenteredTextInput } from "./components/centered-text-input";
 export type { CenteredTextInputProps } from "./components/centered-text-input";
