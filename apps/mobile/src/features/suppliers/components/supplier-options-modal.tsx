@@ -1,18 +1,18 @@
-import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 import { Pressable, View } from "react-native";
-import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { fieldMetrics, useFieldPalette } from "../../../shared/components/form-field";
 import { StandardModal } from "../../../shared/components/standard-modal";
 
 interface SupplierOption {
   key: string;
   label: string;
   onPress: () => void;
-  selected?: boolean;
   destructive?: boolean;
 }
 
+/** Menu de ações de um fornecedor: uma linha por ação, no visual dos campos. */
 export function SupplierOptionsModal({
   visible,
   title,
@@ -24,43 +24,42 @@ export function SupplierOptionsModal({
   options: readonly SupplierOption[];
   onClose: () => void;
 }>) {
-  const palette = useBrandScreenPalette();
+  const pal = useFieldPalette();
   const { theme } = useTheme();
   return (
     <StandardModal visible={visible} onClose={onClose} title={title}>
       <View style={{ gap: spacing.sm }}>
         {options.map((option) => {
-          let color = option.selected ? palette.wine : palette.muted;
-          if (option.destructive) color = theme.colors.alert;
+          const color = option.destructive ? theme.colors.alert : theme.colors.text;
           return (
             <Pressable
               key={option.key}
               accessibilityRole="button"
-              accessibilityState={{ selected: option.selected }}
               onPress={() => {
                 onClose();
                 option.onPress();
               }}
               style={({ pressed }) => ({
-                minHeight: 52,
-                paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
-                borderRadius: radii.xl,
+                minHeight: fieldMetrics.height,
+                paddingHorizontal: fieldMetrics.paddingX,
+                borderRadius: fieldMetrics.radius,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: spacing.sm,
-                backgroundColor: option.selected ? palette.softRose : palette.white,
+                backgroundColor: pal.fieldBgFocus,
                 borderWidth: 1,
-                borderColor: option.selected ? palette.rose : palette.border,
-                opacity: pressed ? 0.7 : 1,
+                borderColor: option.destructive ? theme.colors.alert : pal.border,
+                opacity: pressed ? 0.85 : 1,
               })}
             >
               <Typography variant="bodyBold" style={{ flex: 1 }} color={color}>
                 {option.label}
               </Typography>
-              {option.selected ? (
-                <AppIcon name="checkmark" size={20} color={palette.rose} />
-              ) : null}
+              <AppIcon
+                name="chevron-forward"
+                size={fieldMetrics.iconSize}
+                color={option.destructive ? theme.colors.alert : pal.icon}
+              />
             </Pressable>
           );
         })}

@@ -1,10 +1,12 @@
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { radii, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, radii, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
-import { Pressable, Share, View } from "react-native";
+import { Share, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { FormActions } from "../../../shared/components/form-layout";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { showAlert } from "../../../shared/components/alert-store";
 import { formatCurrency } from "../../../shared/utils/format";
 import { useSupplierName } from "../../suppliers/hooks";
@@ -32,6 +34,7 @@ export function PackagingDetail({
   isDeleting,
 }: PackagingDetailProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const palette = brandScreenPalette(theme);
   const displayName = displayPackagingName(packaging.name);
   const packagingType = typeLabel(packaging.type);
@@ -180,56 +183,27 @@ export function PackagingDetail({
         </View>
       </View>
 
-      <Pressable
-        onPress={share}
-        accessibilityRole="button"
-        accessibilityLabel={`Compartilhar dados de ${displayName}`}
-        style={({ pressed }) => ({
-          minHeight: 48,
-          borderRadius: radii.md,
-          backgroundColor: theme.colors.primaryInteractive,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.85 : 1,
-        })}
-      >
-        <AppIcon name="share-outline" size={20} color={theme.colors.textOnPrimary} />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          Compartilhar dados
-        </Typography>
-      </Pressable>
+      <FormActions style={{ flexGrow: 0, flexBasis: "auto" }}>
+        <Button
+          title="Compartilhar dados"
+          accessibilityLabel={`Compartilhar dados de ${displayName}`}
+          icon={
+            <AppIcon name="share-outline" size={20} color={theme.colors.textOnPrimary} />
+          }
+          onPress={share}
+        />
+      </FormActions>
 
-      <Pressable
-        onPress={confirmDelete}
-        disabled={isDeleting}
-        accessibilityRole="button"
-        accessibilityLabel={`Excluir ${displayName}`}
-        accessibilityState={{ disabled: isDeleting }}
-        style={({ pressed }) => {
-          let opacity = 1;
-          if (isDeleting) opacity = 0.5;
-          else if (pressed) opacity = 0.7;
-          return {
-            minHeight: 48,
-            borderRadius: radii.md,
-            borderWidth: 1,
-            borderColor: theme.colors.alert,
-            backgroundColor: palette.white,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity,
-          };
-        }}
-      >
-        <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
-        <Typography variant="bodyBold" color={theme.colors.alert}>
-          {isDeleting ? "Excluindo..." : "Excluir embalagem"}
-        </Typography>
-      </Pressable>
+      <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+        <Button
+          title={isDeleting ? "Excluindo..." : "Excluir embalagem"}
+          accessibilityLabel={`Excluir ${displayName}`}
+          variant="alertOutline"
+          icon={<AppIcon name="trash-outline" size={18} color={theme.colors.alert} />}
+          onPress={confirmDelete}
+          disabled={isDeleting}
+        />
+      </View>
     </View>
   );
 }

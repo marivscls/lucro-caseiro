@@ -28,6 +28,13 @@ import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { SkeletonList } from "../../../shared/components/skeleton";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import {
+  ChipChoiceField,
+  ChipRow,
+  FormField,
+  OptionChip,
+} from "../../../shared/components/form-field";
+import { FormActions } from "../../../shared/components/form-layout";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
   filterAndSortSuppliers,
@@ -40,7 +47,6 @@ import {
 import { useSuppliersOverview } from "../hooks";
 import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SupplierCard } from "./supplier-card";
-import { SupplierOptionsModal } from "./supplier-options-modal";
 import {
   DesktopGrid,
   DesktopToolbarButton,
@@ -88,36 +94,9 @@ const SORT_LABELS: Record<SupplierSort, string> = {
   az: "A–Z",
 };
 
-function FilterCheckbox({
-  label,
-  checked,
-  onPress,
-}: Readonly<{ label: string; checked: boolean; onPress: () => void }>) {
-  const { theme } = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked }}
-      style={({ pressed }) => ({
-        minHeight: 48,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
-        opacity: pressed ? 0.68 : 1,
-      })}
-    >
-      <AppIcon
-        name={checked ? "checkbox" : "square-outline"}
-        size={24}
-        color={checked ? theme.colors.primaryStrong : theme.colors.textSecondary}
-      />
-      <Typography variant="bodyBold" style={{ flex: 1 }}>
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
+const SORT_OPTIONS = (Object.entries(SORT_LABELS) as Array<[SupplierSort, string]>).map(
+  ([value, label]) => ({ value, label }),
+);
 
 function MonthlyPanel({
   totalAmount,
@@ -426,47 +405,49 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
 
   const modals = (
     <>
-      <SupplierOptionsModal
+      <StandardModal
         visible={sortOpen}
         onClose={() => setSortOpen(false)}
         title="Ordenar fornecedores"
-        options={Object.entries(SORT_LABELS).map(([key, label]) => ({
-          key,
-          label,
-          selected: sort === key,
-          onPress: () => setSort(key as SupplierSort),
-        }))}
-      />
+      >
+        <ChipChoiceField
+          accessibilityLabel="Ordenar fornecedores"
+          value={sort}
+          options={SORT_OPTIONS}
+          onChange={(value) => {
+            setSort(value);
+            setSortOpen(false);
+          }}
+        />
+      </StandardModal>
       <StandardModal
         visible={filtersOpen}
         onClose={() => setFiltersOpen(false)}
         title="Filtrar fornecedores"
         footer={
-          <View style={{ flex: 1, flexDirection: "row", gap: spacing.sm }}>
+          <FormActions>
             <Button
               title="Limpar todos"
               variant="outline"
               onPress={() => setAdvanced(new Set())}
-              style={{ flex: 1 }}
             />
-            <Button
-              title="Ver resultados"
-              onPress={() => setFiltersOpen(false)}
-              style={{ flex: 1 }}
-            />
-          </View>
+            <Button title="Ver resultados" onPress={() => setFiltersOpen(false)} />
+          </FormActions>
         }
       >
-        <View style={{ gap: spacing.xs }}>
-          {ADVANCED_FILTERS.map((filter) => (
-            <FilterCheckbox
-              key={filter.key}
-              label={filter.label}
-              checked={advanced.has(filter.key)}
-              onPress={() => toggleAdvanced(filter.key)}
-            />
-          ))}
-        </View>
+        <FormField label="Mostrar só">
+          <ChipRow>
+            {ADVANCED_FILTERS.map((filter) => (
+              <OptionChip
+                key={filter.key}
+                label={filter.label}
+                accessibilityRole="checkbox"
+                selected={advanced.has(filter.key)}
+                onPress={() => toggleAdvanced(filter.key)}
+              />
+            ))}
+          </ChipRow>
+        </FormField>
       </StandardModal>
     </>
   );
