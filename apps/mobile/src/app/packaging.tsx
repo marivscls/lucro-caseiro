@@ -22,7 +22,6 @@ import { PackagingDetail } from "../features/packaging/components/packaging-deta
 import { PackagingForm } from "../features/packaging/components/packaging-form";
 import {
   DesktopPackagingBand,
-  DesktopPackagingEmpty,
   DesktopPackagingTable,
   DesktopPackagingToolbar,
 } from "../features/packaging/components/packaging-desktop";
@@ -56,6 +55,7 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { desktopPageContent } from "../shared/layout/desktop-page";
 import { Skeleton, SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 function PackagingSummary({
   totalCount,
@@ -411,7 +411,7 @@ function PackagingScreenContent() {
     if (isLoading) body = <SkeletonList rows={5} variant="product" />;
     else if (error)
       body = (
-        <DesktopPackagingEmpty
+        <DesktopEmptyCard
           icon="cloud-offline-outline"
           title="Algo deu errado"
           description="Não foi possível carregar suas embalagens. Tente novamente."
@@ -419,25 +419,26 @@ function PackagingScreenContent() {
       );
     else if (items.length === 0)
       body = (
-        <DesktopPackagingEmpty
+        <DesktopEmptyCard
           icon="cube-outline"
           title="Nenhuma embalagem ainda"
           description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos."
-          actionLabel="Cadastrar embalagem"
-          onAction={() => setShowCreate(true)}
+          action={{ label: "Cadastrar embalagem", onPress: () => setShowCreate(true) }}
         />
       );
     else if (visible.length === 0)
       body = (
-        <DesktopPackagingEmpty
+        <DesktopEmptyCard
           icon="search-outline"
           title="Nenhuma embalagem encontrada"
           description="Ajuste a busca ou o filtro."
-          actionLabel="Limpar busca e filtro"
-          actionVariant="secondary"
-          onAction={() => {
-            setSearch("");
-            setTypeFilter(null);
+          action={{
+            label: "Limpar busca e filtro",
+            onPress: () => {
+              setSearch("");
+              setTypeFilter(null);
+            },
+            variant: "secondary",
           }}
         />
       );

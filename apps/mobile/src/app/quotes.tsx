@@ -59,13 +59,15 @@ import {
   type DesktopTableColumn,
 } from "../shared/layout/desktop-page";
 import {
-  DesktopCellText,
   DesktopEmptyCard,
-  DesktopListHeader,
   DesktopSearchField,
   DesktopSegmented,
-  DesktopStatusPill,
   DesktopToolbar,
+} from "../shared/layout/desktop-kit";
+import {
+  DesktopCellText,
+  DesktopListHeader,
+  DesktopStatusPill,
   DesktopWineHero,
   type DesktopTone,
 } from "../features/sales/components/desktop-list-kit";
@@ -753,11 +755,10 @@ function DesktopQuotesBody({
   if (error) {
     return (
       <DesktopEmptyCard
+        layout="tall"
         title="Não foi possível carregar os orçamentos"
         description="Verifique sua conexão e tente novamente."
-        actionLabel="Tentar novamente"
-        secondary
-        onAction={onRetry}
+        action={{ label: "Tentar novamente", onPress: onRetry, variant: "outline" }}
       />
     );
   }
@@ -850,22 +851,25 @@ function DesktopQuotesBody({
   if (quotes.length === 0) {
     list = (
       <DesktopEmptyCard
+        layout="tall"
         title="Nenhum orçamento ainda"
         description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
-        actionLabel="Novo orçamento"
-        onAction={onCreate}
+        action={{ label: "Novo orçamento", onPress: onCreate, icon: "add" }}
       />
     );
   } else if (filteredQuotes.length === 0) {
     list = (
       <DesktopEmptyCard
+        layout="tall"
         title="Nenhum orçamento encontrado"
         description="Tente outro termo ou escolha um filtro diferente."
-        actionLabel="Limpar filtros"
-        secondary
-        onAction={() => {
-          onSearchChange("");
-          onFilterChange("all");
+        action={{
+          label: "Limpar filtros",
+          onPress: () => {
+            onSearchChange("");
+            onFilterChange("all");
+          },
+          variant: "outline",
         }}
       />
     );

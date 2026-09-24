@@ -38,11 +38,8 @@ import { useAllRecipes, useDeleteRecipe } from "../hooks";
 import { RecipeCard } from "./recipe-card";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { DesktopStatRow, desktopPageContent } from "../../../shared/layout/desktop-page";
-import {
-  DesktopRecipeEmpty,
-  DesktopRecipeTable,
-  DesktopRecipeToolbar,
-} from "./recipes-desktop";
+import { DesktopRecipeTable, DesktopRecipeToolbar } from "./recipes-desktop";
+import { DesktopEmptyCard } from "../../../shared/layout/desktop-kit";
 
 interface RecipeListProps {
   readonly onRecipePress?: (id: string) => void;
@@ -111,36 +108,43 @@ export function RecipeList({
     if (isLoading) body = <SkeletonList rows={5} variant="recipe" />;
     else if (error)
       body = (
-        <DesktopRecipeEmpty
+        <DesktopEmptyCard
           icon="cloud-offline-outline"
           title="Algo deu errado"
           description={`Não foi possível carregar suas ${experienceCopy.formulaNounPlural}. Tente novamente.`}
-          actionLabel="Tentar novamente"
-          actionVariant="secondary"
-          onAction={() => void refetch()}
+          action={{
+            label: "Tentar novamente",
+            onPress: () => void refetch(),
+            variant: "secondary",
+          }}
         />
       );
     else if (recipes.length === 0)
       body = (
-        <DesktopRecipeEmpty
+        <DesktopEmptyCard
           icon="document-text-outline"
           title={`Nenhuma ${noun} ainda`}
           description="Cadastre a primeira para acompanhar custos e rendimentos em um só lugar."
-          actionLabel={onAddPress ? `Cadastrar ${noun}` : undefined}
-          onAction={onAddPress}
+          action={
+            onAddPress ? { label: `Cadastrar ${noun}`, onPress: onAddPress } : undefined
+          }
         />
       );
     else if (visibleRecipes.length === 0)
       body = (
-        <DesktopRecipeEmpty
+        <DesktopEmptyCard
           icon="search-outline"
           title={`Nenhuma ${noun} encontrada`}
           description="Tente outro nome ou limpe a busca e os filtros."
-          actionLabel={
-            hasQuery || hasCategoryFilter ? "Limpar busca e filtros" : undefined
+          action={
+            hasQuery || hasCategoryFilter
+              ? {
+                  label: "Limpar busca e filtros",
+                  onPress: clearSearchAndFilters,
+                  variant: "secondary",
+                }
+              : undefined
           }
-          actionVariant="secondary"
-          onAction={clearSearchAndFilters}
         />
       );
     else

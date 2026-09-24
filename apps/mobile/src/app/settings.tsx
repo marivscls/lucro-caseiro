@@ -11,7 +11,6 @@ import {
   useTheme,
   spacing,
   radii,
-  fonts,
 } from "@lucro-caseiro/ui";
 import { hasActiveFeature, PLAN_LABELS } from "@lucro-caseiro/contracts";
 import * as Clipboard from "expo-clipboard";
@@ -74,6 +73,7 @@ import {
   openSubscriptionManagement,
   subscriptionManagementTarget,
 } from "../shared/utils/subscription-management";
+import { DesktopTag } from "../shared/layout/desktop-kit";
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
@@ -660,22 +660,11 @@ export default function SettingsScreen() {
               </Typography>
               {businessType && isDesktop ? (
                 // Desktop: mesmo selo do Badge, com texto de 14px.
-                <View
-                  style={{
-                    paddingHorizontal: spacing.sm,
-                    paddingVertical: 2,
-                    borderRadius: radii.sm,
-                    backgroundColor: theme.colors.primaryBg,
-                  }}
-                >
-                  <Typography
-                    variant="desktopMeta"
-                    color={theme.colors.primaryStrong}
-                    style={{ fontFamily: fonts.bold }}
-                  >
-                    {businessTypeLabel(businessType)}
-                  </Typography>
-                </View>
+                <DesktopTag
+                  label={businessTypeLabel(businessType)}
+                  variant="primary"
+                  strong
+                />
               ) : null}
               {businessType && !isDesktop ? (
                 <Badge label={businessTypeLabel(businessType)} variant="primary" />

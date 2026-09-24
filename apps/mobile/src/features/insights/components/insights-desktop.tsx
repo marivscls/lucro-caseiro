@@ -12,6 +12,7 @@ import {
   desktopCardStyle,
 } from "../../../shared/layout/desktop-page";
 import type { ActionableInsight, InsightQuestionId } from "../domain";
+import { DesktopEmptyCard } from "../../../shared/layout/desktop-kit";
 
 /** Cartão com título de 18px, ícone e conteúdo. */
 export function InsightsCardDesktop({
@@ -280,39 +281,12 @@ export function InsightsTeaserDesktop({
 
 /** Estado vazio em cartão tracejado. */
 export function InsightsEmptyDesktop({ onAdd }: Readonly<{ onAdd: () => void }>) {
-  const { theme } = useTheme();
   return (
-    <View
-      style={{
-        borderWidth: 1.5,
-        borderStyle: "dashed",
-        borderColor: theme.colors.border,
-        borderRadius: radii.lg,
-        paddingVertical: spacing["3xl"],
-        paddingHorizontal: spacing["2xl"],
-        alignItems: "center",
-        gap: spacing.sm,
-      }}
-    >
-      <Typography variant="desktopCardTitle" style={{ textAlign: "center" }}>
-        Ainda sem dados pra mostrar
-      </Typography>
-      <Typography variant="desktopBody" style={{ textAlign: "center", maxWidth: 520 }}>
-        Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de
-        venda.
-      </Typography>
-      <Button
-        title="Adicionar venda"
-        onPress={onAdd}
-        icon={
-          <AppIcon
-            name="add-circle-outline"
-            size={20}
-            color={theme.colors.textOnPrimary}
-          />
-        }
-        style={{ ...desktopActionButton, marginTop: spacing.md }}
-      />
-    </View>
+    <DesktopEmptyCard
+      layout="center"
+      title="Ainda sem dados pra mostrar"
+      description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
+      action={{ label: "Adicionar venda", onPress: onAdd, icon: "add-circle-outline" }}
+    />
   );
 }

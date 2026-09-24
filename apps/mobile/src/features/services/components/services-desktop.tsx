@@ -5,7 +5,6 @@
  */
 import type { Service } from "@lucro-caseiro/contracts";
 import {
-  Button,
   Typography,
   radii,
   spacing,
@@ -17,11 +16,7 @@ import { Pressable, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
-import {
-  DesktopCard,
-  desktopActionButton,
-  desktopCardStyle,
-} from "../../../shared/layout/desktop-page";
+import { desktopCardStyle } from "../../../shared/layout/desktop-page";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
   calculateStoredServicePricing,
@@ -29,46 +24,7 @@ import {
   serviceHasCostData,
   serviceMarginPercent,
 } from "../domain";
-
-type Theme = ReturnType<typeof useTheme>["theme"];
-
-function badgeColors(theme: Theme, variant: BadgeVariant): { bg: string; fg: string } {
-  switch (variant) {
-    case "success":
-      return { bg: theme.colors.successBg, fg: theme.colors.success };
-    case "warning":
-      return { bg: theme.colors.premiumBg, fg: theme.colors.premium };
-    case "danger":
-      return { bg: theme.colors.alertBg, fg: theme.colors.alert };
-    case "info":
-      return { bg: theme.colors.blueBg, fg: theme.colors.blue };
-    default:
-      return { bg: theme.colors.surface, fg: theme.colors.textSecondary };
-  }
-}
-
-/** Selo de 14px (o `Badge` do celular usa 12px). */
-function DesktopBadge({
-  label,
-  variant,
-}: Readonly<{ label: string; variant: BadgeVariant }>) {
-  const { theme } = useTheme();
-  const colors = badgeColors(theme, variant);
-  return (
-    <View
-      style={{
-        backgroundColor: colors.bg,
-        borderRadius: radii.sm,
-        paddingHorizontal: spacing.sm,
-        paddingVertical: 2,
-      }}
-    >
-      <Typography variant="desktopMeta" color={colors.fg} numberOfLines={1}>
-        {label}
-      </Typography>
-    </View>
-  );
-}
+import { DesktopTag } from "../../../shared/layout/desktop-kit";
 
 /** Filtro de 48px com texto de 16px e contagem de 14px. */
 export function ServiceFilterPill({
@@ -175,11 +131,15 @@ export function ServiceDesktopCard({
           </Typography>
         ) : null}
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          <DesktopBadge
+          <DesktopTag
             label={service.active ? "Disponível" : "Pausado"}
             variant={service.active ? "success" : "neutral"}
           />
-          <DesktopBadge label={health.label} variant={health.variant} />
+          {/* No desktop o aviso de preço usa o tom de destaque (premium). */}
+          <DesktopTag
+            label={health.label}
+            variant={health.variant === "warning" ? "premium" : health.variant}
+          />
         </View>
         <View style={{ flex: 1 }} />
         <View
@@ -269,32 +229,5 @@ export function ServiceDesktopCard({
         )}
       </View>
     </Pressable>
-  );
-}
-
-/** Estado vazio do desktop: cartão tracejado na coluna. */
-export function ServicesDesktopEmpty({
-  title,
-  description,
-  actionLabel,
-  onAction,
-}: Readonly<{
-  title: string;
-  description: string;
-  actionLabel?: string;
-  onAction?: () => void;
-}>) {
-  const { theme } = useTheme();
-  return (
-    <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
-      <AppIcon name="briefcase-outline" size={28} color={theme.colors.textSecondary} />
-      <View style={{ gap: spacing.xs, maxWidth: 640 }}>
-        <Typography variant="desktopCardTitle">{title}</Typography>
-        <Typography variant="desktopBody">{description}</Typography>
-      </View>
-      {actionLabel && onAction ? (
-        <Button title={actionLabel} onPress={onAction} style={desktopActionButton} />
-      ) : null}
-    </DesktopCard>
   );
 }

@@ -3,7 +3,6 @@ import {
   Badge,
   Card,
   Typography,
-  fonts,
   fontSizes,
   radii,
   spacing,
@@ -36,6 +35,7 @@ import {
   desktopPageContent,
 } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopTag } from "../shared/layout/desktop-kit";
 
 const FAMILY_APPS = [
   brands["lucro-revenda"],
@@ -112,23 +112,7 @@ function ExtensionCardDesktop({ app }: Readonly<{ app: BrandConfig }>) {
         />
         <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
           <Typography variant="desktopCardTitle">{app.appName}</Typography>
-          <View
-            style={{
-              alignSelf: "flex-start",
-              paddingHorizontal: spacing.sm,
-              paddingVertical: 2,
-              borderRadius: radii.sm,
-              backgroundColor: theme.colors.yellowBg,
-            }}
-          >
-            <Typography
-              variant="desktopMeta"
-              color={theme.colors.yellow}
-              style={{ fontFamily: fonts.bold }}
-            >
-              Em breve
-            </Typography>
-          </View>
+          <DesktopTag label="Em breve" variant="warning" strong />
         </View>
       </View>
       <Typography variant="desktopBody" color={theme.colors.textSecondary}>

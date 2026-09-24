@@ -5,16 +5,7 @@
  * `finance-dashboard.tsx`; aqui só a apresentação.
  */
 import type { FinanceEntry, FinanceEntryType } from "@lucro-caseiro/contracts";
-import {
-  Button,
-  CenteredTextInput,
-  Typography,
-  fontSizes,
-  fonts,
-  radii,
-  spacing,
-  useTheme,
-} from "@lucro-caseiro/ui";
+import { Button, Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useState, type ReactNode, type RefObject } from "react";
 import {
   Image,
@@ -46,14 +37,18 @@ import {
   formatEntryDate,
 } from "../entry-display";
 import {
+  DesktopEmptyCard,
+  DesktopSearchField,
+  DesktopSegmented,
+  DesktopTag,
+  DesktopToolbar,
+} from "../../../shared/layout/desktop-kit";
+import {
   AsideCard,
   AttentionRow,
-  DesktopEmptyCard,
   DesktopExportButton,
   DesktopFlowBar,
   DesktopMonthStepper,
-  DesktopSegmented,
-  DesktopTag,
   HeroFlowButton,
 } from "./finance-desktop-parts";
 
@@ -394,7 +389,11 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
         >
           <DesktopSegmented
             accessibilityLabel="Período"
-            options={props.periodOptions}
+            options={props.periodOptions.map((option) => ({
+              key: option.value,
+              label: option.label,
+            }))}
+            style={{ alignSelf: "flex-start" }}
             value={props.period}
             onChange={props.onPeriodChange}
           />
@@ -572,59 +571,16 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
               ) : null}
             </View>
 
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                alignItems: "center",
-                gap: spacing.md,
-              }}
-            >
-              <View
-                style={{
-                  flexGrow: 1,
-                  flexBasis: 240,
-                  minHeight: 52,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.md,
-                  paddingHorizontal: spacing.lg,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  backgroundColor: pal.white,
+            <DesktopToolbar>
+              <DesktopSearchField
+                value={props.searchTerm}
+                onChangeText={(text) => {
+                  setVisible(PAGE_SIZE);
+                  props.onSearchChange(text);
                 }}
-              >
-                <AppIcon name="search-outline" size={20} color={pal.warmGray} />
-                <CenteredTextInput
-                  value={props.searchTerm}
-                  onChangeText={(text) => {
-                    setVisible(PAGE_SIZE);
-                    props.onSearchChange(text);
-                  }}
-                  placeholder="Buscar lançamento"
-                  placeholderTextColor={pal.warmGray}
-                  accessibilityLabel="Buscar lançamento"
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    padding: 0,
-                    color: pal.ink,
-                    fontFamily: fonts.regular,
-                    fontSize: fontSizes.md,
-                  }}
-                />
-                {searchActive ? (
-                  <Pressable
-                    onPress={() => props.onSearchChange("")}
-                    accessibilityRole="button"
-                    accessibilityLabel="Limpar busca"
-                    hitSlop={10}
-                  >
-                    <AppIcon name="close-circle" size={20} color={pal.warmGray} />
-                  </Pressable>
-                ) : null}
-              </View>
+                placeholder="Buscar lançamento"
+                style={{ flexBasis: 240 }}
+              />
               <DesktopSegmented
                 accessibilityLabel="Tipo de lançamento"
                 value={props.filter}
@@ -633,12 +589,12 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
                   props.onFilterChange(next);
                 }}
                 options={[
-                  { value: "all", label: "Tudo", count: props.allCount },
-                  { value: "income", label: "Entradas", count: props.incomeCount },
-                  { value: "expense", label: "Saídas", count: props.expenseCount },
+                  { key: "all", label: "Tudo", count: props.allCount },
+                  { key: "income", label: "Entradas", count: props.incomeCount },
+                  { key: "expense", label: "Saídas", count: props.expenseCount },
                 ]}
               />
-            </View>
+            </DesktopToolbar>
 
             {props.entries.length > 0 ? (
               <>
@@ -662,6 +618,7 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
               </>
             ) : (
               <DesktopEmptyCard
+                layout="center"
                 title={
                   searchActive || props.filter !== "all"
                     ? "Nenhum lançamento encontrado"

@@ -19,15 +19,17 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { displayProductName } from "../../products/display";
 import { paymentLabel } from "../payment";
 import {
-  DesktopCellText,
   DesktopEmptyCard,
-  DesktopPager,
-  DesktopRowButton,
   DesktopSearchField,
   DesktopSegmented,
+  DesktopToolbar,
+} from "../../../shared/layout/desktop-kit";
+import {
+  DesktopCellText,
+  DesktopPager,
+  DesktopRowButton,
   DesktopStatGrid,
   DesktopStatusPill,
-  DesktopToolbar,
   DesktopViewTabs,
   type DesktopTone,
 } from "./desktop-list-kit";
@@ -360,15 +362,22 @@ function OrdersPanel({
         </DesktopToolbar>
         {visible.length === 0 ? (
           <DesktopEmptyCard
+            layout="tall"
             title={orders.length === 0 ? "Nenhuma encomenda ainda" : "Nada encontrado"}
             description={
               orders.length === 0
                 ? "As encomendas que você marcar na agenda aparecem aqui, com entrega e pagamento."
                 : "Ajuste a busca ou escolha outra situação."
             }
-            actionLabel={orders.length === 0 ? "Abrir agenda" : undefined}
-            actionIcon="calendar-outline"
-            onAction={onOpenAgenda}
+            action={
+              orders.length === 0
+                ? {
+                    label: "Abrir agenda",
+                    onPress: onOpenAgenda,
+                    icon: "calendar-outline",
+                  }
+                : undefined
+            }
           />
         ) : (
           <DesktopTable
@@ -430,11 +439,10 @@ function SalesBody({
   if (error) {
     return (
       <DesktopEmptyCard
+        layout="tall"
         title="Algo deu errado"
         description="Não foi possível carregar suas vendas. Tente novamente."
-        actionLabel="Tentar novamente"
-        secondary
-        onAction={onRetry}
+        action={{ label: "Tentar novamente", onPress: onRetry, variant: "outline" }}
       />
     );
   }
@@ -442,18 +450,17 @@ function SalesBody({
     const filtered = activeFilter !== "all" || !!search.trim();
     return filtered ? (
       <DesktopEmptyCard
+        layout="tall"
         title="Nenhuma venda encontrada"
         description="Não encontramos vendas com os filtros aplicados."
-        actionLabel="Limpar filtros"
-        secondary
-        onAction={onClearFilters}
+        action={{ label: "Limpar filtros", onPress: onClearFilters, variant: "outline" }}
       />
     ) : (
       <DesktopEmptyCard
+        layout="tall"
         title="Nenhuma venda registrada"
         description="Suas vendas aparecerão aqui depois do primeiro registro."
-        actionLabel="Nova venda"
-        onAction={onNewSale}
+        action={{ label: "Nova venda", onPress: onNewSale, icon: "add" }}
       />
     );
   }

@@ -180,6 +180,7 @@ que não mudou (tudo atrás de `useDesktopLayout`).
   quantidade e os dias de vencimento; no Profissional, tabela Gasto / Categoria / Vencimento /
   Valor (etiquetas "Próximo" e "Inativo") e a lateral com o gasto selecionado (Editar/Excluir);
   sem plano, o bloqueio aparece em duas colunas com o botão na largura do texto.
-- Peças locais em `finance-desktop-parts.tsx` (`DesktopSegmented`, `DesktopMonthStepper`,
-  `DesktopEmptyCard`, `DesktopTag`, `AsideCard`...), candidatas a subir para `shared/layout`.
+- Peças locais em `finance-desktop-parts.tsx` (`DesktopMonthStepper`, `AsideCard`...).
+  `DesktopSegmented`, `DesktopSearchField`, `DesktopEmptyCard` e `DesktopTag` vêm de
+  `shared/layout/desktop-kit.tsx`.
 - Textos de exibição dos lançamentos ficaram puros em `entry-display.ts` (com teste).

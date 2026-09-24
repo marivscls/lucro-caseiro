@@ -56,7 +56,7 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 
 ## Components
 
-- `labels-desktop.tsx`: `LabelDesktopCard` e `LabelsDesktopEmpty` (galeria do desktop).
+- `labels-desktop.tsx`: `LabelDesktopCard` (galeria do desktop).
 - `CreateLabelForm`: modal de criação; recebe `visible`, `onClose`, `productId?` e
   `onSuccess?`, valida os campos, envia a etiqueta e pode exportá-la imediatamente.
 - `LabelPreview`: renderização compartilhada pelo formulário, detalhe e exportação.
@@ -218,6 +218,6 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 - Galeria em `DesktopGrid` (até 3 colunas) com `LabelDesktopCard`: prévia ampliada da
   miniatura, nome de 18 px, modelo, selo "Mais usada", data e ações visíveis
   (Imprimir, Editar e menu com Excluir; mesmas ações do celular).
-- Sem etiquetas ou sem resultado: cartão tracejado (`LabelsDesktopEmpty`).
+- Sem etiquetas ou sem resultado: cartão tracejado (`DesktopEmptyCard layout="stack"` de `shared/layout/desktop-kit.tsx`).
 - Sem `ScreenCreateBar` no desktop: "Nova etiqueta" fica no cabeçalho.
 - `CreateLabelForm` usa `DesktopStepper` e mostra o título da etapa uma vez (22 px).

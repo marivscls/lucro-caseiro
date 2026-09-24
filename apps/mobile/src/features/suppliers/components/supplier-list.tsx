@@ -42,10 +42,8 @@ import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SupplierCard } from "./supplier-card";
 import { SupplierOptionsModal } from "./supplier-options-modal";
 import {
-  DesktopCard,
   DesktopGrid,
   DesktopToolbarButton,
-  desktopActionButton,
   desktopPageContent,
 } from "../../../shared/layout/desktop-page";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
@@ -54,6 +52,7 @@ import {
   desktopWidths,
   pageGutter,
 } from "../../../shared/layout/desktop-density";
+import { DesktopEmptyCard } from "../../../shared/layout/desktop-kit";
 
 interface SupplierListProps {
   onSupplierPress: (supplier: SupplierOverviewItem) => void;
@@ -606,24 +605,24 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
                 {items.map(renderCard)}
               </DesktopGrid>
             ) : (
-              <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
-                <Typography variant="desktopCardTitle">
-                  {hasQuery
+              <DesktopEmptyCard
+                layout="stack"
+                title={
+                  hasQuery
                     ? "Nenhum fornecedor encontrado"
-                    : "Nenhum fornecedor cadastrado"}
-                </Typography>
-                <Typography variant="desktopBody">
-                  {hasQuery
+                    : "Nenhum fornecedor cadastrado"
+                }
+                description={
+                  hasQuery
                     ? "Ajuste a busca ou limpe os filtros para ver outros fornecedores."
-                    : "Cadastre quem abastece o seu negócio para organizar suas compras."}
-                </Typography>
-                <Button
-                  title={hasQuery ? "Limpar busca e filtros" : "Adicionar fornecedor"}
-                  variant={hasQuery ? "secondary" : "primary"}
-                  onPress={hasQuery ? clearFilters : props.onAddPress}
-                  style={desktopActionButton}
-                />
-              </DesktopCard>
+                    : "Cadastre quem abastece o seu negócio para organizar suas compras."
+                }
+                action={{
+                  label: hasQuery ? "Limpar busca e filtros" : "Adicionar fornecedor",
+                  onPress: hasQuery ? clearFilters : props.onAddPress,
+                  variant: hasQuery ? "secondary" : "primary",
+                }}
+              />
             )}
           </View>
         </ScrollView>

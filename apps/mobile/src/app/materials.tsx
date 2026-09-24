@@ -48,13 +48,9 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
-import {
-  DesktopCard,
-  DesktopToolbarButton,
-  desktopActionButton,
-  desktopPageContent,
-} from "../shared/layout/desktop-page";
+import { DesktopToolbarButton, desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 type StockFilter = "all" | "low" | "attention";
 type SortOption = "name" | "stock" | "proximity" | "value";
@@ -574,18 +570,12 @@ function MaterialsScreenContent() {
     action: { label: string; onPress: () => void; variant?: "primary" | "secondary" },
   ) {
     return (
-      <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
-        <Typography variant="desktopCardTitle">{title}</Typography>
-        <Typography variant="desktopBody" style={{ maxWidth: 560 }}>
-          {description}
-        </Typography>
-        <Button
-          title={action.label}
-          variant={action.variant ?? "primary"}
-          onPress={action.onPress}
-          style={desktopActionButton}
-        />
-      </DesktopCard>
+      <DesktopEmptyCard
+        layout="stack"
+        title={title}
+        description={description}
+        action={{ label: action.label, onPress: action.onPress, variant: action.variant }}
+      />
     );
   }
 

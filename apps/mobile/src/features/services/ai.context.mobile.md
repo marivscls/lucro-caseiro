@@ -36,7 +36,7 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 ## Components
 
 - `services-desktop.tsx` — `ServiceDesktopCard`, `ServiceFilterPill` e
-  `ServicesDesktopEmpty` (apresentação no desktop).
+  `DesktopTag` (apresentação no desktop).
 - `ServiceForm` — modal canônico de criação e edição. Valida nome, duração,
   duplicidade e campos financeiros antes de chamar as mutations.
 - `app/services.tsx` — lista serviços ativos e inativos, abre o formulário e
@@ -182,6 +182,6 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 - Serviços em `DesktopGrid` (até 3 colunas) com `ServiceDesktopCard`: categoria,
   nome de 18 px, selos de 14 px, duração e preço, rodapé de custo/sugerido alinhado
   entre cartões.
-- Vazio, filtro sem resultado e erro: cartão tracejado (`ServicesDesktopEmpty`) com o
+- Vazio, filtro sem resultado e erro: cartão tracejado (`DesktopEmptyCard layout="stack"` de `shared/layout/desktop-kit.tsx`) com o
   mesmo texto e ação do celular (`emptyCopy`).
 - Sem `ScreenCreateBar` no desktop: "Cadastrar serviço" fica no cabeçalho.

@@ -3,28 +3,21 @@
  * tabela. Dados, filtros e ações continuam em `recipe-list.tsx`.
  */
 import type { Recipe } from "@lucro-caseiro/contracts";
-import {
-  Button,
-  CenteredTextInput,
-  Typography,
-  radii,
-  spacing,
-  useTheme,
-} from "@lucro-caseiro/ui";
-import React, { useState, type ReactNode } from "react";
+import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
-import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
+import { AppIcon } from "../../../shared/components/app-icon";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import {
   DesktopTable,
-  desktopCardStyle,
   type DesktopTableColumn,
 } from "../../../shared/layout/desktop-page";
 import { formatCurrency } from "../../../shared/utils/format";
 import { displayRecipeName, formatRecipeQuantity, recipeKindLabel } from "../domain";
 import { recipeAvatarFallback } from "./recipe-card";
+import { DesktopSearchField } from "../../../shared/layout/desktop-kit";
 
 type HoverState = { pressed: boolean; hovered?: boolean };
 
@@ -56,51 +49,12 @@ export function DesktopRecipeToolbar({
   const pal = useBrandScreenPalette();
   return (
     <View style={{ gap: spacing.md }}>
-      <View
-        style={[
-          desktopCardStyle(theme, { padding: 0 }),
-          {
-            minHeight: 52,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-            paddingHorizontal: spacing.lg,
-          },
-        ]}
-      >
-        <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
-        <CenteredTextInput
-          value={search}
-          onChangeText={onSearch}
-          placeholder="Buscar receita"
-          accessibilityLabel="Buscar receita"
-          placeholderTextColor={theme.colors.textSecondary}
-          autoCorrect={false}
-          autoCapitalize="none"
-          style={{
-            flex: 1,
-            minWidth: 0,
-            color: theme.colors.text,
-            fontSize: 16,
-            paddingVertical: 0,
-          }}
-        />
-        {search.length > 0 ? (
-          <Pressable
-            onPress={() => onSearch("")}
-            accessibilityRole="button"
-            accessibilityLabel="Limpar busca"
-            style={{
-              width: 44,
-              height: 44,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon name="close-circle" size={20} color={theme.colors.textSecondary} />
-          </Pressable>
-        ) : null}
-      </View>
+      <DesktopSearchField
+        value={search}
+        onChangeText={onSearch}
+        placeholder="Buscar receita"
+        style={{ flexBasis: "auto" }}
+      />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
         {categories.map((category) => {
           const isSelected = category === selected;
@@ -274,69 +228,6 @@ export function DesktopRecipeTable({
         onRowPress={onOpen}
         rowAccessibilityLabel={(recipe) => `Abrir ${displayRecipeName(recipe.name)}`}
       />
-    </View>
-  );
-}
-
-/** Estado vazio do desktop: cartão tracejado na coluna. */
-export function DesktopRecipeEmpty({
-  icon,
-  title,
-  description,
-  actionLabel,
-  onAction,
-  actionVariant = "primary",
-}: Readonly<{
-  icon: AppIconName;
-  title: string;
-  description: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  actionVariant?: "primary" | "secondary";
-}>) {
-  const { theme } = useTheme();
-  const pal = useBrandScreenPalette();
-  let action: ReactNode = null;
-  if (actionLabel && onAction)
-    action = (
-      <Button
-        title={actionLabel}
-        variant={actionVariant}
-        onPress={onAction}
-        style={{ minWidth: 160, minHeight: 48 }}
-      />
-    );
-  return (
-    <View
-      style={{
-        borderWidth: 1.5,
-        borderStyle: "dashed",
-        borderColor: theme.colors.border,
-        borderRadius: radii.lg,
-        paddingVertical: spacing["3xl"],
-        paddingHorizontal: spacing["2xl"],
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.xl,
-      }}
-    >
-      <View
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: radii.full,
-          backgroundColor: pal.softRose,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <AppIcon name={icon} size={26} color={pal.wine} />
-      </View>
-      <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-        <Typography variant="desktopCardTitle">{title}</Typography>
-        <Typography variant="desktopBody">{description}</Typography>
-      </View>
-      {action}
     </View>
   );
 }

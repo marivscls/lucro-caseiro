@@ -4,18 +4,14 @@
  * grande e ações visíveis, e estado vazio em cartão.
  */
 import type { Label } from "@lucro-caseiro/contracts";
-import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 import { Pressable, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { showAlert } from "../../../shared/components/alert-store";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
-import {
-  DesktopCard,
-  desktopActionButton,
-  desktopCardStyle,
-} from "../../../shared/layout/desktop-page";
+import { desktopCardStyle } from "../../../shared/layout/desktop-page";
 import { displayLabelName, formatLabelEditedAt } from "../domain";
 import { LabelThumbnail } from "./label-thumbnail";
 
@@ -198,32 +194,5 @@ export function LabelDesktopCard({
         </Pressable>
       </View>
     </View>
-  );
-}
-
-/** Estado vazio do desktop: cartão tracejado na coluna. */
-export function LabelsDesktopEmpty({
-  title,
-  description,
-  actionLabel,
-  onAction,
-}: Readonly<{
-  title: string;
-  description: string;
-  actionLabel?: string;
-  onAction?: () => void;
-}>) {
-  const { theme } = useTheme();
-  return (
-    <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
-      <AppIcon name="pricetag-outline" size={28} color={theme.colors.textSecondary} />
-      <View style={{ gap: spacing.xs, maxWidth: 640 }}>
-        <Typography variant="desktopCardTitle">{title}</Typography>
-        <Typography variant="desktopBody">{description}</Typography>
-      </View>
-      {actionLabel && onAction ? (
-        <Button title={actionLabel} onPress={onAction} style={desktopActionButton} />
-      ) : null}
-    </DesktopCard>
   );
 }

@@ -22,12 +22,14 @@ import {
 } from "../fiado";
 import {
   DesktopEmptyCard,
-  DesktopListHeader,
-  DesktopRowButton,
   DesktopSearchField,
   DesktopSegmented,
-  DesktopStatusPill,
   DesktopToolbar,
+} from "../../../shared/layout/desktop-kit";
+import {
+  DesktopListHeader,
+  DesktopRowButton,
+  DesktopStatusPill,
   DesktopWineHero,
   type DesktopTone,
 } from "./desktop-list-kit";
@@ -243,21 +245,24 @@ function FiadoCharges(props: DesktopFiadoPageProps) {
   if (props.groups.length === 0) {
     return (
       <DesktopEmptyCard
+        layout="tall"
         title="Ninguém te deve"
         description="Vendas no fiado em aberto aparecem aqui para você cobrar."
-        actionLabel="Nova venda"
-        onAction={props.onNewSale}
+        action={{ label: "Nova venda", onPress: props.onNewSale, icon: "add" }}
       />
     );
   }
   if (props.visibleGroups.length === 0) {
     return (
       <DesktopEmptyCard
+        layout="tall"
         title="Nada encontrado"
         description="Ajuste a busca ou limpe os filtros para ver seus fiados em aberto."
-        actionLabel="Limpar filtros"
-        secondary
-        onAction={props.onResetFilters}
+        action={{
+          label: "Limpar filtros",
+          onPress: props.onResetFilters,
+          variant: "outline",
+        }}
       />
     );
   }
@@ -287,11 +292,10 @@ export function DesktopFiadoPage(props: DesktopFiadoPageProps) {
   else if (props.error) {
     body = (
       <DesktopEmptyCard
+        layout="tall"
         title="Algo deu errado"
         description="Não foi possível carregar os fiados. Tente novamente."
-        actionLabel="Tentar novamente"
-        secondary
-        onAction={props.onRetry}
+        action={{ label: "Tentar novamente", onPress: props.onRetry, variant: "outline" }}
       />
     );
   } else {

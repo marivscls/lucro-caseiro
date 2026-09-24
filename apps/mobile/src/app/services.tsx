@@ -32,7 +32,6 @@ import { ServiceForm } from "../features/services/components/service-form";
 import {
   ServiceDesktopCard,
   ServiceFilterPill,
-  ServicesDesktopEmpty,
 } from "../features/services/components/services-desktop";
 import {
   buildServiceOverview,
@@ -60,6 +59,7 @@ import {
 } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { formatCurrency } from "../shared/utils/format";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 const FILTERS: ReadonlyArray<{ value: ServiceFilter; label: string }> = [
   { value: "active", label: "Disponíveis" },
@@ -660,21 +660,30 @@ export default function ServicesScreen() {
       list = <SkeletonList rows={4} variant="product" />;
     } else if (servicesQuery.error) {
       list = (
-        <ServicesDesktopEmpty
+        <DesktopEmptyCard
+          layout="stack"
           title="Não foi possível carregar os serviços"
           description="Verifique sua conexão e tente novamente."
-          actionLabel="Tentar novamente"
-          onAction={() => void servicesQuery.refetch()}
+          icon="briefcase-outline"
+          action={{
+            label: "Tentar novamente",
+            onPress: () => void servicesQuery.refetch(),
+          }}
         />
       );
     } else if (visibleServices.length === 0) {
       const empty = emptyCopy();
       list = (
-        <ServicesDesktopEmpty
+        <DesktopEmptyCard
+          layout="stack"
           title={empty.title}
           description={empty.description}
-          actionLabel={empty.actionTitle}
-          onAction={empty.onAction}
+          icon="briefcase-outline"
+          action={
+            empty.actionTitle && empty.onAction
+              ? { label: empty.actionTitle, onPress: empty.onAction }
+              : undefined
+          }
         />
       );
     } else {

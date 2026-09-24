@@ -95,6 +95,34 @@ devem ser trocados por `ScreenHeader`, com o botão de ajuda em `help` via
 | `DesktopToolbarButton icon label`                              | Ação secundária de 52 px ao lado da busca.                                                                        |
 | `DesktopStepper` (`desktop-stepper.tsx`)                       | Etapas de um fluxo em linha. Substitui `FormStepProgress` no desktop; o título da etapa fica na tela, uma só vez. |
 
+### Peças repetidas (`shared/layout/desktop-kit.tsx`)
+
+Sempre renderizam: use só nos ramos de desktop.
+
+| Peça                                                         | Uso                                                                                                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DesktopEmptyCard layout icon art action`                    | Estado vazio tracejado. `row` (ícone rosado, ação à direita), `stack` (cartão branco), `center` (na coluna) e `tall` (240 px, ilustração). |
+| `DesktopTag label variant strong`                            | Selo de 14 px com as cores do `Badge` (`success`, `warning`, `primary`…). No desktop, substitui o `Badge` de 12 px.                        |
+| `DesktopToolbar` + `DesktopSearchField` + `DesktopSegmented` | Barra de ferramentas: busca de 52 px que cresce e filtro segmentado com contagem, lado a lado; quebra linha em 1024 px.                    |
+
+```tsx
+<DesktopToolbar>
+  <DesktopSearchField value={search} onChangeText={setSearch} placeholder="Buscar cliente" />
+  <DesktopSegmented
+    accessibilityLabel="Filtrar clientes"
+    value={filter}
+    onChange={setFilter}
+    options={[{ key: "all", label: "Todos", count: 12 }]}
+  />
+</DesktopToolbar>
+<DesktopEmptyCard
+  icon="cube-outline"
+  title="Nenhum produto ainda"
+  description="Cadastre o primeiro para começar a vender."
+  action={{ label: "Cadastrar produto", onPress: openCreate }}
+/>
+```
+
 ### Exemplos
 
 Página de dados com lateral:
@@ -156,8 +184,8 @@ Formulário:
   botões de largura total ficam dentro da lateral de 280 a 360 px.
 - **Buscas** ocupam a barra de ferramentas (`flexGrow`) ao lado das ações
   (`DesktopToolbarButton`). Campos monetários e quantitativos continuam compactos.
-- **Estados vazios**: cartão tracejado com título de 18 px e texto de 16 px
-  na coluna, não um texto de 14 px solto no meio da tela.
+- **Estados vazios**: `DesktopEmptyCard`, cartão tracejado com título de 18 px e texto
+  de 16 px na coluna, não um texto de 14 px solto no meio da tela.
 - **Painéis vinho (hero)**: mantêm a arte. Os números seguem `desktopMetric`
   ou maiores, e as legendas não descem de 14 px.
 - **Hover**: cartões clicáveis escurecem a borda (`textSecondary`); a seleção usa

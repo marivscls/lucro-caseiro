@@ -64,13 +64,15 @@ import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { ClientFormFields } from "../../features/clients/components/client-form-fields";
 import {
   DesktopEmptyCard,
-  DesktopListHeader,
-  DesktopPager,
   DesktopSearchField,
   DesktopSegmented,
+  DesktopToolbar,
+} from "../../shared/layout/desktop-kit";
+import {
+  DesktopListHeader,
+  DesktopPager,
   DesktopSelectButton,
   DesktopStatusPill,
-  DesktopToolbar,
   DesktopCellText,
   type DesktopTone,
 } from "../../features/sales/components/desktop-list-kit";
@@ -805,34 +807,43 @@ function ClientsListScreen({
     } else if (listClientsQuery.error) {
       desktopContent = (
         <DesktopEmptyCard
+          layout="tall"
           title="Algo deu errado"
           description="Não foi possível carregar seus clientes."
-          actionLabel="Tentar novamente"
-          secondary
-          onAction={() => void listClientsQuery.refetch()}
+          action={{
+            label: "Tentar novamente",
+            onPress: () => void listClientsQuery.refetch(),
+            variant: "outline",
+          }}
         />
       );
     } else if (totalClients === 0 && !search.trim()) {
       desktopContent = (
         <DesktopEmptyCard
+          layout="tall"
           art={clientsCommunity}
           title="Nenhum cliente ainda"
           description="Cadastre seu primeiro cliente pra acompanhar pedidos e aniversários"
-          actionLabel="Novo cliente"
-          actionIcon="person-add-outline"
-          onAction={onCreatePress}
+          action={{
+            label: "Novo cliente",
+            onPress: onCreatePress,
+            icon: "person-add-outline",
+          }}
         />
       );
     } else if (visibleInsights.length === 0) {
       desktopContent = (
         <DesktopEmptyCard
+          layout="tall"
           title="Nenhum cliente encontrado"
           description="Ajuste a busca ou escolha outro filtro."
-          actionLabel="Limpar filtros"
-          secondary
-          onAction={() => {
-            setSearch("");
-            setFilter("all");
+          action={{
+            label: "Limpar filtros",
+            onPress: () => {
+              setSearch("");
+              setFilter("all");
+            },
+            variant: "outline",
           }}
         />
       );

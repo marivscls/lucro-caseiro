@@ -76,13 +76,11 @@ import {
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
-import {
-  LabelDesktopCard,
-  LabelsDesktopEmpty,
-} from "../features/labels/components/labels-desktop";
+import { LabelDesktopCard } from "../features/labels/components/labels-desktop";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 function LabelDetailModal({
   labelId,
@@ -836,18 +834,21 @@ export default function LabelsScreen() {
     let body: React.ReactNode = null;
     if (items.length === 0) {
       body = (
-        <LabelsDesktopEmpty
+        <DesktopEmptyCard
+          layout="stack"
           title="Nenhuma etiqueta ainda"
           description="Escolha um produto e crie uma etiqueta pronta para imprimir."
-          actionLabel="Nova etiqueta"
-          onAction={() => setShowCreate(true)}
+          icon="pricetag-outline"
+          action={{ label: "Nova etiqueta", onPress: () => setShowCreate(true) }}
         />
       );
     } else if (visible.length === 0) {
       body = (
-        <LabelsDesktopEmpty
+        <DesktopEmptyCard
+          layout="stack"
           title="Nenhuma etiqueta encontrada"
           description="Ajuste a busca ou o filtro."
+          icon="pricetag-outline"
         />
       );
     } else {

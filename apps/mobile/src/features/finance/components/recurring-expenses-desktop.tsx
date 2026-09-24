@@ -16,7 +16,7 @@ import {
   type DesktopTableColumn,
 } from "../../../shared/layout/desktop-page";
 import { formatCurrency } from "../../../shared/utils/format";
-import { DesktopEmptyCard, DesktopTag } from "./finance-desktop-parts";
+import { DesktopEmptyCard, DesktopTag } from "../../../shared/layout/desktop-kit";
 
 const NOWRAP =
   Platform.OS === "web" ? ({ whiteSpace: "nowrap" } as unknown as TextStyle) : undefined;
@@ -276,7 +276,7 @@ export function RecurringTableDesktop({
           <Typography variant="desktopBody" color={theme.colors.text} style={NOWRAP}>
             Todo dia {row.day}
           </Typography>
-          {row.isNext ? <DesktopTag label="Próximo" tone="income" /> : null}
+          {row.isNext ? <DesktopTag label="Próximo" variant="success" /> : null}
           {row.active ? null : <DesktopTag label="Inativo" />}
         </View>
       ),
@@ -404,6 +404,7 @@ export function RecurringAsideDesktop({
 export function RecurringEmptyDesktop({ onAdd }: Readonly<{ onAdd: () => void }>) {
   return (
     <DesktopEmptyCard
+      layout="center"
       title="Nenhum gasto fixo ainda"
       description="Cadastre seus custos mensais e deixe o app lançar pra você."
     >

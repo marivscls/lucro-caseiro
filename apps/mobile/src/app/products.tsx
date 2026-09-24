@@ -32,10 +32,9 @@ import { CompositeToggle } from "../features/products/components/composite-toggl
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { pricingProductInitialValues } from "../features/products/pricing-initial-values";
 import { ProductList } from "../features/products/components/product-list";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 import {
   DesktopCatalogBand,
-  DesktopEmptyAction,
-  DesktopEmptyCard,
   DesktopListTitle,
   DesktopProductTile,
   DesktopProductToolbar,
@@ -2064,28 +2063,25 @@ export default function ProductsScreen() {
         icon="cloud-offline-outline"
         title={"Não foi possível carregar os produtos"}
         description={"Verifique sua conexão e tente novamente."}
-        action={
-          <DesktopEmptyAction
-            title="Tentar novamente"
-            variant="secondary"
-            onPress={() => void productsQuery.refetch()}
-          />
-        }
+        action={{
+          label: "Tentar novamente",
+          onPress: () => void productsQuery.refetch(),
+          variant: "secondary",
+        }}
       />
     );
   } else if (products.length === 0) {
     desktopListBody = (
       <DesktopEmptyCard
+        icon="cube-outline"
         title={`Nenhum ${brand.copy.productNoun} ainda`}
         description={
           "Cadastre o primeiro para começar a vender e acompanhar o estoque aqui."
         }
-        action={
-          <DesktopEmptyAction
-            title={`Cadastrar ${brand.copy.productNoun}`}
-            onPress={() => setShowCreate(true)}
-          />
-        }
+        action={{
+          label: `Cadastrar ${brand.copy.productNoun}`,
+          onPress: () => setShowCreate(true),
+        }}
       />
     );
   } else if (visibleProducts.length === 0) {
@@ -2094,13 +2090,11 @@ export default function ProductsScreen() {
         icon="search-outline"
         title={`Nenhum ${brand.copy.productNoun} encontrado`}
         description="Tente outro nome ou limpe a busca e os filtros."
-        action={
-          <DesktopEmptyAction
-            title="Limpar busca e filtros"
-            variant="secondary"
-            onPress={clearDesktopFilters}
-          />
-        }
+        action={{
+          label: "Limpar busca e filtros",
+          onPress: clearDesktopFilters,
+          variant: "secondary",
+        }}
       />
     );
   } else {
