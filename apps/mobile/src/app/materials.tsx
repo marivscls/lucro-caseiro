@@ -26,6 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import pantryIllustration from "../assets/insumos-despensa.png";
 import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
+import { MaterialTable } from "../features/materials/components/material-table";
 import {
   getStockStatus,
   materialCategory,
@@ -47,6 +48,12 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import {
+  DesktopCard,
+  DesktopToolbarButton,
+  desktopActionButton,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 type StockFilter = "all" | "low" | "attention";
@@ -83,6 +90,7 @@ function SummaryMetric({
 }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
+  const isDesktop = useDesktopLayout();
   let icon: "checkmark" | "alert-circle" | "warning" = "warning";
   let background: string = palette.rose;
   if (status === "ok") {
@@ -128,27 +136,48 @@ function SummaryMetric({
             strokeWidth={2}
           />
         </View>
+        {isDesktop ? (
+          <Typography
+            variant="desktopMetric"
+            color={palette.onWine}
+            numberOfLines={1}
+            style={{ fontVariant: ["tabular-nums"] }}
+          >
+            {count}
+          </Typography>
+        ) : (
+          <Typography
+            variant="h3"
+            color={palette.onWine}
+            numberOfLines={1}
+            style={{
+              fontSize: compact ? 18 : 20,
+              lineHeight: 26,
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {count}
+          </Typography>
+        )}
+      </View>
+      {isDesktop ? (
         <Typography
-          variant="h3"
+          variant="desktopMetricLabel"
+          color={palette.onWineMuted}
+          numberOfLines={1}
+        >
+          {label}
+        </Typography>
+      ) : (
+        <Typography
+          variant="caption"
           color={palette.onWine}
           numberOfLines={1}
-          style={{
-            fontSize: compact ? 18 : 20,
-            lineHeight: 26,
-            fontVariant: ["tabular-nums"],
-          }}
+          style={{ fontSize: compact ? 11 : 12, lineHeight: 18, opacity: 0.8 }}
         >
-          {count}
+          {label}
         </Typography>
-      </View>
-      <Typography
-        variant="caption"
-        color={palette.onWine}
-        numberOfLines={1}
-        style={{ fontSize: compact ? 11 : 12, lineHeight: 18, opacity: 0.8 }}
-      >
-        {label}
-      </Typography>
+      )}
     </View>
   );
 }
@@ -157,9 +186,15 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const { width } = useWindowDimensions();
+  const isDesktop = useDesktopLayout();
   const narrow = width < 360;
   let imageWidth = narrow ? 120 : 148;
   if (width >= 1024) imageWidth = 160;
+  let heroMinHeight = width >= 1024 ? 180 : 158;
+  if (isDesktop) {
+    imageWidth = 136;
+    heroMinHeight = 152;
+  }
   const counts = items.reduce(
     (acc, material) => {
       acc[getStockStatus(material)] += 1;
@@ -184,7 +219,7 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
     >
       <View
         style={{
-          minHeight: width >= 1024 ? 180 : 158,
+          minHeight: heroMinHeight,
           justifyContent: "center",
           padding: narrow ? spacing.lg : spacing.xl,
           paddingRight: imageWidth - spacing.sm,
@@ -197,34 +232,48 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
             gap: spacing.xs,
           }}
         >
-          <Typography variant="caption" color={palette.onWine} style={{ opacity: 0.8 }}>
-            Valor em estoque
-          </Typography>
+          {isDesktop ? (
+            <Typography variant="desktopMetricLabel" color={palette.onWineMuted}>
+              Valor em estoque
+            </Typography>
+          ) : (
+            <Typography variant="caption" color={palette.onWine} style={{ opacity: 0.8 }}>
+              Valor em estoque
+            </Typography>
+          )}
           <View
             style={{
               alignItems: "flex-start",
             }}
           >
             <Typography
-              variant="moneyHero"
+              variant={isDesktop ? "desktopTotal" : "moneyHero"}
               color={palette.onWine}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.72}
-              style={{
-                fontSize: narrow ? 28 : 32,
-                lineHeight: 42,
-                letterSpacing: -1,
-                fontVariant: ["tabular-nums"],
-              }}
+              style={
+                isDesktop
+                  ? { fontVariant: ["tabular-nums"] }
+                  : {
+                      fontSize: narrow ? 28 : 32,
+                      lineHeight: 42,
+                      letterSpacing: -1,
+                      fontVariant: ["tabular-nums"],
+                    }
+              }
             >
               {moneyFormatter.format(totalValue)}
             </Typography>
           </View>
           <Typography
-            variant="body"
-            color={palette.onWine}
-            style={{ fontSize: 12, lineHeight: 18, opacity: 0.8, marginTop: spacing.xs }}
+            variant={isDesktop ? "desktopBody" : "body"}
+            color={isDesktop ? palette.onWineMuted : palette.onWine}
+            style={
+              isDesktop
+                ? undefined
+                : { fontSize: 12, lineHeight: 18, opacity: 0.8, marginTop: spacing.xs }
+            }
           >
             {items.length}{" "}
             {items.length === 1 ? "material cadastrado" : "materiais cadastrados"}
@@ -277,6 +326,7 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const lowItems = useMemo(
     () =>
       items
@@ -327,23 +377,40 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
       >
         <AppIcon name="warning-outline" size={20} color={palette.wine} />
       </View>
-      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-        <Typography variant="bodyBold" color={palette.ink} style={{ fontSize: 14 }}>
-          {title}
-        </Typography>
-        <Typography variant="caption" color={palette.muted} style={{ fontSize: 12 }}>
-          {lowItems.length} {lowItems.length === 1 ? "item precisa" : "itens precisam"} de
-          reposição
-        </Typography>
-        <Typography
-          variant="bodyBold"
-          color={palette.wine}
-          numberOfLines={1}
-          style={{ fontSize: 12, marginTop: spacing.xs }}
-        >
-          Ver lista de compras
-        </Typography>
-      </View>
+      {isDesktop ? (
+        <>
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Typography variant="desktopBodyStrong" color={palette.ink}>
+              {title}
+            </Typography>
+            <Typography variant="desktopBody" color={palette.muted}>
+              {lowItems.length}{" "}
+              {lowItems.length === 1 ? "item precisa" : "itens precisam"} de reposição
+            </Typography>
+          </View>
+          <Typography variant="desktopBodyStrong" color={palette.wine} numberOfLines={1}>
+            Ver lista de compras
+          </Typography>
+        </>
+      ) : (
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Typography variant="bodyBold" color={palette.ink} style={{ fontSize: 14 }}>
+            {title}
+          </Typography>
+          <Typography variant="caption" color={palette.muted} style={{ fontSize: 12 }}>
+            {lowItems.length} {lowItems.length === 1 ? "item precisa" : "itens precisam"}{" "}
+            de reposição
+          </Typography>
+          <Typography
+            variant="bodyBold"
+            color={palette.wine}
+            numberOfLines={1}
+            style={{ fontSize: 12, marginTop: spacing.xs }}
+          >
+            Ver lista de compras
+          </Typography>
+        </View>
+      )}
       <AppIcon name="chevron-forward" size={20} color={palette.wine} />
     </Pressable>
   );
@@ -499,6 +566,149 @@ function MaterialsScreenContent() {
     ...pageGutter(isDesktop, compactHeader ? spacing.md : spacing.xl),
     ...desktopStretch(isDesktop, desktopWidths.data),
   };
+  const filtersActive = stockFilter !== "all" || category != null;
+
+  function renderDesktopEmpty(
+    title: string,
+    description: string,
+    action: { label: string; onPress: () => void; variant?: "primary" | "secondary" },
+  ) {
+    return (
+      <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
+        <Typography variant="desktopCardTitle">{title}</Typography>
+        <Typography variant="desktopBody" style={{ maxWidth: 560 }}>
+          {description}
+        </Typography>
+        <Button
+          title={action.label}
+          variant={action.variant ?? "primary"}
+          onPress={action.onPress}
+          style={desktopActionButton}
+        />
+      </DesktopCard>
+    );
+  }
+
+  /** Desktop: painel + aviso de reposição, barra de busca e estoque em tabela. */
+  function renderDesktopBody() {
+    const materialWord = items.length === 1 ? "material" : "materiais";
+    if (items.length === 0) {
+      return (
+        <>
+          <PantrySummary items={items} />
+          {renderDesktopEmpty(
+            "Seu estoque está vazio",
+            "Cadastre o primeiro material para acompanhar quantidade, custo e reposição.",
+            { label: "Adicionar primeiro material", onPress: () => setShowCreate(true) },
+          )}
+        </>
+      );
+    }
+
+    return (
+      <>
+        <View style={{ gap: spacing.lg }}>
+          <PantrySummary items={items} />
+          <ReplenishmentAlert items={items} />
+        </View>
+
+        <View style={{ gap: spacing.lg }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <View
+              style={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 52,
+                borderRadius: radii.lg,
+                borderWidth: 1,
+                borderColor: palette.border,
+                backgroundColor: palette.white,
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: spacing.lg,
+                gap: spacing.md,
+              }}
+            >
+              <AppIcon name="search-outline" size={22} color={palette.muted} />
+              <CenteredTextInput
+                ref={searchRef}
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Buscar material por nome, categoria ou unidade"
+                placeholderTextColor={palette.muted}
+                returnKeyType="search"
+                accessibilityLabel="Buscar material por nome, categoria ou unidade"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  color: palette.ink,
+                  fontSize: fontSizes.md,
+                  fontFamily: fonts.regular,
+                  paddingVertical: 0,
+                }}
+              />
+              {search ? (
+                <Pressable
+                  onPress={() => setSearch("")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Limpar busca"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <AppIcon name="close" size={20} color={palette.muted} />
+                </Pressable>
+              ) : null}
+            </View>
+            <DesktopToolbarButton
+              icon="options-outline"
+              label={filtersActive ? "Filtros ativos" : "Filtrar"}
+              onPress={() => setShowFilters(true)}
+            />
+            <DesktopToolbarButton
+              icon="filter-outline"
+              label="Ordenar"
+              onPress={() => setShowSort(true)}
+            />
+          </View>
+
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.md }}>
+            <Typography variant="desktopSection" accessibilityRole="header">
+              Seus materiais
+            </Typography>
+            <Typography variant="desktopMeta" numberOfLines={1} style={{ flex: 1 }}>
+              {visible.length === items.length
+                ? `${items.length} ${materialWord}`
+                : `${visible.length} de ${items.length}`}
+              {" · "}
+              {SORT_OPTIONS.find((option) => option.key === sort)?.label}
+            </Typography>
+          </View>
+
+          {visible.length === 0 ? (
+            renderDesktopEmpty(
+              "Nenhum material encontrado",
+              "Limpe a busca ou ajuste os filtros para ver outros itens.",
+              {
+                label: "Limpar busca e filtros",
+                onPress: clearFilters,
+                variant: "secondary",
+              },
+            )
+          ) : (
+            <MaterialTable
+              materials={visible}
+              onMaterialPress={(material) => setSelectedId(material.id)}
+            />
+          )}
+        </View>
+      </>
+    );
+  }
+
   function renderBody() {
     if (isLoading) return <PantrySkeleton />;
     if (error) {
@@ -510,6 +720,7 @@ function MaterialsScreenContent() {
         />
       );
     }
+    if (isDesktop) return renderDesktopBody();
     if (items.length === 0) {
       return (
         <>
@@ -690,57 +901,72 @@ function MaterialsScreenContent() {
         titleStyle={{ color: palette.ink }}
         subtitleStyle={{ color: palette.muted }}
         right={
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-            <Pressable
-              onPress={() => searchRef.current?.focus()}
-              accessibilityRole="button"
-              accessibilityLabel="Ir para busca"
-              style={{
-                width: 44,
-                height: 44,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="search" size={24} color={palette.ink} />
-            </Pressable>
-            <Pressable
-              onPress={() => setShowFilters(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Abrir filtros"
-              accessibilityState={{ selected: stockFilter !== "all" || category != null }}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                backgroundColor:
-                  stockFilter !== "all" || category ? palette.softRose : "transparent",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="options-outline" size={24} color={palette.rose} />
-            </Pressable>
+          isDesktop ? (
             <FAB
               icon="add"
               header
               accessibilityLabel="Novo material"
               onPress={() => setShowCreate(true)}
             />
-          </View>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+              <Pressable
+                onPress={() => searchRef.current?.focus()}
+                accessibilityRole="button"
+                accessibilityLabel="Ir para busca"
+                style={{
+                  width: 44,
+                  height: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AppIcon name="search" size={24} color={palette.ink} />
+              </Pressable>
+              <Pressable
+                onPress={() => setShowFilters(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Abrir filtros"
+                accessibilityState={{
+                  selected: stockFilter !== "all" || category != null,
+                }}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: radii.full,
+                  backgroundColor:
+                    stockFilter !== "all" || category ? palette.softRose : "transparent",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AppIcon name="options-outline" size={24} color={palette.rose} />
+              </Pressable>
+              <FAB
+                icon="add"
+                header
+                accessibilityLabel="Novo material"
+                onPress={() => setShowCreate(true)}
+              />
+            </View>
+          )
         }
       />
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          ...contentStyle,
-          flexGrow: 1,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.lg,
-          gap: spacing.lg,
-        }}
+        contentContainerStyle={
+          isDesktop
+            ? desktopPageContent(true)
+            : {
+                ...contentStyle,
+                flexGrow: 1,
+                paddingTop: spacing.sm,
+                paddingBottom: spacing.lg,
+                gap: spacing.lg,
+              }
+        }
       >
         {!isDesktop ? (
           <Typography variant="caption" color={palette.muted}>
@@ -750,7 +976,7 @@ function MaterialsScreenContent() {
         {renderBody()}
       </ScrollView>
 
-      {!isLoading && !error && items.length > 0 ? (
+      {!isDesktop && !isLoading && !error && items.length > 0 ? (
         <ScreenCreateBar title="+ Novo material" onPress={() => setShowCreate(true)} />
       ) : null}
 
