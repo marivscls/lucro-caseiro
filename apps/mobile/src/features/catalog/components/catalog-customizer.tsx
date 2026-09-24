@@ -2624,7 +2624,7 @@ export function CatalogCustomizer({
               {publicCatalogUrl(normalizedSlug)}
             </Typography>
             <Button
-              title="OK"
+              title="Entendi"
               style={{ width: "100%" }}
               onPress={() => setPublishedVisible(false)}
             />
