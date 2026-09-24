@@ -21,7 +21,9 @@ import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useSubscription } from "../features/subscription/use-subscription";
+import { desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { PlansDesktop } from "../features/subscription/components/plans-desktop";
 import {
   desktopAction,
   desktopStretch,
@@ -119,8 +121,42 @@ export default function PlansScreen() {
     profile && isPaidPlan(rawPlan) && profile.planExpiresAt
       ? expiryWarning(PLAN_LABELS[rawPlan], profile.planExpiresAt)
       : null;
+  const usageItems = limits
+    ? [
+        {
+          label: "Vendas este mês",
+          cur: limits.currentSalesThisMonth,
+          max: limits.maxSalesPerMonth,
+        },
+        { label: "Clientes", cur: limits.currentClients, max: limits.maxClients },
+        {
+          label: "Produtos",
+          cur: limits.currentProducts,
+          max: limits.maxProducts,
+        },
+        {
+          label: "Receitas",
+          cur: limits.currentRecipes,
+          max: limits.maxRecipes,
+        },
+        {
+          label: "Embalagens",
+          cur: limits.currentPackaging,
+          max: limits.maxPackaging,
+        },
+      ].filter(
+        (item): item is typeof item & { max: number } =>
+          typeof item.max === "number" && Number.isFinite(item.max) && item.max > 0,
+      )
+    : [];
   let visiblePlans: readonly PaidPlan[] = ["essential", "professional"];
   if (current === "professional") visiblePlans = ["professional"];
+
+  const heading = current === "free" ? "Escolha seu plano" : "Sua assinatura";
+  const subheading =
+    current === "free"
+      ? "Sem anúncios e sem limite de clientes e produtos nos dois planos."
+      : "Consulte os benefícios e gerencie seu plano.";
 
   if (profileLoading || (current === "free" && limitsLoading)) {
     return (
@@ -161,20 +197,29 @@ export default function PlansScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Top bar */}
-      <ScreenHeader title="Planos" hideBack={isDesktop} />
+      {/* Top bar (no desktop, rola junto com a página) */}
+      {isDesktop ? null : <ScreenHeader title="Planos" hideBack={isDesktop} />}
 
       <ScrollView
-        contentContainerStyle={[
-          {
-            ...pageGutter(isDesktop),
-            paddingTop: spacing.xl,
-            paddingBottom: spacing["3xl"],
-            gap: spacing.xl,
-          },
-          desktopStretch(isDesktop, desktopWidths.wide),
-        ]}
+        contentContainerStyle={
+          isDesktop
+            ? desktopPageContent(true)
+            : [
+                {
+                  ...pageGutter(isDesktop),
+                  paddingTop: spacing.xl,
+                  paddingBottom: spacing["3xl"],
+                  gap: spacing.xl,
+                },
+                desktopStretch(isDesktop, desktopWidths.wide),
+              ]
+        }
       >
+        {isDesktop ? (
+          <View>
+            <ScreenHeader title={heading} subtitle={subheading} hideBack />
+          </View>
+        ) : null}
         {warning && (
           <Card
             style={{
@@ -196,318 +241,349 @@ export default function PlansScreen() {
           </Card>
         )}
 
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="h1" accessibilityRole="header">
-            {current === "free" ? "Escolha seu plano" : "Sua assinatura"}
-          </Typography>
-          <Typography variant="body">
-            {current === "free"
-              ? "Sem anúncios e sem limite de clientes e produtos nos dois planos."
-              : "Consulte os benefícios e gerencie seu plano."}
-          </Typography>
-        </View>
+        {isDesktop ? (
+          <PlansDesktop
+            cards={visiblePlans.map((plan) => ({
+              plan,
+              label: PLAN_LABELS[plan],
+              price: priceLabel(plan, plan === selectedPlan ? displayPeriod : "monthly"),
+              periodLabel:
+                plan === selectedPlan && displayPeriod === "annual"
+                  ? "por ano"
+                  : "por mês",
+              heading:
+                plan === "professional"
+                  ? "Tudo do Essencial, mais:"
+                  : "Incluído no Essencial",
+              features: planFeatures[plan].filter(
+                (feature) => feature !== "Tudo do Essencial",
+              ),
+              current: plan === current,
+            }))}
+            selectedPlan={selectedPlan}
+            onSelect={setChoice}
+            isUpgrade={isUpgrade}
+            period={period}
+            onPeriodChange={setPeriod}
+            chargeLine={
+              period === "annual"
+                ? `${moneyLabel(pricing.annual)} cobrados uma vez por ano.`
+                : `${moneyLabel(pricing.monthly)} cobrados a cada mês.`
+            }
+            chargeHint={
+              period === "annual"
+                ? `Equivale a ${moneyLabel(pricing.annual / 12)}/mês. Economia de ${moneyLabel(pricing.monthly * 12 - pricing.annual)} no ano.`
+                : "No anual, você paga o equivalente a 10 mensalidades."
+            }
+            checkoutLoading={checkoutLoading}
+            onContinue={continueToPayment}
+            usage={current === "free" ? usageItems : null}
+            onCancel={current === "free" ? null : () => void openSubscriptionManagement()}
+          />
+        ) : (
+          <>
+            <View style={{ gap: spacing.sm }}>
+              <Typography variant="h1" accessibilityRole="header">
+                {current === "free" ? "Escolha seu plano" : "Sua assinatura"}
+              </Typography>
+              <Typography variant="body">
+                {current === "free"
+                  ? "Sem anúncios e sem limite de clientes e produtos nos dois planos."
+                  : "Consulte os benefícios e gerencie seu plano."}
+              </Typography>
+            </View>
 
-        <Card
-          variant="elevated"
-          padding="2xl"
-          style={{
-            borderRadius: radii.md,
-            flexDirection: isDesktop ? "row" : "column",
-            gap: spacing["3xl"],
-          }}
-        >
-          <View style={{ ...(isDesktop ? { flex: 1 } : {}), gap: spacing["2xl"] }}>
-            <View style={{ flexDirection: "row", gap: spacing.lg }}>
-              {visiblePlans.map((plan) => {
-                const selected = plan === selectedPlan;
-                return (
-                  <Pressable
-                    key={plan}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Ver plano ${PLAN_LABELS[plan]}`}
-                    accessibilityState={{ selected, disabled: checkoutLoading }}
-                    disabled={checkoutLoading}
-                    onPress={() => setChoice(plan)}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      minWidth: 0,
-                      paddingTop: spacing.md,
-                      paddingBottom: spacing.lg,
-                      gap: spacing.sm,
-                      borderBottomWidth: 2,
-                      borderBottomColor: selected
-                        ? theme.colors.text
-                        : theme.colors.border,
-                      opacity: pressed ? 0.65 : 1,
-                    })}
-                  >
+            <Card
+              variant="elevated"
+              padding="2xl"
+              style={{
+                borderRadius: radii.md,
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing["3xl"],
+              }}
+            >
+              <View style={{ ...(isDesktop ? { flex: 1 } : {}), gap: spacing["2xl"] }}>
+                <View style={{ flexDirection: "row", gap: spacing.lg }}>
+                  {visiblePlans.map((plan) => {
+                    const selected = plan === selectedPlan;
+                    return (
+                      <Pressable
+                        key={plan}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Ver plano ${PLAN_LABELS[plan]}`}
+                        accessibilityState={{ selected, disabled: checkoutLoading }}
+                        disabled={checkoutLoading}
+                        onPress={() => setChoice(plan)}
+                        style={({ pressed }) => ({
+                          flex: 1,
+                          minWidth: 0,
+                          paddingTop: spacing.md,
+                          paddingBottom: spacing.lg,
+                          gap: spacing.sm,
+                          borderBottomWidth: 2,
+                          borderBottomColor: selected
+                            ? theme.colors.text
+                            : theme.colors.border,
+                          opacity: pressed ? 0.65 : 1,
+                        })}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.sm,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 14,
+                              height: 14,
+                              borderRadius: radii.full,
+                              borderWidth: selected ? 4 : 1,
+                              borderColor: selected
+                                ? theme.colors.text
+                                : theme.colors.textSecondary,
+                            }}
+                          />
+                          <Typography
+                            variant="bodyBold"
+                            color={
+                              selected ? theme.colors.text : theme.colors.textSecondary
+                            }
+                          >
+                            {PLAN_LABELS[plan]}
+                          </Typography>
+                        </View>
+                        <Typography
+                          variant="h2"
+                          style={{ fontVariant: ["tabular-nums"] }}
+                        >
+                          {priceLabel(plan, displayPeriod)}
+                        </Typography>
+                        <Typography variant="caption">
+                          {displayPeriod === "annual" ? "por ano" : "por mês"}
+                        </Typography>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+
+                {isUpgrade && (
+                  <View style={{ gap: spacing.md }}>
                     <View
                       style={{
                         flexDirection: "row",
-                        alignItems: "center",
-                        gap: spacing.sm,
+                        padding: spacing.xs,
+                        backgroundColor: theme.colors.surface,
+                        borderRadius: radii.sm,
                       }}
                     >
-                      <View
-                        style={{
-                          width: 14,
-                          height: 14,
-                          borderRadius: radii.full,
-                          borderWidth: selected ? 4 : 1,
-                          borderColor: selected
-                            ? theme.colors.text
-                            : theme.colors.textSecondary,
-                        }}
-                      />
-                      <Typography
-                        variant="bodyBold"
-                        color={selected ? theme.colors.text : theme.colors.textSecondary}
-                      >
-                        {PLAN_LABELS[plan]}
+                      {(["monthly", "annual"] as const).map((option) => (
+                        <Pressable
+                          key={option}
+                          accessibilityRole="button"
+                          accessibilityLabel={option === "annual" ? "Anual" : "Mensal"}
+                          accessibilityState={{
+                            selected: period === option,
+                            disabled: checkoutLoading,
+                          }}
+                          disabled={checkoutLoading}
+                          onPress={() => setPeriod(option)}
+                          style={({ pressed }) => ({
+                            flex: 1,
+                            minHeight: 44,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: radii.sm,
+                            backgroundColor:
+                              period === option
+                                ? theme.colors.surfaceElevated
+                                : "transparent",
+                            borderWidth: 1,
+                            borderColor:
+                              period === option ? theme.colors.border : "transparent",
+                            opacity: pressed ? 0.65 : 1,
+                          })}
+                        >
+                          <Typography
+                            variant="bodyBold"
+                            color={
+                              period === option
+                                ? theme.colors.text
+                                : theme.colors.textSecondary
+                            }
+                          >
+                            {option === "annual" ? "Anual" : "Mensal"}
+                          </Typography>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <View style={{ gap: spacing.xs }} accessibilityLiveRegion="polite">
+                      <Typography variant="bodyBold">
+                        {period === "annual"
+                          ? `${moneyLabel(pricing.annual)} cobrados uma vez por ano.`
+                          : `${moneyLabel(pricing.monthly)} cobrados a cada mês.`}
+                      </Typography>
+                      <Typography variant="caption">
+                        {period === "annual"
+                          ? `Equivale a ${moneyLabel(pricing.annual / 12)}/mês. Economia de ${moneyLabel(pricing.monthly * 12 - pricing.annual)} no ano.`
+                          : "No anual, você paga o equivalente a 10 mensalidades."}
                       </Typography>
                     </View>
-                    <Typography variant="h2" style={{ fontVariant: ["tabular-nums"] }}>
-                      {priceLabel(plan, displayPeriod)}
-                    </Typography>
-                    <Typography variant="caption">
-                      {displayPeriod === "annual" ? "por ano" : "por mês"}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
-            </View>
+                  </View>
+                )}
 
-            {isUpgrade && (
-              <View style={{ gap: spacing.md }}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    padding: spacing.xs,
-                    backgroundColor: theme.colors.surface,
-                    borderRadius: radii.sm,
-                  }}
-                >
-                  {(["monthly", "annual"] as const).map((option) => (
-                    <Pressable
-                      key={option}
-                      accessibilityRole="button"
-                      accessibilityLabel={option === "annual" ? "Anual" : "Mensal"}
-                      accessibilityState={{
-                        selected: period === option,
-                        disabled: checkoutLoading,
-                      }}
-                      disabled={checkoutLoading}
-                      onPress={() => setPeriod(option)}
-                      style={({ pressed }) => ({
-                        flex: 1,
-                        minHeight: 44,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: radii.sm,
-                        backgroundColor:
-                          period === option
-                            ? theme.colors.surfaceElevated
-                            : "transparent",
-                        borderWidth: 1,
-                        borderColor:
-                          period === option ? theme.colors.border : "transparent",
-                        opacity: pressed ? 0.65 : 1,
-                      })}
-                    >
-                      <Typography
-                        variant="bodyBold"
-                        color={
-                          period === option
-                            ? theme.colors.text
-                            : theme.colors.textSecondary
-                        }
-                      >
-                        {option === "annual" ? "Anual" : "Mensal"}
-                      </Typography>
-                    </Pressable>
-                  ))}
-                </View>
-                <View style={{ gap: spacing.xs }} accessibilityLiveRegion="polite">
-                  <Typography variant="bodyBold">
-                    {period === "annual"
-                      ? `${moneyLabel(pricing.annual)} cobrados uma vez por ano.`
-                      : `${moneyLabel(pricing.monthly)} cobrados a cada mês.`}
-                  </Typography>
-                  <Typography variant="caption">
-                    {period === "annual"
-                      ? `Equivale a ${moneyLabel(pricing.annual / 12)}/mês. Economia de ${moneyLabel(pricing.monthly * 12 - pricing.annual)} no ano.`
-                      : "No anual, você paga o equivalente a 10 mensalidades."}
-                  </Typography>
-                </View>
+                {isUpgrade ? (
+                  <Button
+                    title={
+                      checkoutLoading
+                        ? "Abrindo pagamento..."
+                        : "Continuar para pagamento"
+                    }
+                    size="lg"
+                    loading={checkoutLoading}
+                    accessibilityLabel={
+                      checkoutLoading
+                        ? "Abrindo pagamento..."
+                        : "Continuar para pagamento"
+                    }
+                    accessibilityState={{
+                      busy: checkoutLoading,
+                      disabled: checkoutLoading,
+                    }}
+                    onPress={continueToPayment}
+                    style={{ width: "100%", borderRadius: radii.sm }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      minHeight: 48,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor: theme.colors.surface,
+                      borderRadius: radii.sm,
+                    }}
+                  >
+                    <Typography variant="bodyBold">Plano ativo</Typography>
+                  </View>
+                )}
               </View>
-            )}
 
-            {isUpgrade ? (
-              <Button
-                title={
-                  checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"
-                }
-                size="lg"
-                loading={checkoutLoading}
-                accessibilityLabel={
-                  checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"
-                }
-                accessibilityState={{ busy: checkoutLoading, disabled: checkoutLoading }}
-                onPress={continueToPayment}
-                style={{ width: "100%", borderRadius: radii.sm }}
-              />
-            ) : (
               <View
-                style={{
-                  minHeight: 48,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  backgroundColor: theme.colors.surface,
-                  borderRadius: radii.sm,
-                }}
+                style={{ ...(isDesktop ? { flex: 1 } : {}), gap: spacing.sm }}
+                accessibilityLiveRegion="polite"
               >
-                <Typography variant="bodyBold">Plano ativo</Typography>
-              </View>
-            )}
-          </View>
-
-          <View
-            style={{ ...(isDesktop ? { flex: 1 } : {}), gap: spacing.sm }}
-            accessibilityLiveRegion="polite"
-          >
-            <Typography variant="h3" accessibilityRole="header">
-              {selectedPlan === "professional"
-                ? "Tudo do Essencial, mais:"
-                : "Incluído no Essencial"}
-            </Typography>
-            {planFeatures[selectedPlan]
-              .filter((feature) => feature !== "Tudo do Essencial")
-              .map((feature, index, features) => (
-                <View
-                  key={feature}
-                  style={{
-                    paddingVertical: spacing.md,
-                    borderBottomWidth: index < features.length - 1 ? 1 : 0,
-                    borderBottomColor: theme.colors.border,
-                  }}
-                >
-                  <Typography variant="body" color={theme.colors.text}>
-                    {feature}
-                  </Typography>
-                </View>
-              ))}
-          </View>
-        </Card>
-
-        {Platform.OS === "android" && (
-          <Button
-            title="Restaurar compra"
-            variant="text"
-            disabled={checkoutLoading}
-            onPress={() => void restore()}
-            style={desktopAction(isDesktop, 200)}
-          />
-        )}
-
-        {/* Uso atual (só no plano gratuito) */}
-        {limits && current === "free" && (
-          <View style={{ paddingTop: spacing.sm, gap: spacing.sm }}>
-            <View style={{ gap: spacing.xs, marginBottom: spacing.xl }}>
-              <Typography variant="h3">Seu uso atual</Typography>
-              <Typography variant="body">Limites do plano gratuito</Typography>
-            </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.lg }}>
-              {[
-                {
-                  label: "Vendas este mês",
-                  cur: limits.currentSalesThisMonth,
-                  max: limits.maxSalesPerMonth,
-                },
-                { label: "Clientes", cur: limits.currentClients, max: limits.maxClients },
-                {
-                  label: "Produtos",
-                  cur: limits.currentProducts,
-                  max: limits.maxProducts,
-                },
-                {
-                  label: "Receitas",
-                  cur: limits.currentRecipes,
-                  max: limits.maxRecipes,
-                },
-                {
-                  label: "Embalagens",
-                  cur: limits.currentPackaging,
-                  max: limits.maxPackaging,
-                },
-              ]
-                .filter(
-                  (item): item is typeof item & { max: number } =>
-                    typeof item.max === "number" &&
-                    Number.isFinite(item.max) &&
-                    item.max > 0,
-                )
-                .map((item) => {
-                  const pct = Math.max(0, Math.min((item.cur / item.max) * 100, 100));
-                  const isNear = pct >= 80;
-                  return (
+                <Typography variant="h3" accessibilityRole="header">
+                  {selectedPlan === "professional"
+                    ? "Tudo do Essencial, mais:"
+                    : "Incluído no Essencial"}
+                </Typography>
+                {planFeatures[selectedPlan]
+                  .filter((feature) => feature !== "Tudo do Essencial")
+                  .map((feature, index, features) => (
                     <View
-                      key={item.label}
+                      key={feature}
                       style={{
-                        gap: spacing.sm,
-                        flexGrow: 1,
-                        flexBasis: isDesktop ? "16%" : "44%",
+                        paddingVertical: spacing.md,
+                        borderBottomWidth: index < features.length - 1 ? 1 : 0,
+                        borderBottomColor: theme.colors.border,
                       }}
                     >
+                      <Typography variant="body" color={theme.colors.text}>
+                        {feature}
+                      </Typography>
+                    </View>
+                  ))}
+              </View>
+            </Card>
+
+            {Platform.OS === "android" && (
+              <Button
+                title="Restaurar compra"
+                variant="text"
+                disabled={checkoutLoading}
+                onPress={() => void restore()}
+                style={desktopAction(isDesktop, 200)}
+              />
+            )}
+
+            {/* Uso atual (só no plano gratuito) */}
+            {limits && current === "free" && (
+              <View style={{ paddingTop: spacing.sm, gap: spacing.sm }}>
+                <View style={{ gap: spacing.xs, marginBottom: spacing.xl }}>
+                  <Typography variant="h3">Seu uso atual</Typography>
+                  <Typography variant="body">Limites do plano gratuito</Typography>
+                </View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.lg }}>
+                  {usageItems.map((item) => {
+                    const pct = Math.max(0, Math.min((item.cur / item.max) * 100, 100));
+                    const isNear = pct >= 80;
+                    return (
                       <View
-                        style={{ flexDirection: "row", justifyContent: "space-between" }}
-                      >
-                        <Typography variant="caption" style={{ flex: 1 }}>
-                          {item.label}
-                        </Typography>
-                        <Typography
-                          variant="captionBold"
-                          style={{ fontVariant: ["tabular-nums"] }}
-                          color={isNear ? theme.colors.alert : theme.colors.textSecondary}
-                        >
-                          {item.cur}/{item.max}
-                        </Typography>
-                      </View>
-                      <View
-                        accessibilityRole="progressbar"
-                        accessibilityLabel={item.label}
-                        accessibilityValue={{ min: 0, max: item.max, now: item.cur }}
+                        key={item.label}
                         style={{
-                          height: 4,
-                          backgroundColor: theme.colors.border,
-                          borderRadius: radii.full,
+                          gap: spacing.sm,
+                          flexGrow: 1,
+                          flexBasis: isDesktop ? "16%" : "44%",
                         }}
                       >
                         <View
                           style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Typography variant="caption" style={{ flex: 1 }}>
+                            {item.label}
+                          </Typography>
+                          <Typography
+                            variant="captionBold"
+                            style={{ fontVariant: ["tabular-nums"] }}
+                            color={
+                              isNear ? theme.colors.alert : theme.colors.textSecondary
+                            }
+                          >
+                            {item.cur}/{item.max}
+                          </Typography>
+                        </View>
+                        <View
+                          accessibilityRole="progressbar"
+                          accessibilityLabel={item.label}
+                          accessibilityValue={{ min: 0, max: item.max, now: item.cur }}
+                          style={{
                             height: 4,
-                            width: `${pct}%`,
-                            backgroundColor: isNear
-                              ? theme.colors.alert
-                              : theme.colors.primary,
+                            backgroundColor: theme.colors.border,
                             borderRadius: radii.full,
                           }}
-                        />
+                        >
+                          <View
+                            style={{
+                              height: 4,
+                              width: `${pct}%`,
+                              backgroundColor: isNear
+                                ? theme.colors.alert
+                                : theme.colors.primary,
+                              borderRadius: radii.full,
+                            }}
+                          />
+                        </View>
                       </View>
-                    </View>
-                  );
-                })}
-            </View>
-          </View>
-        )}
+                    );
+                  })}
+                </View>
+              </View>
+            )}
 
-        {current !== "free" && (
-          <Button
-            title="Cancelar assinatura"
-            variant="outline"
-            size="lg"
-            onPress={() => void openSubscriptionManagement()}
-            style={desktopAction(isDesktop, 240)}
-          />
+            {current !== "free" && (
+              <Button
+                title="Cancelar assinatura"
+                variant="outline"
+                size="lg"
+                onPress={() => void openSubscriptionManagement()}
+                style={desktopAction(isDesktop, 240)}
+              />
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

@@ -174,3 +174,11 @@ O Essencial inclui catálogo completo, personalização e galeria com até 3 fot
 Planos emite `plan_chosen` ao continuar para o pagamento. `useSubscription` e `useStripeCheckout`
 emitem `purchase_result` (`success`, `failure` ou `cancel`) com provedor, plano e período;
 `purchaseErrorResult` classifica o erro do Google Play. Detalhes em `features/analytics`.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+`app/plans.tsx` usa `components/plans-desktop.tsx` no desktop: os planos lado a lado como
+cartões selecionáveis (preço de 36px e benefícios), o uso do plano gratuito com barras e uma
+lateral fixa com o plano escolhido, Mensal/Anual, o valor cobrado e "Continuar para pagamento"
+(ou "Plano ativo" e "Cancelar assinatura"). Com um plano só, o cartão ocupa a coluna e os
+benefícios vão em duas colunas. Mesmo estado, fluxo de checkout e rótulos do celular, que não mudou.
