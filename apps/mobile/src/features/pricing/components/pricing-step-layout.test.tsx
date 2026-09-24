@@ -56,8 +56,8 @@ vi.mock("@lucro-caseiro/ui", () => ({
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 20 },
   radii: { md: 12 },
 }));
-vi.mock("../../../shared/brand-palette", () => ({
-  useBrandScreenPalette: () => ({ wine: "#4A2332", wineFill: "#4A2332" }),
+vi.mock("../../../shared/components/form-layout", () => ({
+  FormActions: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }));
 vi.mock("../../../shared/components/keyboard-aware-scroll-view", () => ({
   KeyboardAwareScrollView: ({ children }: React.PropsWithChildren) => (

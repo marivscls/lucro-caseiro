@@ -7,11 +7,11 @@ import { useAuth } from "../../../shared/hooks/use-auth";
 import type { Product, Service } from "@lucro-caseiro/contracts";
 import {
   Button,
-  Card,
   IconButton,
   Input,
   Typography,
   fonts,
+  radii,
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
@@ -35,10 +35,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import {
-  desktopAction,
-  desktopSplitLayout,
-} from "../../../shared/layout/desktop-density";
+import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
 import {
   floatingTabBarReserve,
   mobileTabBarSafeInset,
@@ -49,6 +46,15 @@ import { SvgXml } from "react-native-svg";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
+import {
+  FieldLinkAction,
+  FormField,
+  TextField,
+  fieldMetrics,
+  useFieldPalette,
+} from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
 import { ScreenHeader } from "../../../shared/components/screen-header";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ColorPickerModal } from "../../../shared/components/color-picker-modal";
@@ -111,8 +117,8 @@ type CatalogCustomizerProps = Readonly<{
 type ColorTarget = "actionColor" | "primaryColor" | "textColor" | null;
 
 /**
- * Desktop: nada abaixo de 14 px. Legendas de 11–12 px sobem para 14 px e textos
- * de apoio de 13–14 px para 16 px; no celular os tamanhos continuam os mesmos.
+ * Nada abaixo de 14 px, no celular e no computador. No computador, legendas de
+ * 11–12 px sobem para 14 px e textos de apoio de 13–14 px para 16 px.
  */
 const DESKTOP_TEXT: Readonly<Record<number, TextStyle>> = {
   11: { fontSize: 14, lineHeight: 20 },
@@ -120,61 +126,35 @@ const DESKTOP_TEXT: Readonly<Record<number, TextStyle>> = {
   13: { fontSize: 16, lineHeight: 24 },
   14: { fontSize: 16, lineHeight: 24 },
 };
+const MIN_FONT_SIZE = 14;
 
 function useCustomizerText() {
   const isDesktop = useDesktopLayout();
   return (fontSize: number, lineHeight?: number): TextStyle => {
     const desktop = isDesktop ? DESKTOP_TEXT[fontSize] : undefined;
     if (desktop) return desktop;
+    if (fontSize < MIN_FONT_SIZE) return { fontSize: MIN_FONT_SIZE, lineHeight: 20 };
     return lineHeight === undefined ? { fontSize } : { fontSize, lineHeight };
   };
 }
 
-function SectionHeading({
+/** Título das janelas do editor (destaques e QR Code). */
+function DialogHeading({
   title,
   description,
 }: Readonly<{ title: string; description?: string }>) {
-  const colors = useBrandScreenPalette();
-  const text = useCustomizerText();
-  const isDesktop = useDesktopLayout();
+  const { theme } = useTheme();
   return (
-    <View style={{ gap: 3 }}>
-      <Typography
-        style={{
-          color: colors.ink,
-          fontFamily: fonts.extraBold,
-          fontSize: isDesktop ? 22 : 20,
-          lineHeight: isDesktop ? 30 : 26,
-        }}
-      >
+    <View style={{ gap: 2, flexShrink: 1 }}>
+      <Typography variant="h2" accessibilityRole="header">
         {title}
       </Typography>
       {description ? (
-        <Typography style={{ color: colors.warmGray, ...text(13, 19) }}>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
           {description}
         </Typography>
       ) : null}
     </View>
-  );
-}
-
-function EditorCard({
-  children,
-  style,
-}: React.PropsWithChildren<Readonly<{ style?: ViewStyle }>>) {
-  const colors = useBrandScreenPalette();
-  const cardStyle: ViewStyle = {
-    borderRadius: 19,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-    gap: 16,
-    ...style,
-  };
-  return (
-    <Card padding="lg" style={cardStyle}>
-      {children}
-    </Card>
   );
 }
 
@@ -194,8 +174,9 @@ function StyleOption<T extends string>({
     onSelect: (value: T) => void;
   }>
 >) {
+  const { theme } = useTheme();
   const colors = useBrandScreenPalette();
-  const text = useCustomizerText();
+  const pal = useFieldPalette();
   return (
     <Pressable
       accessibilityRole="radio"
@@ -206,15 +187,16 @@ function StyleOption<T extends string>({
         flex: 1,
         minWidth: 132,
         minHeight: 118,
-        borderRadius: 16,
-        borderWidth: selected ? 1.5 : 1,
-        borderColor: selected ? colors.rose : colors.border,
-        backgroundColor: selected ? colors.softRose : colors.white,
-        padding: 10,
+        borderRadius: fieldMetrics.radius,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primaryStrong : pal.border,
+        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+        padding: selected ? 9 : 10,
         gap: 8,
         opacity: pressed ? 0.88 : 1,
       })}
     >
+      {/* Miniatura do banner: aqui a paleta da vitrine faz parte da prévia. */}
       <View
         style={{
           height: 46,
@@ -226,28 +208,35 @@ function StyleOption<T extends string>({
         {children}
         {selected ? (
           <View style={{ position: "absolute", top: 4, right: 4 }}>
-            <AppIcon name="checkmark-circle" size={16} color={colors.rose} />
+            <AppIcon
+              name="checkmark-circle"
+              size={16}
+              color={theme.colors.primaryStrong}
+            />
           </View>
         ) : null}
       </View>
-      <Typography style={{ color: colors.ink, fontFamily: fonts.bold, ...text(13) }}>
+      <Typography
+        variant="bodyBold"
+        color={selected ? theme.colors.primaryStrong : theme.colors.text}
+      >
         {title}
       </Typography>
-      <Typography style={{ color: colors.warmGray, ...text(11, 15) }}>
+      <Typography variant="caption" color={theme.colors.textSecondary}>
         {description}
       </Typography>
     </Pressable>
   );
 }
 
-function FieldHint({ value, limit }: Readonly<{ value: string; limit: number }>) {
-  const colors = useBrandScreenPalette();
-  const text = useCustomizerText();
-  return (
-    <Typography style={{ color: colors.warmGray, ...text(11), textAlign: "right" }}>
-      {value.length} de {limit} caracteres
-    </Typography>
-  );
+/** Contador de caracteres mostrado como explicação do campo. */
+function charCount(value: string, limit: number) {
+  return `${value.length} de ${limit} caracteres`;
+}
+
+/** Uma mensagem por campo: a da validação ao salvar ou a regra ao digitar. */
+function singleError(bound: string | undefined, live: string | undefined) {
+  return bound ? undefined : live;
 }
 
 function publicStorefrontItems(products: Product[], services: Service[]) {
@@ -274,27 +263,29 @@ function SwitchRow({
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
 }>) {
-  const colors = useBrandScreenPalette();
-  const text = useCustomizerText();
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
   return (
     <Pressable
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       accessibilityLabel={label}
+      accessibilityHint={description}
       disabled={disabled}
       onPress={() => {
         if (!disabled) onValueChange(!value);
       }}
-      style={{ minHeight: 50, flexDirection: "row", alignItems: "center", gap: 12 }}
+      style={{
+        minHeight: fieldMetrics.height,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+      }}
     >
-      <View style={{ flex: 1, gap: 2 }}>
-        <Typography
-          style={{ color: colors.ink, fontFamily: fonts.semiBold, ...text(13) }}
-        >
-          {label}
-        </Typography>
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Typography variant="desktopFieldLabel">{label}</Typography>
         {description ? (
-          <Typography style={{ color: colors.warmGray, ...text(11, 16) }}>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
             {description}
           </Typography>
         ) : null}
@@ -306,56 +297,49 @@ function SwitchRow({
           value={value}
           disabled={disabled}
           onValueChange={onValueChange}
-          trackColor={{ false: colors.border, true: colors.rose }}
-          thumbColor={colors.onWine}
-          activeThumbColor={colors.onWine}
+          trackColor={{ false: pal.border, true: theme.colors.primaryInteractive }}
+          thumbColor={theme.colors.surfaceElevated}
+          activeThumbColor={theme.colors.surfaceElevated}
         />
       </View>
     </Pressable>
   );
 }
 
+/** Cor da vitrine: amostra que abre o seletor + código digitável. */
 function ColorField({
   label,
+  hint,
   value,
   error,
-  stacked = false,
+  labelAction,
   onTextChange,
   onOpen,
 }: Readonly<{
   label: string;
+  hint?: string;
   value: string;
   error?: string;
-  stacked?: boolean;
+  labelAction?: React.ReactNode;
   onTextChange: (value: string) => void;
   onOpen: () => void;
 }>) {
-  const colors = useBrandScreenPalette();
-  const text = useCustomizerText();
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
   return (
-    <View
-      style={{
-        flex: stacked ? undefined : 1,
-        width: stacked ? "100%" : undefined,
-        minWidth: stacked ? 0 : 180,
-        gap: 8,
-      }}
-    >
-      <Typography style={{ color: colors.ink, fontFamily: fonts.semiBold, ...text(12) }}>
-        {label}
-      </Typography>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+    <FormField label={label} hint={hint} labelAction={labelAction}>
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Escolher ${label}`}
           onPress={onOpen}
           style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: /^#[0-9a-f]{6}$/i.test(value) ? value : colors.neutral,
+            width: fieldMetrics.height,
+            height: fieldMetrics.height,
+            borderRadius: radii.full,
+            backgroundColor: /^#[0-9a-f]{6}$/i.test(value) ? value : theme.colors.surface,
             borderWidth: 1,
-            borderColor: colors.border,
+            borderColor: pal.border,
           }}
         />
         <Input
@@ -368,7 +352,7 @@ function ColorField({
           accessibilityLabel={label}
         />
       </View>
-    </View>
+    </FormField>
   );
 }
 
@@ -382,16 +366,20 @@ function StepNavigation({
   const colors = useBrandScreenPalette();
   const text = useCustomizerText();
   const isDesktop = useDesktopLayout();
+  const { width } = useWindowDimensions();
   const circle = isDesktop ? 32 : 24;
   const steps: ReadonlyArray<{
     id: StorefrontEditorStep;
     label: string;
+    /** Rótulo curto para telas estreitas (o nome completo fica na acessibilidade). */
+    short: string;
     number: number;
   }> = [
-    { id: "identity", label: "Identidade", number: 1 },
-    { id: "hero", label: "Topo da vitrine", number: 2 },
-    { id: "organization", label: "Publicação", number: 3 },
+    { id: "identity", label: "Identidade", short: "Identidade", number: 1 },
+    { id: "hero", label: "Topo da vitrine", short: "Topo", number: 2 },
+    { id: "organization", label: "Publicação", short: "Publicação", number: 3 },
   ];
+  const compact = !isDesktop && width < 700;
   return (
     <View style={{ gap: 8, paddingBottom: 8 }}>
       <View
@@ -468,7 +456,7 @@ function StepNavigation({
                   }}
                   numberOfLines={1}
                 >
-                  {item.label}
+                  {compact ? item.short : item.label}
                 </Typography>
               </Pressable>
             </React.Fragment>
@@ -479,6 +467,7 @@ function StepNavigation({
   );
 }
 
+/** Envio de imagem: miniatura redonda + Selecionar/Trocar e Remover. */
 function UploadButton({
   title,
   image,
@@ -492,52 +481,62 @@ function UploadButton({
   onRemove?: () => void;
   loading?: boolean;
 }>) {
-  const colors = useBrandScreenPalette();
-  const text = useCustomizerText();
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
   return (
     <View
-      style={{ flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap" }}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.lg,
+        flexWrap: "wrap",
+      }}
     >
       <View
         style={{
           width: 88,
           height: 88,
-          borderRadius: 999,
-          backgroundColor: colors.softRose,
+          borderRadius: radii.full,
+          backgroundColor: theme.colors.primaryBg,
           alignItems: "center",
           justifyContent: "center",
           overflow: "hidden",
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: pal.border,
         }}
       >
         {image ? (
           <Image
             source={{ uri: image }}
+            accessibilityLabel={title}
             style={{ width: "100%", height: "100%" }}
             resizeMode="cover"
           />
         ) : (
-          <AppIcon name="image-outline" size={30} color={colors.wine} />
+          <AppIcon name="image-outline" size={30} color={theme.colors.primaryStrong} />
         )}
       </View>
-      <View style={{ flex: 1, minWidth: 180, gap: 7 }}>
-        <Typography style={{ color: colors.ink, fontFamily: fonts.bold, ...text(14) }}>
-          {title}
-        </Typography>
-        <Typography style={{ color: colors.warmGray, ...text(12) }}>
+      <View style={{ flex: 1, minWidth: 180, gap: spacing.sm }}>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
           PNG ou JPG • até 5 MB
         </Typography>
-        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+        <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
           <Button
             title={image ? "Trocar" : "Selecionar"}
+            accessibilityLabel={`${image ? "Trocar" : "Selecionar"} ${title}`}
             variant="outline"
             compact
             loading={loading}
             onPress={onPress}
           />
           {image && onRemove ? (
-            <Button title="Remover" variant="text" compact onPress={onRemove} />
+            <Button
+              title="Remover"
+              accessibilityLabel={`Remover ${title}`}
+              variant="text"
+              compact
+              onPress={onRemove}
+            />
           ) : null}
         </View>
       </View>
@@ -603,7 +602,7 @@ function FeaturedPicker({
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <SectionHeading
+            <DialogHeading
               title="Selecionar destaques"
               description="Escolha produtos, serviços ou uma imagem. Limite de três."
             />
@@ -614,11 +613,12 @@ function FeaturedPicker({
               icon={<AppIcon name="close" size={21} color={colors.ink} />}
             />
           </View>
-          <Input
+          <TextField
+            icon="search-outline"
+            accessibilityLabel="Buscar destaques por nome"
             placeholder="Buscar por nome"
             value={query}
             onChangeText={setQuery}
-            icon={<AppIcon name="search-outline" size={18} color={colors.warmGray} />}
           />
           <Button
             title="Enviar imagem"
@@ -983,7 +983,6 @@ export function CatalogCustomizer({
   const splitDesktop = isDesktop && width >= 1200;
   const split = desktopSplitLayout(splitDesktop);
   const asideWidth = width >= 1440 ? 460 : 400;
-  const stackColorFields = width < 520 && !isDesktop;
 
   useEffect(() => {
     if (!slugChanged || errors.slug) {
@@ -1152,6 +1151,9 @@ export function CatalogCustomizer({
     whatsapp: errors.whatsapp,
     slug: !draft.publication.slug.trim() && "Informe o endereço do catálogo.",
   });
+  const displayNameValidation = formValidation.field("displayName");
+  const whatsappValidation = formValidation.field("whatsapp");
+  const slugValidation = formValidation.field("slug");
 
   async function persist(publishing: boolean) {
     if (
@@ -1401,14 +1403,14 @@ export function CatalogCustomizer({
             )}
 
             {step === "identity" ? (
-              <>
-                <SectionHeading
-                  title="Identidade da marca"
-                  description="O que seus clientes reconhecem primeiro."
-                />
-                <EditorCard>
-                  <View style={{ flexDirection: wide ? "row" : "column", gap: 18 }}>
-                    <View style={{ flex: 1 }}>
+              <FormBody>
+                <FormSection
+                  collapsible={false}
+                  title="Logo e nome"
+                  subtitle="O que seus clientes reconhecem primeiro."
+                >
+                  <FormGrid>
+                    <FormField label="Logo ou foto de perfil" optional>
                       <UploadButton
                         title="Logo ou foto de perfil"
                         image={draft.identity.logoUrl}
@@ -1420,16 +1422,16 @@ export function CatalogCustomizer({
                           }))
                         }
                       />
-                    </View>
-                    <ValidationField
-                      {...formValidation.field("displayName")}
-                      style={{ flex: 1, minWidth: 240 }}
-                    >
+                    </FormField>
+                    <ValidationField {...displayNameValidation}>
                       <Input
                         label="Nome exibido"
                         value={draft.identity.displayName}
                         maxLength={STOREFRONT_DISPLAY_NAME_LIMIT}
-                        error={errors.displayName}
+                        error={singleError(
+                          displayNameValidation.error,
+                          errors.displayName,
+                        )}
                         onChangeText={(displayName) =>
                           setDraft((current) => ({
                             ...current,
@@ -1438,58 +1440,41 @@ export function CatalogCustomizer({
                         }
                       />
                     </ValidationField>
-                  </View>
+                  </FormGrid>
                   {imageError ? (
                     <Typography
+                      variant="caption"
                       accessibilityLiveRegion="polite"
-                      style={{ color: theme.colors.alert, ...text(12) }}
+                      color={theme.colors.alert}
                     >
                       {imageError}
                     </Typography>
                   ) : null}
-                </EditorCard>
-                <EditorCard>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      gap: 10,
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <SectionHeading
-                        title="Cor dos botões"
-                        description="O fundo da vitrine continua no creme da marca. Títulos e frases você escolhe em Topo."
-                      />
-                    </View>
-                    <Button
-                      title="Usar cor da marca"
-                      variant="text"
-                      compact
-                      icon={
-                        <AppIcon
-                          name="color-palette-outline"
-                          size={16}
-                          color={colors.rose}
-                        />
-                      }
-                      onPress={() =>
-                        setDraft((current) => ({
-                          ...current,
-                          identity: {
-                            ...current.identity,
-                            actionColor: STOREFRONT_BRAND_COLORS.action,
-                          },
-                        }))
-                      }
-                    />
-                  </View>
+                </FormSection>
+                <FormSection
+                  collapsible={false}
+                  title="Cor dos botões"
+                  subtitle="O fundo da vitrine continua no creme da marca. Títulos e frases você escolhe em Topo."
+                >
                   <ColorField
-                    label="Hexadecimal"
+                    label="Código da cor"
                     value={draft.identity.actionColor}
                     error={errors.actionColor}
-                    stacked={stackColorFields}
+                    labelAction={
+                      <FieldLinkAction
+                        label="Usar cor da marca"
+                        icon="color-palette-outline"
+                        onPress={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            identity: {
+                              ...current.identity,
+                              actionColor: STOREFRONT_BRAND_COLORS.action,
+                            },
+                          }))
+                        }
+                      />
+                    }
                     onOpen={() => setColorTarget("actionColor")}
                     onTextChange={(value) =>
                       setDraft((current) => ({
@@ -1498,293 +1483,284 @@ export function CatalogCustomizer({
                       }))
                     }
                   />
-                </EditorCard>
-              </>
+                </FormSection>
+              </FormBody>
             ) : null}
 
             {step === "hero" ? (
-              <>
-                <SectionHeading
+              <FormBody>
+                <FormSection
+                  collapsible={false}
                   title="Estilo do banner"
-                  description="Escolha como o topo da vitrine aparece."
-                />
-                <View
-                  accessibilityRole="radiogroup"
-                  style={{ flexDirection: wide ? "row" : "column", gap: 10 }}
+                  subtitle="Escolha como o topo da vitrine aparece."
                 >
-                  <StyleOption
-                    value="classic"
-                    selected={draft.hero.style === "classic"}
-                    title="Clássico"
-                    description="Texto e ação em coluna, capa em destaque."
-                    onSelect={(style) =>
-                      setDraft((current) => ({
-                        ...current,
-                        hero: { ...current.hero, style },
-                      }))
-                    }
+                  <View
+                    accessibilityRole="radiogroup"
+                    accessibilityLabel="Estilo do banner"
+                    style={{ flexDirection: wide ? "row" : "column", gap: spacing.sm }}
                   >
-                    <View style={{ flex: 1, padding: 6, gap: 4 }}>
-                      <View
-                        style={{
-                          height: 6,
-                          width: "55%",
-                          borderRadius: 4,
-                          backgroundColor: colors.wine,
-                        }}
-                      />
-                      <View
-                        style={{
-                          height: 4,
-                          width: "80%",
-                          borderRadius: 4,
-                          backgroundColor: colors.border,
-                        }}
-                      />
-                      <View
-                        style={{
-                          height: 10,
-                          width: 36,
-                          borderRadius: 6,
-                          backgroundColor: colors.rose,
-                        }}
-                      />
-                    </View>
-                  </StyleOption>
-                  <StyleOption
-                    value="editorial"
-                    selected={draft.hero.style === "editorial"}
-                    title="Editorial"
-                    description="Destaques visuais, texto à esquerda e ação visível."
-                    onSelect={(style) =>
-                      setDraft((current) => ({
-                        ...current,
-                        hero: { ...current.hero, style },
-                      }))
-                    }
-                  >
-                    <View style={{ flex: 1, flexDirection: "row", padding: 6, gap: 6 }}>
-                      <View style={{ flex: 1, gap: 4, justifyContent: "center" }}>
+                    <StyleOption
+                      value="classic"
+                      selected={draft.hero.style === "classic"}
+                      title="Clássico"
+                      description="Texto e ação em coluna, capa em destaque."
+                      onSelect={(style) =>
+                        setDraft((current) => ({
+                          ...current,
+                          hero: { ...current.hero, style },
+                        }))
+                      }
+                    >
+                      <View style={{ flex: 1, padding: 6, gap: 4 }}>
                         <View
                           style={{
                             height: 6,
-                            width: "90%",
+                            width: "55%",
                             borderRadius: 4,
                             backgroundColor: colors.wine,
                           }}
                         />
                         <View
                           style={{
+                            height: 4,
+                            width: "80%",
+                            borderRadius: 4,
+                            backgroundColor: colors.border,
+                          }}
+                        />
+                        <View
+                          style={{
                             height: 10,
-                            width: 28,
+                            width: 36,
                             borderRadius: 6,
                             backgroundColor: colors.rose,
                           }}
                         />
                       </View>
-                      <View
-                        style={{
-                          width: 28,
-                          borderRadius: 6,
-                          backgroundColor: colors.softRose,
-                        }}
-                      />
-                    </View>
-                  </StyleOption>
-                  <StyleOption
-                    value="compact"
-                    selected={draft.hero.style === "compact"}
-                    title="Compacto"
-                    description="Leitura rápida, menos altura e ação objetiva."
-                    onSelect={(style) =>
-                      setDraft((current) => ({
-                        ...current,
-                        hero: { ...current.hero, style },
-                      }))
-                    }
-                  >
-                    <View
-                      style={{ flex: 1, padding: 8, justifyContent: "center", gap: 3 }}
-                    >
-                      <View
-                        style={{
-                          height: 5,
-                          width: "70%",
-                          borderRadius: 4,
-                          backgroundColor: colors.wine,
-                        }}
-                      />
-                      <View
-                        style={{
-                          height: 8,
-                          width: 32,
-                          borderRadius: 5,
-                          backgroundColor: colors.rose,
-                        }}
-                      />
-                    </View>
-                  </StyleOption>
-                </View>
-                <SectionHeading
-                  title="Composição do topo"
-                  description="Monte a primeira impressão da sua vitrine."
-                />
-                <EditorCard>
-                  <Typography
-                    style={{ color: colors.ink, fontFamily: fonts.bold, ...text(14) }}
-                  >
-                    Capa da vitrine
-                  </Typography>
-                  <Typography style={{ color: colors.warmGray, ...text(12) }}>
-                    A arte principal é o arquivo enviado. Logo e destaques ficam
-                    separados.
-                  </Typography>
-                  <UploadButton
-                    title="Capa ou banner"
-                    image={coverUrl}
-                    onPress={() => void pickImage("cover")}
-                    onRemove={() => {
-                      setCoverUrl(null);
-                      setDraft((current) => ({
-                        ...current,
-                        hero: {
-                          ...current.hero,
-                          coverFocal: { x: 0.5, y: 0.5, scale: 1 },
-                        },
-                      }));
-                    }}
-                  />
-                  {coverUrl ? (
-                    <CoverAdjuster
-                      coverUrl={coverUrl}
-                      focal={draft.hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 }}
-                      onChange={(coverFocal) =>
+                    </StyleOption>
+                    <StyleOption
+                      value="editorial"
+                      selected={draft.hero.style === "editorial"}
+                      title="Editorial"
+                      description="Destaques visuais, texto à esquerda e ação visível."
+                      onSelect={(style) =>
                         setDraft((current) => ({
                           ...current,
-                          hero: { ...current.hero, coverFocal },
+                          hero: { ...current.hero, style },
                         }))
                       }
-                    />
-                  ) : (
-                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
-                      Sem capa, o topo fica neutro. Destaques só aparecem quando não
-                      houver capa.
-                    </Typography>
-                  )}
-                  <Typography
-                    style={{ color: colors.ink, fontFamily: fonts.bold, ...text(14) }}
-                  >
-                    Destaques do topo
-                  </Typography>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                    {draft.hero.featuredItems.map((item) => {
-                      const visual = resolveFeaturedVisual(
-                        item,
-                        draft.hero.removeBackground,
-                      );
-                      return (
-                        <View
-                          key={item.id}
-                          style={{ width: wide ? 180 : "47%", minWidth: 140, gap: 7 }}
-                        >
+                    >
+                      <View style={{ flex: 1, flexDirection: "row", padding: 6, gap: 6 }}>
+                        <View style={{ flex: 1, gap: 4, justifyContent: "center" }}>
                           <View
                             style={{
-                              height: 110,
-                              borderRadius: 14,
-                              overflow: "hidden",
-                              backgroundColor: colors.neutral,
-                              alignItems: "center",
-                              justifyContent: "center",
+                              height: 6,
+                              width: "90%",
+                              borderRadius: 4,
+                              backgroundColor: colors.wine,
                             }}
-                          >
-                            {visual.source ? (
-                              <Image
-                                source={{ uri: visual.source }}
-                                style={{ width: "100%", height: "100%" }}
-                                resizeMode={visual.cutout ? "contain" : "cover"}
-                              />
-                            ) : (
-                              <AppIcon
-                                name="person-outline"
-                                size={30}
-                                color={colors.rose}
-                              />
-                            )}
-                          </View>
-                          <Typography
-                            numberOfLines={1}
+                          />
+                          <View
                             style={{
-                              color: colors.ink,
-                              fontFamily: fonts.semiBold,
-                              ...text(12),
+                              height: 10,
+                              width: 28,
+                              borderRadius: 6,
+                              backgroundColor: colors.rose,
                             }}
-                          >
-                            {displayCatalogItemName(item.altText)}
-                          </Typography>
-                          <Typography style={{ color: colors.warmGray, ...text(11) }}>
-                            {item.kind === "product"
-                              ? "Produto"
-                              : item.kind === "service"
-                                ? "Serviço"
-                                : "Mídia"}
-                          </Typography>
-                          <Button
-                            title="Remover"
-                            variant="text"
-                            compact
-                            onPress={() =>
-                              setDraft((current) => ({
-                                ...current,
-                                hero: {
-                                  ...current.hero,
-                                  featuredItems: current.hero.featuredItems.filter(
-                                    (entry) => entry.id !== item.id,
-                                  ),
-                                },
-                              }))
-                            }
                           />
                         </View>
-                      );
-                    })}
-                    {draft.hero.featuredItems.length < 3 ? (
-                      <Pressable
-                        accessibilityRole="button"
-                        onPress={() => setFeaturedPickerVisible(true)}
-                        style={{
-                          width: wide ? 180 : "47%",
-                          minWidth: 140,
-                          minHeight: 110,
-                          borderRadius: 14,
-                          borderWidth: 1,
-                          borderStyle: "dashed",
-                          borderColor: colors.rose,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 7,
-                        }}
-                      >
-                        <AppIcon
-                          name="add-circle-outline"
-                          size={26}
-                          color={colors.rose}
-                        />
-                        <Typography
+                        <View
                           style={{
-                            color: colors.rose,
-                            fontFamily: fonts.semiBold,
-                            ...text(12),
-                            textAlign: "center",
+                            width: 28,
+                            borderRadius: 6,
+                            backgroundColor: colors.softRose,
+                          }}
+                        />
+                      </View>
+                    </StyleOption>
+                    <StyleOption
+                      value="compact"
+                      selected={draft.hero.style === "compact"}
+                      title="Compacto"
+                      description="Leitura rápida, menos altura e ação objetiva."
+                      onSelect={(style) =>
+                        setDraft((current) => ({
+                          ...current,
+                          hero: { ...current.hero, style },
+                        }))
+                      }
+                    >
+                      <View
+                        style={{ flex: 1, padding: 8, justifyContent: "center", gap: 3 }}
+                      >
+                        <View
+                          style={{
+                            height: 5,
+                            width: "70%",
+                            borderRadius: 4,
+                            backgroundColor: colors.wine,
+                          }}
+                        />
+                        <View
+                          style={{
+                            height: 8,
+                            width: 32,
+                            borderRadius: 5,
+                            backgroundColor: colors.rose,
+                          }}
+                        />
+                      </View>
+                    </StyleOption>
+                  </View>
+                </FormSection>
+                <FormSection
+                  collapsible={false}
+                  title="Composição do topo"
+                  subtitle="Monte a primeira impressão da sua vitrine."
+                >
+                  <FormField
+                    label="Capa da vitrine"
+                    optional
+                    hint="A arte principal é o arquivo enviado. Logo e destaques ficam separados."
+                  >
+                    <View style={{ gap: spacing.md }}>
+                      <UploadButton
+                        title="Capa ou banner"
+                        image={coverUrl}
+                        onPress={() => void pickImage("cover")}
+                        onRemove={() => {
+                          setCoverUrl(null);
+                          setDraft((current) => ({
+                            ...current,
+                            hero: {
+                              ...current.hero,
+                              coverFocal: { x: 0.5, y: 0.5, scale: 1 },
+                            },
+                          }));
+                        }}
+                      />
+                      {coverUrl ? (
+                        <CoverAdjuster
+                          coverUrl={coverUrl}
+                          focal={draft.hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 }}
+                          onChange={(coverFocal) =>
+                            setDraft((current) => ({
+                              ...current,
+                              hero: { ...current.hero, coverFocal },
+                            }))
+                          }
+                        />
+                      ) : (
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Sem capa, o topo fica neutro. Destaques só aparecem quando não
+                          houver capa.
+                        </Typography>
+                      )}
+                    </View>
+                  </FormField>
+                  <FormField label="Destaques do topo" optional hint="Até 3 destaques.">
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                      {draft.hero.featuredItems.map((item) => {
+                        const visual = resolveFeaturedVisual(
+                          item,
+                          draft.hero.removeBackground,
+                        );
+                        return (
+                          <View
+                            key={item.id}
+                            style={{ width: wide ? 180 : "47%", minWidth: 140, gap: 7 }}
+                          >
+                            <View
+                              style={{
+                                height: 110,
+                                borderRadius: 14,
+                                overflow: "hidden",
+                                backgroundColor: colors.neutral,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              {visual.source ? (
+                                <Image
+                                  source={{ uri: visual.source }}
+                                  style={{ width: "100%", height: "100%" }}
+                                  resizeMode={visual.cutout ? "contain" : "cover"}
+                                />
+                              ) : (
+                                <AppIcon
+                                  name="person-outline"
+                                  size={30}
+                                  color={colors.rose}
+                                />
+                              )}
+                            </View>
+                            <Typography numberOfLines={1} variant="captionBold">
+                              {displayCatalogItemName(item.altText)}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color={theme.colors.textSecondary}
+                            >
+                              {item.kind === "product"
+                                ? "Produto"
+                                : item.kind === "service"
+                                  ? "Serviço"
+                                  : "Mídia"}
+                            </Typography>
+                            <Button
+                              title="Remover"
+                              accessibilityLabel={`Remover ${displayCatalogItemName(item.altText)}`}
+                              variant="text"
+                              compact
+                              onPress={() =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  hero: {
+                                    ...current.hero,
+                                    featuredItems: current.hero.featuredItems.filter(
+                                      (entry) => entry.id !== item.id,
+                                    ),
+                                  },
+                                }))
+                              }
+                            />
+                          </View>
+                        );
+                      })}
+                      {draft.hero.featuredItems.length < 3 ? (
+                        <Pressable
+                          accessibilityRole="button"
+                          onPress={() => setFeaturedPickerVisible(true)}
+                          style={{
+                            width: wide ? 180 : "47%",
+                            minWidth: 140,
+                            minHeight: 110,
+                            borderRadius: fieldMetrics.radius,
+                            borderWidth: 1,
+                            borderStyle: "dashed",
+                            borderColor: theme.colors.primaryStrong,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 7,
+                            padding: spacing.sm,
                           }}
                         >
-                          Selecionar itens ou mídia
-                        </Typography>
-                        <Typography style={{ color: colors.warmGray, ...text(11) }}>
-                          Até 3 destaques
-                        </Typography>
-                      </Pressable>
-                    ) : null}
-                  </View>
+                          <AppIcon
+                            name="add-circle-outline"
+                            size={26}
+                            color={theme.colors.primaryStrong}
+                          />
+                          <Typography
+                            variant="captionBold"
+                            color={theme.colors.primaryStrong}
+                            style={{ textAlign: "center" }}
+                          >
+                            Selecionar itens ou mídia
+                          </Typography>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                  </FormField>
                   <SwitchRow
                     label="Remover fundo automaticamente"
                     description={
@@ -1802,23 +1778,17 @@ export function CatalogCustomizer({
                       }))
                     }
                   />
-                </EditorCard>
-                <SectionHeading
+                </FormSection>
+                <FormSection
+                  collapsible={false}
                   title="Texto e ação"
-                  description="Escolha as cores do nome, da frase e da assinatura."
-                />
-                <EditorCard>
-                  <View
-                    style={{
-                      flexDirection: stackColorFields ? "column" : "row",
-                      gap: 12,
-                    }}
-                  >
+                  subtitle="Escolha as cores do nome, da frase e da assinatura."
+                >
+                  <FormGrid>
                     <ColorField
                       label="Cor do título"
                       value={draft.identity.primaryColor}
                       error={errors.primaryColor}
-                      stacked={stackColorFields}
                       onOpen={() => setColorTarget("primaryColor")}
                       onTextChange={(value) =>
                         setDraft((current) => ({
@@ -1831,7 +1801,6 @@ export function CatalogCustomizer({
                       label="Cor da frase"
                       value={draft.identity.textColor}
                       error={errors.textColor}
-                      stacked={stackColorFields}
                       onOpen={() => setColorTarget("textColor")}
                       onTextChange={(value) =>
                         setDraft((current) => ({
@@ -1840,16 +1809,17 @@ export function CatalogCustomizer({
                         }))
                       }
                     />
-                  </View>
+                  </FormGrid>
                   <Button
                     title="Usar cores da marca"
                     variant="text"
                     compact
+                    style={{ alignSelf: "flex-start" }}
                     icon={
                       <AppIcon
                         name="color-palette-outline"
                         size={16}
-                        color={colors.rose}
+                        color={theme.colors.primaryStrong}
                       />
                     }
                     onPress={() =>
@@ -1863,72 +1833,65 @@ export function CatalogCustomizer({
                       }))
                     }
                   />
-                  <View style={{ gap: 6 }}>
-                    <Input
-                      label="Frase de apresentação"
-                      value={draft.hero.introduction}
-                      maxLength={STOREFRONT_INTRODUCTION_LIMIT}
-                      error={errors.introduction}
-                      onChangeText={(introduction) =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: { ...current.hero, introduction },
-                        }))
-                      }
-                    />
-                    <FieldHint
-                      value={draft.hero.introduction}
-                      limit={STOREFRONT_INTRODUCTION_LIMIT}
-                    />
-                  </View>
-                  <View style={{ gap: 6 }}>
-                    <Input
-                      label="Assinatura curta"
-                      value={draft.hero.shortSignature}
-                      maxLength={STOREFRONT_SIGNATURE_LIMIT}
-                      error={errors.shortSignature}
-                      onChangeText={(shortSignature) =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: { ...current.hero, shortSignature },
-                        }))
-                      }
-                    />
-                    <FieldHint
-                      value={draft.hero.shortSignature}
-                      limit={STOREFRONT_SIGNATURE_LIMIT}
-                    />
-                  </View>
-                  <View style={{ gap: 6 }}>
-                    <Input
-                      label="Botão de contato"
-                      value={draft.hero.action.label}
-                      maxLength={STOREFRONT_ACTION_LABEL_LIMIT}
-                      error={errors.heroActionLabel}
-                      onChangeText={(label) =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: {
-                            ...current.hero,
-                            action: {
-                              ...current.hero.action,
-                              label,
-                              type: label.trim() ? "whatsapp" : "none",
-                            },
+                  <Input
+                    label="Frase de apresentação"
+                    optional
+                    hint={charCount(
+                      draft.hero.introduction,
+                      STOREFRONT_INTRODUCTION_LIMIT,
+                    )}
+                    value={draft.hero.introduction}
+                    maxLength={STOREFRONT_INTRODUCTION_LIMIT}
+                    error={errors.introduction}
+                    onChangeText={(introduction) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: { ...current.hero, introduction },
+                      }))
+                    }
+                  />
+                  <Input
+                    label="Assinatura curta"
+                    optional
+                    hint={charCount(
+                      draft.hero.shortSignature,
+                      STOREFRONT_SIGNATURE_LIMIT,
+                    )}
+                    value={draft.hero.shortSignature}
+                    maxLength={STOREFRONT_SIGNATURE_LIMIT}
+                    error={errors.shortSignature}
+                    onChangeText={(shortSignature) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: { ...current.hero, shortSignature },
+                      }))
+                    }
+                  />
+                  <Input
+                    label="Botão de contato"
+                    optional
+                    hint={`Abre o WhatsApp. Deixe em branco se não quiser o botão no topo. ${charCount(draft.hero.action.label, STOREFRONT_ACTION_LABEL_LIMIT)}.`}
+                    value={draft.hero.action.label}
+                    maxLength={STOREFRONT_ACTION_LABEL_LIMIT}
+                    error={errors.heroActionLabel}
+                    onChangeText={(label) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: {
+                          ...current.hero,
+                          action: {
+                            ...current.hero.action,
+                            label,
+                            type: label.trim() ? "whatsapp" : "none",
                           },
-                        }))
-                      }
-                    />
-                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
-                      Abre o WhatsApp. Deixe em branco se não quiser o botão no topo.
-                    </Typography>
-                    <FieldHint
-                      value={draft.hero.action.label}
-                      limit={STOREFRONT_ACTION_LABEL_LIMIT}
-                    />
-                  </View>
+                        },
+                      }))
+                    }
+                  />
                   <Input
                     label="Faixa promocional"
+                    optional
+                    hint="Se preencher, a faixa aparece no topo da vitrine."
                     value={draft.hero.promotionalText}
                     maxLength={STOREFRONT_PROMO_LIMIT}
                     error={errors.promotionalText}
@@ -1939,24 +1902,21 @@ export function CatalogCustomizer({
                       }))
                     }
                   />
-                  <Typography style={{ color: colors.warmGray, ...text(12) }}>
-                    Se preencher, a faixa aparece no topo da vitrine.
-                  </Typography>
-                </EditorCard>
-                <SectionHeading
+                </FormSection>
+                <FormSection
+                  collapsible={false}
                   title="Informações rápidas"
-                  description="Até 3 textos curtos abaixo do banner, como entrega ou encomenda."
-                />
-                <EditorCard>
+                  subtitle="Até 3 textos curtos abaixo do banner, como entrega ou encomenda."
+                >
                   {draft.hero.quickInfo.length === 0 ? (
-                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
                       Nenhum texto extra no banner. Adicione se quiser destacar um recado.
                     </Typography>
                   ) : (
-                    draft.hero.quickInfo.map((item) => (
-                      <View key={item.id} style={{ gap: 6 }}>
+                    draft.hero.quickInfo.map((item, index) => (
+                      <View key={item.id} style={{ gap: spacing.xs }}>
                         <Input
-                          label="Texto"
+                          label={`Texto ${index + 1}`}
                           value={item.label}
                           maxLength={STOREFRONT_QUICK_INFO_LIMIT}
                           onChangeText={(label) =>
@@ -1973,8 +1933,10 @@ export function CatalogCustomizer({
                         />
                         <Button
                           title="Remover"
+                          accessibilityLabel={`Remover texto ${index + 1}`}
                           variant="text"
                           compact
+                          style={{ alignSelf: "flex-start" }}
                           onPress={() =>
                             setDraft((current) => ({
                               ...current,
@@ -1995,6 +1957,7 @@ export function CatalogCustomizer({
                       title="Adicionar texto"
                       variant="outline"
                       compact
+                      style={{ alignSelf: "flex-start" }}
                       onPress={() =>
                         setDraft((current) => ({
                           ...current,
@@ -2015,15 +1978,19 @@ export function CatalogCustomizer({
                       }
                     />
                   ) : null}
-                </EditorCard>
-                <SectionHeading
+                </FormSection>
+                <FormSection
+                  collapsible={false}
                   title="Botões dos itens"
-                  description="Escolha o texto de Pedir ou Agendar, e mude só o que quiser em cada item."
-                />
-                <EditorCard>
-                  <View style={{ gap: 6 }}>
+                  subtitle="Escolha o texto de Pedir ou Agendar, e mude só o que quiser em cada item."
+                >
+                  <FormGrid>
                     <Input
                       label="Botão dos produtos"
+                      hint={charCount(
+                        draft.organization.actions.productDefault.label ?? "",
+                        STOREFRONT_CARD_ACTION_LABEL_LIMIT,
+                      )}
                       value={draft.organization.actions.productDefault.label ?? ""}
                       maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
                       onChangeText={(label) =>
@@ -2044,15 +2011,13 @@ export function CatalogCustomizer({
                         }))
                       }
                     />
-                    <FieldHint
-                      value={draft.organization.actions.productDefault.label ?? ""}
-                      limit={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
-                    />
-                  </View>
-                  {counts.services > 0 ? (
-                    <View style={{ gap: 6 }}>
+                    {counts.services > 0 ? (
                       <Input
                         label="Botão dos serviços"
+                        hint={charCount(
+                          draft.organization.actions.serviceDefault.label ?? "",
+                          STOREFRONT_CARD_ACTION_LABEL_LIMIT,
+                        )}
                         value={draft.organization.actions.serviceDefault.label ?? ""}
                         maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
                         onChangeText={(label) =>
@@ -2073,251 +2038,257 @@ export function CatalogCustomizer({
                           }))
                         }
                       />
-                      <FieldHint
-                        value={draft.organization.actions.serviceDefault.label ?? ""}
-                        limit={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
-                      />
-                    </View>
-                  ) : null}
+                    ) : null}
+                  </FormGrid>
                   {catalogItems.length === 0 ? (
-                    <Typography style={{ color: colors.warmGray, ...text(12) }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
                       Cadastre produtos ou serviços para personalizar o botão de cada
                       item.
                     </Typography>
                   ) : (
-                    catalogItems.map((entry) => {
-                      const key = `${entry.kind}:${entry.item.id}`;
-                      const fallback =
-                        entry.kind === "product"
-                          ? (draft.organization.actions.productDefault.label ?? "Pedir")
-                          : (draft.organization.actions.serviceDefault.label ??
-                            "Agendar");
-                      const override = draft.organization.actions.itemOverrides[key];
-                      const photoUrl =
-                        entry.kind === "product" ? entry.item.photoUrl : null;
-                      return (
-                        <View key={key} style={{ gap: 6 }}>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <View
-                              style={{
-                                width: 42,
-                                height: 42,
-                                borderRadius: 10,
-                                backgroundColor: colors.softRose,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {photoUrl ? (
-                                <Image
-                                  source={{ uri: photoUrl }}
-                                  style={{ width: "100%", height: "100%" }}
-                                />
-                              ) : (
-                                <AppIcon
-                                  name={
-                                    entry.kind === "product"
-                                      ? "bag-handle-outline"
-                                      : "person-outline"
-                                  }
-                                  size={20}
-                                  color={colors.wine}
-                                />
-                              )}
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Typography
-                                numberOfLines={1}
+                    <>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Deixe em branco no item para usar o texto padrão. Exemplo: Pedir.
+                      </Typography>
+                      <FormGrid>
+                        {catalogItems.map((entry) => {
+                          const key = `${entry.kind}:${entry.item.id}`;
+                          const fallback =
+                            entry.kind === "product"
+                              ? (draft.organization.actions.productDefault.label ??
+                                "Pedir")
+                              : (draft.organization.actions.serviceDefault.label ??
+                                "Agendar");
+                          const override = draft.organization.actions.itemOverrides[key];
+                          const photoUrl =
+                            entry.kind === "product" ? entry.item.photoUrl : null;
+                          return (
+                            <View key={key} style={{ gap: spacing.sm }}>
+                              <View
                                 style={{
-                                  color: colors.ink,
-                                  fontFamily: fonts.semiBold,
-                                  ...text(13),
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  gap: spacing.md,
                                 }}
                               >
-                                {displayCatalogItemName(entry.item.name)}
-                              </Typography>
-                              <Typography style={{ color: colors.warmGray, ...text(11) }}>
-                                {entry.kind === "product" ? "Produto" : "Serviço"}
-                              </Typography>
+                                <View
+                                  style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 10,
+                                    backgroundColor: colors.softRose,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {photoUrl ? (
+                                    <Image
+                                      source={{ uri: photoUrl }}
+                                      style={{ width: "100%", height: "100%" }}
+                                    />
+                                  ) : (
+                                    <AppIcon
+                                      name={
+                                        entry.kind === "product"
+                                          ? "bag-handle-outline"
+                                          : "person-outline"
+                                      }
+                                      size={20}
+                                      color={colors.wine}
+                                    />
+                                  )}
+                                </View>
+                                <View style={{ flex: 1, minWidth: 0 }}>
+                                  <Typography
+                                    numberOfLines={1}
+                                    variant="desktopFieldLabel"
+                                  >
+                                    {displayCatalogItemName(entry.item.name)}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color={theme.colors.textSecondary}
+                                  >
+                                    {entry.kind === "product" ? "Produto" : "Serviço"}
+                                  </Typography>
+                                </View>
+                              </View>
+                              <Input
+                                accessibilityLabel={`Texto do botão de ${displayCatalogItemName(entry.item.name)}`}
+                                placeholder={
+                                  fallback ||
+                                  (entry.kind === "product" ? "Pedir" : "Agendar")
+                                }
+                                value={override?.label ?? ""}
+                                maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
+                                onChangeText={(label) =>
+                                  setDraft((current) => {
+                                    const trimmed = label.trim();
+                                    const itemOverrides = Object.fromEntries(
+                                      Object.entries(
+                                        current.organization.actions.itemOverrides,
+                                      ).filter(([id]) => id !== key),
+                                    );
+                                    return {
+                                      ...current,
+                                      organization: {
+                                        ...current.organization,
+                                        actions: {
+                                          ...current.organization.actions,
+                                          itemOverrides: trimmed
+                                            ? {
+                                                ...itemOverrides,
+                                                [key]: {
+                                                  type:
+                                                    entry.kind === "service"
+                                                      ? "schedule"
+                                                      : "order",
+                                                  label,
+                                                  channel: "whatsapp",
+                                                },
+                                              }
+                                            : itemOverrides,
+                                        },
+                                      },
+                                    };
+                                  })
+                                }
+                              />
                             </View>
-                          </View>
-                          <Input
-                            label="Texto do botão"
-                            placeholder={
-                              fallback || (entry.kind === "product" ? "Pedir" : "Agendar")
-                            }
-                            value={override?.label ?? ""}
-                            maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
-                            onChangeText={(label) =>
-                              setDraft((current) => {
-                                const trimmed = label.trim();
-                                const itemOverrides = Object.fromEntries(
-                                  Object.entries(
-                                    current.organization.actions.itemOverrides,
-                                  ).filter(([id]) => id !== key),
-                                );
-                                return {
-                                  ...current,
-                                  organization: {
-                                    ...current.organization,
-                                    actions: {
-                                      ...current.organization.actions,
-                                      itemOverrides: trimmed
-                                        ? {
-                                            ...itemOverrides,
-                                            [key]: {
-                                              type:
-                                                entry.kind === "service"
-                                                  ? "schedule"
-                                                  : "order",
-                                              label,
-                                              channel: "whatsapp",
-                                            },
-                                          }
-                                        : itemOverrides,
-                                    },
-                                  },
-                                };
-                              })
-                            }
-                          />
-                        </View>
-                      );
-                    })
+                          );
+                        })}
+                      </FormGrid>
+                    </>
                   )}
-                  <Typography style={{ color: colors.warmGray, ...text(12) }}>
-                    Deixe em branco no item para usar o texto padrão. Exemplo: Pedir.
-                  </Typography>
-                </EditorCard>
-              </>
+                </FormSection>
+              </FormBody>
             ) : null}
 
             {isPublication ? (
-              <>
-                <SectionHeading
+              <FormBody>
+                <FormSection
+                  collapsible={false}
                   title="Contato e conversão"
-                  description="Defina como seus clientes entram em contato."
-                />
-                <EditorCard>
-                  <ValidationField {...formValidation.field("whatsapp")}>
+                  subtitle="Defina como seus clientes entram em contato."
+                >
+                  <FormGrid>
+                    <ValidationField {...whatsappValidation}>
+                      <Input
+                        label="Número do WhatsApp"
+                        value={draft.organization.contact.destination}
+                        keyboardType="phone-pad"
+                        error={singleError(whatsappValidation.error, errors.whatsapp)}
+                        onChangeText={(destination) =>
+                          setDraft((current) => ({
+                            ...current,
+                            organization: {
+                              ...current.organization,
+                              contact: {
+                                ...current.organization.contact,
+                                destination: formatCatalogWhatsapp(destination),
+                              },
+                            },
+                          }))
+                        }
+                      />
+                    </ValidationField>
                     <Input
-                      label="Número do WhatsApp"
-                      value={draft.organization.contact.destination}
-                      keyboardType="phone-pad"
-                      error={errors.whatsapp}
-                      onChangeText={(destination) =>
+                      label="Texto do botão flutuante"
+                      value={draft.organization.contact.defaultActionLabel}
+                      maxLength={24}
+                      onChangeText={(defaultActionLabel) =>
                         setDraft((current) => ({
                           ...current,
                           organization: {
                             ...current.organization,
                             contact: {
                               ...current.organization.contact,
-                              destination: formatCatalogWhatsapp(destination),
+                              defaultActionLabel,
                             },
                           },
                         }))
                       }
                     />
-                  </ValidationField>
+                  </FormGrid>
                   <Input
-                    label="Texto do botão flutuante"
-                    value={draft.organization.contact.defaultActionLabel}
-                    maxLength={24}
-                    onChangeText={(defaultActionLabel) =>
+                    label="Mensagem inicial"
+                    optional
+                    hint={charCount(draft.organization.contact.initialMessage, 300)}
+                    value={draft.organization.contact.initialMessage}
+                    maxLength={300}
+                    multiline
+                    onChangeText={(initialMessage) =>
                       setDraft((current) => ({
                         ...current,
                         organization: {
                           ...current.organization,
-                          contact: {
-                            ...current.organization.contact,
-                            defaultActionLabel,
-                          },
+                          contact: { ...current.organization.contact, initialMessage },
                         },
                       }))
                     }
                   />
-                  <View style={{ gap: 6 }}>
-                    <Input
-                      label="Mensagem inicial"
-                      value={draft.organization.contact.initialMessage}
-                      maxLength={300}
-                      multiline
-                      onChangeText={(initialMessage) =>
-                        setDraft((current) => ({
-                          ...current,
-                          organization: {
-                            ...current.organization,
-                            contact: { ...current.organization.contact, initialMessage },
-                          },
-                        }))
-                      }
-                    />
-                    <FieldHint
-                      value={draft.organization.contact.initialMessage}
-                      limit={300}
-                    />
-                  </View>
-                </EditorCard>
-                <SectionHeading
+                </FormSection>
+                <FormSection
+                  collapsible={false}
                   title="Link do catálogo"
-                  description="Compartilhe sua vitrine com seus clientes."
-                />
-                <EditorCard>
-                  <ValidationField {...formValidation.field("slug")}>
-                    <Input
-                      label="Endereço"
-                      value={draft.publication.slug}
-                      autoCapitalize="none"
-                      error={errors.slug ?? slugAvailability.data?.reason ?? undefined}
-                      onChangeText={(slug) =>
-                        setDraft((current) => ({
-                          ...current,
-                          publication: {
-                            ...current.publication,
-                            slug: slug.toLowerCase().replace(/\s+/g, "-"),
-                          },
-                        }))
-                      }
-                    />
-                  </ValidationField>
-                  <View
-                    style={{
-                      minHeight: 48,
-                      borderRadius: 14,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      paddingHorizontal: 12,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <AppIcon
-                      name={slugAvailable ? "checkmark-circle" : "time-outline"}
-                      size={16}
-                      color={slugAvailable ? colors.wine : colors.warmGray}
-                    />
-                    <Typography
-                      numberOfLines={1}
+                  subtitle="Compartilhe sua vitrine com seus clientes."
+                >
+                  <View style={{ gap: spacing.sm }}>
+                    <ValidationField {...slugValidation}>
+                      <Input
+                        label="Endereço"
+                        value={draft.publication.slug}
+                        autoCapitalize="none"
+                        error={singleError(
+                          slugValidation.error,
+                          errors.slug ?? slugAvailability.data?.reason ?? undefined,
+                        )}
+                        onChangeText={(slug) =>
+                          setDraft((current) => ({
+                            ...current,
+                            publication: {
+                              ...current.publication,
+                              slug: slug.toLowerCase().replace(/\s+/g, "-"),
+                            },
+                          }))
+                        }
+                      />
+                    </ValidationField>
+                    <View
+                      accessibilityLiveRegion="polite"
                       style={{
-                        flex: 1,
-                        color: slugAvailable ? colors.wine : colors.warmGray,
-                        ...text(12),
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.sm,
                       }}
                     >
-                      {slugAvailability.isFetching
-                        ? "Verificando disponibilidade..."
-                        : slugAvailable
-                          ? catalogUrl
-                          : "Escolha outro endereço."}
-                    </Typography>
+                      <AppIcon
+                        name={slugAvailable ? "checkmark-circle" : "time-outline"}
+                        size={16}
+                        color={
+                          slugAvailable
+                            ? theme.colors.primaryStrong
+                            : theme.colors.textSecondary
+                        }
+                      />
+                      <Typography
+                        numberOfLines={1}
+                        variant="caption"
+                        color={
+                          slugAvailable
+                            ? theme.colors.primaryStrong
+                            : theme.colors.textSecondary
+                        }
+                        style={{ flex: 1, minWidth: 0 }}
+                      >
+                        {slugAvailability.isFetching
+                          ? "Verificando disponibilidade..."
+                          : slugAvailable
+                            ? catalogUrl
+                            : "Escolha outro endereço."}
+                      </Typography>
+                    </View>
                   </View>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                     <Button
@@ -2355,54 +2326,56 @@ export function CatalogCustomizer({
                       style={{ flexGrow: 1, flexBasis: "47%" }}
                     />
                   </View>
-                </EditorCard>
-                <SectionHeading
+                </FormSection>
+                <FormSection
+                  collapsible={false}
                   title="Revisão final"
-                  description="Confira antes de publicar."
-                />
-                <EditorCard>
-                  {checklist.map((item) => {
-                    return (
-                      <Pressable
-                        key={item.id}
-                        accessibilityRole="button"
-                        onPress={() => navigate(item.step)}
-                        style={{
-                          minHeight: 46,
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 10,
-                          borderBottomWidth: 1,
-                          borderBottomColor: colors.border,
-                        }}
-                      >
-                        <View
+                  subtitle="Confira antes de publicar."
+                >
+                  <View>
+                    {checklist.map((item) => {
+                      return (
+                        <Pressable
+                          key={item.id}
+                          accessibilityRole="button"
+                          onPress={() => navigate(item.step)}
                           style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 999,
+                            minHeight: fieldMetrics.height,
+                            flexDirection: "row",
                             alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: item.valid ? colors.lime : colors.surface,
+                            gap: 10,
+                            borderBottomWidth: 1,
+                            borderBottomColor: colors.border,
                           }}
                         >
+                          <View
+                            style={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: 999,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: item.valid ? colors.lime : colors.surface,
+                            }}
+                          >
+                            <AppIcon
+                              name={item.valid ? "checkmark" : "alert-circle-outline"}
+                              size={14}
+                              color={item.valid ? colors.onLime : colors.warmGray}
+                            />
+                          </View>
+                          <Typography style={{ flex: 1, color: colors.ink, ...text(13) }}>
+                            {item.label}
+                          </Typography>
                           <AppIcon
-                            name={item.valid ? "checkmark" : "alert-circle-outline"}
-                            size={14}
-                            color={item.valid ? colors.onLime : colors.warmGray}
+                            name="chevron-forward"
+                            size={18}
+                            color={colors.warmGray}
                           />
-                        </View>
-                        <Typography style={{ flex: 1, color: colors.ink, ...text(13) }}>
-                          {item.label}
-                        </Typography>
-                        <AppIcon
-                          name="chevron-forward"
-                          size={18}
-                          color={colors.warmGray}
-                        />
-                      </Pressable>
-                    );
-                  })}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                   <View
                     style={{
                       borderRadius: 13,
@@ -2423,6 +2396,7 @@ export function CatalogCustomizer({
                     />
                     <Typography
                       style={{
+                        flexShrink: 1,
                         color: publishingReady ? theme.colors.success : colors.ink,
                         fontFamily: fonts.semiBold,
                         ...text(12),
@@ -2439,8 +2413,8 @@ export function CatalogCustomizer({
                     onPress={() => void persist(false)}
                     disabled={!dirty}
                   />
-                </EditorCard>
-              </>
+                </FormSection>
+              </FormBody>
             ) : null}
           </ContentTransition>
         </ScrollView>
@@ -2505,22 +2479,25 @@ export function CatalogCustomizer({
             paddingBottom: spacing["2xl"],
           }}
         >
-          <View
+          <FormActions
+            stack={width < 360}
             style={{
               width: "100%",
               maxWidth: isDesktop ? undefined : MAX_WIDTH,
               alignSelf: isDesktop ? "stretch" : "center",
-              flexDirection: width < 360 ? "column" : "row",
-              justifyContent: isDesktop ? "flex-end" : "flex-start",
-              gap: 10,
             }}
           >
             <Button
               title="Ver prévia"
               variant="outline"
               onPress={() => openPreview()}
-              icon={<AppIcon name="eye-outline" size={19} color={colors.rose} />}
-              style={isDesktop ? desktopAction(true, 200) : { flex: 1 }}
+              icon={
+                <AppIcon
+                  name="eye-outline"
+                  size={19}
+                  color={theme.colors.primaryStrong}
+                />
+              }
             />
             <Button
               title={
@@ -2535,9 +2512,8 @@ export function CatalogCustomizer({
               loading={requestStatus === "saving" || requestStatus === "publishing"}
               disabled={update.isPending || (!isPublication && !dirty)}
               onPress={() => void persist(isPublication)}
-              style={isDesktop ? desktopAction(true, 240) : { flex: 1.08 }}
             />
-          </View>
+          </FormActions>
         </View>
       )}
 
@@ -2684,7 +2660,7 @@ export function CatalogCustomizer({
               gap: 16,
             }}
           >
-            <SectionHeading
+            <DialogHeading
               title="QR Code da vitrine"
               description="Aponte a câmera para abrir o catálogo."
             />

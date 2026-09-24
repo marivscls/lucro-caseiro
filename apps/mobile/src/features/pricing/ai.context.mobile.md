@@ -18,7 +18,7 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 
 - `components/unified-pricing-calculator.tsx`: fluxo único, importação, revisão e confirmação.
 - `components/pricing-step-layout.tsx`: progresso, painéis e rodapé com Voltar, Continuar e Salvar cálculo; mantém os painéis montados para preservar detalhes ainda não aplicados.
-- `components/pricing-fields.tsx`: campos, seções expansíveis e seleção pesquisável.
+- `components/pricing-fields.tsx`: campos (`FormField` + `TextField` com R$ ou unidade), seções recolhíveis (`FormSection`), opções em pílula e seleção pesquisável.
 - `components/pricing-cost-details.tsx`: trabalho, despesas e canais.
 - `components/pricing-summary.tsx`: composição, preço alternativo, ganho e margem.
 - `use-pricing-draft.ts`: estado do formulário, restauração e validação.
@@ -27,7 +27,6 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 - `hooks.ts`, `api.ts`: integração HTTP e cache.
 - `pricing-improvements.test.ts`, `calc.test.ts`: cenários e regressões de cálculo.
 - `components/pricing-history-modal.tsx`: histórico compartilhado.
-- Os componentes antigos SimplePricingCalculator/PricingCalculator foram preservados, mas não são usados pelas rotas de precificação.
 
 ## Components
 
@@ -119,7 +118,7 @@ Só no desktop; o celular continua com `FormStepProgress`, rodapé fixo e cabeç
 - `PricingStepLayout` recebe `header` e `aside`. No desktop a página rola inteira: o cabeçalho (título, subtítulo e "Histórico" como `DesktopToolbarButton`) vem de `app/pricing.tsx`, as etapas usam `DesktopStepper` e o título da etapa aparece uma vez no conteúdo.
 - `DesktopSplit`: a lateral fixa traz o resumo e as ações. "Continuar" ou "Salvar cálculo" ocupa a largura da lateral, com "Voltar" abaixo. Não existe botão de largura total na coluna.
 - Etapas 1 e 2: `PricingCostPreview` (em `components/pricing-desktop.tsx`) soma ingredientes, embalagem, trabalho e despesas por unidade (despesas ÷ produção, apenas no rateio por unidades), com o total de 36px. Avisa que o preço sugerido aparece na etapa 3.
-- Na etapa 1, os custos de ingredientes e de embalagem ficam lado a lado em `DesktopFormGrid` (uma coluna em 1024px).
+- Na etapa 1, os custos de ingredientes e de embalagem ficam lado a lado em `FormGrid` (uma coluna quando não há largura).
 - Etapa 3: a coluna principal mostra "Quanto você quer ganhar?" e, abaixo, o `PricingSummary` completo, com simulação, composição e aplicar ou criar produto. A lateral mostra `PricingResultPreview`, com o preço sugerido (ou simulado), o ganho ou prejuízo e a margem, pelas mesmas contas do `PricingSummary` (`pricingQuote` e `evaluateSalePrice`).
 - No desktop, o rótulo do `PricingSummary` fica em caixa normal ("Preço sugerido por unidade").
-- Botões "Selecionar produto cadastrado", "Usar embalagem cadastrada" e os avisos de custo alterado têm a largura do texto no desktop (`PricingPicker` usa `desktopActionButton`).
+- Os seletores de produto, embalagem e filtro do histórico são `SelectField` que abrem um `StandardModal` com busca (`PricingPicker`). "Calcular sem produto" e os avisos de custo alterado têm a largura do texto no desktop.
