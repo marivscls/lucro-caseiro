@@ -298,7 +298,6 @@ export function PlansDesktop({
             title={checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"}
             size="lg"
             // Em 1024 px a lateral é estreita: o texto quebra em vez de cortar.
-            titleLines={2}
             loading={checkoutLoading}
             accessibilityLabel={
               checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"

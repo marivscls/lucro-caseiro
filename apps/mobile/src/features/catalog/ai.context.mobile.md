@@ -254,7 +254,7 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - 2026-08-31: no card da vitrine, os rótulos produtos/serviços/publicados
   ficam numa linha abaixo do ícone e do número, sem reticências.
 - 2026-08-31: “Ver como cliente” e “Mais opções” usam a mesma fonte/tamanho
-  (`fitTitle={false}`); o texto mais longo não encolhe.
+  e o texto mais longo não encolhe.
 - 2026-08-31: no mobile a ilustração 3D fica menor e mais baixa (dentro do
   card vinho), para o título respirar e a sacola não subir em cima do texto.
 

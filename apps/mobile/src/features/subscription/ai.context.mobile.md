@@ -182,4 +182,4 @@ cartões selecionáveis (preço de 36px e benefícios), o uso do plano gratuito 
 lateral fixa com o plano escolhido, Mensal/Anual, o valor cobrado e "Continuar para pagamento"
 (ou "Plano ativo" e "Cancelar assinatura"). Com um plano só, o cartão ocupa a coluna e os
 benefícios vão em duas colunas. Mesmo estado, fluxo de checkout e rótulos do celular, que não mudou.
-Em 1024 px o botão "Continuar para pagamento" da lateral quebra em duas linhas (`titleLines={2}`) em vez de cortar o texto.
+Em 1024 px o botão "Continuar para pagamento" da lateral quebra em duas linhas em vez de cortar o texto (o `Button` nunca corta o rótulo).

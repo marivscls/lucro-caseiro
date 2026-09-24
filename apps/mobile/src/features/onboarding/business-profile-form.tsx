@@ -422,7 +422,6 @@ export function BusinessProfileForm({
                   {recommendation && (
                     <Button
                       title={recommendation.action}
-                      titleLines={2}
                       onPress={() => onStart(profile)}
                       style={{ alignSelf: "flex-start" }}
                     />

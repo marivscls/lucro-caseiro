@@ -876,7 +876,6 @@ function CatalogContentManager({
 
         <Button
           title={primaryActionLabel}
-          titleLines={2}
           size="lg"
           icon={
             <AppIcon
@@ -911,11 +910,9 @@ function CatalogContentManager({
         >
           <Button
             title="Ver como cliente"
-            titleLines={2}
             variant="outline"
             compact
             disabled={!settings.enabled}
-            fitTitle={false}
             icon={
               <AppIcon name="eye-outline" size={18} color={theme.colors.primaryStrong} />
             }
@@ -927,10 +924,8 @@ function CatalogContentManager({
           />
           <Button
             title="Mais opções"
-            titleLines={2}
             variant="outline"
             compact
-            fitTitle={false}
             icon={
               <AppIcon
                 name="ellipsis-horizontal"

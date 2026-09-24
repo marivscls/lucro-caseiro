@@ -54,8 +54,6 @@ export function ScreenCreateBar({
         accessibilityLabel={accessibilityLabel ?? title}
         accessibilityState={{ disabled }}
         size="md"
-        fitTitle={false}
-        titleLines={2}
         style={{
           minWidth: isDesktop ? 220 : undefined,
           paddingHorizontal: spacing.lg,

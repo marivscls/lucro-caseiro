@@ -215,7 +215,6 @@ export function ScreenGuidance({
                 variant="ghost"
                 onPress={() => setDismissFor(identity)}
                 disabled={dismissing}
-                fitTitle={false}
               />
               {secondary ? (
                 <Button
@@ -223,14 +222,12 @@ export function ScreenGuidance({
                   variant="text"
                   onPress={() => start(secondary.onPress)}
                   disabled={dismissing}
-                  fitTitle={false}
                 />
               ) : null}
               <Button
                 title={actionLabel ?? content.action}
                 onPress={() => start()}
                 disabled={dismissing}
-                fitTitle={false}
               />
             </View>
           </View>
@@ -289,8 +286,6 @@ export function ScreenGuidance({
                   onPress={() => start()}
                   disabled={dismissing}
                   size="lg"
-                  fitTitle={false}
-                  titleLines={2}
                 />
                 {secondary ? (
                   <Pressable
@@ -341,8 +336,6 @@ export function ScreenGuidance({
               title={actionLabel ?? content.action}
               onPress={() => start()}
               size="lg"
-              fitTitle={false}
-              titleLines={2}
             />
           </View>
         }

@@ -379,8 +379,6 @@ export function SaleDetail({
             title="Enviar recibo no WhatsApp"
             variant={sale.status === "paid" ? "success" : "successOutline"}
             size="lg"
-            titleLines={2}
-            fitTitle={false}
             icon={
               <AppIcon
                 name="logo-whatsapp"

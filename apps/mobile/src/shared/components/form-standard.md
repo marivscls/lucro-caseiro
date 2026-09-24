@@ -67,6 +67,11 @@ O objetivo é um vocabulário só: quem aprende um formulário já sabe usar tod
   - Excluir não fica no rodapé: vai no fim do corpo, `variant="alertOutline"`, com confirmação.
 - O rótulo diz a ação e o objeto ("Cadastrar produto", "Salvar alterações"), nunca só "OK".
 - Sempre `Button` do `@lucro-caseiro/ui` (com `loading`). Nada de `Pressable` desenhado à mão.
+- O texto do botão aparece sempre inteiro, nunca com "…". O `Button` quebra linha em vez de
+  cortar; quando dois botões não cabem lado a lado, empilhe (`FormActions stack`; o diálogo
+  `showAlert` empilha sozinho).
+- Ação dentro do corpo (WhatsApp, vender, cobrar) não ocupa a largura toda no computador: fica
+  com a largura do texto, alinhada à direita. No celular pode ocupar a linha.
 
 **Erros**
 

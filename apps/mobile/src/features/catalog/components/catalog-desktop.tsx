@@ -150,7 +150,6 @@ export function CatalogDesktopShareCard({
       </View>
       <Button
         title={primaryLabel}
-        titleLines={2}
         size="lg"
         icon={<AppIcon name={primaryIcon} size={20} color={theme.colors.textOnPrimary} />}
         onPress={onPrimary}
