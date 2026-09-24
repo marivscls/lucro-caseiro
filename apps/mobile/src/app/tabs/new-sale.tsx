@@ -100,12 +100,12 @@ import {
   DesktopCard,
   DesktopGrid,
   DesktopSection,
-  DesktopSplit,
   DesktopToolbarButton,
-  desktopPageContent,
+  desktopAsideWidth,
 } from "../../shared/layout/desktop-page";
 import { DesktopStepper } from "../../shared/layout/desktop-stepper";
 import {
+  desktopLayout,
   desktopModalSurface,
   desktopSplitLayout,
   desktopStretch,
@@ -500,6 +500,8 @@ export default function NewSaleScreen() {
     }, [step]),
   );
   const [mainWidth, setMainWidth] = useState(720);
+  const [desktopRowWidth, setDesktopRowWidth] = useState(0);
+  const [desktopHeaderHeight, setDesktopHeaderHeight] = useState(0);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<{
     id: string;
@@ -1280,40 +1282,66 @@ export default function NewSaleScreen() {
     </>
   );
 
+  // Desktop: a coluna principal rola sozinha e o resumo fica numa coluna
+  // própria, fora da rolagem, então ele não se mexe (nem enquanto o título sobe).
+  const desktopAsideColumnWidth = desktopAsideWidth(desktopRowWidth);
+  const desktopColumnGap =
+    desktopRowWidth > 0 && desktopRowWidth < 880
+      ? spacing["2xl"]
+      : desktopLayout.columnGap;
   const desktopView = isDesktop ? (
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
-      keyboardShouldPersistTaps="handled"
+    <View
+      onLayout={(event) => setDesktopRowWidth(event.nativeEvent.layout.width)}
+      style={{
+        flex: 1,
+        flexDirection: "row",
+        alignSelf: "stretch",
+        width: "100%",
+        maxWidth: desktopWidths.page,
+      }}
     >
-      <View>
-        <ScreenGuidance
-          renderHeader={(helpButton) => (
-            <ScreenHeader
-              help={helpButton}
-              title="Nova venda"
-              subtitle="Escolha os produtos, o cliente e a forma de pagamento."
-              hideBack
-            />
-          )}
-          area="new_sale"
-          onStart={() => {
-            if (products.length === 0) setShowCreateProduct(true);
-            else setStep(2);
-          }}
-          actionLabel={
-            products.length === 0 ? "Cadastrar produto e continuar" : "Escolher produtos"
-          }
-          hasRecords={
-            (salesData?.total ?? 0) > 0 || step !== FIRST_SALE_STEP || cart.length > 0
-          }
-          loading={loadingProducts || productsQuery.isError}
-          suspended={
-            showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
-          }
-        />
-      </View>
-      <DesktopSplit aside={desktopAside}>
+      <ScrollView
+        style={{ flex: 1, minWidth: 0 }}
+        contentContainerStyle={{
+          gap: desktopLayout.sectionGap,
+          paddingRight: desktopColumnGap,
+          paddingBottom: desktopLayout.pageBottom,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View
+          onLayout={(event) => setDesktopHeaderHeight(event.nativeEvent.layout.height)}
+          // O cabeçalho já traz o respiro até o conteúdo.
+          style={{ marginBottom: -desktopLayout.sectionGap }}
+        >
+          <ScreenGuidance
+            renderHeader={(helpButton) => (
+              <ScreenHeader
+                help={helpButton}
+                title="Nova venda"
+                subtitle="Escolha os produtos, o cliente e a forma de pagamento."
+                hideBack
+              />
+            )}
+            area="new_sale"
+            onStart={() => {
+              if (products.length === 0) setShowCreateProduct(true);
+              else setStep(2);
+            }}
+            actionLabel={
+              products.length === 0
+                ? "Cadastrar produto e continuar"
+                : "Escolher produtos"
+            }
+            hasRecords={
+              (salesData?.total ?? 0) > 0 || step !== FIRST_SALE_STEP || cart.length > 0
+            }
+            loading={loadingProducts || productsQuery.isError}
+            suspended={
+              showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
+            }
+          />
+        </View>
         <DesktopStepper
           current={saleStepPosition(step)}
           steps={SALE_STEP_ORDER.map((saleStep) => ({
@@ -1330,8 +1358,20 @@ export default function NewSaleScreen() {
         {step === 1 ? desktopClientStep : null}
         {step === 3 ? desktopPaymentStep : null}
         {step === 4 ? desktopReviewStep : null}
-      </DesktopSplit>
-    </ScrollView>
+      </ScrollView>
+      <ScrollView
+        style={{ width: desktopAsideColumnWidth, flexGrow: 0, flexShrink: 0 }}
+        contentContainerStyle={{
+          gap: spacing.lg,
+          paddingTop: desktopHeaderHeight,
+          paddingBottom: desktopLayout.pageBottom,
+        }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {desktopAside}
+      </ScrollView>
+    </View>
   ) : null;
 
   return (
