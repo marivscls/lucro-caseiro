@@ -31,6 +31,13 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import {
+  DesktopCard,
+  DesktopGrid,
+  DesktopSplit,
+  desktopActionButton,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 function ShoppingListItem({
@@ -43,6 +50,7 @@ function ShoppingListItem({
   onToggle: () => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const isOutOfStock = material.stockQuantity <= 0;
   const minimum = material.stockAlertThreshold;
   const idleOpacity = selected ? 1 : 0.68;
@@ -55,12 +63,12 @@ function ShoppingListItem({
       aria-checked={selected}
       accessibilityLabel={`${material.name}, estoque atual ${formatQty(material.stockQuantity)} ${material.unit}`}
       style={({ pressed }) => ({
-        minHeight: 76,
+        minHeight: isDesktop ? 88 : 76,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: selected ? theme.colors.primary : theme.colors.border,
-        backgroundColor: theme.colors.surface,
-        padding: spacing.md,
+        backgroundColor: isDesktop ? theme.colors.surfaceElevated : theme.colors.surface,
+        padding: isDesktop ? spacing.lg : spacing.md,
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.md,
@@ -73,25 +81,45 @@ function ShoppingListItem({
         checkColor={theme.colors.textOnPrimary}
         borderColor={theme.colors.textSecondary}
       />
-      <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-        <Typography variant="bodyBold" numberOfLines={1}>
-          {material.name}
-        </Typography>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      {isDesktop ? (
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Typography variant="desktopBodyStrong" numberOfLines={1}>
+            {material.name}
+          </Typography>
           <Typography
-            variant="caption"
+            variant="desktopMeta"
             color={isOutOfStock ? theme.colors.alert : theme.colors.textSecondary}
-            style={{ fontFamily: isOutOfStock ? fonts.bold : fonts.regular }}
+            style={{ fontFamily: isOutOfStock ? fonts.bold : undefined }}
           >
             Atual: {formatQty(material.stockQuantity)} {material.unit}
           </Typography>
           {minimum != null ? (
-            <Typography variant="caption" color={theme.colors.textSecondary}>
+            <Typography variant="desktopMeta">
               Mínimo: {formatQty(minimum)} {material.unit}
             </Typography>
           ) : null}
         </View>
-      </View>
+      ) : (
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+          <Typography variant="bodyBold" numberOfLines={1}>
+            {material.name}
+          </Typography>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            <Typography
+              variant="caption"
+              color={isOutOfStock ? theme.colors.alert : theme.colors.textSecondary}
+              style={{ fontFamily: isOutOfStock ? fonts.bold : fonts.regular }}
+            >
+              Atual: {formatQty(material.stockQuantity)} {material.unit}
+            </Typography>
+            {minimum != null ? (
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Mínimo: {formatQty(minimum)} {material.unit}
+              </Typography>
+            ) : null}
+          </View>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -110,6 +138,7 @@ function ShoppingListSection({
   onToggle: (id: string) => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   if (items.length === 0) return null;
 
   const color = tone === "alert" ? theme.colors.alert : theme.colors.primaryStrong;
@@ -117,7 +146,7 @@ function ShoppingListSection({
     tone === "alert" ? theme.colors.alertBg : theme.colors.primaryBg;
 
   return (
-    <View style={{ gap: spacing.sm }}>
+    <View style={{ gap: isDesktop ? spacing.lg : spacing.sm }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <View
           style={{
@@ -135,22 +164,31 @@ function ShoppingListSection({
             color={color}
           />
         </View>
-        <Typography variant="h3" style={{ flex: 1 }}>
+        <Typography
+          variant={isDesktop ? "desktopSection" : "h3"}
+          accessibilityRole={isDesktop ? "header" : undefined}
+          style={{ flex: 1 }}
+        >
           {title}
         </Typography>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
+        <Typography
+          variant={isDesktop ? "desktopMeta" : "caption"}
+          color={theme.colors.textSecondary}
+        >
           {items.length} {items.length === 1 ? "item" : "itens"}
         </Typography>
       </View>
 
-      {items.map((material) => (
-        <ShoppingListItem
-          key={material.id}
-          material={material}
-          selected={!deselectedIds.has(material.id)}
-          onToggle={() => onToggle(material.id)}
-        />
-      ))}
+      <DesktopGrid minColumnWidth={260} maxColumns={3}>
+        {items.map((material) => (
+          <ShoppingListItem
+            key={material.id}
+            material={material}
+            selected={!deselectedIds.has(material.id)}
+            onToggle={() => onToggle(material.id)}
+          />
+        ))}
+      </DesktopGrid>
     </View>
   );
 }
@@ -201,6 +239,163 @@ function BuyMaterialsContent() {
         message: "Tente novamente ou use Compartilhar lista.",
       });
     }
+  }
+
+  function renderDesktopContent() {
+    if (isLoading) {
+      return <SkeletonList rows={5} variant="material" />;
+    }
+
+    if (error) {
+      return (
+        <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
+          <Typography variant="desktopCardTitle">Algo deu errado</Typography>
+          <Typography variant="desktopBody">
+            Não foi possível carregar os insumos que precisam de reposição.
+          </Typography>
+          <Button
+            title="Tentar novamente"
+            onPress={() => void refetch()}
+            style={desktopActionButton}
+          />
+        </DesktopCard>
+      );
+    }
+
+    if (data.length === 0) {
+      return (
+        <DesktopCard
+          style={{
+            borderStyle: "dashed",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.xl,
+          }}
+        >
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: radii.full,
+              backgroundColor: theme.colors.successBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon
+              name="checkmark-circle-outline"
+              size={34}
+              color={theme.colors.success}
+            />
+          </View>
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="desktopCardTitle">Estoque em dia</Typography>
+            <Typography variant="desktopBody">
+              Nenhum insumo precisa ser comprado agora.
+            </Typography>
+          </View>
+          <Button
+            title="Revisar estoque"
+            variant="secondary"
+            onPress={() => router.replace("/tabs/materials")}
+            style={desktopActionButton}
+          />
+        </DesktopCard>
+      );
+    }
+
+    const aside = (
+      <DesktopCard>
+        <View style={{ gap: spacing.xs }}>
+          <Typography variant="desktopCardTitle" accessibilityRole="header">
+            Sua lista de compras
+          </Typography>
+          <Typography variant="desktopBody">
+            Marque o que vai comprar. A lista sai pronta para mandar ou colar.
+          </Typography>
+        </View>
+        <View
+          style={{
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+            paddingTop: spacing.lg,
+            gap: spacing.xs,
+          }}
+        >
+          <Typography variant="desktopMetricLabel">Selecionados</Typography>
+          <Typography variant="desktopMetric" style={{ fontVariant: ["tabular-nums"] }}>
+            {selectedItems.length} de {data.length}
+          </Typography>
+          <Pressable
+            onPress={toggleAll}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: allSelected }}
+            aria-checked={allSelected}
+            accessibilityLabel={allSelected ? "Desmarcar todos" : "Selecionar todos"}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              alignSelf: "flex-start",
+              justifyContent: "center",
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Typography variant="desktopBodyStrong" color={theme.colors.primaryStrong}>
+              {allSelected ? "Desmarcar todos" : "Selecionar todos"}
+            </Typography>
+          </Pressable>
+        </View>
+        <View style={{ gap: spacing.sm }}>
+          <Button
+            title="Compartilhar lista"
+            disabled={selectedItems.length === 0}
+            onPress={() => void shareList()}
+            icon={
+              <AppIcon
+                name="share-social-outline"
+                size={19}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            style={{ minHeight: 52 }}
+          />
+          {Platform.OS === "web" ? (
+            <Button
+              title="Copiar lista"
+              variant="outline"
+              disabled={selectedItems.length === 0}
+              onPress={() => void copyList()}
+              icon={
+                <AppIcon
+                  name="clipboard-outline"
+                  size={19}
+                  color={theme.colors.primaryStrong}
+                />
+              }
+              style={{ minHeight: 52 }}
+            />
+          ) : null}
+        </View>
+      </DesktopCard>
+    );
+
+    return (
+      <DesktopSplit aside={aside}>
+        <ShoppingListSection
+          title="Sem estoque"
+          tone="alert"
+          items={outOfStock}
+          deselectedIds={deselectedIds}
+          onToggle={toggle}
+        />
+        <ShoppingListSection
+          title="Estoque baixo"
+          tone="warning"
+          items={lowStock}
+          deselectedIds={deselectedIds}
+          onToggle={toggle}
+        />
+      </DesktopSplit>
+    );
   }
 
   function renderContent() {
@@ -374,7 +569,17 @@ function BuyMaterialsContent() {
         subtitle="Lista gerada com os insumos abaixo do estoque mínimo"
         fallbackRoute="/tabs/materials"
       />
-      <View style={{ flex: 1 }}>{renderContent()}</View>
+      {isDesktop ? (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={desktopPageContent(true)}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderDesktopContent()}
+        </ScrollView>
+      ) : (
+        <View style={{ flex: 1 }}>{renderContent()}</View>
+      )}
     </SafeAreaView>
   );
 }
