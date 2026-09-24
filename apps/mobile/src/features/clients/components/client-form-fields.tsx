@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Typography, spacing, useTheme } from "@lucro-caseiro/ui";
-import { CalendarModal } from "../../../shared/components/calendar-modal";
+import { CalendarDateField } from "../../../shared/components/calendar-date-field";
 import {
-  FieldLinkAction,
   FormField,
-  SelectField,
   TextField,
   type FormFieldProps,
 } from "../../../shared/components/form-field";
@@ -28,55 +26,6 @@ interface ClientFormFieldsProps {
   onNotesChange: (value: string) => void;
   nameValidation: Validation;
   phoneValidation?: Validation;
-}
-
-/**
- * Data escolhida no calendário (DD/MM/AAAA), com "Limpar" para campos opcionais.
- * Usada no aniversário e no próximo contato.
- */
-export function ClientDateField({
-  label,
-  value,
-  onChange,
-  accessibilityLabel,
-  optional = true,
-}: Readonly<{
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  accessibilityLabel: string;
-  optional?: boolean;
-}>) {
-  const [calendarVisible, setCalendarVisible] = useState(false);
-  return (
-    <FormField
-      label={label}
-      optional={optional}
-      labelAction={
-        value ? (
-          <FieldLinkAction
-            label="Limpar"
-            accessibilityLabel={`Limpar ${label.toLowerCase()}`}
-            onPress={() => onChange("")}
-          />
-        ) : undefined
-      }
-    >
-      <SelectField
-        icon="calendar-outline"
-        value={value}
-        placeholder="Escolher data"
-        onPress={() => setCalendarVisible(true)}
-        accessibilityLabel={accessibilityLabel}
-      />
-      <CalendarModal
-        visible={calendarVisible}
-        value={value}
-        onClose={() => setCalendarVisible(false)}
-        onSelect={onChange}
-      />
-    </FormField>
-  );
 }
 
 /** Os mesmos campos, na mesma ordem, no cadastro e na edição do cliente. */
@@ -107,7 +56,8 @@ export function ClientFormFields(props: Readonly<ClientFormFieldsProps>) {
           autoComplete="tel"
         />
       </FormField>
-      <ClientDateField
+      <CalendarDateField
+        optional
         label="Aniversário"
         value={props.birthday}
         onChange={props.onBirthdayChange}

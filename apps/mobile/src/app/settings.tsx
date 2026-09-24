@@ -42,7 +42,7 @@ import { useSubscription } from "../features/subscription/use-subscription";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { showAlert } from "../shared/components/alert-store";
 import { AppIcon, type AppIconName } from "../shared/components/app-icon";
-import { FormField, TextField, useFieldPalette } from "../shared/components/form-field";
+import { ChipChoiceField, FormField, TextField } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
@@ -135,62 +135,6 @@ function businessTypeValue(value: string): string | undefined {
       (type) =>
         type.value === trimmed || type.label.toLowerCase() === trimmed.toLowerCase(),
     )?.value ?? trimmed
-  );
-}
-
-/**
- * Escolha única com mais de 4 opções: chips no mesmo visual das categorias do
- * cadastro de produto (44 px, borda do campo, selecionado em vinho).
- */
-function ChoiceChips<T extends string>({
-  value,
-  options,
-  onChange,
-  accessibilityLabel,
-}: Readonly<{
-  value: T | "";
-  options: readonly { value: T; label: string }[];
-  onChange: (value: T) => void;
-  accessibilityLabel: string;
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel={accessibilityLabel}
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            accessibilityRole="radio"
-            accessibilityLabel={option.label}
-            accessibilityState={{ selected, checked: selected }}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              paddingHorizontal: spacing.lg,
-              justifyContent: "center",
-              borderRadius: radii.full,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Typography
-              variant="body"
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option.label}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
 
@@ -1407,7 +1351,7 @@ export default function SettingsScreen() {
               />
             </FormField>
             <FormField label="Tipo de negócio" optional span="full">
-              <ChoiceChips
+              <ChipChoiceField
                 value={editBusinessType}
                 options={BUSINESS_TYPES}
                 onChange={setEditBusinessType}

@@ -48,9 +48,9 @@ import { useProfile } from "../../features/subscription/hooks";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../shared/components/standard-modal";
 import {
+  ChipChoiceField,
   FormField,
   TextField,
-  useFieldPalette,
 } from "../../shared/components/form-field";
 import { FormActions, FormBody } from "../../shared/components/form-layout";
 import { showAlert } from "../../shared/components/alert-store";
@@ -131,55 +131,6 @@ function groupSalesByDate(items: Sale[]): SaleGroup[] {
 }
 
 // Cards flat com borda sutil, no padrao canonico da home (sem sombra hardcoded).
-/**
- * Forma de pagamento (5 opções, mais que o `ChoiceField` comporta): chips no
- * mesmo visual das categorias do cadastro de produto.
- */
-function PaymentChips({
-  value,
-  onChange,
-}: Readonly<{ value: string; onChange: (value: string) => void }>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel="Forma de pagamento"
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {PAYMENT_OPTIONS.map((option) => {
-        const selected = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            accessibilityRole="radio"
-            accessibilityLabel={option.label}
-            accessibilityState={{ selected, checked: selected }}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              paddingHorizontal: spacing.lg,
-              justifyContent: "center",
-              borderRadius: radii.full,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Typography
-              variant="body"
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option.label}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   const palette = brandScreenPalette(theme);
   return {
@@ -809,7 +760,12 @@ export default function SalesScreen() {
       >
         <FormBody>
           <FormField label="Forma de pagamento">
-            <PaymentChips value={editPayment} onChange={setEditPayment} />
+            <ChipChoiceField
+              accessibilityLabel="Forma de pagamento"
+              value={editPayment}
+              options={PAYMENT_OPTIONS}
+              onChange={setEditPayment}
+            />
           </FormField>
           <FormField label="Observações" optional>
             <TextField

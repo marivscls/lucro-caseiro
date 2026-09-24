@@ -471,3 +471,77 @@ export function ChoiceField<T extends string>({
     </View>
   );
 }
+
+/**
+ * Escolha única com mais de 4 opções (categoria, forma de pagamento, tipo de
+ * negócio): chips que quebram linha, no mesmo visual das categorias do produto.
+ * Até 4 opções curtas, prefira `ChoiceField`.
+ */
+export function ChipChoiceField<T extends string>({
+  value,
+  options,
+  onChange,
+  accessibilityLabel,
+}: Readonly<{
+  value: T | "" | null | undefined;
+  options: readonly ChoiceOption<T>[];
+  onChange: (value: T) => void;
+  accessibilityLabel: string;
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={accessibilityLabel}
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            disabled={option.disabled}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{
+              selected,
+              checked: selected,
+              disabled: option.disabled,
+            }}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: spacing.lg - (selected ? 1 : 0),
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+              borderRadius: 9999,
+              borderWidth: selected ? 2 : 1,
+              borderColor: selected ? theme.colors.primaryStrong : pal.border,
+              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+              opacity: pressOpacity(option.disabled, pressed),
+            })}
+          >
+            {option.icon ? (
+              <AppIcon
+                name={option.icon}
+                size={18}
+                color={selected ? theme.colors.primaryStrong : pal.icon}
+              />
+            ) : null}
+            <Typography
+              variant={selected ? "bodyBold" : "body"}
+              color={selected ? theme.colors.primaryStrong : theme.colors.text}
+            >
+              {option.label}
+            </Typography>
+            {option.locked && !selected ? (
+              <AppIcon name="lock-closed" size={14} color={theme.colors.premium} />
+            ) : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}

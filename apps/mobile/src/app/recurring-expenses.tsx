@@ -48,7 +48,7 @@ import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
-import { FormField, TextField, useFieldPalette } from "../shared/components/form-field";
+import { ChipChoiceField, FormField, TextField } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -665,61 +665,6 @@ function ExpenseRow({
   );
 }
 
-/**
- * Escolha única com mais de 4 opções: chips no mesmo visual das categorias do
- * cadastro de produto (44 px, borda do campo, selecionado em vinho).
- */
-function CategoryChips({
-  value,
-  options,
-  onChange,
-}: Readonly<{
-  value: ExpenseCategory;
-  options: readonly { key: ExpenseCategory; label: string }[];
-  onChange: (value: ExpenseCategory) => void;
-}>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel="Categoria do gasto"
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {options.map((option) => {
-        const selected = option.key === value;
-        return (
-          <Pressable
-            key={option.key}
-            onPress={() => onChange(option.key)}
-            accessibilityRole="radio"
-            accessibilityLabel={option.label}
-            accessibilityState={{ selected, checked: selected }}
-            aria-checked={selected}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              paddingHorizontal: spacing.lg,
-              justifyContent: "center",
-              borderRadius: radii.full,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Typography
-              variant="body"
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option.label}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 function RecurringFormModal({
   item,
   onClose,
@@ -870,7 +815,15 @@ function RecurringFormModal({
             />
           </FormField>
           <FormField label="Categoria" span="full">
-            <CategoryChips value={category} options={categories} onChange={setCategory} />
+            <ChipChoiceField
+              accessibilityLabel="Categoria do gasto"
+              value={category}
+              options={categories.map((option) => ({
+                value: option.key,
+                label: option.label,
+              }))}
+              onChange={setCategory}
+            />
           </FormField>
         </FormGrid>
         <View style={styles.recurrenceNotice}>

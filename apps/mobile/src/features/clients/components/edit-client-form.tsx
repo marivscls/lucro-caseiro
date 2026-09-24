@@ -1,4 +1,5 @@
-import { ClientDateField, ClientFormFields } from "./client-form-fields";
+import { CalendarDateField } from "../../../shared/components/calendar-date-field";
+import { ClientFormFields } from "./client-form-fields";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button } from "@lucro-caseiro/ui";
@@ -180,7 +181,8 @@ export function EditClientForm({
           initiallyOpen={hasNextContact}
         >
           <FormGrid>
-            <ClientDateField
+            <CalendarDateField
+              optional
               label="Data do contato"
               value={nextContactAt}
               onChange={setNextContactAt}
