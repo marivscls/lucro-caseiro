@@ -1,12 +1,6 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../shared/hooks/use-form-validation";
-import {
-  CenteredTextInput,
-  Typography,
-  fonts,
-  useReducedMotion,
-  useTheme,
-} from "@lucro-caseiro/ui";
+import { Button, Typography, fonts, useReducedMotion } from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -30,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
 import { brandLogoByMode } from "../../shared/brand-logo";
 import { AppIcon } from "../../shared/components/app-icon";
+import { FormField, TextField, fieldMetrics } from "../../shared/components/form-field";
 import {
   emptyBusinessProfile,
   profileAnswerSummary,
@@ -126,10 +121,8 @@ export function BusinessProfileForm({
   handleHardwareBack?: boolean;
 }>) {
   const colors = useBrandScreenPalette();
-  const { theme } = useTheme();
   const { width } = useWindowDimensions();
   const wide = width >= 760;
-  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [profile, setProfile] = useState<BusinessProfileAnswers>(
     initialProfile ?? emptyBusinessProfile,
   );
@@ -335,74 +328,39 @@ export function BusinessProfileForm({
               }
             />
             {step === 0 && (
-              <View style={[styles.fields, styles.indent]}>
-                <ValidationField {...formValidation.field("name")}>
-                  <View style={styles.field}>
-                    <Text
-                      style={[styles.label, { color: colors.wine }]}
-                      nativeID="preview-name-label"
-                    >
-                      Seu nome
-                    </Text>
-                    <CenteredTextInput
-                      editable={!saving}
-                      accessibilityLabel="Seu nome"
-                      accessibilityLabelledBy="preview-name-label"
-                      placeholder="Ex.: Mariana"
-                      placeholderTextColor={colors.muted}
-                      value={profile.name}
-                      onChangeText={(value) => update("name", value)}
-                      onFocus={() => setFocusedField("name")}
-                      onBlur={() => setFocusedField(null)}
-                      maxLength={200}
-                      autoComplete="given-name"
-                      autoCapitalize="words"
-                      returnKeyType="next"
-                      onSubmitEditing={() => businessInput.current?.focus()}
-                      style={[
-                        styles.input,
-                        {
-                          backgroundColor: colors.white,
-                          color: colors.ink,
-                          borderColor:
-                            focusedField === "name" ? colors.wine : colors.border,
-                        },
-                      ]}
-                    />
-                  </View>
-                </ValidationField>
-                <View style={styles.field}>
-                  <Text style={[styles.label, { color: colors.wine }]}>
-                    Nome do negócio <Text style={styles.optional}>(opcional)</Text>
-                  </Text>
-                  <CenteredTextInput
+              <View style={[styles.indent, { gap: fieldMetrics.fieldGap }]}>
+                <FormField label="Seu nome" validation={formValidation.field("name")}>
+                  <TextField
                     editable={!saving}
-                    ref={businessInput}
+                    accessibilityLabel="Seu nome"
+                    placeholder="Ex.: Mariana"
+                    value={profile.name}
+                    onChangeText={(value) => update("name", value)}
+                    maxLength={200}
+                    autoComplete="given-name"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    onSubmitEditing={() => businessInput.current?.focus()}
+                  />
+                </FormField>
+                <FormField
+                  label="Nome do negócio"
+                  optional
+                  hint="Ainda não tem um nome? Tudo bem, você decide depois."
+                >
+                  <TextField
+                    editable={!saving}
+                    inputRef={businessInput}
                     accessibilityLabel="Nome do negócio, opcional"
                     placeholder="Ex.: Ateliê da Mari"
-                    placeholderTextColor={colors.muted}
                     value={profile.business}
                     onChangeText={(value) => update("business", value)}
-                    onFocus={() => setFocusedField("business")}
-                    onBlur={() => setFocusedField(null)}
                     maxLength={200}
                     autoCapitalize="words"
                     returnKeyType="done"
                     onSubmitEditing={advance}
-                    style={[
-                      styles.input,
-                      {
-                        backgroundColor: colors.white,
-                        color: colors.ink,
-                        borderColor:
-                          focusedField === "business" ? colors.wine : colors.border,
-                      },
-                    ]}
                   />
-                </View>
-                <Text style={[styles.body, { color: colors.muted }]}>
-                  Ainda não tem um nome? Tudo bem. Você pode decidir depois.
-                </Text>
+                </FormField>
               </View>
             )}
             {step === 1 && (
@@ -462,31 +420,12 @@ export function BusinessProfileForm({
                     {recommendation?.text}
                   </Text>
                   {recommendation && (
-                    <Pressable
-                      accessibilityRole="button"
+                    <Button
+                      title={recommendation.action}
+                      titleLines={2}
                       onPress={() => onStart(profile)}
-                      style={[
-                        styles.next,
-                        {
-                          backgroundColor: theme.colors.primaryInteractive,
-                          alignSelf: "flex-start",
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.buttonText,
-                          { color: theme.colors.textOnPrimary, flexShrink: 1 },
-                        ]}
-                      >
-                        {recommendation.action}
-                      </Text>
-                      <AppIcon
-                        name="arrow-forward"
-                        size={20}
-                        color={theme.colors.textOnPrimary}
-                      />
-                    </Pressable>
+                      style={{ alignSelf: "flex-start" }}
+                    />
                   )}
                 </View>
                 <Text style={[styles.body, { color: colors.muted }]}>
@@ -529,39 +468,18 @@ export function BusinessProfileForm({
           ]}
         >
           <View style={[styles.actionsInner, wide && styles.inner]}>
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              title={step > 0 ? "Voltar" : "Agora não"}
+              variant="outline"
+              disabled={saving}
               onPress={() => (step > 0 ? goToStep(step - 1) : onClose())}
-              disabled={saving}
-              style={styles.back}
-            >
-              {step > 0 && <AppIcon name="chevron-back" size={18} color={colors.wine} />}
-              <Text style={[styles.backText, { color: colors.wine }]}>
-                {step > 0 ? "Voltar" : "Agora não"}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: saving, busy: saving }}
-              disabled={saving}
+            />
+            <Button
+              title={buttonTitle}
+              loading={saving}
               onPress={advance}
-              style={({ pressed }) => [
-                styles.next,
-                {
-                  backgroundColor: theme.colors.primaryInteractive,
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.buttonText, { color: theme.colors.textOnPrimary }]}>
-                {buttonTitle}
-              </Text>
-              <AppIcon
-                name="arrow-forward"
-                size={20}
-                color={theme.colors.textOnPrimary}
-              />
-            </Pressable>
+              style={{ flexShrink: 1 }}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -606,18 +524,6 @@ const styles = StyleSheet.create({
   indent: { paddingLeft: CHAT_INDENT },
   body: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 23 },
   fields: { gap: 16 },
-  field: { gap: 8 },
-  label: { fontFamily: fonts.semiBold, fontSize: 16, lineHeight: 22 },
-  optional: { fontFamily: fonts.regular },
-  input: {
-    fontFamily: fonts.regular,
-    fontSize: 17,
-    minHeight: 52,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderRadius: 16,
-  },
   saveError: { paddingHorizontal: 20, paddingTop: 12 },
   actions: { paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1 },
   actionsInner: {
@@ -625,26 +531,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: 8,
-  },
-  back: {
-    minHeight: 48,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 4,
-  },
-  backText: { fontFamily: fonts.semiBold, fontSize: 16 },
-  buttonText: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
-  next: {
-    minHeight: 52,
-    borderRadius: 16,
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    flexShrink: 1,
   },
   profile: { borderRadius: 22, borderWidth: 1, padding: 18, gap: 16 },
   profileTitle: {
