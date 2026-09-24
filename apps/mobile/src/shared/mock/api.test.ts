@@ -205,6 +205,22 @@ describe("mock api — fornecedores", () => {
   });
 });
 
+describe("mock api — varejo", () => {
+  it("responde null para o caixa atual quando não há caixa aberto, como a API", () => {
+    // Arrange
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { request } = makeSut();
+
+    // Act
+    const result = request("GET", "/api/v1/retail/cash/current");
+
+    // Assert
+    expect(result.status).toBe(200);
+    expect(result.body).toBeNull();
+    expect(warn).not.toHaveBeenCalled();
+  });
+});
+
 describe("mock api — rotas não simuladas", () => {
   it("devolve coleção vazia que serve como lista e como paginação", () => {
     // Arrange

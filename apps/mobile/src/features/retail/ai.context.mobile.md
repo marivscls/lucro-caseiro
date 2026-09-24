@@ -86,8 +86,7 @@ inventário, reposição, serviços, promoções, preços, etiquetas, reservas e
   `replenishmentCard`, `panelCard`). Muda só o arranjo. No desktop: títulos em
   `desktopCardTitle`, legendas em `desktopMeta` e padding de 24.
 - Validado com `EXPO_PUBLIC_BRAND=lucro-papelaria`. Na demo, `GET /retail/cash/current`
-  cai no fallback do mock (coleção vazia, que é verdadeira), e o cartão Caixa tenta ler
-  `expectedCash`. As capturas usaram um mock local com `null`, sem commit.
+  responde `null` (caixa fechado), igual à API real (`CashSessionSummary | null`).
 - A tela de Operações (`app/operations.tsx`, marcas oficina/revenda/obra, flag
   `operacaoVertical`) recebeu o mesmo padrão: `DesktopStatRow` nos três indicadores,
   `DesktopSplit` com abas de tipo, título em `desktopSection` e documentos em cartões

@@ -735,6 +735,9 @@ const routes: [string, RegExp, Handler][] = [
   // no mesmo formato de `SuppliersOverviewDto` da API real.
   ["GET", /^\/api\/v1\/suppliers\/overview$/, () => ok(emptySuppliersOverview())],
 
+  // Varejo: sem caixa aberto a API real responde `null` (não uma lista).
+  ["GET", /^\/api\/v1\/retail\/cash\/current$/, () => ok(null)],
+
   // Resultados e precificação
   ["GET", /^\/api\/v1\/insights$/, insights],
   ["GET", /^\/api\/v1\/pricing$/, ({ query }) => ok(paginate([], query))],
