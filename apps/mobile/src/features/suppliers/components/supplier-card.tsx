@@ -9,6 +9,7 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { SUPPLIER_CATEGORY_LABELS } from "../domain";
 import { SupplierAvatar } from "./supplier-avatar";
 import { SupplierOptionsModal } from "./supplier-options-modal";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface SupplierCardProps {
   supplier: SupplierOverviewItem;
@@ -76,6 +77,7 @@ function StatusChip({
 export function SupplierCard(props: Readonly<SupplierCardProps>) {
   const { supplier } = props;
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [menuOpen, setMenuOpen] = useState(false);
   const canWhatsApp = supplier.hasWhatsApp && !!supplier.phone;
   let footerAction: React.ReactNode = null;
@@ -130,6 +132,8 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
             backgroundColor: theme.colors.surfaceElevated,
             overflow: "hidden",
           },
+          // Desktop: cartões da mesma linha da grade com a mesma altura.
+          isDesktop ? { flexGrow: 1 } : null,
         ]}
       >
         <Pressable
@@ -227,6 +231,7 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
         <View
           style={{
             minHeight: 52,
+            ...(isDesktop ? { marginTop: "auto" as const } : null),
             borderTopWidth: 1,
             borderTopColor: theme.colors.border,
             paddingHorizontal: spacing.md,

@@ -18,6 +18,7 @@ import {
   Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -40,6 +41,13 @@ import { useSuppliersOverview } from "../hooks";
 import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SupplierCard } from "./supplier-card";
 import { SupplierOptionsModal } from "./supplier-options-modal";
+import {
+  DesktopCard,
+  DesktopGrid,
+  DesktopToolbarButton,
+  desktopActionButton,
+  desktopPageContent,
+} from "../../../shared/layout/desktop-page";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   desktopContentWidth,
@@ -119,6 +127,7 @@ function MonthlyPanel({
 }: Readonly<{ totalAmount: number; purchaseCount: number; supplierCount: number }>) {
   const { width } = useWindowDimensions();
   const colors = useBrandScreenPalette();
+  const isDesktop = useDesktopLayout();
   const compact = width <= 350;
   const illustrationWidth = supplierHeroIllustrationWidth(width);
   const purchaseWord = purchaseCount === 1 ? "compra" : "compras";
@@ -131,15 +140,18 @@ function MonthlyPanel({
         backgroundColor: colors.wineFill,
         overflow: "hidden",
         position: "relative",
-        padding: spacing.xl,
+        padding: isDesktop ? spacing["2xl"] : spacing.xl,
       }}
     >
       <View style={{ width: compact ? "70%" : "64%", zIndex: 2, gap: spacing.sm }}>
-        <Typography variant="body" color={colors.onWine}>
+        <Typography
+          variant={isDesktop ? "desktopMetricLabel" : "body"}
+          color={colors.onWine}
+        >
           Compras do mês
         </Typography>
         <Typography
-          variant="moneyHero"
+          variant={isDesktop ? "desktopTotal" : "moneyHero"}
           color={colors.onWine}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -147,7 +159,7 @@ function MonthlyPanel({
         >
           {formatCurrency(totalAmount)}
         </Typography>
-        <Typography variant="body" color={colors.onWine}>
+        <Typography variant={isDesktop ? "desktopBody" : "body"} color={colors.onWine}>
           {purchaseCount === 0
             ? "Nenhuma compra neste mês"
             : `${purchaseCount} ${purchaseWord} em ${supplierCount} ${supplierWord}`}
@@ -413,6 +425,213 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
     </View>
   );
 
+  const modals = (
+    <>
+      <SupplierOptionsModal
+        visible={sortOpen}
+        onClose={() => setSortOpen(false)}
+        title="Ordenar fornecedores"
+        options={Object.entries(SORT_LABELS).map(([key, label]) => ({
+          key,
+          label,
+          selected: sort === key,
+          onPress: () => setSort(key as SupplierSort),
+        }))}
+      />
+      <StandardModal
+        visible={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Filtrar fornecedores"
+        footer={
+          <View style={{ flex: 1, flexDirection: "row", gap: spacing.sm }}>
+            <Button
+              title="Limpar todos"
+              variant="outline"
+              onPress={() => setAdvanced(new Set())}
+              style={{ flex: 1 }}
+            />
+            <Button
+              title="Ver resultados"
+              onPress={() => setFiltersOpen(false)}
+              style={{ flex: 1 }}
+            />
+          </View>
+        }
+      >
+        <View style={{ gap: spacing.xs }}>
+          {ADVANCED_FILTERS.map((filter) => (
+            <FilterCheckbox
+              key={filter.key}
+              label={filter.label}
+              checked={advanced.has(filter.key)}
+              onPress={() => toggleAdvanced(filter.key)}
+            />
+          ))}
+        </View>
+      </StandardModal>
+    </>
+  );
+
+  if (isDesktop) {
+    const renderCard = (item: SupplierOverviewItem) => (
+      <SupplierCard
+        key={item.id}
+        supplier={item}
+        onPress={() => props.onSupplierPress(item)}
+        onEdit={() => props.onEditPress(item)}
+        onArchive={() => props.onArchivePress(item)}
+        onDelete={() => props.onDeletePress(item)}
+        onReorder={() => props.onReorderPress(item)}
+        onWhatsApp={() => props.onWhatsAppPress(item)}
+        onToggleFollowUp={() => props.onToggleFollowUp(item)}
+        onToggleRestock={() => props.onToggleRestock(item)}
+      />
+    );
+    return (
+      <>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={desktopPageContent(true)}
+          showsVerticalScrollIndicator={false}
+        >
+          <MonthlyPanel
+            totalAmount={query.data?.month?.totalAmount ?? 0}
+            purchaseCount={query.data?.month?.purchaseCount ?? 0}
+            supplierCount={query.data?.month?.supplierCount ?? 0}
+          />
+
+          {/* Sem nenhum fornecedor, busca e filtros não têm o que filtrar. */}
+          {allItems.length > 0 || hasQuery ? (
+            <View style={{ gap: spacing.lg }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    minHeight: 52,
+                    borderRadius: radii.lg,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.surfaceElevated,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: spacing.lg,
+                    gap: spacing.sm,
+                  }}
+                >
+                  <AppIcon
+                    name="search-outline"
+                    size={22}
+                    color={theme.colors.textSecondary}
+                  />
+                  <CenteredTextInput
+                    value={search}
+                    onChangeText={setSearch}
+                    placeholder="Buscar fornecedor, produto ou categoria"
+                    placeholderTextColor={theme.colors.textSecondary}
+                    accessibilityLabel="Buscar fornecedor, produto ou categoria"
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      color: theme.colors.text,
+                      fontSize: fontSizes.md,
+                      fontFamily: fonts.regular,
+                      paddingVertical: 0,
+                    }}
+                  />
+                  {search ? (
+                    <Pressable
+                      onPress={() => setSearch("")}
+                      accessibilityRole="button"
+                      accessibilityLabel="Limpar busca"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AppIcon
+                        name="close-circle"
+                        size={20}
+                        color={theme.colors.textSecondary}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
+                <DesktopToolbarButton
+                  icon="options-outline"
+                  label={advanced.size ? `Filtros (${advanced.size})` : "Filtrar"}
+                  onPress={() => setFiltersOpen(true)}
+                />
+                <DesktopToolbarButton
+                  icon="filter-outline"
+                  label="Ordenar"
+                  onPress={() => setSortOpen(true)}
+                />
+              </View>
+
+              <FilterChipRow>
+                {CATEGORY_FILTERS.map((filter) => (
+                  <Chip
+                    key={filter.key}
+                    label={filter.label}
+                    count={counts[filter.key]}
+                    selected={category === filter.key}
+                    onPress={() => setCategory(filter.key)}
+                  />
+                ))}
+              </FilterChipRow>
+            </View>
+          ) : null}
+
+          <View style={{ gap: spacing.lg }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.md }}
+            >
+              <Typography variant="desktopSection" accessibilityRole="header">
+                Seus fornecedores
+              </Typography>
+              <Typography variant="desktopMeta" numberOfLines={1} style={{ flex: 1 }}>
+                {items.length} {items.length === 1 ? "fornecedor" : "fornecedores"}
+                {" · "}
+                {SORT_LABELS[sort]}
+              </Typography>
+            </View>
+
+            {items.length > 0 ? (
+              <DesktopGrid minColumnWidth={300} maxColumns={3}>
+                {items.map(renderCard)}
+              </DesktopGrid>
+            ) : (
+              <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
+                <Typography variant="desktopCardTitle">
+                  {hasQuery
+                    ? "Nenhum fornecedor encontrado"
+                    : "Nenhum fornecedor cadastrado"}
+                </Typography>
+                <Typography variant="desktopBody">
+                  {hasQuery
+                    ? "Ajuste a busca ou limpe os filtros para ver outros fornecedores."
+                    : "Cadastre quem abastece o seu negócio para organizar suas compras."}
+                </Typography>
+                <Button
+                  title={hasQuery ? "Limpar busca e filtros" : "Adicionar fornecedor"}
+                  variant={hasQuery ? "secondary" : "primary"}
+                  onPress={hasQuery ? clearFilters : props.onAddPress}
+                  style={desktopActionButton}
+                />
+              </DesktopCard>
+            )}
+          </View>
+        </ScrollView>
+        {modals}
+      </>
+    );
+  }
+
   return (
     <>
       <View style={{ flex: 1 }}>
@@ -483,48 +702,7 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
         ) : null}
       </View>
 
-      <SupplierOptionsModal
-        visible={sortOpen}
-        onClose={() => setSortOpen(false)}
-        title="Ordenar fornecedores"
-        options={Object.entries(SORT_LABELS).map(([key, label]) => ({
-          key,
-          label,
-          selected: sort === key,
-          onPress: () => setSort(key as SupplierSort),
-        }))}
-      />
-      <StandardModal
-        visible={filtersOpen}
-        onClose={() => setFiltersOpen(false)}
-        title="Filtrar fornecedores"
-        footer={
-          <View style={{ flex: 1, flexDirection: "row", gap: spacing.sm }}>
-            <Button
-              title="Limpar todos"
-              variant="outline"
-              onPress={() => setAdvanced(new Set())}
-              style={{ flex: 1 }}
-            />
-            <Button
-              title="Ver resultados"
-              onPress={() => setFiltersOpen(false)}
-              style={{ flex: 1 }}
-            />
-          </View>
-        }
-      >
-        <View style={{ gap: spacing.xs }}>
-          {ADVANCED_FILTERS.map((filter) => (
-            <FilterCheckbox
-              key={filter.key}
-              label={filter.label}
-              checked={advanced.has(filter.key)}
-              onPress={() => toggleAdvanced(filter.key)}
-            />
-          ))}
-        </View>
-      </StandardModal>
+      {modals}
     </>
   );
 }
