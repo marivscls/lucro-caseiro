@@ -473,6 +473,96 @@ export function ChoiceField<T extends string>({
 }
 
 /**
+ * Um chip de escolha (pílula de 44 px). Selecionado: fundo rosado, borda vinho
+ * de 2 px e texto vinho, igual ao `ChoiceField`. Para uma lista de opções de
+ * escolha única use `ChipChoiceField`; use o chip solto quando a lista mistura
+ * ações ("Nova categoria") ou permite mais de uma escolha.
+ */
+export function OptionChip({
+  label,
+  selected = false,
+  icon,
+  locked,
+  disabled,
+  onPress,
+  accessibilityLabel,
+  accessibilityRole = "radio",
+}: Readonly<{
+  label: string;
+  selected?: boolean;
+  icon?: AppIconName;
+  locked?: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+  accessibilityLabel?: string;
+  /** "checkbox" para escolha múltipla, "button" para ação. */
+  accessibilityRole?: "radio" | "checkbox" | "button";
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  const choice = accessibilityRole !== "button";
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={
+        choice ? { selected, checked: selected, disabled } : { disabled }
+      }
+      style={({ pressed }) => ({
+        minHeight: 44,
+        maxWidth: "100%",
+        paddingHorizontal: spacing.lg - (selected ? 1 : 0),
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: spacing.sm,
+        borderRadius: 9999,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primaryStrong : pal.border,
+        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+        opacity: pressOpacity(disabled, pressed),
+      })}
+    >
+      {icon ? (
+        <AppIcon
+          name={icon}
+          size={18}
+          color={selected ? theme.colors.primaryStrong : pal.icon}
+        />
+      ) : null}
+      <Typography
+        variant={selected ? "bodyBold" : "body"}
+        color={selected ? theme.colors.primaryStrong : theme.colors.text}
+        style={{ flexShrink: 1 }}
+      >
+        {label}
+      </Typography>
+      {locked && !selected ? (
+        <AppIcon name="lock-closed" size={14} color={theme.colors.premium} />
+      ) : null}
+    </Pressable>
+  );
+}
+
+/** Linha de chips que quebra linha; com `accessibilityLabel` vira grupo de escolha. */
+export function ChipRow({
+  children,
+  accessibilityLabel,
+}: Readonly<{ children: React.ReactNode; accessibilityLabel?: string }>) {
+  return (
+    <View
+      accessibilityRole={accessibilityLabel ? "radiogroup" : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {children}
+    </View>
+  );
+}
+
+/**
  * Escolha única com mais de 4 opções (categoria, forma de pagamento, tipo de
  * negócio): chips que quebram linha, no mesmo visual das categorias do produto.
  * Até 4 opções curtas, prefira `ChoiceField`.
@@ -488,60 +578,19 @@ export function ChipChoiceField<T extends string>({
   onChange: (value: T) => void;
   accessibilityLabel: string;
 }>) {
-  const { theme } = useTheme();
-  const pal = useFieldPalette();
   return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel={accessibilityLabel}
-      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-    >
-      {options.map((option) => {
-        const selected = option.value === value;
-        return (
-          <Pressable
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            disabled={option.disabled}
-            accessibilityRole="radio"
-            accessibilityLabel={option.label}
-            accessibilityState={{
-              selected,
-              checked: selected,
-              disabled: option.disabled,
-            }}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              paddingHorizontal: spacing.lg - (selected ? 1 : 0),
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.sm,
-              borderRadius: 9999,
-              borderWidth: selected ? 2 : 1,
-              borderColor: selected ? theme.colors.primaryStrong : pal.border,
-              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
-              opacity: pressOpacity(option.disabled, pressed),
-            })}
-          >
-            {option.icon ? (
-              <AppIcon
-                name={option.icon}
-                size={18}
-                color={selected ? theme.colors.primaryStrong : pal.icon}
-              />
-            ) : null}
-            <Typography
-              variant={selected ? "bodyBold" : "body"}
-              color={selected ? theme.colors.primaryStrong : theme.colors.text}
-            >
-              {option.label}
-            </Typography>
-            {option.locked && !selected ? (
-              <AppIcon name="lock-closed" size={14} color={theme.colors.premium} />
-            ) : null}
-          </Pressable>
-        );
-      })}
-    </View>
+    <ChipRow accessibilityLabel={accessibilityLabel}>
+      {options.map((option) => (
+        <OptionChip
+          key={option.value}
+          label={option.label}
+          icon={option.icon}
+          locked={option.locked}
+          disabled={option.disabled}
+          selected={option.value === value}
+          onPress={() => onChange(option.value)}
+        />
+      ))}
+    </ChipRow>
   );
 }

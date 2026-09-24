@@ -21,6 +21,9 @@ O objetivo é um vocabulário só: quem aprende um formulário já sabe usar tod
 | `Input label optional hint error`              | `@lucro-caseiro/ui`                | Mesmo visual do `TextField`, com rótulo embutido. Serve para telas que já usam `Input`.                                 |
 | `SelectField`                                  | `form-field.tsx`                   | Campo que abre uma escolha (categoria, cliente, data). Mesma caixa, seta à direita.                                     |
 | `ChoiceField`                                  | `form-field.tsx`                   | Escolha única entre 2 a 4 opções curtas, lado a lado. Selecionada: fundo rosado, borda vinho de 2 px e texto vinho.     |
+| `ChipChoiceField`                              | `form-field.tsx`                   | Escolha única com 5 ou mais opções (categoria, pagamento, unidade): chips de 44 px que quebram linha.                   |
+| `OptionChip` + `ChipRow`                       | `form-field.tsx`                   | Chip solto, para listas que misturam ações ou aceitam mais de uma escolha. Mesmo visual do `ChipChoiceField`.           |
+| `CalendarDateField`                            | `calendar-date-field.tsx`          | Data escolhida no calendário, com "Limpar" quando é opcional.                                                           |
 | `FieldLinkAction`                              | `form-field.tsx`                   | Ação curta ao lado do rótulo ("Gerar código"). Use em `FormField labelAction`.                                          |
 | `FormActions`                                  | `form-layout.tsx`                  | Rodapé: secundária à esquerda, principal por último. Celular divide a largura; computador alinha à direita.             |
 | `FormStepProgress`                             | `form-step-progress.tsx`           | Etapas, só quando o formulário tem mais de ~8 campos obrigatórios ou assuntos bem separados.                            |
@@ -40,7 +43,8 @@ O objetivo é um vocabulário só: quem aprende um formulário já sabe usar tod
 
 - Uma altura só: 48 px. Multilinha: 112 px. Nada de 52, 56, 58, 60 ou 66.
 - Ícone dentro do campo é opcional, cinza (`textSecondary`), 20 px. Nunca rosa.
-- Datas usam `DateField` ou `SelectField` que abre o calendário, não uma máscara digitada.
+- Datas usam `CalendarDateField` (ou `DateField`, que também abre o calendário).
+- Nada de chip desenhado à mão: `ChoiceField`, `ChipChoiceField` ou `OptionChip`.
 - Dinheiro: `prefix="R$"` e `keyboardType="numeric"`.
 
 **Grupos**
