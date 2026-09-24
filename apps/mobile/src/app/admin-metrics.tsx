@@ -32,6 +32,12 @@ import {
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  DesktopGrid,
+  DesktopStatRow,
+  desktopCardStyle,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { ApiError } from "../shared/utils/api-client";
 
 type DashboardSection = "overview" | "usage" | "funnel" | "retention";
@@ -258,104 +264,112 @@ function RetentionRow({
 
 function OverviewSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const linkedPercent = data.installations.total
     ? (data.installations.linkedToUser / data.installations.total) * 100
     : null;
 
   return (
     <View style={{ gap: spacing.lg }}>
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
-        <MetricCard
-          label="INSTALAÇÕES"
-          value={data.installations.total}
-          caption={`${data.installations.last7Days} nos últimos 7 dias`}
-          icon="phone-portrait-outline"
-        />
-        <MetricCard
-          label="CADASTROS"
-          value={data.signups.total}
-          caption={`${data.signups.last30Days} nos últimos 30 dias`}
-          icon="person-add-outline"
-        />
-      </View>
+      {isDesktop ? null : (
+        <>
+          <View style={{ flexDirection: "row", gap: spacing.md }}>
+            <MetricCard
+              label="INSTALAÇÕES"
+              value={data.installations.total}
+              caption={`${data.installations.last7Days} nos últimos 7 dias`}
+              icon="phone-portrait-outline"
+            />
+            <MetricCard
+              label="CADASTROS"
+              value={data.signups.total}
+              caption={`${data.signups.last30Days} nos últimos 30 dias`}
+              icon="person-add-outline"
+            />
+          </View>
 
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
-        <MetricCard
-          label="ATIVAÇÃO EM 7 DIAS"
-          value={formatPercent(data.activation.rateWithin7DaysPercent)}
-          caption={`${data.activation.activatedWithin7Days} de ${data.activation.eligibleWithin7Days} elegíveis`}
-          icon="checkmark-circle-outline"
-        />
-        <MetricCard
-          label="VÍNCULO COM CONTA"
-          value={formatPercent(linkedPercent)}
-          caption={`${data.installations.linkedToUser} instalações identificadas`}
-          icon="link-outline"
-        />
-      </View>
+          <View style={{ flexDirection: "row", gap: spacing.md }}>
+            <MetricCard
+              label="ATIVAÇÃO EM 7 DIAS"
+              value={formatPercent(data.activation.rateWithin7DaysPercent)}
+              caption={`${data.activation.activatedWithin7Days} de ${data.activation.eligibleWithin7Days} elegíveis`}
+              icon="checkmark-circle-outline"
+            />
+            <MetricCard
+              label="VÍNCULO COM CONTA"
+              value={formatPercent(linkedPercent)}
+              caption={`${data.installations.linkedToUser} instalações identificadas`}
+              icon="link-outline"
+            />
+          </View>
+        </>
+      )}
 
-      <ActivityTable data={data.active} />
+      <DesktopGrid minColumnWidth={400} maxColumns={2}>
+        <ActivityTable data={data.active} />
 
-      <Card variant="elevated" style={{ gap: spacing.md }}>
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h3">Origem das instalações</Typography>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Últimos 30 dias, pela campanha do link que abriu o app pela primeira vez.
-          </Typography>
-        </View>
-        {data.acquisition.length === 0 ? (
-          <Typography variant="body" color={theme.colors.textSecondary}>
-            Ainda não há instalações nos últimos 30 dias.
-          </Typography>
-        ) : null}
-        {data.acquisition.map((item) => (
-          <View
-            key={`${item.source ?? "-"}:${item.content ?? "-"}`}
-            style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-          >
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">
-                {item.source ?? "Sem origem identificada"}
-              </Typography>
-              {item.content ? (
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {item.content}
+        <Card variant="elevated" style={{ gap: spacing.md }}>
+          <View style={{ gap: spacing.xs }}>
+            <Typography variant="h3">Origem das instalações</Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Últimos 30 dias, pela campanha do link que abriu o app pela primeira vez.
+            </Typography>
+          </View>
+          {data.acquisition.length === 0 ? (
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              Ainda não há instalações nos últimos 30 dias.
+            </Typography>
+          ) : null}
+          {data.acquisition.map((item) => (
+            <View
+              key={`${item.source ?? "-"}:${item.content ?? "-"}`}
+              style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+            >
+              <View style={{ flex: 1 }}>
+                <Typography variant="bodyBold">
+                  {item.source ?? "Sem origem identificada"}
                 </Typography>
-              ) : null}
+                {item.content ? (
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    {item.content}
+                  </Typography>
+                ) : null}
+              </View>
+              <Typography variant="body" color={theme.colors.textSecondary}>
+                {item.installations} · {item.linkedToUser} com conta
+              </Typography>
             </View>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              {item.installations} · {item.linkedToUser} com conta
-            </Typography>
-          </View>
-        ))}
-      </Card>
+          ))}
+        </Card>
 
-      <Card variant="elevated" style={{ gap: spacing.md }}>
-        <Typography variant="h3">Versões em uso</Typography>
-        {data.versionAdoption.length === 0 ? (
+        <Card variant="elevated" style={{ gap: spacing.md }}>
+          <Typography variant="h3">Versões em uso</Typography>
+          {data.versionAdoption.length === 0 ? (
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              Ainda não há versões registradas nos últimos 30 dias.
+            </Typography>
+          ) : null}
+          {data.versionAdoption.map((item) => (
+            <View key={item.appVersion} style={{ flexDirection: "row" }}>
+              <Typography variant="bodyBold" style={{ flex: 1 }}>
+                Versão {item.appVersion}
+              </Typography>
+              <Typography variant="body" color={theme.colors.textSecondary}>
+                {item.installations} · {formatPercent(item.percent)}
+              </Typography>
+            </View>
+          ))}
+        </Card>
+
+        <Card variant="surface" style={{ gap: spacing.sm }}>
+          <Typography variant="bodyBold">Como a ativação é calculada</Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Ainda não há versões registradas nos últimos 30 dias.
+            A primeira precificação, venda ou encomenda concluída conta como ativação. As
+            taxas só usam grupos que já tiveram tempo suficiente para completar cada
+            janela.
           </Typography>
-        ) : null}
-        {data.versionAdoption.map((item) => (
-          <View key={item.appVersion} style={{ flexDirection: "row" }}>
-            <Typography variant="bodyBold" style={{ flex: 1 }}>
-              Versão {item.appVersion}
-            </Typography>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              {item.installations} · {formatPercent(item.percent)}
-            </Typography>
-          </View>
-        ))}
-      </Card>
-
-      <Card variant="surface" style={{ gap: spacing.sm }}>
-        <Typography variant="bodyBold">Como a ativação é calculada</Typography>
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          A primeira precificação, venda ou encomenda concluída conta como ativação. As
-          taxas só usam grupos que já tiveram tempo suficiente para completar cada janela.
-        </Typography>
-      </Card>
+        </Card>
+      </DesktopGrid>
     </View>
   );
 }
@@ -364,75 +378,77 @@ function UsageSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
   return (
     <View style={{ gap: spacing.lg }}>
-      <ListCard
-        variant="elevated"
-        title="Telas com mais tempo ativo"
-        subtitle="Últimos 30 dias; o tempo para quando o app fica em segundo plano."
-      >
-        {data.screenUsage.length === 0 ? (
-          <Typography
-            variant="body"
-            color={theme.colors.textSecondary}
-            style={{ paddingTop: spacing.md }}
-          >
-            Ainda não há visitas registradas nesta versão.
-          </Typography>
-        ) : null}
-        {data.screenUsage.map((item, index) => (
-          <ListCardItem
-            key={item.screen}
-            first={index === 0}
-            style={{ gap: spacing.xs, paddingVertical: spacing.md }}
-          >
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <Typography variant="bodyBold">
-                {index + 1}. {SCREEN_LABELS[item.screen] ?? item.screen}
-              </Typography>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                {item.activeMinutes.toLocaleString("pt-BR", {
-                  maximumFractionDigits: 1,
-                })}{" "}
-                min
-              </Typography>
-            </View>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {item.visits} visitas · {item.people} pessoas · média de{" "}
-              {item.averageActiveSeconds.toLocaleString("pt-BR", {
-                maximumFractionDigits: 0,
-              })}
-              s
+      <DesktopGrid minColumnWidth={400} maxColumns={2}>
+        <ListCard
+          variant="elevated"
+          title="Telas com mais tempo ativo"
+          subtitle="Últimos 30 dias; o tempo para quando o app fica em segundo plano."
+        >
+          {data.screenUsage.length === 0 ? (
+            <Typography
+              variant="body"
+              color={theme.colors.textSecondary}
+              style={{ paddingTop: spacing.md }}
+            >
+              Ainda não há visitas registradas nesta versão.
             </Typography>
-          </ListCardItem>
-        ))}
-      </ListCard>
-
-      <ListCard
-        variant="elevated"
-        title="Funcionalidades mais usadas"
-        subtitle="Ações confirmadas pelo app nos últimos 30 dias."
-      >
-        {data.featureUsage.map((item, index) => (
-          <ListCardItem
-            key={item.action}
-            first={index === 0}
-            style={{ paddingVertical: spacing.md }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Typography variant="bodyBold" style={{ flex: 1 }}>
-                {ACTION_LABELS[item.action] ?? item.action}
-              </Typography>
-              <View style={{ alignItems: "flex-end" }}>
-                <Typography variant="bodyBold" color={theme.colors.primary}>
-                  {item.events}
+          ) : null}
+          {data.screenUsage.map((item, index) => (
+            <ListCardItem
+              key={item.screen}
+              first={index === 0}
+              style={{ gap: spacing.xs, paddingVertical: spacing.md }}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Typography variant="bodyBold">
+                  {index + 1}. {SCREEN_LABELS[item.screen] ?? item.screen}
                 </Typography>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {item.people} pessoas
+                <Typography variant="bodyBold" color={theme.colors.primary}>
+                  {item.activeMinutes.toLocaleString("pt-BR", {
+                    maximumFractionDigits: 1,
+                  })}{" "}
+                  min
                 </Typography>
               </View>
-            </View>
-          </ListCardItem>
-        ))}
-      </ListCard>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {item.visits} visitas · {item.people} pessoas · média de{" "}
+                {item.averageActiveSeconds.toLocaleString("pt-BR", {
+                  maximumFractionDigits: 0,
+                })}
+                s
+              </Typography>
+            </ListCardItem>
+          ))}
+        </ListCard>
+
+        <ListCard
+          variant="elevated"
+          title="Funcionalidades mais usadas"
+          subtitle="Ações confirmadas pelo app nos últimos 30 dias."
+        >
+          {data.featureUsage.map((item, index) => (
+            <ListCardItem
+              key={item.action}
+              first={index === 0}
+              style={{ paddingVertical: spacing.md }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Typography variant="bodyBold" style={{ flex: 1 }}>
+                  {ACTION_LABELS[item.action] ?? item.action}
+                </Typography>
+                <View style={{ alignItems: "flex-end" }}>
+                  <Typography variant="bodyBold" color={theme.colors.primary}>
+                    {item.events}
+                  </Typography>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    {item.people} pessoas
+                  </Typography>
+                </View>
+              </View>
+            </ListCardItem>
+          ))}
+        </ListCard>
+      </DesktopGrid>
     </View>
   );
 }
@@ -486,48 +502,134 @@ function RetentionSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }
   const { theme } = useTheme();
   return (
     <View style={{ gap: spacing.lg }}>
-      <Card variant="elevated" style={{ gap: spacing.xl }}>
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h3">Retenção por instalação</Typography>
-          <Typography variant="body" color={theme.colors.textSecondary}>
-            Percentual que voltou exatamente após o primeiro uso.
-          </Typography>
-        </View>
-        <RetentionRow label="D1 · dia seguinte" metric={data.retention.day1} />
-        <RetentionRow label="D7 · uma semana" metric={data.retention.day7} />
-        <RetentionRow label="D30 · um mês" metric={data.retention.day30} />
-      </Card>
+      <DesktopGrid minColumnWidth={400} maxColumns={2}>
+        <Card variant="elevated" style={{ gap: spacing.xl }}>
+          <View style={{ gap: spacing.xs }}>
+            <Typography variant="h3">Retenção por instalação</Typography>
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              Percentual que voltou exatamente após o primeiro uso.
+            </Typography>
+          </View>
+          <RetentionRow label="D1 · dia seguinte" metric={data.retention.day1} />
+          <RetentionRow label="D7 · uma semana" metric={data.retention.day7} />
+          <RetentionRow label="D30 · um mês" metric={data.retention.day30} />
+        </Card>
 
-      <Card variant="elevated" style={{ gap: spacing.xl }}>
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h3">Retenção por comportamento</Typography>
-          <Typography variant="body" color={theme.colors.textSecondary}>
-            Retorno no D7 de quem usou uma função importante na primeira semana.
-          </Typography>
-        </View>
-        {data.behaviorRetention.map((item) => (
-          <RetentionRow
-            key={item.behavior}
-            label={
-              item.behavior === "pricing_completed"
-                ? "Fez uma precificação"
-                : "Compartilhou o catálogo"
-            }
-            metric={item}
-          />
-        ))}
-      </Card>
+        <Card variant="elevated" style={{ gap: spacing.xl }}>
+          <View style={{ gap: spacing.xs }}>
+            <Typography variant="h3">Retenção por comportamento</Typography>
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              Retorno no D7 de quem usou uma função importante na primeira semana.
+            </Typography>
+          </View>
+          {data.behaviorRetention.map((item) => (
+            <RetentionRow
+              key={item.behavior}
+              label={
+                item.behavior === "pricing_completed"
+                  ? "Fez uma precificação"
+                  : "Compartilhou o catálogo"
+              }
+              metric={item}
+            />
+          ))}
+        </Card>
+      </DesktopGrid>
+    </View>
+  );
+}
+
+/** Abas das seções no desktop: controle segmentado com a largura do texto. */
+function DesktopSectionTabs({
+  section,
+  onChange,
+}: Readonly<{ section: DashboardSection; onChange: (next: DashboardSection) => void }>) {
+  const { theme } = useTheme();
+  return (
+    <View
+      accessibilityRole="tablist"
+      style={[
+        desktopCardStyle(theme, { padding: 4 }),
+        { flexDirection: "row", alignSelf: "flex-start", gap: 4 },
+      ]}
+    >
+      {SECTIONS.map((item) => {
+        const selected = section === item.key;
+        return (
+          <Pressable
+            key={item.key}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            onPress={() => onChange(item.key)}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: spacing.lg,
+              borderRadius: radii.md,
+              justifyContent: "center",
+              backgroundColor: selected ? theme.colors.primaryInteractive : "transparent",
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant="desktopBodyStrong"
+              color={selected ? theme.colors.textOnPrimary : theme.colors.text}
+            >
+              {item.label}
+            </Typography>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
 function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [section, setSection] = useState<DashboardSection>("overview");
   let sectionContent: React.ReactNode = <OverviewSection data={data} />;
   if (section === "usage") sectionContent = <UsageSection data={data} />;
   if (section === "funnel") sectionContent = <FunnelSection data={data} />;
   if (section === "retention") sectionContent = <RetentionSection data={data} />;
+
+  if (isDesktop) {
+    const linkedPercent = data.installations.total
+      ? (data.installations.linkedToUser / data.installations.total) * 100
+      : null;
+    return (
+      <View style={{ gap: spacing["2xl"] }}>
+        <DesktopStatRow
+          items={[
+            {
+              label: "Instalações",
+              value: String(data.installations.total),
+              hint: `${data.installations.last7Days} nos últimos 7 dias`,
+            },
+            {
+              label: "Cadastros",
+              value: String(data.signups.total),
+              hint: `${data.signups.last30Days} nos últimos 30 dias`,
+            },
+            {
+              label: "Ativação em 7 dias",
+              value: formatPercent(data.activation.rateWithin7DaysPercent),
+              hint: `${data.activation.activatedWithin7Days} de ${data.activation.eligibleWithin7Days} elegíveis`,
+            },
+            {
+              label: "Vínculo com conta",
+              value: formatPercent(linkedPercent),
+              hint: `${data.installations.linkedToUser} instalações identificadas`,
+            },
+          ]}
+        />
+        <DesktopSectionTabs section={section} onChange={setSection} />
+        {sectionContent}
+        <Typography variant="desktopMeta">
+          Atualizado em {new Date(data.generatedAt).toLocaleString("pt-BR")}
+        </Typography>
+      </View>
+    );
+  }
 
   return (
     <View style={{ gap: spacing.lg }}>
@@ -591,6 +693,77 @@ export default function AdminMetricsScreen() {
   const errorDescription = forbidden
     ? "Esta conta não está autorizada a consultar as métricas internas."
     : "Confira sua conexão e tente novamente.";
+
+  if (isDesktop) {
+    let desktopContent: React.ReactNode;
+    if (dashboard.isLoading)
+      desktopContent = (
+        <View style={{ gap: spacing.lg }}>
+          <SkeletonSummaryStrip tiles={4} />
+          <SkeletonList rows={4} variant="amount" />
+        </View>
+      );
+    else if (dashboard.error || !dashboard.data)
+      desktopContent = (
+        <View
+          style={{
+            borderWidth: 1.5,
+            borderStyle: "dashed",
+            borderColor: theme.colors.border,
+            borderRadius: radii.lg,
+            paddingVertical: spacing["3xl"],
+            paddingHorizontal: spacing["2xl"],
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.xl,
+          }}
+        >
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: radii.full,
+              backgroundColor: theme.colors.primaryBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon name={errorIcon} size={26} color={theme.colors.primaryStrong} />
+          </View>
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="desktopCardTitle">{errorTitle}</Typography>
+            <Typography variant="desktopBody">{errorDescription}</Typography>
+          </View>
+          <Button
+            title="Tentar novamente"
+            variant="secondary"
+            onPress={() => void dashboard.refetch()}
+            style={{ minWidth: 160, minHeight: 48 }}
+          />
+        </View>
+      );
+    else desktopContent = <Dashboard data={dashboard.data} />;
+
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        edges={["top", "bottom"]}
+      >
+        <Stack.Screen options={{ headerShown: false }} />
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+        >
+          <ScreenHeader
+            title="Métricas do produto"
+            subtitle="Instalação, uso, conversão e retorno dos usuários."
+            hideBack
+          />
+          {desktopContent}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   let content: React.ReactNode;
   if (dashboard.isLoading) {

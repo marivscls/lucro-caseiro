@@ -156,3 +156,13 @@ quando o checkout não abre. Nome e nome do negócio nunca entram nas props.
 Quando uma tela quebra, mostra "Algo deu errado" com o botão "Tentar de novo", que reinicia a
 barreira, e chama `reportAppCrash`. Props de `app_crashed`: `error` (nome do tipo, só `\w`, até 40) e `screen`. Erros fora da árvore React (promessas soltas, crash nativo) não são capturados;
 um serviço dedicado (ex.: Sentry) exigiria conta e DSN do responsável.
+
+## Desktop do painel (web >= 1024px) — 2026-09-23
+
+`app/admin-metrics.tsx`, só no desktop; o celular não muda.
+
+- A página rola inteira, com o cabeçalho "Métricas do produto" e o subtítulo "Instalação, uso, conversão e retorno dos usuários.".
+- Os quatro `MetricCard` (rótulos em caixa alta de 13px) viram um `DesktopStatRow`: instalações, cadastros, ativação em 7 dias e vínculo com conta, cada um com a dica de 14px.
+- As seções usam um controle segmentado com a largura do texto.
+- Na visão geral, atividade, origem, versões e "Como a ativação é calculada" ficam em `DesktopGrid` de 2 colunas. Telas e funções e as duas retenções também ficam em 2 colunas.
+- Carregamento, erro e acesso restrito aparecem na página, abaixo do cabeçalho. O erro usa um cartão tracejado com "Tentar novamente".
