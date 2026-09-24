@@ -14,15 +14,12 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useFieldPalette } from "../../../shared/components/form-field";
+import { fieldMetrics, useFieldPalette } from "../../../shared/components/form-field";
 import { useSuppliers } from "../hooks";
 import { CreateSupplierForm } from "./create-supplier-form";
-import {
-  ResponsiveModal,
-  ResponsiveOverlayModal,
-} from "../../../shared/components/responsive-modal-surface";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { desktopModalSurface } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
@@ -68,19 +65,18 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
         accessibilityRole="button"
         accessibilityLabel="Escolher fornecedor"
         style={{
-          minHeight: 60,
-          borderRadius: radii.lg,
+          minHeight: fieldMetrics.height,
+          borderRadius: fieldMetrics.radius,
           borderWidth: 1,
           borderColor: pal.border,
           backgroundColor: pal.fieldBg,
           flexDirection: "row",
           alignItems: "center",
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
+          paddingHorizontal: fieldMetrics.paddingX,
           gap: spacing.md,
         }}
       >
-        <AppIcon name="business-outline" size={22} color={theme.colors.primary} />
+        <AppIcon name="business-outline" size={fieldMetrics.iconSize} color={pal.icon} />
         <Typography
           variant="body"
           color={selected ? theme.colors.text : pal.placeholder}
@@ -275,44 +271,15 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
       </ResponsiveOverlayModal>
 
       {/* Modal de criar fornecedor (auto-seleciona o criado) */}
-      <ResponsiveModal
-        desktopMaxWidth={840}
-        visible={creating}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setCreating(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.md,
-              gap: spacing.md,
-            }}
-          >
-            <Pressable
-              onPress={() => setCreating(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <AppIcon name="close" size={28} color={theme.colors.text} />
-            </Pressable>
-            <Typography variant="h3" color={theme.colors.text} style={{ flex: 1 }}>
-              Novo fornecedor
-            </Typography>
-          </View>
-          <CreateSupplierForm
-            onSuccess={(created) => {
-              setCreating(false);
-              if (created) pick(created.id);
-            }}
-          />
-        </SafeAreaView>
-      </ResponsiveModal>
+      {creating ? (
+        <CreateSupplierForm
+          modal={{ visible: true, onClose: () => setCreating(false) }}
+          onSuccess={(created) => {
+            setCreating(false);
+            if (created) pick(created.id);
+          }}
+        />
+      ) : null}
     </>
   );
 }
