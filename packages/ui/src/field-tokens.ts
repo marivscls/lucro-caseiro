@@ -21,12 +21,15 @@ export const fieldMetrics = {
 export function fieldColors(theme: Theme) {
   const dark = theme.mode === "dark";
   return {
-    /** Mais firme que a hairline dos cartões, para o campo se destacar no fundo branco. */
-    border: dark ? "rgba(245, 244, 243, 0.2)" : "#D8D2CC",
+    /**
+     * Contorno do campo com contraste >= 3:1 no fundo (WCAG 1.4.11): o público
+     * inclui pessoas mais velhas, e o campo precisa se ver sem depender do foco.
+     */
+    border: dark ? "#857E78" : "#928A83",
     borderHover: theme.colors.textSecondary,
     borderFocus: theme.colors.primaryInteractive,
     borderError: theme.colors.alert,
-    fieldBg: theme.colors.surface,
+    fieldBg: theme.colors.surfaceElevated,
     fieldBgFocus: theme.colors.surfaceElevated,
     icon: theme.colors.textSecondary,
     placeholder: theme.colors.textSecondary,

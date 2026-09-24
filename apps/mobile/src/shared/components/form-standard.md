@@ -9,22 +9,22 @@ O objetivo é um vocabulário só: quem aprende um formulário já sabe usar tod
 
 ## Peças
 
-| Peça                                           | Arquivo                            | Uso                                                                                                           |
-| ---------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `StandardModal size="form"`                    | `standard-modal.tsx`               | Moldura de todo formulário: folha de baixo no celular, janela de 680 px no computador, rodapé fixo de ações.  |
-| `FormBody`                                     | `form-layout.tsx`                  | Corpo do formulário: blocos empilhados com 32 px entre eles.                                                  |
-| `FormSection collapsible={false}`              | `form-section.tsx`                 | Grupo com título (18 px no computador, 16 no celular) e descrição opcional. Sem ícone, sem caixa.             |
-| `FormSection` (recolhível)                     | `form-section.tsx`                 | Só para detalhes opcionais que a maioria não preenche. Caixa com borda; abre sozinha se tiver erro.           |
-| `FormGrid`                                     | `form-layout.tsx`                  | Campos lado a lado quando cabem (mede a largura; vira uma coluna no celular). `span="full"` ocupa a linha.    |
-| `FormField label optional hint validation`     | `form-field.tsx`                   | Rótulo de 15 px + controle + erro. `validation={form.field("nome")}` liga o erro ao campo.                    |
-| `TextField icon prefix suffix right multiline` | `form-field.tsx`                   | Caixa de texto padrão: 48 px (112 px multilinha), raio 12, borda `#D8D2CC`, foco na cor de ação.              |
-| `Input label optional hint error`              | `@lucro-caseiro/ui`                | Mesmo visual do `TextField`, com rótulo embutido. Serve para telas que já usam `Input`.                       |
-| `SelectField`                                  | `form-field.tsx`                   | Campo que abre uma escolha (categoria, cliente, data). Mesma caixa, seta à direita.                           |
-| `ChoiceField`                                  | `form-field.tsx`                   | Escolha única entre 2 a 4 opções curtas, lado a lado. Selecionada: fundo rosado, borda vinho de 2 px e check. |
-| `FieldLinkAction`                              | `form-field.tsx`                   | Ação curta ao lado do rótulo ("Gerar código"). Use em `FormField labelAction`.                                |
-| `FormActions`                                  | `form-layout.tsx`                  | Rodapé: secundária à esquerda, principal por último. Celular divide a largura; computador alinha à direita.   |
-| `FormStepProgress`                             | `form-step-progress.tsx`           | Etapas, só quando o formulário tem mais de ~8 campos obrigatórios ou assuntos bem separados.                  |
-| `useFormValidation` + `validation`             | `shared/hooks/use-form-validation` | Erro no campo, foco no primeiro campo com problema e aviso para leitor de tela.                               |
+| Peça                                           | Arquivo                            | Uso                                                                                                                     |
+| ---------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `StandardModal size="form"`                    | `standard-modal.tsx`               | Moldura de todo formulário: folha de baixo no celular, janela de 680 px no computador, rodapé fixo de ações.            |
+| `FormBody`                                     | `form-layout.tsx`                  | Corpo do formulário: blocos empilhados com 32 px entre eles.                                                            |
+| `FormSection collapsible={false}`              | `form-section.tsx`                 | Grupo com título (18 px no computador, 16 no celular) e descrição opcional. Sem ícone, sem caixa.                       |
+| `FormSection` (recolhível)                     | `form-section.tsx`                 | Só para detalhes opcionais que a maioria não preenche. Caixa com borda; abre sozinha se tiver erro.                     |
+| `FormGrid`                                     | `form-layout.tsx`                  | Campos lado a lado quando cabem (mede a largura; vira uma coluna no celular). `span="full"` ocupa a linha.              |
+| `FormField label optional hint validation`     | `form-field.tsx`                   | Rótulo de 15 px + controle + erro. `validation={form.field("nome")}` liga o erro ao campo.                              |
+| `TextField icon prefix suffix right multiline` | `form-field.tsx`                   | Caixa de texto padrão: 48 px (112 px multilinha), raio 12, fundo branco, contorno 3:1 (`#928A83`), foco na cor de ação. |
+| `Input label optional hint error`              | `@lucro-caseiro/ui`                | Mesmo visual do `TextField`, com rótulo embutido. Serve para telas que já usam `Input`.                                 |
+| `SelectField`                                  | `form-field.tsx`                   | Campo que abre uma escolha (categoria, cliente, data). Mesma caixa, seta à direita.                                     |
+| `ChoiceField`                                  | `form-field.tsx`                   | Escolha única entre 2 a 4 opções curtas, lado a lado. Selecionada: fundo rosado, borda vinho de 2 px e texto vinho.     |
+| `FieldLinkAction`                              | `form-field.tsx`                   | Ação curta ao lado do rótulo ("Gerar código"). Use em `FormField labelAction`.                                          |
+| `FormActions`                                  | `form-layout.tsx`                  | Rodapé: secundária à esquerda, principal por último. Celular divide a largura; computador alinha à direita.             |
+| `FormStepProgress`                             | `form-step-progress.tsx`           | Etapas, só quando o formulário tem mais de ~8 campos obrigatórios ou assuntos bem separados.                            |
+| `useFormValidation` + `validation`             | `shared/hooks/use-form-validation` | Erro no campo, foco no primeiro campo com problema e aviso para leitor de tela.                                         |
 
 ## Regras
 

@@ -38,6 +38,13 @@ export function useFieldPalette() {
   return { ...fieldColors(theme), sheetBg: theme.colors.surfaceElevated };
 }
 
+/** Liga o rótulo do `FormField` ao controle de dentro (leitor de tela e navegador). */
+const FormFieldContext = React.createContext<{
+  label?: string;
+  hint?: string;
+  required: boolean;
+} | null>(null);
+
 type FieldLabelProps = Readonly<{
   label: string;
   /** Mantido por compatibilidade: campos obrigatórios não levam marca. */
@@ -117,12 +124,16 @@ export function FormField({
   ) : (
     children
   );
+  const context = React.useMemo(
+    () => ({ label, hint, required: !!validation && !optional }),
+    [label, hint, validation, optional],
+  );
   return (
     <View style={[{ minWidth: 0 }, style]}>
       {label ? (
         <FieldLabel label={label} optional={optional} hint={hint} action={labelAction} />
       ) : null}
-      {control}
+      <FormFieldContext.Provider value={context}>{control}</FormFieldContext.Provider>
     </View>
   );
 }
@@ -184,6 +195,7 @@ export function TextField({
 }: TextFieldProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
+  const field = React.useContext(FormFieldContext);
   const [focused, setFocused] = React.useState(false);
   const frame = useFieldFrame(focused, error);
   return (
@@ -217,7 +229,13 @@ export function TextField({
       ) : null}
       <CenteredTextInput
         ref={inputRef}
-        accessibilityLabel={inputProps.accessibilityLabel ?? inputProps.placeholder}
+        accessibilityLabel={
+          inputProps.accessibilityLabel ?? field?.label ?? inputProps.placeholder
+        }
+        accessibilityHint={inputProps.accessibilityHint ?? field?.hint}
+        {...(Platform.OS === "web" && field?.required
+          ? ({ "aria-required": true } as Record<string, unknown>)
+          : null)}
         placeholderTextColor={pal.placeholder}
         multiline={multiline}
         style={[
@@ -273,8 +291,9 @@ export function FieldLinkAction({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
-      hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={({ pressed }) => ({
+        minHeight: 32,
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.xs,
@@ -368,7 +387,8 @@ export type ChoiceOption<T extends string> = Readonly<{
 
 /**
  * Escolha única entre 2 a 4 opções curtas, lado a lado (ex.: "Por unidade" /
- * "Por quilo"). Selecionada: fundo rosado, borda vinho e marca de confirmação.
+ * "Por quilo"). Selecionada: fundo rosado, borda vinho de 2 px e texto vinho
+ * (a espessura da borda marca a escolha sem depender só da cor).
  */
 export function ChoiceField<T extends string>({
   value,
@@ -444,13 +464,6 @@ export function ChoiceField<T extends string>({
             </View>
             {option.locked && !selected ? (
               <AppIcon name="lock-closed" size={16} color={theme.colors.premium} />
-            ) : null}
-            {selected ? (
-              <AppIcon
-                name="checkmark-circle"
-                size={fieldMetrics.iconSize}
-                color={theme.colors.primaryStrong}
-              />
             ) : null}
           </Pressable>
         );
