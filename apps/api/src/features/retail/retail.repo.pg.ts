@@ -16,7 +16,7 @@ import {
   retailPriceChanges,
   retailPromotions,
 } from "@lucro-caseiro/database/schema";
-import { and, asc, eq, gt, inArray, ne, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, inArray, lte, ne, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import { ValidationError } from "../../shared/errors";
@@ -226,8 +226,8 @@ export class RetailRepoPg implements IRetailRepo {
     const conditions = [eq(retailPromotions.userId, userId)];
     if (activeAt) {
       conditions.push(eq(retailPromotions.active, true));
-      conditions.push(sql`${retailPromotions.startsAt} <= ${activeAt}`);
-      conditions.push(sql`${retailPromotions.endsAt} >= ${activeAt}`);
+      conditions.push(lte(retailPromotions.startsAt, activeAt));
+      conditions.push(gte(retailPromotions.endsAt, activeAt));
     }
     const rows = await this.db
       .select()
