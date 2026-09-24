@@ -126,15 +126,23 @@ function AvatarCircle({
   );
 }
 
+const HOME_CARD_COLUMN = { flex: 1, minWidth: 300 } as const;
+
 function Columns({
   desktop,
+  wrap = false,
   children,
-}: Readonly<{ desktop: boolean; children: React.ReactNode }>) {
+}: Readonly<{ desktop: boolean; wrap?: boolean; children: React.ReactNode }>) {
   return (
     <View
       style={
         desktop
-          ? { flexDirection: "row", alignItems: "stretch", gap: spacing.xl }
+          ? {
+              flexDirection: "row",
+              flexWrap: wrap ? "wrap" : "nowrap",
+              alignItems: "stretch",
+              gap: spacing.xl,
+            }
           : { gap: 14 }
       }
     >
@@ -467,20 +475,21 @@ export default function HomeScreen() {
                 <HomePriceAlert history={history} products={allProducts} now={now} />
               </>
             )}
-            <Columns desktop={isDesktop}>
+            {/* Em 1024 px os três cartões não cabem lado a lado: o terceiro desce. */}
+            <Columns desktop={isDesktop} wrap>
               <HomeChampions
                 history={history}
                 products={allProducts}
                 now={now}
-                style={isDesktop ? { flex: 1 } : undefined}
+                style={isDesktop ? HOME_CARD_COLUMN : undefined}
               />
-              <HomeFiado style={isDesktop ? { flex: 1 } : undefined} />
+              <HomeFiado style={isDesktop ? HOME_CARD_COLUMN : undefined} />
               {isDesktop ? (
                 <HomePriceAlert
                   history={history}
                   products={allProducts}
                   now={now}
-                  style={{ flex: 1 }}
+                  style={HOME_CARD_COLUMN}
                 />
               ) : null}
             </Columns>

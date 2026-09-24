@@ -88,6 +88,8 @@ Conta nova com produto cadastrado: fase 1, "1 de 3", passo "Descobrir o preço c
 
 ## Change log / Decisions
 
+2026-09-24: no desktop, a linha Campeões / Fiado / Preço quebra quando cada cartão ficaria com menos de 300 px (1024 px: dois lado a lado e o alerta de preço abaixo, na largura toda), para os nomes não serem cortados.
+
 2026-09-24: no desktop, os dias da semana do painel vinho e o "de lucro" dos campeões do mês usam 14 px (`styles.captionDesk`); no celular continuam com 13 px.
 
 2026-09-23: Início redesenhado em três fases (design A vinho). Retirados ações rápidas e cartão Dinheiro; agenda e estoque ficam abaixo. Selo "Dados de exemplo" dos mockups não foi implementado (é anotação de protótipo). Alerta de aumento de insumo não implementado por falta de consulta; o alerta usa margem abaixo de 20%.
