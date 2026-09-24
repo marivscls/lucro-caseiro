@@ -512,6 +512,7 @@ function QuoteDetail({
   onEdit,
 }: Readonly<{ quote: Quote; onClose: () => void; onEdit: () => void }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { data: profile } = useProfile();
   const { data: client, refetch: refetchClient } = useClient(quote.clientId ?? "");
@@ -617,6 +618,26 @@ function QuoteDetail({
     showAlert({ title: "Mais ações", message: quote.title, buttons: options });
   }
 
+  // Computador: no cabeçalho, ao lado de "Editar". Celular: no rodapé, para o
+  // título caber.
+  const moreButton = (
+    <Button
+      title="Mais"
+      accessibilityLabel="Mais ações do orçamento"
+      variant={isDesktop ? "text" : "ghost"}
+      compact={isDesktop}
+      loading={exporting}
+      icon={
+        <AppIcon
+          name="ellipsis-horizontal"
+          size={isDesktop ? 16 : 20}
+          color={isDesktop ? theme.colors.primaryStrong : theme.colors.textSecondary}
+        />
+      }
+      onPress={openMoreActions}
+    />
+  );
+
   return (
     <>
       <StandardModal
@@ -624,27 +645,50 @@ function QuoteDetail({
         visible={!convertVisible}
         onClose={onClose}
         right={
-          quote.status === "pending" ? (
-            <Button
-              title="Editar"
-              variant="text"
-              onPress={onEdit}
-              icon={
-                <AppIcon
-                  name="create-outline"
-                  size={16}
-                  color={theme.colors.primaryStrong}
-                />
-              }
-            />
-          ) : undefined
+          <>
+            {quote.status === "pending" ? (
+              <Button
+                title="Editar"
+                variant="text"
+                compact
+                onPress={onEdit}
+                icon={
+                  <AppIcon
+                    name="create-outline"
+                    size={16}
+                    color={theme.colors.primaryStrong}
+                  />
+                }
+              />
+            ) : null}
+            {isDesktop ? moreButton : null}
+          </>
         }
         footer={
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            {quote.status === "pending" && (
+          <FormActions stack>
+            {isDesktop ? null : moreButton}
+            <Button
+              title="Enviar no WhatsApp"
+              variant="successOutline"
+              icon={
+                <AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />
+              }
+              onPress={() => {
+                void handleWhatsApp();
+              }}
+            />
+            {quote.orderId ? (
+              <Button
+                title="Ver encomenda na agenda"
+                onPress={() => {
+                  onClose();
+                  router.push("/tabs/agenda");
+                }}
+              />
+            ) : null}
+            {quote.status === "pending" ? (
               <Button
                 title="Aprovar e criar encomenda"
-                size="lg"
                 icon={
                   <AppIcon
                     name="checkmark-circle"
@@ -654,48 +698,8 @@ function QuoteDetail({
                 }
                 onPress={() => setConvertVisible(true)}
               />
-            )}
-            {quote.orderId && (
-              <Button
-                title="Ver encomenda na agenda"
-                size="lg"
-                onPress={() => {
-                  onClose();
-                  router.push("/tabs/agenda");
-                }}
-              />
-            )}
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <Button
-                title="Enviar no WhatsApp"
-                variant="successOutline"
-                size="lg"
-                style={{ flex: 1 }}
-                icon={
-                  <AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />
-                }
-                onPress={() => {
-                  void handleWhatsApp();
-                }}
-              />
-              <Button
-                title="Mais"
-                accessibilityLabel="Mais ações do orçamento"
-                variant="ghost"
-                size="lg"
-                compact
-                loading={exporting}
-                icon={
-                  <AppIcon
-                    name="ellipsis-horizontal"
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
-                }
-                onPress={openMoreActions}
-              />
-            </View>
-          </View>
+            ) : null}
+          </FormActions>
         }
       >
         <QuoteDetailContent
