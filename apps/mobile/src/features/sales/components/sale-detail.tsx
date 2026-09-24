@@ -10,6 +10,8 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { FormActions } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
 import { DesktopTag } from "../../../shared/layout/desktop-kit";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import React, { useState } from "react";
@@ -205,20 +207,11 @@ export function SaleDetail({
         </View>
       </View>
 
-      <View style={{ gap: spacing.md }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: spacing.sm,
-          }}
-        >
-          <Typography variant="h3">Itens da venda</Typography>
-          <Typography variant="caption">
-            {sale.items.length} {sale.items.length === 1 ? "item" : "itens"}
-          </Typography>
-        </View>
+      <FormSection
+        collapsible={false}
+        title="Itens da venda"
+        subtitle={`${sale.items.length} ${sale.items.length === 1 ? "item" : "itens"}`}
+      >
         <Card padding="md" style={{ borderRadius: radii.xl }}>
           {sale.items.length === 0 ? (
             <Typography variant="body">Nenhum item nesta venda.</Typography>
@@ -349,71 +342,76 @@ export function SaleDetail({
             </View>
           ) : null}
         </Card>
-      </View>
+      </FormSection>
 
       {sale.notes ? (
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="captionBold">Observações</Typography>
+        <FormSection collapsible={false} title="Observações">
           <Typography variant="body">{sale.notes}</Typography>
-        </View>
+        </FormSection>
       ) : null}
 
       {sale.status !== "cancelled" ? (
-        <View style={{ gap: spacing.md }}>
-          {sale.status === "pending" ? (
+        <View style={{ gap: spacing.lg }}>
+          <FormActions
+            stack
+            style={{
+              flexGrow: 0,
+              flexBasis: "auto",
+              flexWrap: isDesktop ? "wrap" : "nowrap",
+            }}
+          >
             <Button
-              title="Marcar como pago"
-              size="lg"
+              title="Recibo em PDF"
+              variant="outline"
               icon={
                 <AppIcon
-                  name="checkmark-circle-outline"
+                  name="document-text-outline"
                   size={20}
-                  color={theme.colors.textOnPrimary}
+                  color={theme.colors.primaryStrong}
                 />
               }
-              onPress={handleMarkAsPaid}
-              loading={updateStatus.isPending}
+              onPress={() => void handleReceiptPdf()}
+              loading={exporting}
             />
-          ) : null}
-          <Button
-            title="Enviar recibo no WhatsApp"
-            variant={sale.status === "paid" ? "success" : "successOutline"}
-            size="lg"
-            titleLines={2}
-            fitTitle={false}
-            icon={
-              <AppIcon
-                name="logo-whatsapp"
-                size={20}
-                color={
-                  sale.status === "paid"
-                    ? theme.colors.textOnPrimary
-                    : theme.colors.success
+            <Button
+              title="Enviar recibo no WhatsApp"
+              variant={sale.status === "paid" ? "success" : "successOutline"}
+              titleLines={2}
+              fitTitle={false}
+              icon={
+                <AppIcon
+                  name="logo-whatsapp"
+                  size={20}
+                  color={
+                    sale.status === "paid"
+                      ? theme.colors.textOnPrimary
+                      : theme.colors.success
+                  }
+                />
+              }
+              onPress={handleSendReceipt}
+            />
+            {sale.status === "pending" ? (
+              <Button
+                title="Marcar como pago"
+                icon={
+                  <AppIcon
+                    name="checkmark-circle-outline"
+                    size={20}
+                    color={theme.colors.textOnPrimary}
+                  />
                 }
+                onPress={handleMarkAsPaid}
+                loading={updateStatus.isPending}
               />
-            }
-            onPress={handleSendReceipt}
-          />
-          <Button
-            title="Recibo em PDF"
-            variant="outline"
-            size="lg"
-            icon={
-              <AppIcon
-                name="document-text-outline"
-                size={20}
-                color={theme.colors.primaryStrong}
-              />
-            }
-            onPress={() => void handleReceiptPdf()}
-            loading={exporting}
-          />
+            ) : null}
+          </FormActions>
           <View
             style={{
               flexDirection: "row",
               flexWrap: "wrap",
               gap: spacing.sm,
-              paddingTop: spacing.md,
+              paddingTop: spacing.lg,
               borderTopWidth: 1,
               borderTopColor: theme.colors.border,
             }}
@@ -429,7 +427,7 @@ export function SaleDetail({
                     color={theme.colors.textSecondary}
                   />
                 }
-                style={{ flexGrow: 1, flexBasis: 130 }}
+                style={isDesktop ? undefined : { flexGrow: 1, flexBasis: 130 }}
                 onPress={onEditPress}
                 disabled={updateStatus.isPending}
               />
@@ -437,7 +435,7 @@ export function SaleDetail({
             <Button
               title="Cancelar venda"
               variant="alertOutline"
-              style={{ flexGrow: 1, flexBasis: 130 }}
+              style={isDesktop ? undefined : { flexGrow: 1, flexBasis: 130 }}
               onPress={handleCancel}
               loading={updateStatus.isPending}
             />

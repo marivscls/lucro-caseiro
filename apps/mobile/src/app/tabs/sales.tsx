@@ -5,7 +5,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   CenteredTextInput,
   Button,
-  Chip,
   EmptyState,
   fonts,
   iconSizes,
@@ -45,10 +44,10 @@ import { useOrders } from "../../features/orders/hooks";
 import { PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
-import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../shared/components/standard-modal";
 import {
   ChipChoiceField,
+  ChoiceField,
   FormField,
   TextField,
 } from "../../shared/components/form-field";
@@ -60,7 +59,7 @@ import { FAB } from "../../shared/components/fab";
 import { desktopPageContent } from "../../shared/layout/desktop-page";
 import { DesktopSalesPage } from "../../features/sales/components/sales-desktop";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
-import { desktopModalSurface, pageGutter } from "../../shared/layout/desktop-density";
+import { pageGutter } from "../../shared/layout/desktop-density";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { alertError } from "../../shared/utils/alerts";
 import { localDayOf, localIsoDate } from "../../shared/utils/date";
@@ -636,89 +635,36 @@ export default function SalesScreen() {
 
   const modals = (
     <>
-      <ResponsiveOverlayModal
+      <StandardModal
         visible={showFilters}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowFilters(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.overlay,
-            justifyContent: isDesktop ? "center" : "flex-end",
-            padding: isDesktop ? spacing.xl : 0,
-          }}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Fechar filtros"
-            onPress={() => setShowFilters(false)}
-            style={{ position: "absolute", inset: 0 }}
-          />
-          <View
-            style={[
-              {
-                backgroundColor: theme.colors.surface,
-                borderTopLeftRadius: radii["2xl"],
-                borderTopRightRadius: radii["2xl"],
-                padding: spacing.xl,
-                paddingBottom: isDesktop
-                  ? spacing.xl
-                  : Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
-                gap: spacing.xl,
-              },
-              desktopModalSurface(isDesktop, 720),
-            ]}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography variant="h3">Filtrar vendas</Typography>
-              <Pressable
-                onPress={() => setShowFilters(false)}
-                accessibilityLabel="Fechar filtros"
-                hitSlop={12}
-              >
-                <AppIcon
-                  name="close-outline"
-                  size={26}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-              {FILTER_TABS.map((tab) => (
-                <Chip
-                  key={tab.key}
-                  label={tab.label}
-                  selected={activeFilter === tab.key}
-                  onPress={() => {
-                    setActiveFilter(tab.key);
-                    setShowFilters(false);
-                  }}
-                />
-              ))}
-            </View>
-
+        onClose={() => setShowFilters(false)}
+        title="Filtrar vendas"
+        closeAccessibilityLabel="Fechar filtros"
+        footer={
+          <FormActions>
             <Button
               title="Limpar filtros"
               variant="outline"
-              size="lg"
-              style={{ alignSelf: "stretch" }}
               onPress={() => {
                 handleClearFilters();
                 setShowFilters(false);
               }}
             />
-          </View>
-        </View>
-      </ResponsiveOverlayModal>
+          </FormActions>
+        }
+      >
+        <FormField label="Situação">
+          <ChoiceField
+            accessibilityLabel="Situação da venda"
+            value={activeFilter}
+            options={FILTER_TABS.map((tab) => ({ value: tab.key, label: tab.label }))}
+            onChange={(value) => {
+              setActiveFilter(value);
+              setShowFilters(false);
+            }}
+          />
+        </FormField>
+      </StandardModal>
 
       {selectedSaleWithPhotos ? (
         <StandardModal
