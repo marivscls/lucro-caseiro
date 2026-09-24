@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SuppliersOverviewDto } from "@lucro-caseiro/contracts";
+import { CatalogSettingsDto, SuppliersOverviewDto } from "@lucro-caseiro/contracts";
 
 import { handleMockRequest, paginate, type MockRequest } from "./api";
 import {
@@ -218,6 +218,38 @@ describe("mock api — varejo", () => {
     expect(result.status).toBe(200);
     expect(result.body).toBeNull();
     expect(warn).not.toHaveBeenCalled();
+  });
+});
+
+describe("mock api — catálogo", () => {
+  it("cria a vitrine com os padrões da API e o slug do negócio", () => {
+    // Arrange
+    const { request } = makeSut(
+      emptyDemoData({ ...account, businessName: "Doces da Ana" }),
+    );
+
+    // Act
+    const result = request("GET", "/api/v1/catalog/settings");
+
+    // Assert
+    expect(result.status).toBe(200);
+    expect(CatalogSettingsDto.parse(result.body)).toMatchObject({
+      slug: "doces-da-ana",
+      enabled: false,
+      customization: null,
+    });
+  });
+
+  it("guarda as alterações da vitrine", () => {
+    // Arrange
+    const { request } = makeSut();
+
+    // Act
+    request("PUT", "/api/v1/catalog/settings", { enabled: true, tagline: "Feito hoje" });
+    const result = request("GET", "/api/v1/catalog/settings");
+
+    // Assert
+    expect(result.body).toMatchObject({ enabled: true, tagline: "Feito hoje" });
   });
 });
 

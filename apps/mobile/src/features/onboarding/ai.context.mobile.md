@@ -106,6 +106,9 @@ o caminho de produção (os módulos simulados nem são avaliados).
 - API: `api-client.ts` chama `mockApiRequest` em vez do `fetch`; status de erro viram
   `ApiError` como na rede. Criar produto, cliente, venda (fiado nasce pendente; paga gera
   entrada no financeiro e baixa estoque), encomenda e lançamento altera o estado da conta.
+  A vitrine (`/catalog/settings`) nasce na primeira leitura com os padrões da API
+  (slug do nome do negócio, desligada, sem personalização) e guarda o `PUT`;
+  `slug-availability` responde disponível.
   Rotas sem mock respondem vazio (lista que também tem `items/total/page/limit/totalPages`)
   ou ecoam a escrita, e aparecem no console como `[demo] rota sem mock: ...` para serem
   preenchidas depois. Coleta de uso, relatórios de erro e push token são no-op. Checkout de

@@ -1,5 +1,7 @@
+import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 import {
   PLAN_LIMITS,
+  type CatalogSettings,
   type Client,
   type CreateSale,
   type FinanceEntry,
@@ -562,6 +564,65 @@ function insights({ data, query, now }: MockRequest): MockResult {
   });
 }
 
+/** Mesmo slug que a API gera a partir do nome do negócio. */
+function catalogSlug(name: string): string {
+  const slug = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .join("-")
+    .slice(0, 40)
+    .replace(/-$/, "");
+  return slug || "meu-catalogo";
+}
+
+/** Vitrine da conta; na primeira leitura usa os padrões da API real. */
+function catalogSettings(data: DemoData, now: number): CatalogSettings {
+  data.catalogSettings ??= {
+    brandId: DEFAULT_BRAND_ID,
+    slug: catalogSlug(data.profile.businessName ?? "meu-catalogo"),
+    enabled: false,
+    whatsapp: data.profile.phone ?? null,
+    coverUrl: null,
+    logoUrl: null,
+    accentColor: null,
+    titleColor: null,
+    descriptionColor: null,
+    pattern: null,
+    tagline: null,
+    promoBanner: null,
+    promoBannerEnabled: true,
+    serviceCoverUrl: null,
+    serviceTitleColor: null,
+    serviceDescriptionColor: null,
+    serviceTagline: null,
+    servicePromoBanner: null,
+    servicePromoBannerEnabled: true,
+    customization: null,
+    publishedCustomization: null,
+    updatedAt: new Date(now).toISOString(),
+  };
+  return data.catalogSettings;
+}
+
+const getCatalogSettings: Handler = ({ data, now }) => {
+  const created = !data.catalogSettings;
+  return ok(catalogSettings(data, now), created);
+};
+
+const updateCatalogSettings: Handler = ({ data, body, now }) => {
+  const { publishStorefront, ...changes } = body;
+  const settings = Object.assign(catalogSettings(data, now), changes, {
+    updatedAt: new Date(now).toISOString(),
+  });
+  if (publishStorefront === true && settings.customization) {
+    settings.publishedCustomization = settings.customization;
+  }
+  return ok(settings, true);
+};
+
 const demoUnavailable = (): MockResult => ({
   status: 400,
   body: {
@@ -737,6 +798,15 @@ const routes: [string, RegExp, Handler][] = [
 
   // Varejo: sem caixa aberto a API real responde `null` (não uma lista).
   ["GET", /^\/api\/v1\/retail\/cash\/current$/, () => ok(null)],
+
+  // Catálogo: configurações da vitrine no formato de `CatalogSettingsDto`.
+  ["GET", /^\/api\/v1\/catalog\/settings$/, getCatalogSettings],
+  ["PUT", /^\/api\/v1\/catalog\/settings$/, updateCatalogSettings],
+  [
+    "GET",
+    /^\/api\/v1\/catalog\/slug-availability$/,
+    () => ok({ available: true, reason: null }),
+  ],
 
   // Resultados e precificação
   ["GET", /^\/api\/v1\/insights$/, insights],

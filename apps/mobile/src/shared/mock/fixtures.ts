@@ -1,4 +1,5 @@
 import type {
+  CatalogSettings,
   Client,
   FinanceEntry,
   Order,
@@ -21,6 +22,8 @@ export interface DemoData {
   orders: Order[];
   /** Meta de retirada; ausente = conta sem meta. */
   prolaboreGoal?: ProlaboreGoal | null;
+  /** Vitrine; criada com os padrões da API na primeira leitura. */
+  catalogSettings?: CatalogSettings | null;
 }
 
 interface DemoAccount {
