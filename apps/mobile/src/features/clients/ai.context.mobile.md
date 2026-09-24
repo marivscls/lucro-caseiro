@@ -31,6 +31,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 | `apps/mobile/src/features/clients/components/edit-client-form.tsx`   | Formulario de edicao                                                                                          |
 | `apps/mobile/src/features/clients/components/tag-input.tsx`          | Input de tags reutilizavel                                                                                    |
 | `apps/mobile/src/app/tabs/clients.tsx`                               | Screen principal (tab)                                                                                        |
+| `apps/mobile/src/features/clients/client-list.ts`                    | Filtros, contagens e rótulos puros da lista (`daysAgoLabel`, `clientSecondaryLabel`)                          |
 
 ## Components
 
@@ -166,3 +167,16 @@ Importados de `@lucro-caseiro/contracts`.
 Orientação da lista inicia cadastro existente e distingue lista carregada de falha. client_created registra sucesso real do cadastro.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Desktop da lista — 2026-09-24
+
+- Só vale para web >= 1024px (`useDesktopLayout`); o celular continua igual pixel a pixel.
+- Página com cabeçalho "Clientes" e ação "Novo cliente", resumo (Clientes, Compraram no mês,
+  Com fiado; "—" enquanto carrega), aviso de limite do plano, seção "Seus clientes" com
+  "Ordenar" (mesmo modal do celular), busca, filtro segmentado com contagens e tabela
+  paginada: Cliente (avatar, nome e última compra ou "Sem compras"), Telefone, Aniversário
+  (a partir de 1280px), Situação (Fiado, Cliente frequente) e Total comprado. A linha abre
+  o detalhe. No desktop o `ScreenCreateBar` não aparece; a ação fica no cabeçalho.
+- Vazio com ilustração e "Novo cliente"; busca sem resultado oferece limpar filtros.
+- `daysAgoLabel` e `clientSecondaryLabel` saíram da rota para `client-list.ts`, com teste.
+- O detalhe do cliente não mudou nesta rodada.

@@ -125,3 +125,14 @@ Orçamentos usam três etapas antes da confirmação existente: orçamento e cli
 - 2026-09-10: detalhe usa cabeçalho compacto, título completo no conteúdo, total em destaque com validade, itens com quantidade e preço unitário e rentabilidade privada. `QuoteDetailContent` concentra a apresentação; `QuoteDetail` mantém as ações em rodapé fixo de `StandardModal` (largura padrão no desktop). O detalhe é ocultado enquanto o modal de conversão está aberto, evitando dois diálogos ativos.
 
 - 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).
+
+## Desktop da lista — 2026-09-24
+
+- Só vale para web >= 1024px (`useDesktopLayout`); o celular continua igual pixel a pixel.
+- Cabeçalho "Orçamentos" com a ação "Novo orçamento". Destaque vinho com o valor em
+  negociação, aprovados (valor e quantidade) e recusados. Seção "Orçamentos recentes" com
+  busca, filtro segmentado com contagens e tabela: Orçamento (título e "Nº, itens"),
+  Cliente, Enviado (a partir de 1280px; abaixo disso a data vai para a linha de apoio e o
+  título pode ocupar 2 linhas), Situação e Total. A linha abre o mesmo detalhe do celular.
+- Vazio com "Novo orçamento"; busca sem resultado oferece limpar filtros.
+- A apresentação fica em `app/quotes.tsx` e usa o kit `features/sales/components/desktop-list-kit.tsx`.
