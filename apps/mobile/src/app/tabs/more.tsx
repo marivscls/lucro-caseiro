@@ -1,5 +1,6 @@
 import { ScreenHeader } from "../../shared/components/screen-header";
 import {
+  Button,
   iconSizes,
   radii,
   spacing,
@@ -47,6 +48,12 @@ import {
   MORE_MANAGEMENT_ITEMS,
   type ToolItem,
 } from "../../shared/layout/more-tools";
+import {
+  DesktopGrid,
+  DesktopSection,
+  desktopCardStyle,
+  desktopPageContent,
+} from "../../shared/layout/desktop-page";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { formatCurrency } from "../../shared/utils/format";
 import todayOverviewIllustration from "../../assets/more-today-overview.png";
@@ -363,6 +370,13 @@ function TodayOverviewCard({
 
 const TOOL_ICON_BACKGROUNDS = ["softRose", "neutral", "lime"] as const;
 
+const LUCRO_APPS_ITEM: ToolItem = {
+  title: "Conheça também",
+  description: "Outros aplicativos da família Lucro",
+  icon: "apps-outline",
+  route: "/lucro-apps",
+};
+
 function ToolIcon({
   dense,
   icon,
@@ -541,6 +555,248 @@ function AccountHelpCard({
   );
 }
 
+/** Atalho do desktop: ícone, título de 16px, descrição de 14px e seta. */
+function DesktopToolTile({
+  item,
+  index,
+  primary,
+  onPress,
+}: Readonly<{
+  item: ToolItem;
+  index: number;
+  primary?: boolean;
+  onPress: () => void;
+}>) {
+  const { theme } = useTheme();
+  const palette = useBrandScreenPalette();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title}. ${item.description}`}
+      onPress={onPress}
+      style={({ hovered, pressed }: { pressed: boolean; hovered?: boolean }) => [
+        desktopCardStyle(theme, { padding: spacing.xl }),
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.lg,
+          minHeight: 96,
+          height: "100%",
+        },
+        hovered ? { borderColor: theme.colors.textSecondary } : null,
+        pressed ? { opacity: 0.85 } : null,
+      ]}
+    >
+      <ToolIcon icon={item.icon} index={index} primary={primary} />
+      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+        <Typography variant="desktopBodyStrong" color={palette.ink} numberOfLines={2}>
+          {item.title}
+        </Typography>
+        <Typography variant="desktopMeta" numberOfLines={2}>
+          {item.description}
+        </Typography>
+        {item.badge ? (
+          <View style={[styles.organizeChip, { backgroundColor: palette.lime }]}>
+            <AppIcon name="sparkles" size={iconSizes.xs} color={palette.wine} />
+            <Typography variant="desktopMeta" color={palette.wine}>
+              {item.badge}
+            </Typography>
+          </View>
+        ) : null}
+      </View>
+      <AppIcon name="chevron-forward" size={18} color={palette.muted} />
+    </Pressable>
+  );
+}
+
+/** Perfil em cartão branco com a vitrine e a ação de editar. */
+function DesktopProfileCard({
+  avatarUrl,
+  businessName,
+  catalogActive,
+  catalogError,
+  catalogLoading,
+  name,
+  onPress,
+}: Readonly<{
+  avatarUrl?: string | null;
+  businessName: string;
+  catalogActive: boolean;
+  catalogError: boolean;
+  catalogLoading: boolean;
+  name: string;
+  onPress: () => void;
+}>) {
+  const { theme } = useTheme();
+  const palette = useBrandScreenPalette();
+  const avatarTint = avatarPastel(name || "?", theme.mode);
+  let statusLabel = catalogActive ? "Vitrine ativa" : "Vitrine inativa";
+  if (catalogLoading) statusLabel = "Carregando vitrine";
+  else if (catalogError) statusLabel = "Status indisponível";
+  const active = catalogActive && !catalogError && !catalogLoading;
+  return (
+    <View
+      style={[
+        desktopCardStyle(theme),
+        { gap: spacing.xl, flexGrow: 1, flexBasis: 340, minWidth: 0 },
+      ]}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+        <View style={[styles.avatar, { backgroundColor: avatarTint.bg }]}>
+          {avatarUrl ? (
+            <Image
+              accessibilityLabel={`Foto de ${name}`}
+              source={{ uri: avatarUrl }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <Typography variant="h1" color={avatarTint.fg}>
+              {name.trim().charAt(0).toUpperCase() || "?"}
+            </Typography>
+          )}
+        </View>
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Typography variant="desktopCardTitle" numberOfLines={1}>
+            {name}
+          </Typography>
+          <Typography variant="desktopBody" numberOfLines={1}>
+            {businessName}
+          </Typography>
+        </View>
+      </View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: spacing.md,
+        }}
+      >
+        <View
+          accessibilityLabel={statusLabel}
+          style={[
+            styles.statusChip,
+            {
+              alignSelf: "center",
+              backgroundColor: active ? `${palette.lime}66` : palette.neutral,
+              borderColor: palette.border,
+            },
+          ]}
+        >
+          {catalogLoading ? (
+            <ActivityIndicator color={palette.wine} size="small" />
+          ) : (
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: active ? palette.limeText : palette.muted },
+              ]}
+            />
+          )}
+          <Typography variant="desktopMeta" color={palette.wine}>
+            {statusLabel}
+          </Typography>
+        </View>
+        <View style={{ flex: 1 }} />
+        <Button
+          title="Editar perfil"
+          variant="outline"
+          accessibilityLabel={`Editar perfil de ${name}`}
+          onPress={onPress}
+          icon={<AppIcon name="pencil-outline" size={18} color={palette.wine} />}
+          style={{ minHeight: 48 }}
+        />
+      </View>
+    </View>
+  );
+}
+
+/** Visão de hoje no painel vinho, com valores de 28px. */
+function DesktopTodayCard({
+  amount,
+  error,
+  loading,
+  onRetry,
+  salesCount,
+}: Readonly<{
+  amount: number;
+  error: boolean;
+  loading: boolean;
+  onRetry: () => void;
+  salesCount: number;
+}>) {
+  const palette = useBrandScreenPalette();
+  const salesLabel = salesCount === 1 ? "venda hoje" : "vendas hoje";
+  const metric = (icon: AppIconName, value: string, label: string) => (
+    <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
+      <MetricIcon compact={false} icon={icon} />
+      <View style={{ gap: 2 }}>
+        {loading ? (
+          <ActivityIndicator color={palette.onWine} size="small" />
+        ) : (
+          <Typography variant="desktopMetric" color={palette.onWine} numberOfLines={1}>
+            {value}
+          </Typography>
+        )}
+        <Typography variant="desktopMetricLabel" color={palette.onWineMuted}>
+          {label}
+        </Typography>
+      </View>
+    </View>
+  );
+  return (
+    <View
+      style={{
+        flexGrow: 1.3,
+        flexBasis: 460,
+        minWidth: 0,
+        borderRadius: radii["2xl"],
+        backgroundColor: palette.wineFill,
+        padding: spacing["2xl"],
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.xl,
+        overflow: "hidden",
+      }}
+    >
+      <View style={{ flex: 1, minWidth: 0, gap: spacing.lg }}>
+        <Typography variant="desktopBodyStrong" color={palette.onWineMuted}>
+          Visão de hoje
+        </Typography>
+        {error ? (
+          <View style={styles.todayError}>
+            <Typography variant="desktopBodyStrong" color={palette.onWine}>
+              Resumo indisponível
+            </Typography>
+            <InteractiveSurface
+              accessibilityLabel="Tentar carregar a visão de hoje novamente"
+              onPress={onRetry}
+              style={styles.retryButton}
+            >
+              <AppIcon name="refresh" size={iconSizes.inline} color={palette.onWine} />
+              <Typography variant="desktopMeta" color={palette.onWine}>
+                Tentar novamente
+              </Typography>
+            </InteractiveSurface>
+          </View>
+        ) : (
+          <View style={{ flexDirection: "row", gap: spacing.xl }}>
+            {metric("bag-handle-outline", String(salesCount), salesLabel)}
+            {metric("cash-outline", formatCurrency(amount), "faturamento")}
+          </View>
+        )}
+      </View>
+      <Image
+        accessibilityIgnoresInvertColors
+        accessible={false}
+        resizeMode="contain"
+        source={todayOverviewIllustration}
+        style={{ width: 150, height: 120 }}
+      />
+    </View>
+  );
+}
+
 export default function MoreScreen() {
   const router = useRouter();
   const palette = useBrandScreenPalette();
@@ -634,25 +890,31 @@ export default function MoreScreen() {
       style={{ flex: 1, backgroundColor: palette.background }}
     >
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          isDesktop ? { paddingTop: 0 } : undefined,
-          {
-            paddingBottom: isDesktop
-              ? spacing["3xl"]
-              : floatingTabBarContentPadding(insets.bottom),
-          },
-          pageGutter(isDesktop, spacing.xl),
-          desktopStretch(isDesktop, desktopWidths.data),
-        ]}
+        contentContainerStyle={
+          isDesktop
+            ? desktopPageContent(true)
+            : [
+                styles.content,
+                isDesktop ? { paddingTop: 0 } : undefined,
+                {
+                  paddingBottom: isDesktop
+                    ? spacing["3xl"]
+                    : floatingTabBarContentPadding(insets.bottom),
+                },
+                pageGutter(isDesktop, spacing.xl),
+                desktopStretch(isDesktop, desktopWidths.data),
+              ]
+        }
         showsVerticalScrollIndicator={false}
       >
         {isDesktop ? (
-          <ScreenHeader
-            title="Mais opções"
-            subtitle="Tudo para cuidar do seu negócio."
-            hideBack
-          />
+          <View>
+            <ScreenHeader
+              title="Mais opções"
+              subtitle="Tudo para cuidar do seu negócio."
+              hideBack
+            />
+          </View>
         ) : (
           <View style={styles.heading}>
             <Typography variant="screenTitle" color={palette.wine}>
@@ -664,80 +926,118 @@ export default function MoreScreen() {
           </View>
         )}
 
-        <ProfileCard
-          avatarUrl={profile?.avatarUrl}
-          businessName={businessName}
-          catalogActive={catalogSettings.data?.enabled === true}
-          catalogError={catalogSettings.isError}
-          catalogLoading={catalogSettings.isLoading}
-          inlineAction={inlineProfileAction}
-          name={userName}
-          onPress={() => router.push("/settings")}
-        />
+        {isDesktop ? (
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "stretch",
+                gap: spacing["2xl"],
+              }}
+            >
+              <DesktopProfileCard
+                avatarUrl={profile?.avatarUrl}
+                businessName={businessName}
+                catalogActive={catalogSettings.data?.enabled === true}
+                catalogError={catalogSettings.isError}
+                catalogLoading={catalogSettings.isLoading}
+                name={userName}
+                onPress={() => router.push("/settings")}
+              />
+              <DesktopTodayCard
+                amount={todaySummary.data?.totalAmount ?? 0}
+                error={todaySummary.isError}
+                loading={todaySummary.isLoading}
+                onRetry={() => void todaySummary.refetch()}
+                salesCount={todaySummary.data?.totalSales ?? 0}
+              />
+            </View>
 
-        <TodayOverviewCard
-          amount={todaySummary.data?.totalAmount ?? 0}
-          compact={width < 380}
-          error={todaySummary.isError}
-          loading={todaySummary.isLoading}
-          onRetry={() => void todaySummary.refetch()}
-          salesCount={todaySummary.data?.totalSales ?? 0}
-          wide={width >= 600}
-        />
+            <DesktopSection title="Do dia a dia">
+              <DesktopGrid minColumnWidth={240} maxColumns={3}>
+                {DAILY_ITEMS.map((item, index) => (
+                  <DesktopToolTile
+                    key={item.route}
+                    index={index}
+                    item={item}
+                    primary={index === 0}
+                    onPress={() => router.push(item.route)}
+                  />
+                ))}
+              </DesktopGrid>
+            </DesktopSection>
 
-        <View style={styles.section}>
-          <SectionHeader title="DO DIA A DIA" />
-          <ToolCard
-            index={0}
-            item={DAILY_ITEMS[0]}
-            onPress={() => router.push(DAILY_ITEMS[0].route)}
-            primary
-          />
-          <View
-            style={[styles.twoColumnGrid, compactGrid ? styles.singleColumnGrid : null]}
-          >
-            {DAILY_ITEMS.slice(1).map((item, index) => (
-              <View
-                key={item.route}
-                style={[styles.gridItem, compactGrid ? styles.gridItemSingle : undefined]}
-              >
-                <ToolCard
-                  dense={denseMobileGrid}
-                  index={index + 1}
-                  item={item}
-                  onPress={() => router.push(item.route)}
-                />
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <SectionHeader
-            actionLabel={showAllTools ? "Ver menos" : "Ver tudo"}
-            onAction={toggleAllTools}
-            title="GESTÃO DO NEGÓCIO"
-          />
-          <View
-            style={[styles.twoColumnGrid, compactGrid ? styles.singleColumnGrid : null]}
-          >
-            {featuredItems.map((item, index) => (
-              <View
-                key={item.route}
-                style={[styles.gridItem, compactGrid ? styles.gridItemSingle : undefined]}
-              >
-                <ToolCard
-                  dense={denseMobileGrid}
-                  index={index}
-                  item={item}
-                  onPress={() => router.push(item.route)}
-                />
-              </View>
-            ))}
-            {showAllTools
-              ? additionalItems.map((item, index) => (
-                  <View
+            {/* No computador cabe tudo: a gestão aparece inteira, sem "Ver tudo". */}
+            <DesktopSection title="Gestão do negócio">
+              <DesktopGrid minColumnWidth={240} maxColumns={3}>
+                {[...featuredItems, ...additionalItems].map((item, index) => (
+                  <DesktopToolTile
                     key={item.title}
+                    index={index}
+                    item={item}
+                    onPress={() => router.push(item.route)}
+                  />
+                ))}
+              </DesktopGrid>
+            </DesktopSection>
+
+            <DesktopSection title="Conta e ajuda">
+              <DesktopGrid minColumnWidth={240} maxColumns={3}>
+                {[
+                  ...ACCOUNT_HELP_ITEMS,
+                  ...(brand.features.familiaLucro ? [LUCRO_APPS_ITEM] : []),
+                ].map((item, index) => (
+                  <DesktopToolTile
+                    key={item.title}
+                    index={index}
+                    item={item}
+                    onPress={() => router.push(item.route)}
+                  />
+                ))}
+              </DesktopGrid>
+            </DesktopSection>
+          </>
+        ) : (
+          <>
+            <ProfileCard
+              avatarUrl={profile?.avatarUrl}
+              businessName={businessName}
+              catalogActive={catalogSettings.data?.enabled === true}
+              catalogError={catalogSettings.isError}
+              catalogLoading={catalogSettings.isLoading}
+              inlineAction={inlineProfileAction}
+              name={userName}
+              onPress={() => router.push("/settings")}
+            />
+
+            <TodayOverviewCard
+              amount={todaySummary.data?.totalAmount ?? 0}
+              compact={width < 380}
+              error={todaySummary.isError}
+              loading={todaySummary.isLoading}
+              onRetry={() => void todaySummary.refetch()}
+              salesCount={todaySummary.data?.totalSales ?? 0}
+              wide={width >= 600}
+            />
+
+            <View style={styles.section}>
+              <SectionHeader title="DO DIA A DIA" />
+              <ToolCard
+                index={0}
+                item={DAILY_ITEMS[0]}
+                onPress={() => router.push(DAILY_ITEMS[0].route)}
+                primary
+              />
+              <View
+                style={[
+                  styles.twoColumnGrid,
+                  compactGrid ? styles.singleColumnGrid : null,
+                ]}
+              >
+                {DAILY_ITEMS.slice(1).map((item, index) => (
+                  <View
+                    key={item.route}
                     style={[
                       styles.gridItem,
                       compactGrid ? styles.gridItemSingle : undefined,
@@ -745,27 +1045,77 @@ export default function MoreScreen() {
                   >
                     <ToolCard
                       dense={denseMobileGrid}
-                      index={index + featuredItems.length}
+                      index={index + 1}
                       item={item}
                       onPress={() => router.push(item.route)}
                     />
                   </View>
-                ))
-              : null}
-            {!compactGrid && visibleManagementItemCount % 2 === 1 ? (
-              <View accessible={false} style={styles.gridItem} />
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <SectionHeader
+                actionLabel={showAllTools ? "Ver menos" : "Ver tudo"}
+                onAction={toggleAllTools}
+                title="GESTÃO DO NEGÓCIO"
+              />
+              <View
+                style={[
+                  styles.twoColumnGrid,
+                  compactGrid ? styles.singleColumnGrid : null,
+                ]}
+              >
+                {featuredItems.map((item, index) => (
+                  <View
+                    key={item.route}
+                    style={[
+                      styles.gridItem,
+                      compactGrid ? styles.gridItemSingle : undefined,
+                    ]}
+                  >
+                    <ToolCard
+                      dense={denseMobileGrid}
+                      index={index}
+                      item={item}
+                      onPress={() => router.push(item.route)}
+                    />
+                  </View>
+                ))}
+                {showAllTools
+                  ? additionalItems.map((item, index) => (
+                      <View
+                        key={item.title}
+                        style={[
+                          styles.gridItem,
+                          compactGrid ? styles.gridItemSingle : undefined,
+                        ]}
+                      >
+                        <ToolCard
+                          dense={denseMobileGrid}
+                          index={index + featuredItems.length}
+                          item={item}
+                          onPress={() => router.push(item.route)}
+                        />
+                      </View>
+                    ))
+                  : null}
+                {!compactGrid && visibleManagementItemCount % 2 === 1 ? (
+                  <View accessible={false} style={styles.gridItem} />
+                ) : null}
+              </View>
+            </View>
+
+            {brand.features.familiaLucro ? (
+              <ExtensionsBanner onPress={() => router.push("/lucro-apps")} />
             ) : null}
-          </View>
-        </View>
 
-        {brand.features.familiaLucro ? (
-          <ExtensionsBanner onPress={() => router.push("/lucro-apps")} />
-        ) : null}
-
-        <View style={styles.section}>
-          <SectionHeader title="CONTA E AJUDA" />
-          <AccountHelpCard onNavigate={(route) => router.push(route)} />
-        </View>
+            <View style={styles.section}>
+              <SectionHeader title="CONTA E AJUDA" />
+              <AccountHelpCard onNavigate={(route) => router.push(route)} />
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
