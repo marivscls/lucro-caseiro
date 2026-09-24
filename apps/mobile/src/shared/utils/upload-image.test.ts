@@ -2,7 +2,11 @@ import type { Session } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "./supabase";
-import { supportedImageMimeFromBytes, uploadCatalogLogo } from "./upload-image";
+import {
+  supportedImageMimeFromBytes,
+  uploadCatalogLogo,
+  uploadErrorMessage,
+} from "./upload-image";
 
 function session(expiresAt: number): Session {
   return {
@@ -111,6 +115,29 @@ describe("uploadImage", () => {
       expect.stringMatching(/^user-123\/catalog-logo-\d+\.png$/),
       bytes,
       { contentType: "image/png", upsert: false },
+    );
+  });
+});
+
+describe("uploadErrorMessage", () => {
+  it("diz o motivo real da recusa do Storage", () => {
+    expect(
+      uploadErrorMessage({ message: "Bucket not found", statusCode: "404" }),
+    ).toMatch(/bucket product-photos/);
+    expect(
+      uploadErrorMessage({
+        message: "The object exceeded the maximum allowed size",
+        statusCode: "413",
+      }),
+    ).toMatch(/grande demais/);
+    expect(
+      uploadErrorMessage({ message: "new row violates row-level security policy" }),
+    ).toMatch(/permissão/);
+    expect(
+      uploadErrorMessage({ message: "mime type image/heic is not supported" }),
+    ).toMatch(/formato/);
+    expect(uploadErrorMessage({ message: "algo inesperado" })).toBe(
+      "Não foi possível enviar a imagem (algo inesperado).",
     );
   });
 });
