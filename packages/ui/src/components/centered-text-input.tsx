@@ -32,7 +32,10 @@ export const CenteredTextInput = forwardRef<TextInput, CenteredTextInputProps>(
     const field = React.useContext(FieldInputContext);
     const registerFieldInput = field?.register;
     const flattened = StyleSheet.flatten(style);
-    const webMultiline = Platform.OS === "web" && multiline;
+    // Multilinha com `textAlignVertical: "top"` (observações, descrição) começa
+    // no topo como um bloco de texto; as demais continuam centralizadas.
+    const webMultiline =
+      Platform.OS === "web" && multiline && flattened?.textAlignVertical !== "top";
     const align = useCallback(() => {
       if (webMultiline) centerWebTextInput(input.current);
     }, [webMultiline]);
