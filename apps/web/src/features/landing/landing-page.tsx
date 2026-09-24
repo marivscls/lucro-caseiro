@@ -12,13 +12,19 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import { PLAN_LIMITS, PLAN_PRICING } from "@lucro-caseiro/contracts";
+import {
+  ESSENTIAL_TRIAL_DAYS,
+  PLAN_LIMITS,
+  PLAN_PRICING,
+} from "@lucro-caseiro/contracts";
 
 import styles from "./landing-page.module.css";
-import { HeroActions } from "./hero-actions";
+import { HeroActions, StartCta } from "./hero-actions";
 import { LandingMotion } from "./landing-motion";
 import { SiteFooter, SiteHeader } from "./site-chrome";
-import { playStoreUrl, pwaUrl } from "./site-constants";
+import { PricingPlans, type PricingPlan } from "./pricing-plans";
+import { SupportWhatsApp } from "./site-chrome";
+import { TESTIMONIALS } from "./testimonials";
 
 const exampleRows = [
   { label: "Insumos", value: "R$ 10,00" },
@@ -94,42 +100,44 @@ const audiences = [
   { name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
 ] as const;
 
-const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const trialDays = ESSENTIAL_TRIAL_DAYS;
 
-const plans = [
+const plans: readonly PricingPlan[] = [
   {
     name: "Gratuito",
-    price: "R$ 0",
-    period: "para começar",
+    monthly: null,
+    annual: null,
     description: "Calcule, organize e faça suas primeiras vendas.",
     features: [
       "Vendas ilimitadas",
       `${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes`,
+      "Fiado, agenda de encomendas e financeiro",
       "Cálculo com materiais, trabalho, gastos fixos e taxas",
       "Catálogo com até 3 produtos publicados",
     ],
-    annual: null,
     featured: false,
+    badge: null,
+    ctaLabel: "Começar grátis",
   },
   {
     name: "Essencial",
-    price: money.format(PLAN_PRICING.essential.monthly),
-    annual: money.format(PLAN_PRICING.essential.annual),
-    period: "por mês",
+    monthly: PLAN_PRICING.essential.monthly,
+    annual: PLAN_PRICING.essential.annual,
     description: "Para usar no dia a dia sem limites de volume.",
     features: [
       "Clientes e produtos ilimitados",
       "Catálogo completo e personalizado, com mais fotos",
-      "Agenda, fiado e financeiro",
+      "Sem anúncios",
       "Resumo mensal em PDF",
     ],
     featured: true,
+    badge: `${trialDays} dias grátis`,
+    ctaLabel: `Testar ${trialDays} dias grátis`,
   },
   {
     name: "Profissional",
-    price: money.format(PLAN_PRICING.professional.monthly),
-    annual: money.format(PLAN_PRICING.professional.annual),
-    period: "por mês",
+    monthly: PLAN_PRICING.professional.monthly,
+    annual: PLAN_PRICING.professional.annual,
     description: "Para automatizar custos e aprofundar o controle do negócio.",
     features: [
       "Tudo do Essencial",
@@ -139,10 +147,12 @@ const plans = [
       "Produtos compostos e kits",
     ],
     featured: false,
+    badge: null,
+    ctaLabel: "Começar grátis",
   },
-] as const;
+];
 
-const faqs = [
+export const landingFaqs = [
   {
     question: "Posso usar no computador ou no iPhone?",
     answer:
@@ -150,7 +160,30 @@ const faqs = [
   },
   {
     question: "O que está incluído no Gratuito?",
-    answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
+    answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes, anotar o fiado, organizar encomendas e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
+  },
+  {
+    question: "Posso testar o Essencial antes de assinar?",
+    answer: `Sim. Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do Essencial grátis, sem cartão. É só criar a sua conta e usar.`,
+  },
+  {
+    question: "Tem alguma cobrança quando o teste acabar?",
+    answer: `Não. O teste não pede cartão, então nada é cobrado. No fim dos ${ESSENTIAL_TRIAL_DAYS} dias a conta volta sozinha para o Gratuito e seus dados continuam salvos. Só paga quem escolher assinar.`,
+  },
+  {
+    question: "Posso cancelar quando quiser?",
+    answer:
+      "Sim, sem multa. Se assinou pelo Android, cancele na Google Play, em Pagamentos e assinaturas. Se assinou pelo navegador, fale com o nosso suporte. Você usa até o fim do período pago e depois volta para o Gratuito, sem perder seus dados.",
+  },
+  {
+    question: "O Lucro Caseiro cobra comissão pelos pedidos do catálogo?",
+    answer:
+      "Não. O cliente escolhe no seu catálogo e o pedido vai direto para o seu WhatsApp. O combinado e o pagamento ficam entre vocês, sem taxa por venda.",
+  },
+  {
+    question: "Meus dados ficam salvos se eu trocar de celular?",
+    answer:
+      "Sim. Suas vendas, clientes e fiado ficam salvos na sua conta, na nuvem. No celular novo ou no computador, é só entrar com o mesmo e-mail.",
   },
   {
     question: "Preciso do Profissional para calcular mão de obra e taxas?",
@@ -158,34 +191,14 @@ const faqs = [
       "Não. Esses valores podem ser informados em todos os planos. O Profissional acrescenta rateio de custos por faturamento e perfis salvos de taxas, além de relatórios, exportações e outras ferramentas de gestão.",
   },
   {
-    question: "Em qual plano posso personalizar o catálogo?",
-    answer:
-      "No Essencial e no Profissional. Ambos liberam catálogo completo, personalização visual e mais fotos dos produtos. O Gratuito permite publicar até 3 produtos.",
-  },
-  {
-    question: "Como gerencio minha assinatura?",
-    answer:
-      "No app, acesse a área de planos. Compras realizadas pela Google Play são gerenciadas na Google Play; para assinaturas contratadas no navegador, consulte o canal indicado na conta ou fale com nosso suporte. Se precisar de ajuda, consulte nosso suporte.",
-  },
-  {
     question: "Preciso entender de administração para usar?",
     answer:
       "Não. O Lucro Caseiro foi feito para explicar custos, preço e lucro em português simples, com um passo de cada vez.",
   },
   {
-    question: "Posso testar antes de assinar?",
-    answer:
-      "Sim. O plano Gratuito permite fazer o fluxo real de precificação, cadastrar produtos, montar um catálogo básico e registrar suas primeiras vendas.",
-  },
-  {
     question: "Serve só para confeitaria?",
     answer:
-      "Não. Ele atende quem produz ou vende em diferentes segmentos e estágios, de quem trabalha por conta própria a negócios estruturados e em crescimento. Marmitas, salgados, artesanato e costura são apenas alguns exemplos.",
-  },
-  {
-    question: "O catálogo recebe pedidos pelo WhatsApp?",
-    answer:
-      "Sim. Você compartilha o seu link e a pessoa pode escolher um produto e iniciar o pedido pelo WhatsApp.",
+      "Não. Ele atende quem produz, vende ou presta serviços: confeitaria, marmitas, salgados, artesanato, costura, beleza e muito mais, de quem trabalha por conta própria a negócios em crescimento.",
   },
 ] as const;
 
@@ -213,14 +226,6 @@ const spanClass = {
   wide: styles.spanWide,
   text: styles.spanText,
 } as const;
-
-function CtaArrow() {
-  return (
-    <span className={styles.ctaGlyph} aria-hidden="true">
-      <ArrowRight size={16} strokeWidth={2} />
-    </span>
-  );
-}
 
 export function LandingPage() {
   return (
@@ -263,7 +268,8 @@ export function LandingPage() {
               <HeroActions />
               <p className={styles.heroNote}>
                 <Check aria-hidden="true" size={18} />
-                Plano gratuito no app e no navegador
+                Grátis para sempre, e {trialDays} dias do Essencial para testar, sem
+                cartão
               </p>
               <a
                 className={styles.heroCalculatorLink}
@@ -498,61 +504,44 @@ export function LandingPage() {
           </ul>
         </section>
 
+        {TESTIMONIALS.length > 0 ? (
+          <section className={styles.testimonialSection} aria-labelledby="depoimentos">
+            <h2 id="depoimentos">Quem usa, conta.</h2>
+            <div className={styles.testimonialGrid}>
+              {TESTIMONIALS.map((item, index) => (
+                <figure key={item.name} data-landing-reveal={(index % 3) * 60}>
+                  <blockquote>“{item.quote}”</blockquote>
+                  <figcaption>
+                    <strong>{item.name}</strong>
+                    <span>
+                      {item.business} · {item.city}
+                    </span>
+                    {item.instagram ? (
+                      <a
+                        href={`https://www.instagram.com/${item.instagram}/`}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        @{item.instagram}
+                      </a>
+                    ) : null}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <section className={styles.pricingSection} id="planos">
           <h2>Um plano para cada fase do seu negócio.</h2>
           <p className={styles.lede}>
-            Comece no Gratuito. Escolha outro plano quando seu negócio precisar de mais.
+            Comece grátis e teste o Essencial por {trialDays} dias. Escolha um plano só
+            quando seu negócio precisar de mais.
           </p>
-          <div className={styles.pricingGrid}>
-            {plans.map((plan, index) => (
-              <article
-                key={plan.name}
-                data-landing-reveal={index * 60}
-                className={`${styles.planCard} ${plan.featured ? styles.planFeatured : ""}`}
-              >
-                <div className={styles.planHeading}>
-                  <h3>{plan.name}</h3>
-                  {plan.featured ? <p className={styles.planBadge}>Recomendado</p> : null}
-                </div>
-                <p className={styles.planDescription}>{plan.description}</p>
-                <p className={styles.planPrice}>
-                  {plan.price}
-                  <small>{plan.period}</small>
-                </p>
-                <p className={styles.planAnnual}>
-                  {plan.annual
-                    ? `ou ${plan.annual} por ano, em cobrança única`
-                    : "Continue grátis dentro dos limites do plano."}
-                </p>
-                <ul>
-                  {plan.features.map((feature) => (
-                    <li key={feature}>
-                      <Check aria-hidden="true" size={17} strokeWidth={2.5} />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href={pwaUrl(`pwa_plan_${plan.name.toLowerCase()}`)}
-                  data-analytics={`pwa_plan_${plan.name.toLowerCase()}`}
-                  data-pointer-ripple
-                >
-                  Começar no navegador
-                  <CtaArrow />
-                </a>
-                <a
-                  className={styles.planAndroid}
-                  href={playStoreUrl(`play_store_plan_${plan.name.toLowerCase()}`)}
-                  data-analytics={`play_store_plan_${plan.name.toLowerCase()}`}
-                >
-                  Baixar no Google Play
-                </a>
-              </article>
-            ))}
-          </div>
+          <PricingPlans plans={plans} />
           <p className={styles.pricingNote}>
-            Escolha o plano e o período dentro do app ou no navegador. O anual equivale a
-            10 mensalidades, com cobrança única. Confira as condições na contratação.
+            Toda conta nova ganha {trialDays} dias do Essencial, sem cartão. Depois,
+            continue no Gratuito ou escolha um plano no app. Cancele quando quiser.
           </p>
         </section>
 
@@ -582,7 +571,7 @@ export function LandingPage() {
             <a href="mailto:contato@orionseven.com.br">contato@orionseven.com.br</a>
           </div>
           <div className={styles.faqList}>
-            {faqs.map((faq) => (
+            {landingFaqs.map((faq) => (
               <details key={faq.question}>
                 <summary>
                   {faq.question}
@@ -601,31 +590,21 @@ export function LandingPage() {
               <em>Coloque isso no preço.</em>
             </h2>
             <p>
-              Baixe o app ou use pelo navegador. Faça a primeira conta no plano gratuito.
+              Comece grátis no celular ou no computador. Os primeiros {trialDays} dias têm
+              tudo do Essencial.
             </p>
           </div>
-          <div className={styles.finalActions}>
-            <a
-              className={styles.finalButton}
-              data-pointer-ripple
-              href={playStoreUrl("play_store_final")}
-              data-analytics="play_store_final"
-            >
-              Baixar no Google Play
-            </a>
-            <a
-              className={styles.secondaryCta}
-              href={pwaUrl("pwa_final")}
-              data-analytics="pwa_final"
-            >
-              Usar no navegador
-              <ArrowRight aria-hidden="true" size={18} />
-            </a>
-          </div>
+          <StartCta
+            placement="final"
+            className={styles.finalActions}
+            buttonClassName={styles.finalButton}
+            alternativeClassName={styles.secondaryCta}
+          />
         </section>
       </main>
 
       <SiteFooter />
+      <SupportWhatsApp />
     </LandingMotion>
   );
 }

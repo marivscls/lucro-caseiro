@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../features/subscription/hooks";
 import { tierBenefitsFor } from "../features/subscription/plan-benefits";
+import { isProfileOnTrial, trialNotice } from "../features/subscription/trial";
 import { businessCopyFor } from "../features/subscription/business-copy";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
@@ -94,7 +95,10 @@ export default function PlansScreen() {
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const checkoutLoading = stripeLoading || subscriptionLoading;
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
-  const current = activePlan(profile);
+  // No teste grátis do Essencial a pessoa ainda não assinou: para compra ela
+  // conta como Gratuito (pode assinar Essencial ou Profissional).
+  const onTrial = isProfileOnTrial(profile);
+  const current = onTrial ? "free" : activePlan(profile);
   const [choice, setChoice] = useState<PaidPlan | null>(null);
   const defaultPlan = isPaidPlan(current) ? current : "essential";
   const selectedPlan = current === "professional" ? current : (choice ?? defaultPlan);
@@ -117,10 +121,15 @@ export default function PlansScreen() {
     }
   }
   const rawPlan = profile ? normalizePlan(profile.plan) : "free";
-  const warning =
-    profile && isPaidPlan(rawPlan) && profile.planExpiresAt
-      ? expiryWarning(PLAN_LABELS[rawPlan], profile.planExpiresAt)
-      : null;
+  const trial = trialNotice(profile);
+  let warning: ExpiryWarning | null = null;
+  if (trial) warning = trial;
+  else if (profile && isPaidPlan(rawPlan) && profile.planExpiresAt)
+    warning = expiryWarning(PLAN_LABELS[rawPlan], profile.planExpiresAt);
+  // Aviso calmo durante o teste; alerta quando algo venceu ou vai vencer.
+  const warningIsInfo = !!trial && !trial.ended;
+  // Durante o teste o uso não tem limite: a seção "Limites do plano gratuito" some.
+  const showUsage = current === "free" && !onTrial;
   const usageItems = limits
     ? [
         {
@@ -158,7 +167,7 @@ export default function PlansScreen() {
       ? "Sem anúncios e sem limite de clientes e produtos nos dois planos."
       : "Consulte os benefícios e gerencie seu plano.";
 
-  if (profileLoading || (current === "free" && limitsLoading)) {
+  if (profileLoading || (showUsage && limitsLoading)) {
     return (
       <SafeAreaView
         style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -223,15 +232,25 @@ export default function PlansScreen() {
         {warning && (
           <Card
             style={{
-              backgroundColor: theme.colors.alertBg,
+              backgroundColor: warningIsInfo
+                ? theme.colors.premiumBg
+                : theme.colors.alertBg,
               borderWidth: 1,
-              borderColor: theme.colors.alert,
+              borderColor: warningIsInfo ? theme.colors.premium : theme.colors.alert,
               gap: spacing.xs,
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon name="warning-outline" size={22} color={theme.colors.alert} />
-              <Typography variant="h3" color={theme.colors.alert} style={{ flex: 1 }}>
+              <AppIcon
+                name={warningIsInfo ? "time-outline" : "warning-outline"}
+                size={22}
+                color={warningIsInfo ? theme.colors.premium : theme.colors.alert}
+              />
+              <Typography
+                variant="h3"
+                color={warningIsInfo ? theme.colors.text : theme.colors.alert}
+                style={{ flex: 1 }}
+              >
                 {warning.title}
               </Typography>
             </View>
@@ -277,7 +296,7 @@ export default function PlansScreen() {
             }
             checkoutLoading={checkoutLoading}
             onContinue={continueToPayment}
-            usage={current === "free" ? usageItems : null}
+            usage={showUsage ? usageItems : null}
             onCancel={current === "free" ? null : () => void openSubscriptionManagement()}
           />
         ) : (
@@ -508,7 +527,7 @@ export default function PlansScreen() {
             )}
 
             {/* Uso atual (só no plano gratuito) */}
-            {limits && current === "free" && (
+            {limits && showUsage && (
               <View style={{ paddingTop: spacing.sm, gap: spacing.sm }}>
                 <View style={{ gap: spacing.xs, marginBottom: spacing.xl }}>
                   <Typography variant="h3">Seu uso atual</Typography>

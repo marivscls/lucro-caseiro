@@ -11,6 +11,9 @@ export const UserProfileDto = z.object({
   avatarUrl: z.string().nullable(),
   plan: PlanType,
   planExpiresAt: z.string().datetime().nullable(),
+  // true enquanto o plano atual veio do teste grátis (sem pagamento). Default
+  // false para respostas de APIs antigas que ainda não mandam o campo.
+  planIsTrial: z.boolean().default(false),
   createdAt: z.string().datetime(),
 });
 

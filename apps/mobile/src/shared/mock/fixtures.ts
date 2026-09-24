@@ -63,8 +63,10 @@ export function buildProfile(account: DemoAccount): UserProfile {
     businessName: account.businessName ?? null,
     businessType: account.businessType ?? null,
     avatarUrl: null,
+    // Demo fica no Gratuito (sem teste) para mostrar os limites reais.
     plan: "free",
     planExpiresAt: null,
+    planIsTrial: false,
     createdAt: account.createdAt,
   };
 }

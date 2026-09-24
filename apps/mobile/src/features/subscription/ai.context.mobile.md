@@ -33,6 +33,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 | `hooks.ts`                    | React Query hooks for profile/limits/profile edit |
 | `use-stripe.ts`               | Opens Stripe Checkout in browser                  |
 | `use-subscription.ts`         | Google Play Billing subscribe/restore fallback    |
+| `trial.ts`                    | Essencial trial helpers (on trial, end notice)    |
 | `components/paywall.tsx`      | Plan selection and CTA UI                         |
 | `components/limit-banner.tsx` | Freemium usage banner                             |
 | `shared/hooks/use-paywall.ts` | Global paywall visibility state                   |
@@ -183,3 +184,21 @@ lateral fixa com o plano escolhido, Mensal/Anual, o valor cobrado e "Continuar p
 (ou "Plano ativo" e "Cancelar assinatura"). Com um plano só, o cartão ocupa a coluna e os
 benefícios vão em duas colunas. Mesmo estado, fluxo de checkout e rótulos do celular, que não mudou.
 Em 1024 px o botão "Continuar para pagamento" da lateral quebra em duas linhas em vez de cortar o texto (o `Button` nunca corta o rótulo).
+
+## Teste grátis do Essencial — 2026-09-24
+
+Conta nova chega com `plan = essential`, `planExpiresAt` em 7 dias e `planIsTrial = true`
+(API). Gates, limites e anúncios não mudam: o teste vale como Essencial. `trial.ts`
+(`isProfileOnTrial`, `trialEndLabel`, `trialNotice`) cuida só da apresentação:
+
+- Planos: no teste a pessoa conta como Gratuito para compra ("Escolha seu plano", pode
+  assinar Essencial ou Profissional, sem "Plano ativo"/"Cancelar assinatura" nem a seção de
+  uso do Gratuito). O aviso de vencimento vira "Seu teste do Essencial termina hoje / amanhã /
+  em N dias" e, até 30 dias depois do fim, "Seu teste do Essencial terminou".
+- Configurações: "Essencial (teste grátis)", quando termina e o botão "Assinar um plano";
+  excluir conta não pede para cancelar assinatura.
+- Restaurar compra (web) não diz "assinatura restaurada" para quem está no teste.
+- A comemoração de plano pago (`PremiumSuccess`) trata o teste como Gratuito: assinar o
+  Essencial durante o teste também comemora.
+- Cadastro e ajuda (assistente) contam que a conta nova ganha 7 dias do Essencial.
+- `planIsTrial` pode faltar em respostas de API antiga: tratado como `false`.

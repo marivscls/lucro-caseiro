@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { prefersBrowserApp } from "./hero-actions";
+import { prefersBrowserApp, startDestinations } from "./hero-actions";
 import { playStoreUrl, pwaUrl } from "./site-constants";
 
 describe("prefersBrowserApp", () => {
@@ -25,5 +25,17 @@ describe("links com UTM", () => {
     const url = new URL(pwaUrl("pwa_header"));
     expect(url.searchParams.get("utm_source")).toBe("site_publico");
     expect(url.searchParams.get("utm_content")).toBe("pwa_header");
+  });
+});
+
+describe("botão Começar grátis", () => {
+  it("leva o Android para a Play Store e o resto para o navegador", () => {
+    const android = startDestinations("hero", false);
+    expect(android.primary.analytics).toBe("play_store_hero");
+    expect(android.alternative.analytics).toBe("pwa_hero");
+
+    const desktop = startDestinations("hero", true);
+    expect(desktop.primary.analytics).toBe("pwa_hero");
+    expect(desktop.primary.href).toContain("utm_content=pwa_hero");
   });
 });

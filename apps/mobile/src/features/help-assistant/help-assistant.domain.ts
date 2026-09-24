@@ -1,4 +1,9 @@
-import { PLAN_LABELS, PLAN_LIMITS, PLAN_PRICING } from "@lucro-caseiro/contracts";
+import {
+  ESSENTIAL_TRIAL_DAYS,
+  PLAN_LABELS,
+  PLAN_LIMITS,
+  PLAN_PRICING,
+} from "@lucro-caseiro/contracts";
 
 export interface HelpAnswer {
   kind: "guide" | "handoff" | "unknown";
@@ -95,6 +100,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
         `${PLAN_LABELS.free}: sem mensalidade, com vendas ilimitadas, até ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos.`,
         `${PLAN_LABELS.essential}: ${planPrice("essential")}. Clientes e produtos ilimitados, catálogo completo e personalizado e resumo do mês em PDF.`,
         `${PLAN_LABELS.professional}: ${planPrice("professional")}. Tudo do Essencial, mais relatórios avançados, exportação em PDF/Excel, compras e suporte prioritário.`,
+        `Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do ${PLAN_LABELS.essential} para testar, sem cartão. Depois, volta sozinha para o ${PLAN_LABELS.free} se você não assinar.`,
         "Toque em Ver planos para comparar os recursos e conferir o valor antes de assinar.",
       ],
       action: { label: "Ver planos", route: "/plans" },

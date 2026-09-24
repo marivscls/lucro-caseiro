@@ -148,9 +148,12 @@ function AppContent() {
 
   // Comemora quando o plano vira pago (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app pagante.
+  // O teste grátis conta como "free": assinar o Essencial durante o teste
+  // (plano continua "essential", só sai do teste) também comemora.
   const prevPlan = useRef<string | undefined>(undefined);
+  const planKey = profile?.planIsTrial ? "free" : profile?.plan;
   useEffect(() => {
-    const plan = profile?.plan;
+    const plan = planKey;
     if (!plan) return;
     if (prevPlan.current === undefined) {
       prevPlan.current = plan;
@@ -160,7 +163,7 @@ function AppContent() {
       showPremiumSuccess();
     }
     prevPlan.current = plan;
-  }, [profile?.plan, showPremiumSuccess]);
+  }, [planKey, showPremiumSuccess]);
 
   useEffect(() => {
     void initialize();

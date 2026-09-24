@@ -6,6 +6,8 @@ import type {
   UserProfile,
 } from "@lucro-caseiro/contracts";
 
+import { isActiveTrial } from "@lucro-caseiro/contracts";
+
 import {
   ForbiddenError,
   NotFoundError,
@@ -114,9 +116,12 @@ export class SubscriptionUseCases {
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
     }
-    const previousPlan = previous
-      ? resolvePlan(previous.plan, previous.planExpiresAt)
-      : "free";
+    // Teste grátis não é assinatura: sair do teste para um plano pago conta
+    // como Free→pago (subscription_completed + e-mail de ativação).
+    const previousPlan =
+      previous && !this.isTrial(previous)
+        ? resolvePlan(previous.plan, previous.planExpiresAt)
+        : "free";
     const activePlan = resolvePlan(updated.plan, updated.planExpiresAt);
 
     if (previous && previousPlan === "free" && isPaidPlan(activePlan)) {
@@ -155,6 +160,9 @@ export class SubscriptionUseCases {
 
   async deactivatePlan(userId: string): Promise<UserProfile> {
     const previous = await this.repo.getProfile(userId);
+    // Cancelamento/expiração de uma compra (Stripe/Play) nunca derruba o teste
+    // grátis em andamento: ele termina sozinho pela data.
+    if (previous && this.isTrial(previous)) return previous;
     const updated = await this.repo.updatePlan(userId, "free", null);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
@@ -225,6 +233,10 @@ export class SubscriptionUseCases {
     }
 
     return this.getProfile(userId);
+  }
+
+  private isTrial(profile: UserProfile): boolean {
+    return isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial);
   }
 
   private async sendLifecycleNotification(

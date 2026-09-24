@@ -14,6 +14,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     avatarUrl: null,
     plan: "free",
     planExpiresAt: null,
+    planIsTrial: false,
     createdAt: new Date().toISOString(),
     ...overrides,
   };

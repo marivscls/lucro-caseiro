@@ -20,6 +20,7 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/20260923100000_analytics_event_name_format.sql",
       "../../../packages/database/src/migrations/20260923100100_analytics_installation_acquisition.sql",
       "../../../packages/database/src/migrations/20260923100200_analytics_event_props.sql",
+      "../../../packages/database/src/migrations/20260924100000_essential_trial_signup.sql",
     ]);
   });
   it("installs supplier management fields before startup", () => {
@@ -58,6 +59,29 @@ describe("security migrations", () => {
     expect(migration).toContain("description_color text");
     expect(migration).toContain("service_title_color text");
     expect(migration).toContain("service_description_color text");
+  });
+
+  it("grants the 7-day Essential trial only to new signups, after 062", () => {
+    const trialFile =
+      "../../../packages/database/src/migrations/20260924100000_essential_trial_signup.sql";
+    const migrationPath = getSecurityMigrationPaths().find((path) =>
+      path.endsWith("20260924100000_essential_trial_signup.sql"),
+    );
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const migration = readFileSync(migrationPath!, "utf8");
+
+    expect(migration).toContain(
+      "ADD COLUMN IF NOT EXISTS plan_is_trial boolean NOT NULL DEFAULT false",
+    );
+    expect(migration).toContain("now() + interval '7 days'");
+    // O ON CONFLICT (conta existente) nunca mexe no plano.
+    const onConflict = migration.slice(migration.indexOf("ON CONFLICT (id)"));
+    expect(onConflict).not.toMatch(/plan/);
+    expect(securityMigrationFiles.indexOf(trialFile)).toBeGreaterThan(
+      securityMigrationFiles.indexOf(
+        "../../../packages/database/src/migrations/062_disable_professional_trial_signup.sql",
+      ),
+    );
   });
 
   it("disables professional trial grants for new signups after campaign migrations", () => {

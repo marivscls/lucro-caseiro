@@ -14,6 +14,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
 import { fetchProfile, syncPlan } from "./api";
 import { isProfilePremiumActive } from "./hooks";
+import { isProfileOnTrial } from "./trial";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import {
@@ -295,7 +296,8 @@ export function useSubscription() {
         queryClient.setQueryData([...SUBSCRIPTION_PROFILE_KEY, profile.id], profile);
         await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
 
-        if (isProfilePremiumActive(profile)) {
+        // Teste grátis não é assinatura: não há compra para restaurar.
+        if (isProfilePremiumActive(profile) && !isProfileOnTrial(profile)) {
           showAlert({
             title: "Restaurado!",
             message: "Sua assinatura foi restaurada.",
