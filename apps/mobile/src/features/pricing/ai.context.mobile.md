@@ -122,3 +122,4 @@ Só no desktop; o celular continua com `FormStepProgress`, rodapé fixo e cabeç
 - Na etapa 1, os custos de ingredientes e de embalagem ficam lado a lado em `DesktopFormGrid` (uma coluna em 1024px).
 - Etapa 3: a coluna principal mostra "Quanto você quer ganhar?" e, abaixo, o `PricingSummary` completo, com simulação, composição e aplicar ou criar produto. A lateral mostra `PricingResultPreview`, com o preço sugerido (ou simulado), o ganho ou prejuízo e a margem, pelas mesmas contas do `PricingSummary` (`pricingQuote` e `evaluateSalePrice`).
 - No desktop, o rótulo do `PricingSummary` fica em caixa normal ("Preço sugerido por unidade").
+- Botões "Selecionar produto cadastrado", "Usar embalagem cadastrada" e os avisos de custo alterado têm a largura do texto no desktop (`PricingPicker` usa `desktopActionButton`).

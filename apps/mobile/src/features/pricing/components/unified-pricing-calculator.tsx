@@ -351,6 +351,7 @@ export function UnifiedPricingCalculator({
       <Button
         title={`Custo mudou. Usar ${formatCurrency(importedCost)}`}
         variant="secondary"
+        style={desktop ? { alignSelf: "flex-start", minHeight: 48 } : undefined}
         onPress={() => update({ ingredient: currencyInput(importedCost) })}
       />
     );
@@ -496,6 +497,7 @@ export function UnifiedPricingCalculator({
               <Button
                 title={`Atualizar embalagens: ${formatCurrency(currentPackaging)}`}
                 variant="secondary"
+                style={desktop ? { alignSelf: "flex-start", minHeight: 48 } : undefined}
                 onPress={() => update({ packaging: currencyInput(currentPackaging) })}
               />
             ) : null}

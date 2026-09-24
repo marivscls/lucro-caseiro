@@ -6,6 +6,8 @@ import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { maskCurrencyInput } from "../../../shared/utils/currency-input";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { desktopActionButton } from "../../../shared/layout/desktop-page";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 
 export function PricingField({
@@ -155,6 +157,8 @@ export function PricingPicker({
   emptyMessage?: string;
 }>) {
   const { theme } = useTheme();
+  // Desktop: o botão tem a largura do texto, não a do cartão.
+  const isDesktop = useDesktopLayout();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const visible = items.filter((item) =>
@@ -192,6 +196,9 @@ export function PricingPicker({
         <Button
           title={action}
           variant="outline"
+          style={
+            isDesktop ? { ...desktopActionButton, alignSelf: "flex-start" } : undefined
+          }
           onPress={() => {
             setSearch("");
             setOpen(true);
