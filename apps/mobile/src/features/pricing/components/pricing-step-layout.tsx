@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, type ReactNode } from "react";
 import { AccessibilityInfo, Keyboard, ScrollView, View } from "react-native";
-import { Button, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { useBrandScreenPalette } from "../../../shared/brand-palette";
+import { Button, spacing, useTheme } from "@lucro-caseiro/ui";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
+import { FormActions } from "../../../shared/components/form-layout";
 import { pageGutter } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { DesktopSplit, desktopPageContent } from "../../../shared/layout/desktop-page";
@@ -37,7 +37,6 @@ export function PricingStepLayout({
   children: readonly React.ReactNode[];
 }>) {
   const { theme } = useTheme();
-  const palette = useBrandScreenPalette();
   const desktop = useDesktopLayout();
   const scroll = useRef<ScrollView>(null);
   useEffect(() => {
@@ -60,8 +59,6 @@ export function PricingStepLayout({
       {panel}
     </View>
   ));
-  const actionFill =
-    theme.mode === "light" ? palette.wineFill : theme.colors.primaryInteractive;
 
   if (desktop) {
     return (
@@ -89,27 +86,16 @@ export function PricingStepLayout({
                       color={theme.colors.textOnPrimary}
                     />
                   }
-                  style={{
-                    width: "100%",
-                    borderRadius: radii.md,
-                    backgroundColor: actionFill,
-                  }}
+                  style={{ width: "100%" }}
                 />
                 {step > 1 ? (
                   <Button
                     title="Voltar"
-                    variant="ghost"
+                    variant="outline"
                     size="lg"
                     disabled={saving}
                     onPress={() => onStepChange((step - 1) as PricingStep)}
-                    icon={
-                      <AppIcon
-                        name="chevron-back"
-                        size={18}
-                        color={theme.colors.textSecondary}
-                      />
-                    }
-                    style={{ width: "100%", borderRadius: radii.md }}
+                    style={{ width: "100%" }}
                   />
                 ) : null}
               </View>
@@ -169,29 +155,23 @@ export function PricingStepLayout({
           borderTopColor: theme.colors.border,
           backgroundColor: theme.colors.background,
           flexDirection: "row",
-          gap: spacing.md,
         }}
       >
-        {step > 1 ? (
+        <FormActions>
+          {step > 1 ? (
+            <Button
+              title="Voltar"
+              variant="outline"
+              disabled={saving}
+              onPress={() => onStepChange((step - 1) as PricingStep)}
+            />
+          ) : null}
           <Button
-            title="Voltar"
-            variant="ghost"
-            disabled={saving}
-            onPress={() => onStepChange((step - 1) as PricingStep)}
+            title={step === 3 ? "Salvar cálculo" : "Continuar"}
+            onPress={onNext}
+            loading={saving}
           />
-        ) : null}
-        <Button
-          title={step === 3 ? "Salvar cálculo" : "Continuar"}
-          onPress={onNext}
-          loading={saving}
-          size="lg"
-          style={{
-            flex: 1,
-            borderRadius: radii.md,
-            backgroundColor:
-              theme.mode === "light" ? palette.wineFill : theme.colors.primaryInteractive,
-          }}
-        />
+        </FormActions>
       </View>
     </View>
   );

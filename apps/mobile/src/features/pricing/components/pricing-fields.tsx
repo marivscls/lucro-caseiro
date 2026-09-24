@@ -1,35 +1,53 @@
 import React, { useState } from "react";
-import { useFieldValidationError } from "@lucro-caseiro/ui";
-import { Pressable, ScrollView, View } from "react-native";
-import { Button, Input, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field";
-import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
+import { Pressable, View } from "react-native";
+import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import {
+  FormField,
+  SelectField,
+  TextField,
+  useFieldPalette,
+  type FormFieldProps,
+} from "../../../shared/components/form-field";
+import { FormActions } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { maskCurrencyInput } from "../../../shared/utils/currency-input";
 import { AppIcon } from "../../../shared/components/app-icon";
-import { desktopActionButton } from "../../../shared/layout/desktop-page";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import { useBrandScreenPalette } from "../../../shared/brand-palette";
 
+/** Campo numérico da precificação: dinheiro com "R$" ou número com unidade no fim. */
 export function PricingField({
   label,
   value,
   onChange,
   money = true,
+  suffix,
+  optional,
   hint,
+  validation,
+  span,
 }: Readonly<{
   label: string;
   value: string;
   onChange: (value: string) => void;
   money?: boolean;
+  /** Unidade depois do valor (ex.: "%", "min"). */
+  suffix?: string;
+  optional?: boolean;
   hint?: string;
+  validation?: FormFieldProps["validation"];
+  span?: FormFieldProps["span"];
 }>) {
-  const { theme } = useTheme();
   return (
-    <View style={{ gap: spacing.xs }}>
-      <FieldLabel label={label} />
-      <TextFieldCard
-        icon={money ? "cash-outline" : "calculator-outline"}
+    <FormField
+      label={label}
+      optional={optional}
+      hint={hint}
+      validation={validation}
+      span={span}
+    >
+      <TextField
         prefix={money ? "R$" : undefined}
+        suffix={suffix}
         accessibilityLabel={label}
         value={value}
         keyboardType="decimal-pad"
@@ -39,15 +57,11 @@ export function PricingField({
           onChange(money ? maskCurrencyInput(text) : text.replace(/[^0-9,.]/g, ""))
         }
       />
-      {hint ? (
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          {hint}
-        </Typography>
-      ) : null}
-    </View>
+    </FormField>
   );
 }
 
+/** Detalhe opcional da precificação: seção recolhível do padrão de formulários. */
 export function PricingSection({
   title,
   summary,
@@ -59,88 +73,60 @@ export function PricingSection({
   children: React.ReactNode;
   initiallyOpen?: boolean;
 }>) {
-  const { theme } = useTheme();
-  const [open, setOpen] = useState(initiallyOpen);
-  const validationError = useFieldValidationError();
-  React.useEffect(() => {
-    if (validationError) setOpen(true);
-  }, [validationError]);
   return (
-    <View
-      style={{
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        borderRadius: radii.lg,
-        backgroundColor: theme.colors.surface,
-      }}
-    >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        onPress={() => setOpen(!open)}
-        style={{
-          padding: spacing.lg,
-          minHeight: 64,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-        }}
-      >
-        <View style={{ flex: 1, gap: spacing.xs }}>
-          <Typography variant="bodyBold">{title}</Typography>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            {summary}
-          </Typography>
-        </View>
-        <AppIcon
-          name={open ? "chevron-up" : "chevron-down"}
-          size={20}
-          color={theme.colors.textSecondary}
-        />
-      </Pressable>
-      {open ? (
-        <View style={{ padding: spacing.lg, paddingTop: 0, gap: spacing.lg }}>
-          {children}
-        </View>
-      ) : null}
-    </View>
+    <FormSection title={title} subtitle={summary} initiallyOpen={initiallyOpen}>
+      {children}
+    </FormSection>
   );
 }
 
+/**
+ * Opção de uma lista (despesas cadastradas, canais salvos). Mesmo visual das
+ * categorias do cadastro de produto: pílula de 44 px, selecionada em rosa.
+ */
 export function PricingChoice({
   label,
   selected,
   onPress,
 }: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
   const { theme } = useTheme();
-  const palette = useBrandScreenPalette();
+  const pal = useFieldPalette();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={{
-        borderWidth: 1,
-        borderColor: selected ? palette.wine : theme.colors.border,
-        backgroundColor: theme.colors.surface,
-        padding: spacing.md,
+      style={({ pressed }) => ({
+        alignSelf: "flex-start",
+        maxWidth: "100%",
         minHeight: 44,
-        borderRadius: radii.md,
+        paddingHorizontal: spacing.lg - (selected ? 1 : 0),
+        paddingVertical: spacing.sm,
+        borderRadius: radii.full,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primaryStrong : pal.border,
+        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.sm,
-      }}
+        opacity: pressed ? 0.85 : 1,
+      })}
     >
       {selected ? (
-        <AppIcon name="checkmark-circle" size={18} color={palette.wine} />
+        <AppIcon name="checkmark-circle" size={18} color={theme.colors.primaryStrong} />
       ) : null}
-      <Typography variant="captionBold" style={{ flexShrink: 1 }}>
+      <Typography
+        variant="body"
+        color={selected ? theme.colors.primaryStrong : theme.colors.text}
+        style={{ flexShrink: 1 }}
+      >
         {label}
       </Typography>
     </Pressable>
   );
 }
 
+/** Campo que abre uma lista pesquisável de cadastros (produto, embalagem, filtro). */
 export function PricingPicker({
   title,
   action,
@@ -157,8 +143,6 @@ export function PricingPicker({
   emptyMessage?: string;
 }>) {
   const { theme } = useTheme();
-  // Desktop: o botão tem a largura do texto, não a do cartão.
-  const isDesktop = useDesktopLayout();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const visible = items.filter((item) =>
@@ -166,111 +150,64 @@ export function PricingPicker({
   );
   return (
     <>
-      {selectedLabel ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${action}: ${selectedLabel}`}
-          accessibilityState={{ expanded: open }}
-          onPress={() => {
-            setSearch("");
-            setOpen(true);
-          }}
-          style={{
-            minHeight: 48,
-            padding: spacing.md,
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            borderRadius: radii.md,
-            backgroundColor: theme.colors.surfaceElevated,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-          }}
-        >
-          <Typography variant="body" style={{ flex: 1, minWidth: 0 }}>
-            {selectedLabel}
-          </Typography>
-          <AppIcon name="chevron-down" size={18} color={theme.colors.textSecondary} />
-        </Pressable>
-      ) : (
-        <Button
-          title={action}
-          variant="outline"
-          style={
-            isDesktop ? { ...desktopActionButton, alignSelf: "flex-start" } : undefined
-          }
-          onPress={() => {
-            setSearch("");
-            setOpen(true);
-          }}
-        />
-      )}
-      <ResponsiveOverlayModal
+      <SelectField
+        value={selectedLabel}
+        placeholder={action}
+        accessibilityLabel={action}
+        onPress={() => {
+          setSearch("");
+          setOpen(true);
+        }}
+      />
+      <StandardModal
         visible={open}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setOpen(false)}
+        title={title}
+        onClose={() => setOpen(false)}
+        footer={
+          <FormActions>
+            <Button title="Fechar" variant="outline" onPress={() => setOpen(false)} />
+          </FormActions>
+        }
       >
-        <View
-          style={{
-            flex: 1,
-            padding: spacing.lg,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: theme.colors.overlay,
-          }}
-        >
-          <View
-            style={{
-              width: "100%",
-              maxWidth: 560,
-              maxHeight: "85%",
-              padding: spacing.lg,
-              gap: spacing.md,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.surface,
-            }}
-          >
-            <Typography variant="h3">{title}</Typography>
-            <Input
-              accessibilityLabel={`Buscar em ${title}`}
-              placeholder="Buscar pelo nome"
-              value={search}
-              onChangeText={setSearch}
-            />
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ gap: spacing.sm }}
+        <TextField
+          icon="search-outline"
+          accessibilityLabel={`Buscar em ${title}`}
+          placeholder="Buscar pelo nome"
+          value={search}
+          onChangeText={setSearch}
+        />
+        <View>
+          {visible.map((item) => (
+            <Pressable
+              key={item.id}
+              accessibilityRole="button"
+              onPress={() => {
+                onSelect(item.id);
+                setOpen(false);
+              }}
+              style={({ pressed }) => ({
+                minHeight: 56,
+                justifyContent: "center",
+                gap: 2,
+                paddingVertical: spacing.md,
+                borderBottomWidth: 1,
+                borderColor: theme.colors.border,
+                opacity: pressed ? 0.7 : 1,
+              })}
             >
-              {visible.map((item) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  onPress={() => {
-                    onSelect(item.id);
-                    setOpen(false);
-                  }}
-                  style={{
-                    paddingVertical: spacing.md,
-                    borderBottomWidth: 1,
-                    borderColor: theme.colors.border,
-                    minHeight: 48,
-                  }}
-                >
-                  <Typography variant="bodyBold">{item.label}</Typography>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    {item.detail}
-                  </Typography>
-                </Pressable>
-              ))}
-              {!visible.length ? (
-                <Typography variant="body">{emptyMessage}</Typography>
-              ) : null}
-            </ScrollView>
-            <Button title="Fechar" variant="secondary" onPress={() => setOpen(false)} />
-          </View>
+              <Typography variant="bodyBold">{item.label}</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {item.detail}
+              </Typography>
+            </Pressable>
+          ))}
+          {!visible.length ? (
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              {emptyMessage}
+            </Typography>
+          ) : null}
         </View>
-      </ResponsiveOverlayModal>
+      </StandardModal>
     </>
   );
 }

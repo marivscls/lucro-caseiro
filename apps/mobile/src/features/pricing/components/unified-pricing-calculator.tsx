@@ -25,21 +25,16 @@ import { currencyInput } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
-import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import {
-  PricingChoice,
-  PricingField,
-  PricingPicker,
-  PricingSection,
-} from "./pricing-fields";
+import { PricingField, PricingPicker, PricingSection } from "./pricing-fields";
 import { PricingFees, PricingLabor, PricingOverhead } from "./pricing-cost-details";
 import { PricingSummary } from "./pricing-summary";
 import { PricingStepLayout } from "./pricing-step-layout";
 import { displayProductName } from "../../products/display";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
-import { AppIcon } from "../../../shared/components/app-icon";
-import { DesktopFormGrid } from "../../../shared/layout/desktop-page";
+import { ChoiceField, FormField } from "../../../shared/components/form-field";
+import { FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
 import { PricingCostPreview, PricingResultPreview } from "./pricing-desktop";
 
 export function UnifiedPricingCalculator({
@@ -71,7 +66,6 @@ export function UnifiedPricingCalculator({
   const { theme } = useTheme();
   const desktop = useDesktopLayout();
   const pricingIllustration = useBrandIllustration("pricingCostsHero");
-  const split = desktopSplitLayout(desktop);
   const sources = usePricingSources();
   const { data: profile } = useProfile();
   const professional =
@@ -351,14 +345,23 @@ export function UnifiedPricingCalculator({
       <Button
         title={`Custo mudou. Usar ${formatCurrency(importedCost)}`}
         variant="secondary"
-        style={desktop ? { alignSelf: "flex-start", minHeight: 48 } : undefined}
+        style={desktop ? { alignSelf: "flex-start" } : undefined}
         onPress={() => update({ ingredient: currencyInput(importedCost) })}
       />
     );
 
   const currentStepError = pricingStepError(step, draft, packaging, sourceError);
+  // O aviso solto só aparece para regras sem campo próprio (origem, percentuais);
+  // quando um campo da etapa já mostra o erro, ele não se repete aqui.
+  const fieldShowsError =
+    !sourceError &&
+    [
+      formValidation.field("ingredient"),
+      formValidation.field("overhead"),
+      formValidation.field("profit"),
+    ].some((binding) => !!binding.error);
   const notice =
-    attempted && currentStepError ? (
+    attempted && currentStepError && !fieldShowsError ? (
       <View accessibilityRole="alert" style={{ gap: spacing.xs }}>
         <Typography variant="body" color={theme.colors.alert}>
           {currentStepError}
@@ -423,54 +426,44 @@ export function UnifiedPricingCalculator({
             </View>
           )}
           {step === 1 ? notice : null}
-          <Card style={{ gap: spacing.xl }}>
-            <View style={{ gap: spacing.xs }}>
-              <Typography variant="bodyBold">Produto</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Selecione um cadastro para preencher os custos automaticamente.
-              </Typography>
-            </View>
-            <PricingPicker
-              title={product ? "Escolher outro produto" : "Produtos cadastrados"}
-              action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
-              selectedLabel={product ? displayProductName(product.name) : undefined}
-              items={productPickerItems}
-              onSelect={(id) => selectProduct(id)}
-            />
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon
-                name={product ? "checkmark-circle" : "create-outline"}
-                size={18}
-                color={theme.colors.textSecondary}
-              />
-              <Typography
-                variant="caption"
-                color={theme.colors.textSecondary}
-                style={{ flex: 1 }}
+          <FormBody>
+            <FormSection
+              collapsible={false}
+              title="Produto"
+              subtitle="Selecione um cadastro para preencher os custos automaticamente."
+            >
+              <FormField
+                label="Produto cadastrado"
+                optional
+                hint={
+                  product
+                    ? productSelectionDetail
+                    : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."
+                }
               >
-                {product
-                  ? productSelectionDetail
-                  : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."}
-              </Typography>
-            </View>
-            {product ? (
-              <Button
-                title="Calcular sem produto"
-                variant="ghost"
-                size="sm"
-                compact
-                style={{ alignSelf: "flex-start" }}
-                onPress={reset}
-              />
-            ) : null}
-            <View style={{ gap: spacing.xs }}>
-              <Typography variant="bodyBold">Custos de uma unidade</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Revise os valores que entram no preço de cada unidade vendida.
-              </Typography>
-            </View>
-            <DesktopFormGrid>
-              <ValidationField {...formValidation.field("ingredient")}>
+                <PricingPicker
+                  title={product ? "Escolher outro produto" : "Produtos cadastrados"}
+                  action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
+                  selectedLabel={product ? displayProductName(product.name) : undefined}
+                  items={productPickerItems}
+                  onSelect={(id) => selectProduct(id)}
+                />
+              </FormField>
+              {product ? (
+                <Button
+                  title="Calcular sem produto"
+                  variant="outline"
+                  style={{ alignSelf: "flex-start" }}
+                  onPress={reset}
+                />
+              ) : null}
+            </FormSection>
+            <FormSection
+              collapsible={false}
+              title="Custos de uma unidade"
+              subtitle="Revise os valores que entram no preço de cada unidade vendida."
+            >
+              <FormGrid>
                 <PricingField
                   label="Ingredientes ou material"
                   value={draft.ingredient}
@@ -478,70 +471,76 @@ export function UnifiedPricingCalculator({
                     update({ ingredient, source: "manual", recipeId: undefined })
                   }
                   hint={ingredientHint}
+                  validation={formValidation.field("ingredient")}
                 />
-              </ValidationField>
-              {costChanged && importedCost != null && !desktop ? costChangedButton : null}
-              <PricingField
-                label="Embalagem"
-                value={draft.packaging}
-                onChange={(value) => update({ packaging: value, packagingIds: [] })}
-                hint={
-                  draft.packagingIds.length
-                    ? "Uma unidade de cada embalagem selecionada."
-                    : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
-                }
-              />
-            </DesktopFormGrid>
-            {costChanged && importedCost != null && desktop ? costChangedButton : null}
-            {packagingChanged ? (
-              <Button
-                title={`Atualizar embalagens: ${formatCurrency(currentPackaging)}`}
-                variant="secondary"
-                style={desktop ? { alignSelf: "flex-start", minHeight: 48 } : undefined}
-                onPress={() => update({ packaging: currencyInput(currentPackaging) })}
-              />
-            ) : null}
-            <PricingPicker
-              title="Embalagens cadastradas"
-              action="Usar embalagem cadastrada"
-              items={packaging
-                .filter((item) => !draft.packagingIds.includes(item.id))
-                .map((item) => ({
-                  id: item.id,
-                  label: displayProductName(item.name),
-                  detail: formatCurrency(item.unitCost),
-                }))}
-              onSelect={(id) => {
-                const ids = [...draft.packagingIds, id];
-                update({
-                  packagingIds: ids,
-                  packaging: currencyInput(
-                    packaging
-                      .filter((item) => ids.includes(item.id))
-                      .reduce((sum, item) => sum + item.unitCost, 0),
-                  ),
-                });
-              }}
-            />
-            {draft.packagingIds.map((id) => (
-              <Button
-                key={id}
-                variant="text"
-                title={`Remover ${displayProductName(packaging.find((item) => item.id === id)?.name ?? "embalagem excluída")}`}
-                onPress={() => {
-                  const ids = draft.packagingIds.filter((item) => item !== id);
-                  update({
-                    packagingIds: ids,
-                    packaging: currencyInput(
-                      packaging
-                        .filter((item) => ids.includes(item.id))
-                        .reduce((sum, item) => sum + item.unitCost, 0),
-                    ),
-                  });
-                }}
-              />
-            ))}
-          </Card>
+                {costChanged && importedCost != null && !desktop
+                  ? costChangedButton
+                  : null}
+                <PricingField
+                  label="Embalagem"
+                  value={draft.packaging}
+                  onChange={(value) => update({ packaging: value, packagingIds: [] })}
+                  hint={
+                    draft.packagingIds.length
+                      ? "Uma unidade de cada embalagem selecionada."
+                      : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
+                  }
+                />
+              </FormGrid>
+              {costChanged && importedCost != null && desktop ? costChangedButton : null}
+              {packagingChanged ? (
+                <Button
+                  title={`Atualizar embalagens: ${formatCurrency(currentPackaging)}`}
+                  variant="secondary"
+                  style={desktop ? { alignSelf: "flex-start" } : undefined}
+                  onPress={() => update({ packaging: currencyInput(currentPackaging) })}
+                />
+              ) : null}
+              <FormField label="Embalagens cadastradas" optional>
+                <PricingPicker
+                  title="Embalagens cadastradas"
+                  action="Usar embalagem cadastrada"
+                  items={packaging
+                    .filter((item) => !draft.packagingIds.includes(item.id))
+                    .map((item) => ({
+                      id: item.id,
+                      label: displayProductName(item.name),
+                      detail: formatCurrency(item.unitCost),
+                    }))}
+                  onSelect={(id) => {
+                    const ids = [...draft.packagingIds, id];
+                    update({
+                      packagingIds: ids,
+                      packaging: currencyInput(
+                        packaging
+                          .filter((item) => ids.includes(item.id))
+                          .reduce((sum, item) => sum + item.unitCost, 0),
+                      ),
+                    });
+                  }}
+                />
+              </FormField>
+              {draft.packagingIds.map((id) => (
+                <Button
+                  key={id}
+                  variant="text"
+                  title={`Remover ${displayProductName(packaging.find((item) => item.id === id)?.name ?? "embalagem excluída")}`}
+                  style={{ alignSelf: "flex-start" }}
+                  onPress={() => {
+                    const ids = draft.packagingIds.filter((item) => item !== id);
+                    update({
+                      packagingIds: ids,
+                      packaging: currencyInput(
+                        packaging
+                          .filter((item) => ids.includes(item.id))
+                          .reduce((sum, item) => sum + item.unitCost, 0),
+                      ),
+                    });
+                  }}
+                />
+              ))}
+            </FormSection>
+          </FormBody>
           {sources.isLoading ? (
             <Typography variant="caption">
               Carregando produtos e custos cadastrados… Você também pode preencher
@@ -631,45 +630,37 @@ export function UnifiedPricingCalculator({
             </Typography>
           </View>
           {step === 3 ? notice : null}
-          <View
-            style={desktop ? { gap: spacing["2xl"] } : [split.row, { gap: spacing.lg }]}
-          >
-            <View style={desktop ? undefined : split.main}>
-              <Card style={{ gap: spacing.lg }}>
-                <Typography variant="bodyBold">Quanto você quer ganhar?</Typography>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  <PricingChoice
-                    label="Valor em reais"
-                    selected={draft.profitMode === "money"}
-                    onPress={() => update({ profitMode: "money", profit: "" })}
-                  />
-                  <PricingChoice
-                    label="Acréscimo sobre o custo"
-                    selected={draft.profitMode === "markup"}
-                    onPress={() => update({ profitMode: "markup", profit: "" })}
-                  />
-                </View>
-                <ValidationField {...formValidation.field("profit")}>
-                  <PricingField
-                    label={
-                      draft.profitMode === "money"
-                        ? "Ganho desejado por unidade"
-                        : "Acréscimo sobre o custo (%)"
-                    }
-                    money={draft.profitMode === "money"}
-                    value={draft.profit}
-                    onChange={(profit) => update({ profit })}
-                    hint={
-                      draft.profitMode === "markup"
-                        ? "50% de acréscimo sobre R$ 10 dá R$ 15 antes das taxas. Isso é diferente de 50% de margem sobre a venda."
-                        : "Este ganho depende de incluir todos os custos do negócio."
-                    }
-                  />
-                </ValidationField>
-              </Card>
-            </View>
-            {desktop ? result : <View style={split.aside}>{result}</View>}
-          </View>
+          <FormSection collapsible={false} title="Quanto você quer ganhar?">
+            <FormField label="Como informar o ganho">
+              <ChoiceField
+                accessibilityLabel="Como informar o ganho"
+                value={draft.profitMode}
+                options={[
+                  { value: "money", label: "Valor em reais" },
+                  { value: "markup", label: "Acréscimo sobre o custo" },
+                ]}
+                onChange={(profitMode) => update({ profitMode, profit: "" })}
+              />
+            </FormField>
+            <PricingField
+              label={
+                draft.profitMode === "money"
+                  ? "Ganho desejado por unidade"
+                  : "Acréscimo sobre o custo"
+              }
+              money={draft.profitMode === "money"}
+              suffix={draft.profitMode === "markup" ? "%" : undefined}
+              value={draft.profit}
+              onChange={(profit) => update({ profit })}
+              validation={formValidation.field("profit")}
+              hint={
+                draft.profitMode === "markup"
+                  ? "50% de acréscimo sobre R$ 10 dá R$ 15 antes das taxas. Isso é diferente de 50% de margem sobre a venda."
+                  : "Este ganho depende de incluir todos os custos do negócio."
+              }
+            />
+          </FormSection>
+          {result}
         </React.Fragment>,
       ]}
     </PricingStepLayout>
