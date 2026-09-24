@@ -20,7 +20,6 @@ import {
   fonts,
   iconSizes,
   Input,
-  ModalHeader,
   Typography,
   useBrand,
   useFeature,
@@ -88,10 +87,7 @@ import { showAlert } from "../../shared/components/alert-store";
 import { QuantityPulse } from "../../shared/components/motion-feedback";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { SkeletonList } from "../../shared/components/skeleton";
-import {
-  ResponsiveModal,
-  ResponsiveOverlayModal,
-} from "../../shared/components/responsive-modal-surface";
+import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import {
@@ -2492,29 +2488,25 @@ export default function NewSaleScreen() {
           </Pressable>
         </KeyboardAvoidingView>
       </ResponsiveOverlayModal>
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={showCreateProduct}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreateProduct(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <ModalHeader title="Novo produto" onClose={() => setShowCreateProduct(false)} />
-          <CreateProductForm
-            key={createProductInitial?.code ?? "manual"}
-            initialValues={createProductInitial}
-            onSuccess={(product) => {
-              setShowCreateProduct(false);
-              setCreateProductInitial(undefined);
-              addToCart(product);
-              setStep(2);
-              if (guidanceUserId)
-                guidanceEvent("new_sale", "prerequisite_resumed", guidanceUserId);
-            }}
-          />
-        </SafeAreaView>
-      </ResponsiveModal>
+      {showCreateProduct ? (
+        <CreateProductForm
+          key={createProductInitial?.code ?? "manual"}
+          initialValues={createProductInitial}
+          modal={{
+            visible: true,
+            title: "Novo produto",
+            onClose: () => setShowCreateProduct(false),
+          }}
+          onSuccess={(product) => {
+            setShowCreateProduct(false);
+            setCreateProductInitial(undefined);
+            addToCart(product);
+            setStep(2);
+            if (guidanceUserId)
+              guidanceEvent("new_sale", "prerequisite_resumed", guidanceUserId);
+          }}
+        />
+      ) : null}
       <ResponsiveOverlayModal
         visible={showClientFilter}
         animationType="slide"
