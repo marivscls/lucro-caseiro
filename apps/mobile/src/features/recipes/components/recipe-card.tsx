@@ -24,16 +24,18 @@ const CATEGORY_FALLBACK = new Map<string, { emoji: string; color: string }>([
   ["Bebidas", { emoji: "🥤", color: "#6E93B5" }],
 ]);
 
+/** Emoji e cor da miniatura quando a receita não tem foto. */
+export function recipeAvatarFallback(category: string): { emoji: string; color: string } {
+  return CATEGORY_FALLBACK.get(category) ?? { emoji: "🍽️", color: "#9A8F87" };
+}
+
 export function RecipeCard({ recipe, onPress, onEdit, onDelete }: RecipeCardProps) {
   const pal = useBrandScreenPalette();
   const { width } = useWindowDimensions();
   const compact = width < 360;
   const visibleName = displayRecipeName(recipe.name);
   const kind = recipeKindLabel(recipe.name);
-  const fallback = CATEGORY_FALLBACK.get(recipe.category) ?? {
-    emoji: "🍽️",
-    color: "#9A8F87",
-  };
+  const fallback = recipeAvatarFallback(recipe.category);
   const thumbSize = compact ? 56 : 64;
 
   function openMenu() {

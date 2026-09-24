@@ -9,7 +9,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, type ReactNode } from "react";
 import { FlatList, Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
@@ -36,14 +36,29 @@ import {
 } from "../domain";
 import { useAllRecipes, useDeleteRecipe } from "../hooks";
 import { RecipeCard } from "./recipe-card";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { DesktopStatRow, desktopPageContent } from "../../../shared/layout/desktop-page";
+import {
+  DesktopRecipeEmpty,
+  DesktopRecipeTable,
+  DesktopRecipeToolbar,
+} from "./recipes-desktop";
 
 interface RecipeListProps {
   readonly onRecipePress?: (id: string) => void;
   readonly onAddPress?: () => void;
   readonly onEditPress?: (id: string) => void;
+  /** Desktop: cabeçalho e avisos da página, dentro da rolagem. */
+  readonly pageHeader?: ReactNode;
 }
 
-export function RecipeList({ onRecipePress, onAddPress, onEditPress }: RecipeListProps) {
+export function RecipeList({
+  onRecipePress,
+  onAddPress,
+  onEditPress,
+  pageHeader,
+}: RecipeListProps) {
+  const isDesktop = useDesktopLayout();
   const pal = useBrandScreenPalette();
   const experienceCopy = useBusinessCopy();
   const showAds = useShowAds();
@@ -88,6 +103,108 @@ export function RecipeList({ onRecipePress, onAddPress, onEditPress }: RecipeLis
         },
       ],
     });
+  }
+
+  if (isDesktop) {
+    const noun = experienceCopy.formulaNoun;
+    let body: ReactNode;
+    if (isLoading) body = <SkeletonList rows={5} variant="recipe" />;
+    else if (error)
+      body = (
+        <DesktopRecipeEmpty
+          icon="cloud-offline-outline"
+          title="Algo deu errado"
+          description={`Não foi possível carregar suas ${experienceCopy.formulaNounPlural}. Tente novamente.`}
+          actionLabel="Tentar novamente"
+          actionVariant="secondary"
+          onAction={() => void refetch()}
+        />
+      );
+    else if (recipes.length === 0)
+      body = (
+        <DesktopRecipeEmpty
+          icon="document-text-outline"
+          title={`Nenhuma ${noun} ainda`}
+          description="Cadastre a primeira para acompanhar custos e rendimentos em um só lugar."
+          actionLabel={onAddPress ? `Cadastrar ${noun}` : undefined}
+          onAction={onAddPress}
+        />
+      );
+    else if (visibleRecipes.length === 0)
+      body = (
+        <DesktopRecipeEmpty
+          icon="search-outline"
+          title={`Nenhuma ${noun} encontrada`}
+          description="Tente outro nome ou limpe a busca e os filtros."
+          actionLabel={
+            hasQuery || hasCategoryFilter ? "Limpar busca e filtros" : undefined
+          }
+          actionVariant="secondary"
+          onAction={clearSearchAndFilters}
+        />
+      );
+    else
+      body = (
+        <DesktopRecipeTable
+          recipes={visibleRecipes}
+          onOpen={(recipe) => onRecipePress?.(recipe.id)}
+          onMenu={(recipe) => {
+            const name = displayRecipeName(recipe.name);
+            showAlert({
+              title: name,
+              message: "O que você quer fazer?",
+              buttons: [
+                ...(onEditPress
+                  ? [{ text: "Editar", onPress: () => onEditPress(recipe.id) }]
+                  : []),
+                {
+                  text: "Excluir receita",
+                  style: "destructive" as const,
+                  onPress: () => confirmDelete(recipe.id, name),
+                },
+                { text: "Cancelar", style: "cancel" as const },
+              ],
+            });
+          }}
+        />
+      );
+
+    return (
+      <ScrollView
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+      >
+        {pageHeader}
+        <View style={{ gap: spacing["2xl"] }}>
+          {recipes.length > 0 ? (
+            <DesktopStatRow
+              items={[
+                {
+                  label: `${experienceCopy.formulaNounPlural.replace(/^./, (letter) => letter.toUpperCase())} ativas`,
+                  value: String(summary.count),
+                },
+                {
+                  label: `Custo médio por ${noun}`,
+                  value: formatCurrency(summary.averageCost),
+                },
+              ]}
+            />
+          ) : null}
+          {recipes.length > 0 ? (
+            <DesktopRecipeToolbar
+              search={search}
+              onSearch={setSearch}
+              categories={categoryFilters}
+              selected={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
+          ) : null}
+          {body}
+          {showAds && visibleRecipes.length > 0 ? <AdBanner size="banner" /> : null}
+        </View>
+      </ScrollView>
+    );
   }
 
   const header = (
