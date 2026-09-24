@@ -6,6 +6,7 @@ import { Pressable, Text, View, type StyleProp, type ViewStyle } from "react-nat
 import { AppIcon } from "../../../shared/components/app-icon";
 import { formatIntBR } from "../../../shared/utils/format";
 import { displayProductName } from "../../products/display";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { groupFiados } from "../../sales/fiado";
 import {
   bestWeekday,
@@ -173,7 +174,10 @@ export function HomeMonthHero({
                   }}
                 />
                 <T
-                  style={bar.today ? styles.barLabelToday : styles.barLabel}
+                  style={[
+                    bar.today ? styles.barLabelToday : styles.barLabel,
+                    desktop ? styles.captionDesk : undefined,
+                  ]}
                   color={colors.onWineMuted}
                 >
                   {bar.label}
@@ -336,6 +340,7 @@ export function HomeChampions({
 }>) {
   const colors = useHomeColors();
   const router = useRouter();
+  const desktop = useDesktopLayout();
   const champions =
     history.data && products.data
       ? monthChampions(history.data.items, costLookup(products.data.items), now)
@@ -388,7 +393,10 @@ export function HomeChampions({
             <T style={styles.bodyStrong} color={colors.green}>
               {heroMoney(champion.profit)}
             </T>
-            <T style={styles.tileNote} color={colors.muted}>
+            <T
+              style={[styles.tileNote, desktop ? styles.captionDesk : undefined]}
+              color={colors.muted}
+            >
               de lucro
             </T>
           </View>

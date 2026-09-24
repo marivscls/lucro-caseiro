@@ -89,6 +89,8 @@ export const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   tileNote: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 17 },
+  // Desktop: legendas de 13 px sobem para 14 px (mínimo no computador).
+  captionDesk: { fontSize: 14, lineHeight: 20 },
   lastSale: {
     flexDirection: "row",
     alignItems: "center",
