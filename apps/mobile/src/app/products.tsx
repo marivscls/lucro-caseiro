@@ -20,7 +20,7 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, useWindowDimensions, View } from "react-native";
+import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -32,6 +32,14 @@ import { CompositeToggle } from "../features/products/components/composite-toggl
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { pricingProductInitialValues } from "../features/products/pricing-initial-values";
 import { ProductList } from "../features/products/components/product-list";
+import {
+  DesktopCatalogBand,
+  DesktopEmptyAction,
+  DesktopEmptyCard,
+  DesktopListTitle,
+  DesktopProductTile,
+  DesktopProductToolbar,
+} from "../features/products/components/products-desktop";
 import {
   displayProductName,
   productInitial,
@@ -72,6 +80,9 @@ import catalogProductsIllustration from "../assets/catalog-products.png";
 import { brandScreenPalette } from "../shared/brand-palette";
 import { desktopStretch, desktopWidths } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
+import { AdBanner } from "../shared/components/ad-banner";
+import { useShowAds } from "../shared/hooks/use-show-ads";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
@@ -1744,6 +1755,22 @@ export default function ProductsScreen() {
     if (stock === "low" && stockEnabled) setStatusFilter("stock");
   }, [stock, stockEnabled]);
 
+  const showAds = useShowAds();
+  const lowStockQuery = useLowStockProducts();
+  const lowStockAlerts = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
+  const lowStockSummary =
+    stockEnabled && lowStockAlerts && lowStockQuery.data
+      ? summarizeLowStockProducts(lowStockQuery.data)
+      : null;
+
+  function clearDesktopFilters() {
+    setSearch("");
+    setTypeFilter("all");
+    setStatusFilter("all");
+    setCategoryFilter(null);
+    setSort("name");
+  }
+
   function handleBack() {
     if (backToHome) {
       router.replace("/tabs");
@@ -1884,6 +1911,278 @@ export default function ProductsScreen() {
       </View>
     );
 
+  const screenHeader = (
+    <ScreenHeader
+      guidance={{
+        area: "products",
+        onStart: () => setShowCreate(true),
+        hasRecords: products.length > 0,
+        loading: productsQuery.isLoading || productsQuery.isError,
+        suspended: showCreate,
+      }}
+      title={brand.copy.productNounPlural.replace(/^./, (letter) => letter.toUpperCase())}
+      subtitle={"Seu cat\u00e1logo, do seu jeito."}
+      onBack={handleBack}
+      backLabel={backToHome ? "Ir para o início" : "Voltar"}
+      hideBack={isDesktop}
+      style={{
+        width: "100%",
+        maxWidth: listContentMaxWidth,
+        alignSelf: isDesktop ? "stretch" : "center",
+        paddingHorizontal: isDesktop ? 0 : contentGutter,
+        paddingTop: spacing.xs,
+        paddingBottom: spacing.md,
+      }}
+      right={
+        <FAB
+          icon="add"
+          header
+          accessibilityLabel={`Novo ${brand.copy.productNoun}`}
+          onPress={() => setShowCreate(true)}
+        />
+      }
+    />
+  );
+
+  const filtersModal = (
+    <StandardModal
+      visible={filtersOpen}
+      onClose={() => setFiltersOpen(false)}
+      title="Filtros"
+      subtitle="Abra somente a opção que quiser mudar"
+      footer={
+        <>
+          <Button
+            title="Limpar"
+            variant="secondary"
+            onPress={() => {
+              setStatusFilter("all");
+              setCategoryFilter(null);
+              setSort("name");
+            }}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title="Ver produtos"
+            onPress={() => setFiltersOpen(false)}
+            style={{ flex: 1 }}
+          />
+        </>
+      }
+    >
+      {stockEnabled ? (
+        <FormSection
+          title="Situação"
+          subtitle={selectedStatusLabel}
+          icon="trending-up-outline"
+        >
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {PRODUCT_STATUS_FILTERS.map((filter) => (
+              <Chip
+                key={filter.value}
+                label={filter.label}
+                selected={statusFilter === filter.value}
+                onPress={() => setStatusFilter(filter.value)}
+              />
+            ))}
+          </View>
+        </FormSection>
+      ) : null}
+
+      <FormSection
+        title="Categoria"
+        subtitle={categoryFilter ?? "Todas"}
+        icon="grid-outline"
+      >
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          <Chip
+            label="Todas"
+            selected={categoryFilter === null}
+            onPress={() => setCategoryFilter(null)}
+          />
+          {categories.map((item) => (
+            <Chip
+              key={item}
+              label={item}
+              selected={categoryFilter === item}
+              onPress={() => setCategoryFilter(item)}
+            />
+          ))}
+        </View>
+      </FormSection>
+
+      <FormSection
+        title="Ordenação"
+        subtitle={PRODUCT_SORT_LABELS[sort]}
+        icon="swap-horizontal-outline"
+      >
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          {(Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>).map(
+            ([value, label]) => (
+              <Chip
+                key={value}
+                label={label}
+                selected={sort === value}
+                onPress={() => setSort(value)}
+              />
+            ),
+          )}
+        </View>
+      </FormSection>
+    </StandardModal>
+  );
+
+  const productNounTitle = brand.copy.productNounPlural.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
+  const kitNoun = productTypeFilters[2]?.label ?? "Kits";
+  const attentionCount = lowStockSummary
+    ? lowStockSummary.outOfStock + lowStockSummary.lowStock
+    : 0;
+  let desktopListTitle = `Todos os ${brand.copy.productNounPlural}`;
+  if (statusFilter === "stock") desktopListTitle = "Para repor";
+  else if (typeFilter !== "all")
+    desktopListTitle =
+      productTypeFilters.find((filter) => filter.value === typeFilter)?.label ??
+      productNounTitle;
+  const organizedLabel = products.length === 1 ? "item organizado" : "itens organizados";
+  const desktopCatalogSummary = productsQuery.isLoading
+    ? "Carregando cat\u00e1logo"
+    : `${products.length} ${organizedLabel}`;
+  let desktopListBody: React.ReactNode;
+  if (productsQuery.isLoading) {
+    desktopListBody = (
+      <DesktopGrid minColumnWidth={220} maxColumns={4}>
+        {Array.from({ length: 8 }, (_, index) => (
+          <SkeletonCard key={`product-skeleton-${index}`} lines={3} />
+        ))}
+      </DesktopGrid>
+    );
+  } else if (productsQuery.error) {
+    desktopListBody = (
+      <DesktopEmptyCard
+        icon="cloud-offline-outline"
+        title={"Não foi possível carregar os produtos"}
+        description={"Verifique sua conexão e tente novamente."}
+        action={
+          <DesktopEmptyAction
+            title="Tentar novamente"
+            variant="secondary"
+            onPress={() => void productsQuery.refetch()}
+          />
+        }
+      />
+    );
+  } else if (products.length === 0) {
+    desktopListBody = (
+      <DesktopEmptyCard
+        title={`Nenhum ${brand.copy.productNoun} ainda`}
+        description={
+          "Cadastre o primeiro para começar a vender e acompanhar o estoque aqui."
+        }
+        action={
+          <DesktopEmptyAction
+            title={`Cadastrar ${brand.copy.productNoun}`}
+            onPress={() => setShowCreate(true)}
+          />
+        }
+      />
+    );
+  } else if (visibleProducts.length === 0) {
+    desktopListBody = (
+      <DesktopEmptyCard
+        icon="search-outline"
+        title={`Nenhum ${brand.copy.productNoun} encontrado`}
+        description="Tente outro nome ou limpe a busca e os filtros."
+        action={
+          <DesktopEmptyAction
+            title="Limpar busca e filtros"
+            variant="secondary"
+            onPress={clearDesktopFilters}
+          />
+        }
+      />
+    );
+  } else {
+    desktopListBody = (
+      <DesktopGrid minColumnWidth={220} maxColumns={4}>
+        {visibleProducts.map((product) => (
+          <DesktopProductTile
+            key={product.id}
+            product={product}
+            kitLabel={kitNoun.replace(/s$/, "")}
+            onPress={() => setSelectedProductId(product.id)}
+          />
+        ))}
+      </DesktopGrid>
+    );
+  }
+
+  const desktopView = isDesktop ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      {screenHeader}
+      {filtersModal}
+      <View style={{ gap: spacing["2xl"] }}>
+        {products.length > 0 || productsQuery.isLoading ? (
+          <DesktopCatalogBand
+            summary={desktopCatalogSummary}
+            metrics={[
+              {
+                label: productNounTitle.toLocaleLowerCase("pt-BR"),
+                value: productsQuery.isLoading ? "—" : String(catalogMetrics.products),
+              },
+              {
+                label: kitNoun.toLocaleLowerCase("pt-BR"),
+                value: productsQuery.isLoading ? "—" : String(catalogMetrics.kits),
+              },
+              {
+                label: "unidades em estoque",
+                value: productsQuery.isLoading ? "—" : String(catalogMetrics.stockUnits),
+              },
+            ]}
+            illustration={catalogProductsIllustration}
+            attention={
+              lowStockSummary
+                ? {
+                    count: attentionCount,
+                    detail: `${lowStockSummary.outOfStock} sem estoque, ${lowStockSummary.lowStock} com estoque baixo`,
+                    onPress: () => setStatusFilter("stock"),
+                  }
+                : null
+            }
+          />
+        ) : null}
+        <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
+        {products.length > 0 ? (
+          <DesktopProductToolbar
+            search={search}
+            onSearch={setSearch}
+            searchLabel={`Buscar ${brand.copy.productNoun}`}
+            types={productTypeFilters}
+            selectedType={typeFilter}
+            onType={(value) => setTypeFilter(value as ProductTypeFilter)}
+            filterCount={activeFilterCount}
+            onFilters={() => setFiltersOpen(true)}
+          />
+        ) : null}
+        <View style={{ gap: spacing.lg }}>
+          {products.length > 0 ? (
+            <DesktopListTitle
+              title={desktopListTitle}
+              count={`${visibleProducts.length} ${visibleProducts.length === 1 ? "item" : "itens"}`}
+            />
+          ) : null}
+          {desktopListBody}
+          {showAds && visibleProducts.length > 0 ? <AdBanner size="banner" /> : null}
+        </View>
+      </View>
+    </ScrollView>
+  ) : null;
+
   return (
     <SafeAreaView
       style={{
@@ -1894,159 +2193,48 @@ export default function ProductsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
-        <ScreenHeader
-          guidance={{
-            area: "products",
-            onStart: () => setShowCreate(true),
-            hasRecords: products.length > 0,
-            loading: productsQuery.isLoading || productsQuery.isError,
-            suspended: showCreate,
-          }}
-          title={brand.copy.productNounPlural.replace(/^./, (letter) =>
-            letter.toUpperCase(),
-          )}
-          subtitle={"Seu cat\u00e1logo, do seu jeito."}
-          onBack={handleBack}
-          backLabel={backToHome ? "Ir para o início" : "Voltar"}
-          hideBack={isDesktop}
-          style={{
-            width: "100%",
-            maxWidth: listContentMaxWidth,
-            alignSelf: isDesktop ? "stretch" : "center",
-            paddingHorizontal: isDesktop ? 0 : contentGutter,
-            paddingTop: spacing.xs,
-            paddingBottom: spacing.md,
-          }}
-          right={
-            <FAB
-              icon="add"
-              header
-              accessibilityLabel={`Novo ${brand.copy.productNoun}`}
-              onPress={() => setShowCreate(true)}
+      {isDesktop ? (
+        desktopView
+      ) : (
+        <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
+          {screenHeader}
+
+          {filtersModal}
+
+          <View style={{ flex: 1 }}>
+            <ProductList
+              items={productsQuery.error ? [] : visibleProducts}
+              listLoading={productsQuery.isLoading}
+              onProductPress={(id) => setSelectedProductId(id)}
+              onAddPress={() => setShowCreate(true)}
+              addButtonTitle={`Novo ${brand.copy.productNoun}`}
+              listHeader={catalogListHeader}
+              listTitle="Todos os produtos"
+              listEmptyState={
+                productsQuery.error ? (
+                  <Card variant="elevated" style={{ marginVertical: spacing.lg }}>
+                    <View style={{ gap: spacing.md }}>
+                      <Typography variant="h3">
+                        {"N\u00e3o foi poss\u00edvel carregar os produtos"}
+                      </Typography>
+                      <Typography variant="body" color={theme.colors.textSecondary}>
+                        {"Verifique sua conex\u00e3o e tente novamente."}
+                      </Typography>
+                      <Button
+                        title="Tentar novamente"
+                        variant="secondary"
+                        onPress={() => void productsQuery.refetch()}
+                      />
+                    </View>
+                  </Card>
+                ) : undefined
+              }
+              contentMaxWidth={listContentMaxWidth}
+              horizontalPadding={isDesktop ? 0 : contentGutter}
             />
-          }
-        />
-
-        <StandardModal
-          visible={filtersOpen}
-          onClose={() => setFiltersOpen(false)}
-          title="Filtros"
-          subtitle="Abra somente a opção que quiser mudar"
-          footer={
-            <>
-              <Button
-                title="Limpar"
-                variant="secondary"
-                onPress={() => {
-                  setStatusFilter("all");
-                  setCategoryFilter(null);
-                  setSort("name");
-                }}
-                style={{ flex: 1 }}
-              />
-              <Button
-                title="Ver produtos"
-                onPress={() => setFiltersOpen(false)}
-                style={{ flex: 1 }}
-              />
-            </>
-          }
-        >
-          {stockEnabled ? (
-            <FormSection
-              title="Situação"
-              subtitle={selectedStatusLabel}
-              icon="trending-up-outline"
-            >
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {PRODUCT_STATUS_FILTERS.map((filter) => (
-                  <Chip
-                    key={filter.value}
-                    label={filter.label}
-                    selected={statusFilter === filter.value}
-                    onPress={() => setStatusFilter(filter.value)}
-                  />
-                ))}
-              </View>
-            </FormSection>
-          ) : null}
-
-          <FormSection
-            title="Categoria"
-            subtitle={categoryFilter ?? "Todas"}
-            icon="grid-outline"
-          >
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              <Chip
-                label="Todas"
-                selected={categoryFilter === null}
-                onPress={() => setCategoryFilter(null)}
-              />
-              {categories.map((item) => (
-                <Chip
-                  key={item}
-                  label={item}
-                  selected={categoryFilter === item}
-                  onPress={() => setCategoryFilter(item)}
-                />
-              ))}
-            </View>
-          </FormSection>
-
-          <FormSection
-            title="Ordenação"
-            subtitle={PRODUCT_SORT_LABELS[sort]}
-            icon="swap-horizontal-outline"
-          >
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {(Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>).map(
-                ([value, label]) => (
-                  <Chip
-                    key={value}
-                    label={label}
-                    selected={sort === value}
-                    onPress={() => setSort(value)}
-                  />
-                ),
-              )}
-            </View>
-          </FormSection>
-        </StandardModal>
-
-        <View style={{ flex: 1 }}>
-          <ProductList
-            items={productsQuery.error ? [] : visibleProducts}
-            listLoading={productsQuery.isLoading}
-            onProductPress={(id) => setSelectedProductId(id)}
-            onAddPress={() => setShowCreate(true)}
-            addButtonTitle={`Novo ${brand.copy.productNoun}`}
-            listHeader={catalogListHeader}
-            listTitle="Todos os produtos"
-            listEmptyState={
-              productsQuery.error ? (
-                <Card variant="elevated" style={{ marginVertical: spacing.lg }}>
-                  <View style={{ gap: spacing.md }}>
-                    <Typography variant="h3">
-                      {"N\u00e3o foi poss\u00edvel carregar os produtos"}
-                    </Typography>
-                    <Typography variant="body" color={theme.colors.textSecondary}>
-                      {"Verifique sua conex\u00e3o e tente novamente."}
-                    </Typography>
-                    <Button
-                      title="Tentar novamente"
-                      variant="secondary"
-                      onPress={() => void productsQuery.refetch()}
-                    />
-                  </View>
-                </Card>
-              ) : undefined
-            }
-            contentMaxWidth={listContentMaxWidth}
-            horizontalPadding={isDesktop ? 0 : contentGutter}
-          />
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Modal - criar item da marca */}
       <CreateProductForm

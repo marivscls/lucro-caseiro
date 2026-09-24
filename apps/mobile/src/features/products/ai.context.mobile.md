@@ -72,6 +72,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - EmptyState quando sem dados, só com título, descrição e CTA (sem ilustração PNG).
 - O cadastro novo sai do FAB do cabeçalho, do CTA do estado vazio e do botão
   largo `ScreenCreateBar` no rodapé quando a lista tem itens.
+  No desktop o `ScreenCreateBar` não aparece; a ação fica só no cabeçalho.
 
 ### `CreateProductForm`
 
@@ -230,3 +231,14 @@ No modal, o cadastro de produto usa três etapas: informações e preço; tipo, 
 
 - 2026-09-16: o botão Continuar da etapa Essencial só avança com nome, categoria e preço maior que zero preenchidos (bloqueio imediato com `alertValidation`), sem depender só da validação final. Comparações de moeda usam `!(parseCurrencyInput(x) > 0)` porque valor vazio gera `NaN` e `NaN <= 0` é falso. Preço inválido também foca o campo de venda para o teclado abrir no valor.
 - 2026-09-19: as comparações de preço passaram a `isPositiveCurrency`. O `StandardModal` limita a altura do corpo para o rodapé Continuar/Cadastrar permanecer visível no celular.
+
+## Desktop (web >= 1024px) — 2026-09-23
+
+Só no desktop (`useDesktopLayout()`); o celular não muda. Peças em `components/products-desktop.tsx`.
+
+- A página inteira rola (`desktopPageContent`): cabeçalho com "Novo produto" (única ação de criar; o `ScreenCreateBar` não aparece no desktop, nem no `ProductList`), faixa vinho, aviso de limite, barra de ferramentas e grade.
+- `DesktopCatalogBand`: "Seu catálogo" com indicadores de 28px (produtos, kits, unidades em estoque) e, quando o estoque e a preferência "Estoque baixo" estão ligados, "para repor" com "Ver itens", que aplica o filtro "Repor". A arte sai abaixo de 880px de largura para os indicadores caberem numa linha. Substitui o painel vinho, a faixa 6/0/171 e o bloco "Meu estoque" do celular.
+- `DesktopProductToolbar`: busca que cresce, abas de tipo (`productTypeFilters`) como controle segmentado com largura do texto e "Filtros" (mesmo modal do celular, com a contagem de filtros ativos).
+- Lista em `DesktopGrid` (220px mínimo, até 4 colunas) com `DesktopProductTile`: foto ou inicial, selo de kit, nome, categoria, preço e estoque ("18 em estoque", "Estoque baixo" e "Sem estoque" em alerta, seguindo `getStockBadge`). O cartão inteiro abre o detalhe.
+- O título da lista acompanha o filtro de tipo ou o "Para repor", com a contagem.
+- Estados vazio, sem resultado e erro usam `DesktopEmptyCard`, um cartão tracejado com a ação ("Cadastrar produto", "Limpar busca e filtros", "Tentar novamente").

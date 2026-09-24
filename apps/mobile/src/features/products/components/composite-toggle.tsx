@@ -86,9 +86,7 @@ export function CompositeToggle({
                 <AppIcon
                   name={option.icon}
                   size={22}
-                  color={
-                    selected ? theme.colors.primaryStrong : theme.colors.primary
-                  }
+                  color={selected ? theme.colors.primaryStrong : theme.colors.primary}
                 />
                 {isLockedOption && (
                   <AppIcon
