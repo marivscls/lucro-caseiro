@@ -1,34 +1,22 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Material } from "@lucro-caseiro/contracts";
-import {
-  CenteredTextInput,
-  Button,
-  Typography,
-  useTheme,
-  spacing,
-  radii,
-  fonts,
-} from "@lucro-caseiro/ui";
+import { Button, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import {
-  desktopAction,
-  desktopCompactField,
-  desktopModalSurface,
-} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormSection } from "../../../shared/components/form-section";
 import {
-  FieldLabel,
-  TextFieldCard,
+  FormField,
+  SelectField,
+  TextField,
+  fieldMetrics,
   useFieldPalette,
 } from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { MaterialIconField } from "./material-icon-field";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
@@ -39,7 +27,7 @@ import {
   useMaterials,
   useUpdateMaterial,
 } from "../hooks";
-import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
   maskCurrencyInput,
@@ -59,24 +47,12 @@ interface MaterialFormProps {
 
 const UNIT_OPTIONS = ["kg", "g", "L", "ml", "un", "dz"];
 const CONTENT_UNITS = ["ml", "l", "g", "kg", "un"];
+const NOTES_MAX = 200;
 
 function parseNum(v: string): number | undefined {
   if (!v.trim()) return undefined;
   const n = parseFloat(v.replace(",", "."));
   return isNaN(n) ? undefined : n;
-}
-
-function SubLabel({ children }: Readonly<{ children: string }>) {
-  const { theme } = useTheme();
-  return (
-    <Typography
-      variant="caption"
-      color={theme.colors.textSecondary}
-      style={{ marginTop: spacing.xs }}
-    >
-      {children}
-    </Typography>
-  );
 }
 
 /** Cabeçalho de resumo do insumo em edição (avatar + nome + unidade + preço). */
@@ -85,7 +61,14 @@ function SummaryCard({
   unit,
   cost,
   icon,
-}: Readonly<{ name: string; unit: string; cost: string; icon: string | null }>) {
+}: Readonly<{
+  name: string;
+  unit: string;
+  cost: string;
+  icon: string | null;
+  /** Lido pelo `FormGrid`: o resumo ocupa a linha inteira. */
+  span?: "full";
+}>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const price = cost.trim() ? parseCurrencyInput(cost) : NaN;
@@ -96,191 +79,153 @@ function SummaryCard({
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.md,
-        borderRadius: radii.lg,
+        borderRadius: fieldMetrics.radius,
         borderWidth: 1,
         borderColor: pal.border,
         backgroundColor: pal.fieldBg,
         padding: spacing.md,
       }}
     >
-      <IngredientAvatar name={name} emoji={icon} size={56} />
-      <View style={{ flex: 1, gap: 6 }}>
+      <IngredientAvatar name={name} emoji={icon} size={48} />
+      <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
         <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
           {name}
         </Typography>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <View
-            style={{
-              backgroundColor: theme.colors.primary,
-              paddingHorizontal: spacing.md,
-              paddingVertical: 4,
-              borderRadius: radii.full,
-            }}
-          >
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.textOnPrimary}
-              style={{ fontSize: 14 }}
-            >
-              {unit}
-            </Typography>
-          </View>
-          {hasPrice ? (
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {formatCost(price, unit)}
-            </Typography>
-          ) : null}
-        </View>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {hasPrice ? `${unit} · ${formatCost(price, unit)}` : unit}
+        </Typography>
       </View>
     </View>
   );
 }
 
+/**
+ * Escolha única entre opções curtas (unidades). São mais de 4, então ficam
+ * em fichas no mesmo visual das categorias do produto.
+ */
+function UnitChips({
+  value,
+  options,
+  onChange,
+  accessibilityLabel,
+}: Readonly<{
+  value: string;
+  options: readonly string[];
+  onChange: (value: string) => void;
+  accessibilityLabel: string;
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={accessibilityLabel}
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {options.map((option) => {
+        const selected = option === value;
+        return (
+          <Pressable
+            key={option}
+            onPress={() => onChange(option)}
+            accessibilityRole="radio"
+            accessibilityLabel={option}
+            accessibilityState={{ selected, checked: selected }}
+            style={({ pressed }) => ({
+              minWidth: 56,
+              minHeight: 44,
+              paddingHorizontal: spacing.lg,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: radii.full,
+              borderWidth: selected ? 2 : 1,
+              borderColor: selected ? theme.colors.primaryStrong : pal.border,
+              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant={selected ? "bodyBold" : "body"}
+              color={selected ? theme.colors.primaryStrong : theme.colors.text}
+            >
+              {option}
+            </Typography>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Unidade do conteúdo: campo de escolha que abre a lista de unidades. */
 function ContentUnitField({
   value,
   onChange,
 }: Readonly<{ value: string; onChange: (v: string) => void }>) {
-  const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
-  const pal = useFieldPalette();
-  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
-
   return (
     <>
-      <Pressable
+      <SelectField
+        value={value}
+        placeholder="Ex: ml"
         onPress={() => setOpen(true)}
-        accessibilityRole="button"
         accessibilityLabel="Escolher unidade do conteúdo"
-        style={{
-          minHeight: 60,
-          borderRadius: radii.lg,
-          borderWidth: 1,
-          borderColor: pal.border,
-          backgroundColor: pal.fieldBg,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: spacing.md,
-          gap: spacing.md,
-        }}
-      >
-        <Typography
-          variant="body"
-          color={value ? theme.colors.text : pal.placeholder}
-          style={{ flex: 1, fontSize: 16 }}
-        >
-          {value || "Ex: ml"}
-        </Typography>
-        <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
-      </Pressable>
-
-      <ResponsiveOverlayModal
+      />
+      <StandardModal
         visible={open}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setOpen(false)}
+        title="Unidade do conteúdo"
+        onClose={() => setOpen(false)}
       >
-        <Pressable
-          onPress={() => setOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.overlay,
-            justifyContent: isDesktop ? "center" : "flex-end",
-            padding: isDesktop ? spacing.xl : 0,
+        <UnitChips
+          value={value}
+          options={CONTENT_UNITS}
+          accessibilityLabel="Unidade do conteúdo"
+          onChange={(unit) => {
+            onChange(unit);
+            setOpen(false);
           }}
-        >
-          <Pressable
-            style={[
-              {
-                backgroundColor: pal.sheetBg,
-                borderTopLeftRadius: radii["2xl"],
-                borderTopRightRadius: radii["2xl"],
-                paddingHorizontal: spacing.lg,
-                paddingTop: spacing.md,
-                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
-                gap: spacing.sm,
-              },
-              desktopModalSurface(isDesktop, 520),
-            ]}
-          >
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
-              Unidade do conteúdo
-            </Typography>
-            {CONTENT_UNITS.map((u) => (
-              <Pressable
-                key={u}
-                onPress={() => {
-                  onChange(u);
-                  setOpen(false);
-                }}
-                accessibilityRole="button"
-                style={{
-                  minHeight: 48,
-                  justifyContent: "center",
-                  paddingHorizontal: spacing.md,
-                  borderRadius: radii.md,
-                  borderWidth: 1,
-                  borderColor: value === u ? theme.colors.primary : pal.border,
-                  backgroundColor: pal.fieldBg,
-                }}
-              >
-                <Typography variant="bodyBold" color={theme.colors.text}>
-                  {u}
-                </Typography>
-              </Pressable>
-            ))}
-          </Pressable>
-        </Pressable>
-      </ResponsiveOverlayModal>
+        />
+      </StandardModal>
     </>
   );
 }
 
-function NotesField({
-  value,
-  onChange,
-}: Readonly<{ value: string; onChange: (v: string) => void }>) {
+/** Exemplo vivo do conteúdo por unidade ("1 kg = 350 ml"). */
+function ContentExample({
+  unit,
+  contentPerUnit,
+  contentUnit,
+  text,
+}: Readonly<{
+  unit: string;
+  contentPerUnit: string;
+  contentUnit: string;
+  text: string;
+}>) {
   const { theme } = useTheme();
-  const pal = useFieldPalette();
-  const MAX = 200;
   return (
     <View
       style={{
-        minHeight: 100,
-        borderRadius: radii.lg,
-        borderWidth: 1,
-        borderColor: pal.border,
-        backgroundColor: pal.fieldBg,
         flexDirection: "row",
-        alignItems: "center",
-        padding: spacing.md,
         gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderRadius: fieldMetrics.radius,
+        backgroundColor: theme.colors.successBg,
       }}
     >
-      <AppIcon name="document-text-outline" size={22} color={theme.colors.primary} />
-      <View style={{ flex: 1 }}>
-        <CenteredTextInput
-          value={value}
-          onChangeText={(t) => onChange(t.slice(0, MAX))}
-          placeholder="Ex: Informações importantes para este cadastro..."
-          placeholderTextColor={pal.placeholder}
-          multiline
-          maxLength={MAX}
-          style={{
-            flex: 1,
-            color: theme.colors.text,
-            fontSize: 16,
-            textAlignVertical: "center",
-            padding: 0,
-            minHeight: 56,
-          }}
-        />
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          style={{ alignSelf: "flex-end" }}
-        >
-          {value.length}/{MAX}
+      <AppIcon
+        name="bulb-outline"
+        size={fieldMetrics.iconSize}
+        color={theme.colors.success}
+      />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="captionBold" color={theme.colors.success}>
+          Ex.: 1 {unit.trim() || "kg"} = {contentPerUnit.trim() || "350"}{" "}
+          {contentUnit.trim() || "ml"}
+        </Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {text}
         </Typography>
       </View>
     </View>
@@ -301,7 +246,6 @@ export function MaterialForm({
   const materialTitle = experienceCopy.materialNoun.replace(/^./, (letter) =>
     letter.toUpperCase(),
   );
-  const pal = useFieldPalette();
   const [name, setName] = useState(material?.name ?? "");
   const [unit, setUnit] = useState(material?.unit ?? "kg");
   const [stock, setStock] = useState(
@@ -341,26 +285,13 @@ export function MaterialForm({
     ? UNIT_OPTIONS
     : [unit, ...UNIT_OPTIONS];
 
-  function showContentInfo() {
-    showAlert({
-      title: "Conteúdo por unidade",
-      message: `Diz quanto vem em uma unidade de ${experienceCopy.materialNoun}. Assim, você pode usar quantidades menores na ${experienceCopy.formulaNoun}.`,
-    });
-  }
-
-  function showUnitInfo() {
-    showAlert({
-      title: "Unidade",
-      message: `Selecione a unidade padrão deste ${experienceCopy.materialNoun} (ex.: kg, ml, un).`,
-    });
-  }
-
+  // Quantidade e unidade do conteúdo andam juntas: as duas ou nenhuma.
   const formValidation = useFormValidation(
     {
-      name: !name.trim() && "Informe o nome do material.",
+      name: !name.trim() && `Informe o nome do ${experienceCopy.materialNoun}.`,
       contentPerUnit:
         !!contentUnit.trim() &&
-        !contentPerUnit.trim() &&
+        parseNum(contentPerUnit) == null &&
         "Informe a quantidade do conteúdo.",
       contentUnit:
         !!contentPerUnit.trim() &&
@@ -372,22 +303,8 @@ export function MaterialForm({
 
   async function handleSave() {
     if (!formValidation.validate()) return;
-    if (!name.trim()) {
-      alertValidation(
-        `Dê um nome ao ${experienceCopy.materialNoun} (ex.: ${experienceCopy.materialExample}).`,
-      );
-      return;
-    }
     const contentValue = parseNum(contentPerUnit);
     const contentUnitTrimmed = contentUnit.trim();
-    if ((contentValue != null) !== contentUnitTrimmed.length > 0) {
-      showAlert({
-        title: "Conteúdo por unidade",
-        message:
-          "Preencha a quantidade e a unidade do conteúdo (ex.: 350 e ml), ou deixe os dois em branco.",
-      });
-      return;
-    }
 
     const normalizedName = duplicateKey(name);
     const normalizedUnit = duplicateKey(unit);
@@ -461,310 +378,199 @@ export function MaterialForm({
     });
   }
 
+  const unitSuffix = unit.trim() || undefined;
+
   return (
     <StandardModal
       title={`${isEditing ? "Editar" : "Novo"} ${experienceCopy.materialNoun}`}
+      subtitle={
+        isEditing
+          ? undefined
+          : `Cadastre um ${experienceCopy.materialNoun} para controlar custos e usar na ${experienceCopy.formulaNoun}.`
+      }
+      size="form"
       visible={visible}
       onClose={onClose}
       footer={
-        <View
-          style={{
-            flexDirection: "row",
-            gap: spacing.md,
-            justifyContent: isDesktop ? "flex-end" : undefined,
-            width: "100%",
-          }}
-        >
-          {isEditing ? (
-            <Pressable
-              onPress={handleDelete}
-              accessibilityRole="button"
-              style={({ pressed }) => [
-                {
-                  minHeight: 50,
-                  borderRadius: radii.lg,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: pressed ? 0.7 : 1,
-                },
-                isDesktop ? desktopAction(isDesktop, 180) : { flex: 1 },
-              ]}
-            >
-              <Typography variant="bodyBold" color={theme.colors.alert}>
-                {`Excluir ${experienceCopy.materialNoun}`}
-              </Typography>
-            </Pressable>
-          ) : null}
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            disabled={saving}
+            onPress={onClose}
+          />
           <Button
             title={
-              isEditing ? "Salvar alterações" : `Salvar ${experienceCopy.materialNoun}`
+              isEditing ? "Salvar alterações" : `Cadastrar ${experienceCopy.materialNoun}`
             }
             onPress={() => {
               void handleSave();
             }}
-            disabled={saving}
             loading={saving}
-            size="lg"
-            icon={
-              <AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />
-            }
-            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
           />
-        </View>
+        </FormActions>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.xl }}>
-        {isEditing ? (
-          <SummaryCard name={name} unit={unit} cost={cost} icon={icon} />
-        ) : (
-          <>
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ marginTop: -spacing.sm }}
+      <FormBody>
+        <FormGrid>
+          {isEditing ? (
+            <SummaryCard span="full" name={name} unit={unit} cost={cost} icon={icon} />
+          ) : (
+            <FormField
+              span="full"
+              label={`Nome do ${experienceCopy.materialNoun}`}
+              validation={formValidation.field("name")}
             >
-              {`Cadastre um ${experienceCopy.materialNoun} para controlar custos e usar na ${experienceCopy.formulaNoun}.`}
-            </Typography>
-            <View>
-              <FieldLabel label={`Nome do ${experienceCopy.materialNoun}`} required />
-              <ValidationField {...formValidation.field("name")}>
-                <TextFieldCard
-                  icon="pricetag-outline"
-                  accessibilityLabel={`Nome do ${experienceCopy.materialNoun}`}
-                  placeholder={`Ex: ${experienceCopy.materialExample}`}
-                  value={name}
-                  onChangeText={setName}
-                  autoFocus
-                />
-              </ValidationField>
-            </View>
-          </>
-        )}
-
-        <View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-              marginBottom: spacing.sm,
-            }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Unidade
-            </Typography>
-            {isEditing ? (
-              <Pressable
-                onPress={showUnitInfo}
-                hitSlop={8}
-                accessibilityLabel="Sobre a unidade"
-              >
-                <AppIcon
-                  name="information-circle-outline"
-                  size={16}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            ) : (
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                *
-              </Typography>
-            )}
-          </View>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }}>
-            {unitOptions.map((u) => {
-              const active = unit === u;
-              return (
-                <Pressable
-                  key={u}
-                  onPress={() => setUnit(u)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={u}
-                  style={{
-                    flex: 1,
-                    minWidth: 44,
-                    minHeight: 46,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: radii.md,
-                    borderWidth: 1,
-                    borderColor: active ? theme.colors.primaryStrong : pal.border,
-                    backgroundColor: active ? theme.colors.primaryBg : pal.fieldBg,
-                  }}
-                >
-                  <Typography
-                    variant="bodyBold"
-                    color={active ? theme.colors.primaryStrong : theme.colors.text}
-                  >
-                    {u}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
-          {!isEditing ? (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-                marginTop: spacing.sm,
-              }}
-            >
-              <AppIcon
-                name="information-circle-outline"
-                size={16}
-                color={theme.colors.success}
+              <TextField
+                icon="pricetag-outline"
+                accessibilityLabel={`Nome do ${experienceCopy.materialNoun}`}
+                placeholder={`Ex: ${experienceCopy.materialExample}`}
+                value={name}
+                onChangeText={setName}
+                autoFocus
               />
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {`Selecione a unidade padrão deste ${experienceCopy.materialNoun}.`}
-              </Typography>
-            </View>
-          ) : null}
-        </View>
-
-        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.lg }}>
-          <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
-            <FieldLabel label="Estoque atual" />
-            <TextFieldCard
-              icon="cube-outline"
-              placeholder="Ex: 10"
-              value={stock}
-              onChangeText={setStock}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
+            </FormField>
+          )}
+          <FormField
+            span="full"
+            label="Unidade"
+            hint={`A unidade em que você compra e conta este ${experienceCopy.materialNoun}.`}
+          >
+            <UnitChips
+              value={unit}
+              options={unitOptions}
+              onChange={setUnit}
+              accessibilityLabel="Unidade"
             />
-            <SubLabel>Quantidade atual disponível.</SubLabel>
-          </View>
-          <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
-            <FieldLabel label="Avisar quando chegar a (opcional)" />
-            <TextFieldCard
-              icon="notifications-outline"
-              placeholder="Ex: 3"
-              value={alertThreshold}
-              onChangeText={setAlertThreshold}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
-            />
-            <SubLabel>Quando atingir, você será avisado.</SubLabel>
-          </View>
-        </View>
+          </FormField>
+        </FormGrid>
 
-        <View style={desktopCompactField(isDesktop)}>
-          <FieldLabel label="Custo por unidade (opcional)" />
-          <TextFieldCard
-            icon="cash-outline"
-            placeholder="Ex: 4,50"
-            value={cost}
-            onChangeText={(value) => setCost(maskCurrencyInput(value))}
-            keyboardType="numeric"
+        <FormSection collapsible={false} title="Estoque e custo">
+          <FormGrid>
+            <FormField label="Estoque atual" hint="Quanto você tem agora.">
+              <TextField
+                icon="cube-outline"
+                placeholder="Ex: 10"
+                accessibilityLabel="Estoque atual"
+                suffix={unitSuffix}
+                value={stock}
+                onChangeText={setStock}
+                keyboardType="decimal-pad"
+                numericMode="decimal"
+              />
+            </FormField>
+            <FormField
+              label="Avisar quando chegar a"
+              optional
+              hint="Você recebe um aviso ao atingir."
+            >
+              <TextField
+                icon="notifications-outline"
+                placeholder="Ex: 3"
+                accessibilityLabel="Avisar quando chegar a"
+                suffix={unitSuffix}
+                value={alertThreshold}
+                onChangeText={setAlertThreshold}
+                keyboardType="decimal-pad"
+                numericMode="decimal"
+              />
+            </FormField>
+            <FormField
+              label="Custo por unidade"
+              optional
+              hint={`Quanto você paga por 1 ${unit.trim() || "unidade"}.`}
+            >
+              <TextField
+                prefix="R$"
+                placeholder="4,50"
+                accessibilityLabel="Custo por unidade, em reais"
+                value={cost}
+                onChangeText={(value) => setCost(maskCurrencyInput(value))}
+                keyboardType="numeric"
+              />
+            </FormField>
+          </FormGrid>
+        </FormSection>
+
+        <FormSection
+          collapsible={false}
+          title="Conteúdo por unidade"
+          subtitle={`Opcional. Diz quanto vem em uma unidade de ${experienceCopy.materialNoun}.`}
+        >
+          <FormGrid>
+            <FormField
+              label="Quantidade"
+              validation={formValidation.field("contentPerUnit")}
+            >
+              <TextField
+                icon="beaker-outline"
+                placeholder="Ex: 350"
+                accessibilityLabel="Quantidade do conteúdo"
+                value={contentPerUnit}
+                onChangeText={setContentPerUnit}
+                keyboardType="decimal-pad"
+                numericMode="decimal"
+              />
+            </FormField>
+            <FormField
+              label="Unidade do conteúdo"
+              validation={formValidation.field("contentUnit")}
+            >
+              <ContentUnitField value={contentUnit} onChange={setContentUnit} />
+            </FormField>
+          </FormGrid>
+          <ContentExample
+            unit={unit}
+            contentPerUnit={contentPerUnit}
+            contentUnit={contentUnit}
+            text={`Permite usar este ${experienceCopy.materialNoun} em quantidades menores na ${experienceCopy.formulaNoun}.`}
           />
-          <SubLabel>Valor gasto para adquirir 1 unidade.</SubLabel>
-        </View>
+        </FormSection>
 
-        <View>
-          <FieldLabel label="Ícone (opcional)" />
-          <MaterialIconField name={name} value={icon} onChange={setIcon} />
-        </View>
-
-        <View>
-          <FieldLabel label="Fornecedor (opcional)" />
-          <SupplierSelector value={supplierId} onChange={setSupplierId} />
-          <SubLabel>{`De quem você compra este ${experienceCopy.materialNoun}.`}</SubLabel>
-        </View>
-
-        <View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-              marginBottom: spacing.sm,
-            }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Conteúdo por unidade (opcional)
-            </Typography>
-            <Pressable
-              onPress={showContentInfo}
-              hitSlop={8}
-              accessibilityLabel="O que é conteúdo por unidade"
+        <FormSection collapsible={false} title="Outros detalhes">
+          <FormGrid>
+            <FormField label="Ícone" optional hint="Ajuda a achar na lista.">
+              <MaterialIconField name={name} value={icon} onChange={setIcon} />
+            </FormField>
+            <FormField
+              label="Fornecedor"
+              optional
+              hint={`De quem você compra este ${experienceCopy.materialNoun}.`}
             >
-              <AppIcon
-                name="information-circle-outline"
-                size={16}
-                color={theme.colors.primary}
+              <SupplierSelector value={supplierId} onChange={setSupplierId} />
+            </FormField>
+            <FormField label="Observações" optional span="full">
+              <TextField
+                value={notes}
+                onChangeText={(t) => setNotes(t.slice(0, NOTES_MAX))}
+                placeholder="Ex: Informações importantes para este cadastro..."
+                accessibilityLabel="Observações"
+                multiline
+                maxLength={NOTES_MAX}
               />
-            </Pressable>
-          </View>
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
-              <Typography
-                variant="body"
-                color={theme.colors.text}
-                style={{ fontSize: 14, marginBottom: spacing.xs }}
-              >
-                Quantidade
-              </Typography>
-              <ValidationField {...formValidation.field("contentPerUnit")}>
-                <TextFieldCard
-                  icon="beaker-outline"
-                  placeholder="Ex: 350"
-                  value={contentPerUnit}
-                  onChangeText={setContentPerUnit}
-                  keyboardType="decimal-pad"
-                  numericMode="decimal"
-                />
-              </ValidationField>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Typography
-                variant="body"
-                color={theme.colors.text}
-                style={{ fontSize: 14, marginBottom: spacing.xs }}
-              >
-                Unidade
-              </Typography>
-              <ValidationField {...formValidation.field("contentUnit")}>
-                <ContentUnitField value={contentUnit} onChange={setContentUnit} />
-              </ValidationField>
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              gap: spacing.md,
-              marginTop: spacing.md,
-              padding: spacing.md,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              borderColor: `${theme.colors.success}40`,
-              backgroundColor: `${theme.colors.success}14`,
-            }}
-          >
-            <AppIcon name="bulb-outline" size={20} color={theme.colors.success} />
-            <View style={{ flex: 1 }}>
               <Typography
                 variant="caption"
-                color={theme.colors.success}
-                style={{ fontFamily: fonts.bold }}
+                color={theme.colors.textSecondary}
+                style={{ alignSelf: "flex-end", marginTop: spacing.xs }}
               >
-                Ex.: 1 {unit.trim() || "kg"} = {contentPerUnit.trim() || "350"}{" "}
-                {contentUnit.trim() || "ml"}
+                {notes.length}/{NOTES_MAX}
               </Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {`Permite usar este ${experienceCopy.materialNoun} em quantidades menores na ${experienceCopy.formulaNoun}.`}
-              </Typography>
-            </View>
-          </View>
-        </View>
+            </FormField>
+          </FormGrid>
+        </FormSection>
 
-        <View>
-          <FieldLabel label="Observações (opcional)" />
-          <NotesField value={notes} onChange={setNotes} />
-        </View>
-      </View>
+        {isEditing ? (
+          <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+            <Button
+              title={`Excluir ${experienceCopy.materialNoun}`}
+              variant="alertOutline"
+              icon={<AppIcon name="trash-outline" size={18} color={theme.colors.alert} />}
+              onPress={handleDelete}
+              disabled={saving || deleteMaterial.isPending}
+            />
+          </View>
+        ) : null}
+      </FormBody>
     </StandardModal>
   );
 }
