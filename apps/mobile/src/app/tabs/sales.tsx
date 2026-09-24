@@ -54,7 +54,6 @@ import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { FAB } from "../../shared/components/fab";
 import { desktopPageContent } from "../../shared/layout/desktop-page";
 import { DesktopSalesPage } from "../../features/sales/components/sales-desktop";
-import { DesktopMeasuredHeader } from "../../features/sales/components/desktop-list-kit";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { desktopModalSurface, pageGutter } from "../../shared/layout/desktop-density";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
@@ -809,22 +808,20 @@ export default function SalesScreen() {
             header={
               <ScreenGuidance
                 renderHeader={(helpButton) => (
-                  <DesktopMeasuredHeader>
-                    <ScreenHeader
-                      help={helpButton}
-                      title="Vendas"
-                      subtitle="Acompanhe seus pedidos e recebimentos"
-                      hideBack
-                      right={
-                        <FAB
-                          icon="add"
-                          header
-                          accessibilityLabel="Nova venda"
-                          onPress={() => router.push("/tabs/new-sale")}
-                        />
-                      }
-                    />
-                  </DesktopMeasuredHeader>
+                  <ScreenHeader
+                    help={helpButton}
+                    title="Vendas"
+                    subtitle="Acompanhe seus pedidos e recebimentos"
+                    hideBack
+                    right={
+                      <FAB
+                        icon="add"
+                        header
+                        accessibilityLabel="Nova venda"
+                        onPress={() => router.push("/tabs/new-sale")}
+                      />
+                    }
+                  />
                 )}
                 area="sales"
                 onStart={() => router.push("/tabs/new-sale")}

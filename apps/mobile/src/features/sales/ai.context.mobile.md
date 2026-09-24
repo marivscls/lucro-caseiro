@@ -269,5 +269,5 @@ A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida n
 - `desktop-list-kit.tsx` fica em `features/sales` porque `shared/layout` está congelado
   nesta rodada; é candidato a ir para `shared/layout` depois. Clientes e Orçamentos
   importam o kit pelas rotas em `app/`, não pelas suas features.
-- `DesktopHeaderBlock` + `DesktopMeasuredHeader` dão 24px entre a faixa de orientação e o
-  conteúdo quando a faixa aparece.
+- O espaço entre o cabeçalho (ou a faixa de orientação) e o conteúdo vem do
+  `ScreenHeader`/`ScreenGuidance` compartilhados (32px); as telas não medem o cabeçalho.

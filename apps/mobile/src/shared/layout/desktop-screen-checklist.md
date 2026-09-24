@@ -44,7 +44,7 @@ não entram em telas novas. Use `desktopMeta` em caixa normal.
 ## Cabeçalho: `ScreenHeader`
 
 O `ScreenHeader` já aplica a escala no desktop: 36 px de título, 17 px de
-subtítulo, 40 px acima e 28 px abaixo, com ajuda e ações à direita. No desktop,
+subtítulo, 40 px acima e 32 px (`blockGap`) abaixo, com ajuda e ações à direita. No desktop,
 `titleStyle` é ignorado e todas as páginas usam a cor de texto. Cabeçalhos próprios
 devem ser trocados por `ScreenHeader`, com o botão de ajuda em `help` via
 `ScreenGuidance.renderHeader`.
@@ -69,6 +69,12 @@ devem ser trocados por `ScreenHeader`, com o botão de ajuda em `help` via
 - `ScreenGuidance`, no desktop, mostra a introdução como uma faixa discreta
   (ícone, título, texto, "Agora não" e ação principal na mesma linha). A tela não
   precisa fazer nada para isso.
+- **Ritmo do cabeçalho:** título → conteúdo, título → faixa e faixa → conteúdo
+  são sempre 32 px, e quem garante isso são o `ScreenHeader` e a faixa. A tela não
+  mede o cabeçalho nem soma margens. Se o cabeçalho rola dentro de um contêiner
+  com `desktopPageContent` (`gap` de 32), envolva-o em `DesktopPageHeader` para o
+  `gap` não se somar (senão ficam 64 px). Com o cabeçalho fora desse contêiner, ou
+  com `gap: 0`, não precisa de nada.
 
 ## Primitivas (`shared/layout/desktop-page.tsx`)
 
@@ -76,6 +82,7 @@ devem ser trocados por `ScreenHeader`, com o botão de ajuda em `help` via
 | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `desktopPageContent(isDesktop, "page" \| "form" \| "reading")` | `contentContainerStyle` do ScrollView da página: largura máxima, `gap` de 32 e respiro final.                     |
 | `DesktopPage`                                                  | Mesmo contrato para páginas sem ScrollView próprio.                                                               |
+| `DesktopPageHeader`                                            | Cabeçalho que rola dentro do contêiner `desktopPageContent`: anula o `gap` para manter os 32 px do cabeçalho.     |
 | `DesktopSplit aside={…}`                                       | Coluna principal flexível e lateral de 280 a 360 px, fixa ao rolar. Serve para resumo, prévia e filtros.          |
 | `DesktopGrid minColumnWidth maxColumns`                        | Grade de cartões que preenche a coluna (mede a largura).                                                          |
 | `useDesktopColumns(min, gap, max)`                             | Hook da grade para `FlatList numColumns`, entre outros usos.                                                      |

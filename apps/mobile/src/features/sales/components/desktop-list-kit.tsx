@@ -13,7 +13,7 @@ import {
   Typography,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { createContext, useContext, useState, type ReactNode } from "react";
+import React, { useState, type ReactNode } from "react";
 import {
   Image,
   Pressable,
@@ -27,40 +27,6 @@ import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
 
 type HoverState = { pressed: boolean; hovered?: boolean };
-
-const HeaderHeightContext = createContext<(height: number) => void>(() => undefined);
-
-/**
- * Bloco do cabeçalho da página. Quando a faixa de orientação aparece abaixo do
- * `ScreenHeader`, garante 24px até o conteúdo (a faixa não traz margem).
- * Envolva o `ScreenHeader` de `renderHeader` em `DesktopMeasuredHeader`.
- */
-export function DesktopHeaderBlock({ children }: Readonly<{ children: ReactNode }>) {
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const [blockHeight, setBlockHeight] = useState(0);
-  const [padding, setPadding] = useState(0);
-  const hasStrip = headerHeight > 0 && blockHeight - padding - headerHeight > 8;
-  const nextPadding = hasStrip ? spacing["2xl"] : 0;
-  if (nextPadding !== padding) setPadding(nextPadding);
-  return (
-    <HeaderHeightContext.Provider value={setHeaderHeight}>
-      <View
-        onLayout={(event) => setBlockHeight(event.nativeEvent.layout.height)}
-        style={{ paddingBottom: nextPadding }}
-      >
-        {children}
-      </View>
-    </HeaderHeightContext.Provider>
-  );
-}
-
-/** Mede o `ScreenHeader` dentro de `DesktopHeaderBlock`. */
-export function DesktopMeasuredHeader({ children }: Readonly<{ children: ReactNode }>) {
-  const report = useContext(HeaderHeightContext);
-  return (
-    <View onLayout={(event) => report(event.nativeEvent.layout.height)}>{children}</View>
-  );
-}
 
 /** Campo de busca da barra de ferramentas: 52px, texto de 16px, limpar. */
 export function DesktopSearchField({

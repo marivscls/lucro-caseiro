@@ -31,12 +31,16 @@ export const desktopLayout = {
   pageBottom: 56,
 } as const;
 
-/** Cabeçalho de página no desktop: respiro de 40px acima e 28px abaixo. */
+/**
+ * Cabeçalho de página no desktop: 40px acima e o intervalo entre blocos
+ * (32px) abaixo. O cabeçalho é dono do espaço até o conteúdo (ou até a faixa
+ * de orientação, que também traz 32px abaixo).
+ */
 export const desktopHeaderStyle: ViewStyle = {
   width: "100%",
   paddingHorizontal: 0,
   paddingTop: 40,
-  paddingBottom: 28,
+  paddingBottom: desktopLayout.blockGap,
   flexShrink: 0,
 };
 

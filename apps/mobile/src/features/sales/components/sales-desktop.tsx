@@ -21,7 +21,6 @@ import { paymentLabel } from "../payment";
 import {
   DesktopCellText,
   DesktopEmptyCard,
-  DesktopHeaderBlock,
   DesktopPager,
   DesktopRowButton,
   DesktopSearchField,
@@ -477,7 +476,7 @@ export function DesktopSalesPage(props: DesktopSalesPageProps) {
   const openOrders = orders.filter(isOrderOpen).length;
   return (
     <>
-      <DesktopHeaderBlock>{header}</DesktopHeaderBlock>
+      {header}
       <View style={{ gap: spacing["3xl"] - spacing.xs }}>
         <DesktopViewTabs
           options={[

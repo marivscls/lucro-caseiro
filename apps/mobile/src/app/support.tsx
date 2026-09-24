@@ -21,7 +21,11 @@ import {
   SupportContactDesktop,
   SupportFaqDesktop,
 } from "../features/help-assistant/support-desktop";
-import { DesktopSplit, desktopPageContent } from "../shared/layout/desktop-page";
+import {
+  desktopPageContent,
+  DesktopPageHeader,
+  DesktopSplit,
+} from "../shared/layout/desktop-page";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
@@ -87,13 +91,13 @@ export default function SupportScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View>
+          <DesktopPageHeader>
             <ScreenHeader
               title="Suporte"
               subtitle="Tire dúvidas sobre o app ou fale com a gente"
               hideBack
             />
-          </View>
+          </DesktopPageHeader>
           <DesktopSplit
             aside={
               <SupportContactDesktop

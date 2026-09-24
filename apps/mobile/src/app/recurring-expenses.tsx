@@ -55,9 +55,10 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { desktopStretch, pageGutter } from "../shared/layout/desktop-density";
 import { brandScreenPalette } from "../shared/brand-palette";
 import {
+  desktopPageContent,
+  DesktopPageHeader,
   DesktopSection,
   DesktopSplit,
-  desktopPageContent,
 } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import {
@@ -264,7 +265,7 @@ export default function RecurringExpensesScreen() {
         >
           {isDesktop ? (
             <>
-              <View>{guidance}</View>
+              <DesktopPageHeader>{guidance}</DesktopPageHeader>
               <RecurringCommitmentsDesktop
                 total={total}
                 count={recurringItems.length}

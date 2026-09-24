@@ -21,7 +21,7 @@ import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useSubscription } from "../features/subscription/use-subscription";
-import { desktopPageContent } from "../shared/layout/desktop-page";
+import { desktopPageContent, DesktopPageHeader } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { PlansDesktop } from "../features/subscription/components/plans-desktop";
 import {
@@ -216,9 +216,9 @@ export default function PlansScreen() {
         }
       >
         {isDesktop ? (
-          <View>
+          <DesktopPageHeader>
             <ScreenHeader title={heading} subtitle={subheading} hideBack />
-          </View>
+          </DesktopPageHeader>
         ) : null}
         {warning && (
           <Card

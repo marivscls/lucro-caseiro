@@ -50,9 +50,10 @@ import {
 import { desktopLayout } from "../shared/layout/desktop-density";
 import {
   DesktopGrid,
+  desktopPageContent,
+  DesktopPageHeader,
   DesktopSplit,
   DesktopStatRow,
-  desktopPageContent,
 } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import {
@@ -707,7 +708,7 @@ export default function InsightsScreen() {
           }
           showsVerticalScrollIndicator={false}
         >
-          {headerInScroll ? <View>{header}</View> : null}
+          {headerInScroll ? <DesktopPageHeader>{header}</DesktopPageHeader> : null}
           {data && data.totalSales > 0 ? (
             <InsightsContent
               data={data}

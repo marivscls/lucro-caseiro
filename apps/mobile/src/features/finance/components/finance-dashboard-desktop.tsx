@@ -29,11 +29,12 @@ import financeSummaryIllustration from "../../../assets/finance-summary-illustra
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
 import {
+  desktopActionButton,
   DesktopGrid,
+  desktopPageContent,
+  DesktopPageHeader,
   DesktopSplit,
   DesktopTable,
-  desktopActionButton,
-  desktopPageContent,
   type DesktopTableColumn,
 } from "../../../shared/layout/desktop-page";
 import { formatCurrency } from "../../../shared/utils/format";
@@ -376,7 +377,7 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
       contentContainerStyle={desktopPageContent(true)}
     >
       {/* Cabeçalho + faixa de introdução num bloco só (sem o gap da página). */}
-      <View>{props.header}</View>
+      <DesktopPageHeader>{props.header}</DesktopPageHeader>
 
       <View
         style={{ gap: spacing.lg }}

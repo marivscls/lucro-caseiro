@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("../components/app-icon", () => ({ AppIcon: () => null }));
 vi.mock("./use-desktop-layout", () => ({ useDesktopLayout: () => false }));
 
-import { desktopWidths } from "./desktop-density";
+import { desktopHeaderStyle, desktopLayout, desktopWidths } from "./desktop-density";
 import { desktopAsideWidth, desktopColumns, desktopPageContent } from "./desktop-page";
 
 describe("desktop page primitives", () => {
@@ -30,5 +30,11 @@ describe("desktop page primitives", () => {
     expect(desktopAsideWidth(1200)).toBe(360);
     expect(desktopAsideWidth(704)).toBe(280);
     expect(desktopAsideWidth(0)).toBe(360);
+  });
+
+  it("gives the header the same 32px the page uses between blocks", () => {
+    // DesktopPageHeader anula o gap da página; o cabeçalho traz os 32px.
+    expect(desktopHeaderStyle.paddingBottom).toBe(desktopLayout.blockGap);
+    expect(desktopPageContent(true)?.gap).toBe(desktopLayout.blockGap);
   });
 });

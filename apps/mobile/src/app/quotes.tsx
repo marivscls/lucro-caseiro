@@ -61,9 +61,7 @@ import {
 import {
   DesktopCellText,
   DesktopEmptyCard,
-  DesktopHeaderBlock,
   DesktopListHeader,
-  DesktopMeasuredHeader,
   DesktopSearchField,
   DesktopSegmented,
   DesktopStatusPill,
@@ -1020,33 +1018,29 @@ export default function QuotesScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
         >
-          <DesktopHeaderBlock>
-            <ScreenGuidance
-              renderHeader={(helpButton) => (
-                <DesktopMeasuredHeader>
-                  <ScreenHeader
-                    help={helpButton}
-                    title="Orçamentos"
-                    subtitle="Propostas organizadas, pedidos mais perto."
-                    hideBack
-                    right={
-                      <FAB
-                        icon="add"
-                        header
-                        accessibilityLabel="Novo orçamento"
-                        onPress={() => setShowCreate(true)}
-                      />
-                    }
+          <ScreenGuidance
+            renderHeader={(helpButton) => (
+              <ScreenHeader
+                help={helpButton}
+                title="Orçamentos"
+                subtitle="Propostas organizadas, pedidos mais perto."
+                hideBack
+                right={
+                  <FAB
+                    icon="add"
+                    header
+                    accessibilityLabel="Novo orçamento"
+                    onPress={() => setShowCreate(true)}
                   />
-                </DesktopMeasuredHeader>
-              )}
-              area="quotes"
-              onStart={() => setShowCreate(true)}
-              hasRecords={(data?.items.length ?? 0) > 0}
-              loading={isLoading || !!error}
-              suspended={showCreate}
-            />
-          </DesktopHeaderBlock>
+                }
+              />
+            )}
+            area="quotes"
+            onStart={() => setShowCreate(true)}
+            hasRecords={(data?.items.length ?? 0) > 0}
+            loading={isLoading || !!error}
+            suspended={showCreate}
+          />
           <DesktopQuotesBody
             isLoading={isLoading}
             error={error}

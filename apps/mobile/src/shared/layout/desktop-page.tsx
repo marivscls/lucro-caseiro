@@ -47,6 +47,18 @@ export function desktopPageContent(
   };
 }
 
+/**
+ * Cabeçalho (`ScreenHeader`, com ou sem a faixa de orientação) como filho de um
+ * contêiner com `desktopPageContent`. O cabeçalho já traz os 32px até o
+ * conteúdo, então aqui o `gap` da página não se soma a eles (sem isso, 64px).
+ * Com o cabeçalho fora desse contêiner (ou com `gap: 0`), não precisa.
+ */
+export function DesktopPageHeader({ children }: Readonly<{ children: ReactNode }>) {
+  const isDesktop = useDesktopLayout();
+  if (!isDesktop) return <>{children}</>;
+  return <View style={{ marginBottom: -desktopLayout.blockGap }}>{children}</View>;
+}
+
 /** Superfície de cartão do desktop: branco, borda hairline, raio 16. */
 export function desktopCardStyle(
   theme: Theme,

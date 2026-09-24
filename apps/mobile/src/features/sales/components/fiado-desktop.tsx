@@ -22,7 +22,6 @@ import {
 } from "../fiado";
 import {
   DesktopEmptyCard,
-  DesktopHeaderBlock,
   DesktopListHeader,
   DesktopRowButton,
   DesktopSearchField,
@@ -378,7 +377,7 @@ export function DesktopFiadoPage(props: DesktopFiadoPageProps) {
   }
   return (
     <>
-      <DesktopHeaderBlock>{props.header}</DesktopHeaderBlock>
+      {props.header}
       <View style={{ gap: spacing["3xl"] }}>{body}</View>
     </>
   );

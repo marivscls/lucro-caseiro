@@ -49,10 +49,11 @@ import {
   type ToolItem,
 } from "../../shared/layout/more-tools";
 import {
-  DesktopGrid,
-  DesktopSection,
   desktopCardStyle,
+  DesktopGrid,
   desktopPageContent,
+  DesktopPageHeader,
+  DesktopSection,
 } from "../../shared/layout/desktop-page";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { formatCurrency } from "../../shared/utils/format";
@@ -908,13 +909,13 @@ export default function MoreScreen() {
         showsVerticalScrollIndicator={false}
       >
         {isDesktop ? (
-          <View>
+          <DesktopPageHeader>
             <ScreenHeader
               title="Mais opções"
               subtitle="Tudo para cuidar do seu negócio."
               hideBack
             />
-          </View>
+          </DesktopPageHeader>
         ) : (
           <View style={styles.heading}>
             <Typography variant="screenTitle" color={palette.wine}>

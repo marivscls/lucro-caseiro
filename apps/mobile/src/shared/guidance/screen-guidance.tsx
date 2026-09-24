@@ -28,7 +28,7 @@ import {
 import { useGuidanceStore } from "./guidance-store";
 import { guidanceEvent } from "./guidance-events";
 import { useDesktopLayout } from "../layout/use-desktop-layout";
-import { desktopWidths } from "../layout/desktop-density";
+import { desktopLayout, desktopWidths } from "../layout/desktop-density";
 export interface ScreenGuidanceProps {
   area: GuidanceArea;
   onStart: () => void;
@@ -185,7 +185,8 @@ export function ScreenGuidance({
               borderWidth: 1,
               borderColor: theme.colors.border,
               backgroundColor: theme.colors.surfaceElevated,
-              marginBottom: spacing.sm,
+              // Mesmo intervalo entre blocos do cabeçalho até o conteúdo.
+              marginBottom: desktopLayout.blockGap,
             }}
           >
             <View

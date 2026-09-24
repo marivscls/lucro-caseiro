@@ -64,9 +64,7 @@ import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { ClientFormFields } from "../../features/clients/components/client-form-fields";
 import {
   DesktopEmptyCard,
-  DesktopHeaderBlock,
   DesktopListHeader,
-  DesktopMeasuredHeader,
   DesktopPager,
   DesktopSearchField,
   DesktopSegmented,
@@ -860,33 +858,29 @@ function ClientsListScreen({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
         >
-          <DesktopHeaderBlock>
-            <ScreenGuidance
-              renderHeader={(helpButton) => (
-                <DesktopMeasuredHeader>
-                  <ScreenHeader
-                    help={helpButton}
-                    title="Clientes"
-                    subtitle={clientsSubtitle}
-                    hideBack
-                    right={
-                      <FAB
-                        icon="add"
-                        header
-                        accessibilityLabel="Novo cliente"
-                        onPress={onCreatePress}
-                      />
-                    }
+          <ScreenGuidance
+            renderHeader={(helpButton) => (
+              <ScreenHeader
+                help={helpButton}
+                title="Clientes"
+                subtitle={clientsSubtitle}
+                hideBack
+                right={
+                  <FAB
+                    icon="add"
+                    header
+                    accessibilityLabel="Novo cliente"
+                    onPress={onCreatePress}
                   />
-                </DesktopMeasuredHeader>
-              )}
-              area="clients"
-              onStart={onCreatePress}
-              hasRecords={totalClients > 0}
-              loading={clientsLoading || baseClientsQuery.isError}
-              suspended={filterModalOpen || sortModalOpen}
-            />
-          </DesktopHeaderBlock>
+                }
+              />
+            )}
+            area="clients"
+            onStart={onCreatePress}
+            hasRecords={totalClients > 0}
+            loading={clientsLoading || baseClientsQuery.isError}
+            suspended={filterModalOpen || sortModalOpen}
+          />
           <View style={{ gap: desktopLayout.blockGap }}>
             <DesktopStatRow
               items={[

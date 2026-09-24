@@ -58,7 +58,6 @@ import {
 import { desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopFiadoPage } from "../features/sales/components/fiado-desktop";
-import { DesktopMeasuredHeader } from "../features/sales/components/desktop-list-kit";
 import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
@@ -822,22 +821,20 @@ export default function FiadoScreen() {
             header={
               <ScreenGuidance
                 renderHeader={(helpButton) => (
-                  <DesktopMeasuredHeader>
-                    <ScreenHeader
-                      help={helpButton}
-                      title="Fiado"
-                      subtitle="Quem comprou para pagar depois e quanto falta receber"
-                      hideBack
-                      right={
-                        <FAB
-                          icon="add"
-                          header
-                          accessibilityLabel="Nova venda"
-                          onPress={() => router.push("/tabs/new-sale")}
-                        />
-                      }
-                    />
-                  </DesktopMeasuredHeader>
+                  <ScreenHeader
+                    help={helpButton}
+                    title="Fiado"
+                    subtitle="Quem comprou para pagar depois e quanto falta receber"
+                    hideBack
+                    right={
+                      <FAB
+                        icon="add"
+                        header
+                        accessibilityLabel="Nova venda"
+                        onPress={() => router.push("/tabs/new-sale")}
+                      />
+                    }
+                  />
                 )}
                 area="fiado"
                 onStart={() => router.push("/tabs/new-sale")}
