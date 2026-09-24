@@ -50,6 +50,12 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import {
+  DesktopCard,
+  DesktopGrid,
+  desktopActionButton,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
@@ -194,7 +200,13 @@ export default function PurchasesScreen() {
             />
           }
         />
-        <ScrollView contentContainerStyle={{ ...pageFrame, paddingTop: spacing.xl }}>
+        <ScrollView
+          contentContainerStyle={
+            isDesktop
+              ? desktopPageContent(true)
+              : { ...pageFrame, paddingTop: spacing.xl }
+          }
+        >
           <PurchasesPremiumGate onUnlock={() => showPaywall("purchases")} />
         </ScrollView>
       </SafeAreaView>
@@ -237,11 +249,15 @@ export default function PurchasesScreen() {
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          ...pageFrame,
-          paddingTop: spacing.sm,
-          paddingBottom: showBottomAction ? spacing.lg : spacing["3xl"],
-        }}
+        contentContainerStyle={
+          isDesktop
+            ? desktopPageContent(true)
+            : {
+                ...pageFrame,
+                paddingTop: spacing.sm,
+                paddingBottom: showBottomAction ? spacing.lg : spacing["3xl"],
+              }
+        }
       >
         <View
           onLayout={(event) => setContentWidth(event.nativeEvent.layout.width)}
@@ -272,7 +288,9 @@ export default function PurchasesScreen() {
                 isDesktop={isDesktop}
               />
 
-              <FilterChipRow style={{ marginTop: spacing.lg }}>
+              <FilterChipRow
+                style={{ marginTop: isDesktop ? spacing["3xl"] : spacing.lg }}
+              >
                 {FILTERS.map((option) => (
                   <PurchaseFilterChip
                     key={option.value}
@@ -293,8 +311,9 @@ export default function PurchasesScreen() {
                 }}
               >
                 <Typography
-                  variant="h3"
-                  color={pal.wine}
+                  variant={isDesktop ? "desktopSection" : "h3"}
+                  color={isDesktop ? undefined : pal.wine}
+                  accessibilityRole={isDesktop ? "header" : undefined}
                   numberOfLines={1}
                   style={{ flex: 1, minWidth: 0 }}
                 >
@@ -313,15 +332,59 @@ export default function PurchasesScreen() {
                     paddingLeft: spacing.sm,
                   }}
                 >
-                  <Typography variant="captionBold" color={pal.muted} numberOfLines={1}>
+                  <Typography
+                    variant={isDesktop ? "desktopMeta" : "captionBold"}
+                    color={pal.muted}
+                    numberOfLines={1}
+                  >
                     Pendentes primeiro
                   </Typography>
                 </View>
               </View>
 
-              {allItems.length === 0 ? <PurchasesEmptyState onAdd={openCreate} /> : null}
+              {allItems.length === 0 && isDesktop ? (
+                <DesktopCard
+                  style={{
+                    borderStyle: "dashed",
+                    alignItems: "flex-start",
+                    marginTop: spacing.lg,
+                  }}
+                >
+                  <Typography variant="desktopCardTitle">
+                    Nenhuma compra por aqui
+                  </Typography>
+                  <Typography variant="desktopBody">
+                    Registre a primeira compra de fornecedor.
+                  </Typography>
+                  <Button
+                    title="Adicionar compra"
+                    onPress={openCreate}
+                    style={desktopActionButton}
+                  />
+                </DesktopCard>
+              ) : null}
+              {allItems.length === 0 && !isDesktop ? (
+                <PurchasesEmptyState onAdd={openCreate} />
+              ) : null}
 
-              {allItems.length > 0 && items.length === 0 ? (
+              {allItems.length > 0 && items.length === 0 && isDesktop ? (
+                <DesktopCard
+                  style={{
+                    borderStyle: "dashed",
+                    alignItems: "flex-start",
+                    marginTop: spacing.lg,
+                  }}
+                >
+                  <Typography variant="desktopCardTitle">
+                    Nenhuma compra neste filtro
+                  </Typography>
+                  <Typography variant="desktopBody">
+                    Escolha outro status para ver suas compras.
+                  </Typography>
+                </DesktopCard>
+              ) : null}
+
+              {allItems.length > 0 && items.length === 0 && !isDesktop ? (
                 <EmptyState
                   title="Nenhuma compra neste filtro"
                   description="Escolha outro status para ver suas compras."
@@ -335,20 +398,22 @@ export default function PurchasesScreen() {
 
               {items.length > 0 ? (
                 <View style={{ gap: spacing.md, marginTop: spacing.lg }}>
-                  {items.map((purchase) => (
-                    <PurchaseCard
-                      key={purchase.id}
-                      purchase={purchase}
-                      onPay={() => pay(purchase.id)}
-                      onEdit={() => setEditingPurchase(purchase)}
-                      onDelete={() => confirmDelete(purchase.id)}
-                      isPaying={payingId === purchase.id}
-                      payDisabled={payingId !== null}
-                      isDeleting={deletingId === purchase.id}
-                      deleteDisabled={deletingId !== null}
-                      editDisabled={payingId !== null || deletingId !== null}
-                    />
-                  ))}
+                  <DesktopGrid minColumnWidth={320} maxColumns={3}>
+                    {items.map((purchase) => (
+                      <PurchaseCard
+                        key={purchase.id}
+                        purchase={purchase}
+                        onPay={() => pay(purchase.id)}
+                        onEdit={() => setEditingPurchase(purchase)}
+                        onDelete={() => confirmDelete(purchase.id)}
+                        isPaying={payingId === purchase.id}
+                        payDisabled={payingId !== null}
+                        isDeleting={deletingId === purchase.id}
+                        deleteDisabled={deletingId !== null}
+                        editDisabled={payingId !== null || deletingId !== null}
+                      />
+                    ))}
+                  </DesktopGrid>
                 </View>
               ) : null}
             </>
@@ -356,7 +421,7 @@ export default function PurchasesScreen() {
         </View>
       </ScrollView>
 
-      {showBottomAction ? (
+      {showBottomAction && !isDesktop ? (
         <ScreenCreateBar
           title="+ Adicionar compra"
           onPress={openCreate}
@@ -384,7 +449,7 @@ export default function PurchasesScreen() {
 }
 
 function heroImageSize(cardWidth: number, isDesktop: boolean, compact: boolean): number {
-  if (isDesktop) return Math.min(190, cardWidth * 0.4);
+  if (isDesktop) return Math.min(156, cardWidth * 0.4);
   if (compact) return Math.min(100, Math.max(84, cardWidth * 0.28));
   if (cardWidth < 400) return Math.min(128, cardWidth * 0.34);
   return Math.min(160, cardWidth * 0.36);
@@ -436,7 +501,7 @@ function PurchasesSummaryHero({
           Total a pagar
         </Typography>
         <Typography
-          variant={amountVariant}
+          variant={isDesktop ? "desktopTotal" : amountVariant}
           color={pal.onWine}
           numberOfLines={1}
           adjustsFontSizeToFit
@@ -580,11 +645,77 @@ function PurchasesEmptyState({ onAdd }: Readonly<{ onAdd: () => void }>) {
 function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme } = useTheme();
   const pal = useBrandScreenPalette();
+  const isDesktop = useDesktopLayout();
   const benefits = [
     "Registre tudo que compra dos fornecedores em um só lugar.",
     "Acompanhe as contas a pagar sem esquecer nenhuma data.",
     "Cada compra paga já lança a saída certa no seu caixa.",
   ];
+
+  if (isDesktop) {
+    return (
+      <DesktopCard
+        style={{
+          borderColor: theme.colors.premium,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing["3xl"],
+        }}
+      >
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.lg }}>
+          <Badge label="Recurso Profissional" variant="premium" />
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="desktopSection" accessibilityRole="header">
+              Compras de fornecedor organizadas
+            </Typography>
+            <Typography variant="desktopBody" style={{ maxWidth: 620 }}>
+              Registre o que você compra dos fornecedores e acompanhe contas a pagar e
+              caixa automaticamente.
+            </Typography>
+          </View>
+          <View style={{ gap: spacing.md }}>
+            {benefits.map((benefit) => (
+              <View
+                key={benefit}
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <AppIcon name="checkmark-circle" size={22} color={theme.colors.premium} />
+                <Typography variant="desktopBody" color={pal.ink} style={{ flex: 1 }}>
+                  {benefit}
+                </Typography>
+              </View>
+            ))}
+          </View>
+          <Button
+            title="Desbloquear no Profissional"
+            variant="premium"
+            icon={
+              <AppIcon
+                name="lock-open-outline"
+                size={20}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            onPress={onUnlock}
+            style={{
+              ...desktopActionButton,
+              alignSelf: "flex-start",
+              backgroundColor: pal.rose,
+            }}
+          />
+        </View>
+        <Image
+          source={comprasHero3d}
+          resizeMode="contain"
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+          accessibilityIgnoresInvertColors
+          style={{ width: 200, height: 200, objectFit: "contain" } as ImageStyle}
+        />
+      </DesktopCard>
+    );
+  }
 
   return (
     <View

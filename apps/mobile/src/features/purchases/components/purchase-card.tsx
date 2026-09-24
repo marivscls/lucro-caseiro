@@ -19,6 +19,7 @@ import { displayProductName } from "../../products/display";
 import { useSupplierName } from "../../suppliers/hooks";
 import { useBusinessCopy } from "../../subscription/business-copy";
 import { categoryLabel, formatPurchaseItemsLine } from "../domain";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface PurchaseCardProps {
   readonly purchase: Purchase;
@@ -49,6 +50,7 @@ export function PurchaseCard({
   editDisabled,
 }: PurchaseCardProps) {
   const pal = useBrandScreenPalette();
+  const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
   const supplierName = useSupplierName(purchase.supplierId);
   const isPaid = purchase.paymentStatus === "paid";
@@ -71,9 +73,11 @@ export function PurchaseCard({
         borderWidth: 1,
         borderColor: pal.border,
         borderRadius: radii.xl,
+        // Desktop: cartões da mesma linha da grade com a mesma altura.
+        ...(isDesktop ? { flexGrow: 1 } : null),
       }}
     >
-      <View style={{ gap: spacing.sm }}>
+      <View style={{ gap: spacing.sm, ...(isDesktop ? { flexGrow: 1 } : null) }}>
         <View
           style={{
             flexDirection: "row",
@@ -135,6 +139,9 @@ export function PurchaseCard({
             alignItems: "center",
             gap: spacing.sm,
             marginTop: spacing.xs,
+            ...(isDesktop
+              ? { marginTop: "auto" as const, paddingTop: spacing.xs }
+              : null),
           }}
         >
           {!isPaid ? (
