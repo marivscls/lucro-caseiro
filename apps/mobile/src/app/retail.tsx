@@ -58,6 +58,12 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import { AppIcon, type AppIconName } from "../shared/components/app-icon";
+import {
+  DesktopGrid,
+  DesktopSplit,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 type OperationMode =
@@ -88,6 +94,18 @@ const MODE_TITLE: Record<OperationMode, string> = {
   prices: "Reajustar preços",
   labels: "Etiquetas em lote",
   business_account: "Novo convênio",
+};
+
+/** Ícone de cada atalho na grade do desktop (sempre ao lado do texto). */
+const MODE_ICON: Record<OperationMode, AppIconName> = {
+  checkout: "cart-outline",
+  school_list: "reader-outline",
+  inventory_count: "clipboard-outline",
+  service_order: "create-outline",
+  promotion: "gift-outline",
+  prices: "trending-up-outline",
+  labels: "pricetags-outline",
+  business_account: "business-outline",
 };
 
 const PAYMENT_METHODS: Array<{ id: PaymentMethod; label: string }> = [
@@ -904,191 +922,291 @@ export default function RetailScreen() {
     );
   }
 
+  const desktopCardPadding = isDesktop ? { padding: spacing["2xl"] } : null;
+
+  const cashCard = (
+    <Card variant="elevated" style={{ gap: spacing.md, ...desktopCardPadding }}>
+      <Typography variant={isDesktop ? "desktopCardTitle" : "h3"}>Caixa</Typography>
+      {cash.data ? (
+        <>
+          <Typography>
+            Esperado em dinheiro: R$ {cash.data.expectedCash.toFixed(2).replace(".", ",")}
+          </Typography>
+          <ValidationField {...formValidation.field("amount")}>
+            <Input
+              label="Valor"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+              numericMode="decimal"
+            />
+          </ValidationField>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            <Button
+              title="Suprimento"
+              variant="outline"
+              onPress={() =>
+                void runAction(
+                  () =>
+                    cashMovement.mutateAsync({
+                      type: "supply",
+                      paymentMethod: "cash",
+                      amount: numberValue(amount),
+                    }),
+                  "Suprimento registrado.",
+                )
+              }
+            />
+            <Button
+              title="Sangria"
+              variant="outline"
+              onPress={() =>
+                void runAction(
+                  () =>
+                    cashMovement.mutateAsync({
+                      type: "withdrawal",
+                      paymentMethod: "cash",
+                      amount: numberValue(amount),
+                    }),
+                  "Sangria registrada.",
+                )
+              }
+            />
+            <Button
+              title="Fechar caixa"
+              onPress={() =>
+                void runAction(
+                  () => closeCash.mutateAsync(numberValue(amount)),
+                  "Caixa fechado.",
+                )
+              }
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <ValidationField {...formValidation.field("amount")}>
+            <Input
+              label="Fundo inicial"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+              numericMode="decimal"
+            />
+          </ValidationField>
+          <Button
+            title="Abrir caixa"
+            onPress={() =>
+              void runAction(
+                () => openCash.mutateAsync(numberValue(amount)),
+                "Caixa aberto.",
+              )
+            }
+          />
+        </>
+      )}
+    </Card>
+  );
+
+  const modeList: OperationMode[] = [
+    "checkout",
+    "school_list",
+    "inventory_count",
+    "service_order",
+    "promotion",
+    "prices",
+    "labels",
+    "business_account",
+  ];
+  const desktopModeButtons = (
+    <DesktopGrid minColumnWidth={180} maxColumns={3} gap={spacing.md}>
+      {modeList.map((item) => (
+        <Pressable
+          key={item}
+          onPress={() => setMode(item)}
+          accessibilityRole="button"
+          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({
+            minHeight: 64,
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.md,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: hovered ? theme.colors.textSecondary : theme.colors.border,
+            backgroundColor: theme.colors.surfaceElevated,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            opacity: pressed ? 0.8 : 1,
+          })}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon
+              name={MODE_ICON[item]}
+              size={22}
+              color={theme.colors.primaryStrong}
+            />
+          </View>
+          <Typography variant="desktopBodyStrong" style={{ flex: 1, minWidth: 0 }}>
+            {MODE_TITLE[item]}
+          </Typography>
+        </Pressable>
+      ))}
+    </DesktopGrid>
+  );
+
+  const modeButtons = (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      {(
+        [
+          "checkout",
+          "school_list",
+          "inventory_count",
+          "service_order",
+          "promotion",
+          "prices",
+          "labels",
+          "business_account",
+        ] as OperationMode[]
+      ).map((item) => (
+        <Pressable
+          key={item}
+          onPress={() => setMode(item)}
+          style={({ pressed }) => ({
+            minWidth: 150,
+            flexGrow: 1,
+            padding: spacing.md,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surface,
+            opacity: pressed ? 0.75 : 1,
+          })}
+        >
+          <Typography variant="bodyBold">{MODE_TITLE[item]}</Typography>
+        </Pressable>
+      ))}
+    </View>
+  );
+
+  const replenishmentCard = (
+    <Card variant="elevated" style={{ gap: spacing.md, ...desktopCardPadding }}>
+      <Typography variant={isDesktop ? "desktopCardTitle" : "h3"}>
+        Reposição inteligente
+      </Typography>
+      <Typography>
+        {replenishment.data?.length ?? 0} itens precisam de reposição.
+      </Typography>
+      {(replenishment.data ?? []).slice(0, 5).map((item) => (
+        <Typography
+          key={`${item.productId}-${item.variationId ?? "product"}`}
+          variant={isDesktop ? "desktopMeta" : "caption"}
+        >
+          {item.productName}
+          {item.variationName ? ` — ${item.variationName}` : ""}: comprar{" "}
+          {item.suggestedQuantity}
+        </Typography>
+      ))}
+      <Button
+        title="Criar pedido de compra"
+        variant="outline"
+        disabled={!replenishment.data?.length}
+        onPress={() =>
+          void runAction(
+            () => createPurchaseOrder.mutateAsync(undefined),
+            "Pedido de compra criado.",
+          )
+        }
+      />
+    </Card>
+  );
+
+  const panelCard = (
+    <Card variant="elevated" style={{ gap: spacing.md, ...desktopCardPadding }}>
+      <Typography variant={isDesktop ? "desktopCardTitle" : "h3"}>
+        Painel operacional
+      </Typography>
+      <DesktopGrid minColumnWidth={240} maxColumns={3} gap={spacing.xl}>
+        {DOCUMENT_KINDS.map((group, index) => (
+          <View key={group.kind} style={{ gap: spacing.xs }}>
+            <Typography variant={isDesktop ? "desktopBodyStrong" : "bodyBold"}>
+              {group.label} ({documentGroups[index]?.length ?? 0})
+            </Typography>
+            {(documentGroups[index] ?? []).slice(0, 3).map((document) => (
+              <View
+                key={document.id}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                }}
+              >
+                <Typography style={{ flex: 1 }}>
+                  {document.title} · {document.status}
+                </Typography>
+                {renderDocumentAction(document)}
+              </View>
+            ))}
+          </View>
+        ))}
+      </DesktopGrid>
+      <Typography variant={isDesktop ? "desktopMeta" : "caption"}>
+        Promoções: {promotions.data?.length ?? 0} · Convênios:{" "}
+        {businessAccounts.data?.length ?? 0}
+      </Typography>
+    </Card>
+  );
+
   return (
     <FeatureRouteGuard feature="varejoPapelaria">
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Stack.Screen options={{ headerShown: false }} />
         <ScreenHeader title="Operação da Papelaria" />
         <ScrollView
-          contentContainerStyle={{
-            ...pageGutter(isDesktop, spacing.lg),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-            paddingVertical: spacing.lg,
-            gap: spacing.lg,
-          }}
+          contentContainerStyle={
+            isDesktop
+              ? desktopPageContent(true)
+              : {
+                  ...pageGutter(isDesktop, spacing.lg),
+                  ...desktopStretch(isDesktop, desktopWidths.data),
+                  paddingVertical: spacing.lg,
+                  gap: spacing.lg,
+                }
+          }
         >
-          <Card variant="elevated" style={{ gap: spacing.md }}>
-            <Typography variant="h3">Caixa</Typography>
-            {cash.data ? (
-              <>
-                <Typography>
-                  Esperado em dinheiro: R${" "}
-                  {cash.data.expectedCash.toFixed(2).replace(".", ",")}
-                </Typography>
-                <ValidationField {...formValidation.field("amount")}>
-                  <Input
-                    label="Valor"
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="numeric"
-                    numericMode="decimal"
-                  />
-                </ValidationField>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  <Button
-                    title="Suprimento"
-                    variant="outline"
-                    onPress={() =>
-                      void runAction(
-                        () =>
-                          cashMovement.mutateAsync({
-                            type: "supply",
-                            paymentMethod: "cash",
-                            amount: numberValue(amount),
-                          }),
-                        "Suprimento registrado.",
-                      )
-                    }
-                  />
-                  <Button
-                    title="Sangria"
-                    variant="outline"
-                    onPress={() =>
-                      void runAction(
-                        () =>
-                          cashMovement.mutateAsync({
-                            type: "withdrawal",
-                            paymentMethod: "cash",
-                            amount: numberValue(amount),
-                          }),
-                        "Sangria registrada.",
-                      )
-                    }
-                  />
-                  <Button
-                    title="Fechar caixa"
-                    onPress={() =>
-                      void runAction(
-                        () => closeCash.mutateAsync(numberValue(amount)),
-                        "Caixa fechado.",
-                      )
-                    }
-                  />
-                </View>
-              </>
-            ) : (
-              <>
-                <ValidationField {...formValidation.field("amount")}>
-                  <Input
-                    label="Fundo inicial"
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="numeric"
-                    numericMode="decimal"
-                  />
-                </ValidationField>
-                <Button
-                  title="Abrir caixa"
-                  onPress={() =>
-                    void runAction(
-                      () => openCash.mutateAsync(numberValue(amount)),
-                      "Caixa aberto.",
-                    )
-                  }
-                />
-              </>
-            )}
-          </Card>
-
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {(
-              [
-                "checkout",
-                "school_list",
-                "inventory_count",
-                "service_order",
-                "promotion",
-                "prices",
-                "labels",
-                "business_account",
-              ] as OperationMode[]
-            ).map((item) => (
-              <Pressable
-                key={item}
-                onPress={() => setMode(item)}
-                style={({ pressed }) => ({
-                  minWidth: 150,
-                  flexGrow: 1,
-                  padding: spacing.md,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.surface,
-                  opacity: pressed ? 0.75 : 1,
-                })}
-              >
-                <Typography variant="bodyBold">{MODE_TITLE[item]}</Typography>
-              </Pressable>
-            ))}
-          </View>
-
-          <Card variant="elevated" style={{ gap: spacing.md }}>
-            <Typography variant="h3">Reposição inteligente</Typography>
-            <Typography>
-              {replenishment.data?.length ?? 0} itens precisam de reposição.
-            </Typography>
-            {(replenishment.data ?? []).slice(0, 5).map((item) => (
-              <Typography
-                key={`${item.productId}-${item.variationId ?? "product"}`}
-                variant="caption"
-              >
-                {item.productName}
-                {item.variationName ? ` — ${item.variationName}` : ""}: comprar{" "}
-                {item.suggestedQuantity}
-              </Typography>
-            ))}
-            <Button
-              title="Criar pedido de compra"
-              variant="outline"
-              disabled={!replenishment.data?.length}
-              onPress={() =>
-                void runAction(
-                  () => createPurchaseOrder.mutateAsync(undefined),
-                  "Pedido de compra criado.",
-                )
+          {isDesktop ? (
+            <DesktopSplit
+              aside={
+                <>
+                  {cashCard}
+                  {replenishmentCard}
+                </>
               }
-            />
-          </Card>
-
-          <Card variant="elevated" style={{ gap: spacing.md }}>
-            <Typography variant="h3">Painel operacional</Typography>
-            {DOCUMENT_KINDS.map((group, index) => (
-              <View key={group.kind} style={{ gap: spacing.xs }}>
-                <Typography variant="bodyBold">
-                  {group.label} ({documentGroups[index]?.length ?? 0})
+            >
+              <View style={{ gap: spacing.lg }}>
+                <Typography variant="desktopSection" accessibilityRole="header">
+                  O que você quer fazer?
                 </Typography>
-                {(documentGroups[index] ?? []).slice(0, 3).map((document) => (
-                  <View
-                    key={document.id}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    <Typography style={{ flex: 1 }}>
-                      {document.title} · {document.status}
-                    </Typography>
-                    {renderDocumentAction(document)}
-                  </View>
-                ))}
+                {desktopModeButtons}
               </View>
-            ))}
-            <Typography variant="caption">
-              Promoções: {promotions.data?.length ?? 0} · Convênios:{" "}
-              {businessAccounts.data?.length ?? 0}
-            </Typography>
-          </Card>
+              {panelCard}
+            </DesktopSplit>
+          ) : (
+            <>
+              {cashCard}
+              {modeButtons}
+              {replenishmentCard}
+              {panelCard}
+            </>
+          )}
         </ScrollView>
 
         <StandardModal
