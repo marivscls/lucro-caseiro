@@ -1,13 +1,12 @@
 import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
-import type { Order, Sale } from "@lucro-caseiro/contracts";
+import type { Sale } from "@lucro-caseiro/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   CenteredTextInput,
   Button,
   Chip,
   EmptyState,
-  FilterChipRow,
   fonts,
   iconSizes,
   Input,
@@ -23,7 +22,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   ScrollView,
   View,
@@ -33,10 +31,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { useClient } from "../../features/clients/hooks";
 import { fetchProduct } from "../../features/products/api";
-import {
-  displayProductName,
-  productNameMatchesSearch,
-} from "../../features/products/display";
+import { productNameMatchesSearch } from "../../features/products/display";
 import { useProducts } from "../../features/products/hooks";
 import { SaleCard } from "../../features/sales/components/sale-card";
 import { SaleDetail } from "../../features/sales/components/sale-detail";
@@ -48,7 +43,7 @@ import {
   useUpdateSaleStatus,
 } from "../../features/sales/hooks";
 import { useOrders } from "../../features/orders/hooks";
-import { paymentLabel, PAYMENT_OPTIONS } from "../../features/sales/payment";
+import { PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
@@ -56,33 +51,19 @@ import { StandardModal } from "../../shared/components/standard-modal";
 import { showAlert } from "../../shared/components/alert-store";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
-import { DesktopPagination } from "../../shared/components/desktop-pagination";
+import { FAB } from "../../shared/components/fab";
+import { desktopPageContent } from "../../shared/layout/desktop-page";
+import { DesktopSalesPage } from "../../features/sales/components/sales-desktop";
+import { DesktopMeasuredHeader } from "../../features/sales/components/desktop-list-kit";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { desktopModalSurface, pageGutter } from "../../shared/layout/desktop-density";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { alertError } from "../../shared/utils/alerts";
 import { localDayOf, localIsoDate } from "../../shared/utils/date";
 import { brandScreenPalette } from "../../shared/brand-palette";
-import salesHeaderIcon from "../../assets/sales-header-icon.png";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 type OperationView = "sales" | "orders";
-
-function orderPaymentLabel(order: Order): string {
-  const amount = order.amount ?? 0;
-  const received = order.deposit ?? 0;
-  if (amount > 0 && received >= amount) return "Pago";
-  if (received > 0) return "Parcial";
-  return "Pendente";
-}
-
-function orderDeliveryLabel(order: Order): string {
-  if (order.status === "done") return "Entregue";
-  if (order.status === "ready") return "Pronta";
-  if (order.status === "in_production") return "Produzindo";
-  if (order.status === "cancelled") return "Cancelada";
-  return "Pendente";
-}
 
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: "all", label: "Todas" },
@@ -153,37 +134,6 @@ function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle
     borderWidth: 1,
     borderColor: palette.border,
   };
-}
-
-function getStatusSummaryCopy(activeFilter: FilterTab) {
-  if (activeFilter === "cancelled") {
-    return {
-      icon: "close-outline" as const,
-      label: "canceladas",
-      totalLabel: "cancelado",
-    };
-  }
-  if (activeFilter === "pending") {
-    return {
-      icon: "time-outline" as const,
-      label: "pendentes",
-      totalLabel: "em aberto",
-    };
-  }
-  return {
-    icon: "checkmark-outline" as const,
-    label: "Concluídas",
-    totalLabel: "concluído",
-  };
-}
-
-function getStatusSummaryAccent(
-  activeFilter: FilterTab,
-  theme: ReturnType<typeof useTheme>["theme"],
-): string {
-  if (activeFilter === "cancelled") return theme.colors.alert;
-  if (activeFilter === "pending") return theme.colors.yellow;
-  return theme.colors.success;
 }
 
 function SearchBar({
@@ -307,12 +257,10 @@ function AvatarCircle({ name }: Readonly<{ name: string }>) {
 function SalesHeader({
   help,
   count,
-  isDesktop,
   name,
   receivedTotal,
 }: Readonly<{
   count: number;
-  isDesktop: boolean;
   name: string;
   receivedTotal: number;
   help: React.ReactNode;
@@ -324,24 +272,6 @@ function SalesHeader({
     currency: "BRL",
   }).format(receivedTotal);
   const countLabel = count === 1 ? "1 venda" : `${count} vendas`;
-
-  if (isDesktop)
-    return (
-      <ScreenHeader
-        help={help}
-        title="Vendas"
-        subtitle="Acompanhe seus pedidos e recebimentos"
-        hideBack
-        right={
-          <Image
-            source={salesHeaderIcon}
-            resizeMode="contain"
-            accessible={false}
-            style={{ width: 64, height: 56 }}
-          />
-        }
-      />
-    );
 
   return (
     <View
@@ -396,104 +326,6 @@ function SalesHeader({
   );
 }
 
-function StatusSummary({
-  activeFilter,
-  count,
-  total,
-  isDesktop,
-}: Readonly<{
-  activeFilter: FilterTab;
-  count: number;
-  total: number;
-  isDesktop: boolean;
-}>) {
-  const { theme } = useTheme();
-  if (activeFilter === "all") return null;
-
-  const copy = getStatusSummaryCopy(activeFilter);
-  const accent = getStatusSummaryAccent(activeFilter, theme);
-  const formattedTotal = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(total);
-
-  return (
-    <View style={{ paddingTop: spacing.md, ...pageGutter(isDesktop) }}>
-      <View
-        style={{
-          minHeight: 92,
-          borderRadius: radii.xl,
-          padding: spacing.lg,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          ...getSurfaceStyle(theme),
-        }}
-      >
-        <View
-          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: radii.full,
-              borderWidth: 2,
-              borderColor: accent,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon name={copy.icon} size={26} color={accent} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              {count}
-            </Typography>
-            <Typography variant="caption" numberOfLines={1}>
-              {copy.label}
-            </Typography>
-            <Typography variant="caption">este mês</Typography>
-          </View>
-        </View>
-        <View
-          style={{
-            width: 1,
-            height: 54,
-            backgroundColor: theme.colors.border,
-          }}
-        />
-        <View
-          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: radii.full,
-              borderWidth: 2,
-              borderColor: accent,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon name="cash-outline" size={25} color={accent} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
-              {formattedTotal}
-            </Typography>
-            <Typography variant="caption" numberOfLines={1}>
-              {copy.totalLabel}
-            </Typography>
-            <Typography variant="caption">este mês</Typography>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 function getEmptyStateCopy(isFiltered: boolean) {
   if (isFiltered) {
     return {
@@ -518,519 +350,17 @@ type SalesContentProps = {
   readonly activeFilter: FilterTab;
   readonly hasActiveFilters: boolean;
   readonly groups: SaleGroup[];
-  readonly items: Sale[];
   readonly isDesktop: boolean;
-  readonly page: number;
-  readonly total: number;
-  readonly totalPages: number;
   readonly primaryColor: string;
   readonly onSalePress: (id: string) => void;
-  readonly onMarkPaid: (id: string) => void;
   readonly onClearFilters: () => void;
   readonly onNewSalePress: () => void;
   readonly onRetry: () => void;
-  readonly onPageChange: (page: number) => void;
   readonly hasMore?: boolean;
   readonly loadingMore?: boolean;
   readonly onLoadMore?: () => void;
   readonly compactEmpty?: boolean;
 };
-
-function saleStatusPresentation(
-  status: Sale["status"],
-  theme: ReturnType<typeof useTheme>["theme"],
-) {
-  if (status === "paid") return { label: "Pago", color: theme.colors.success };
-  if (status === "pending") return { label: "Pendente", color: theme.colors.yellow };
-  return { label: "Cancelado", color: theme.colors.alert };
-}
-
-function DesktopSalesTable({
-  items,
-  page,
-  total,
-  totalPages,
-  onSalePress,
-  onMarkPaid,
-  onPageChange,
-}: Readonly<{
-  items: Sale[];
-  page: number;
-  total: number;
-  totalPages: number;
-  onSalePress: (id: string) => void;
-  onMarkPaid: (id: string) => void;
-  onPageChange: (page: number) => void;
-}>) {
-  const { theme } = useTheme();
-  const headerStyle = {
-    fontFamily: fonts.bold,
-    fontSize: 13,
-    letterSpacing: 0.4,
-  } as const;
-
-  return (
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{
-        width: "100%",
-        paddingTop: spacing.md,
-        paddingBottom: spacing.xl,
-        ...pageGutter(true),
-      }}
-    >
-      <View
-        style={{
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          borderRadius: radii.xl,
-          backgroundColor: theme.colors.surfaceElevated,
-          overflow: "hidden",
-        }}
-      >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
-        >
-          <View style={{ minWidth: 920, width: "100%" }}>
-            <View
-              style={{
-                minHeight: 46,
-                paddingHorizontal: spacing.lg,
-                backgroundColor: theme.colors.surface,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.lg,
-              }}
-            >
-              <Typography variant="caption" style={[headerStyle, { flex: 2 }]}>
-                Venda
-              </Typography>
-              <Typography variant="caption" style={[headerStyle, { flex: 1.4 }]}>
-                Cliente
-              </Typography>
-              <Typography variant="caption" style={[headerStyle, { flex: 1 }]}>
-                Data
-              </Typography>
-              <Typography variant="caption" style={[headerStyle, { flex: 1.1 }]}>
-                Pagamento
-              </Typography>
-              <Typography variant="caption" style={[headerStyle, { flex: 1 }]}>
-                Status
-              </Typography>
-              <Typography
-                variant="caption"
-                style={[headerStyle, { flex: 1, textAlign: "right" }]}
-              >
-                Total
-              </Typography>
-              <Typography
-                variant="caption"
-                style={[headerStyle, { width: 158, textAlign: "right" }]}
-              >
-                Ações
-              </Typography>
-            </View>
-
-            {items.map((sale) => {
-              const status = saleStatusPresentation(sale.status, theme);
-              const saleTitle =
-                sale.items
-                  ?.map((item) => displayProductName(item.productName))
-                  .filter(Boolean)
-                  .join(", ") || "Venda";
-              return (
-                <Pressable
-                  key={sale.id}
-                  accessibilityRole="button"
-                  onPress={() => onSalePress(sale.id)}
-                  style={({ pressed }) => ({
-                    minHeight: 62,
-                    paddingHorizontal: spacing.lg,
-                    borderTopWidth: 1,
-                    borderTopColor: theme.colors.border,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: spacing.lg,
-                    backgroundColor: pressed
-                      ? theme.colors.primaryBg
-                      : theme.colors.surfaceElevated,
-                  })}
-                >
-                  <Typography variant="bodyBold" numberOfLines={1} style={{ flex: 2 }}>
-                    {saleTitle}
-                  </Typography>
-                  <Typography variant="body" numberOfLines={1} style={{ flex: 1.4 }}>
-                    {sale.clientName ?? "Cliente avulso"}
-                  </Typography>
-                  <Typography variant="body" style={{ flex: 1 }}>
-                    {new Date(sale.soldAt).toLocaleDateString("pt-BR")}
-                  </Typography>
-                  <Typography variant="body" numberOfLines={1} style={{ flex: 1.1 }}>
-                    {paymentLabel(sale.paymentMethod)}
-                  </Typography>
-                  <Typography variant="bodyBold" color={status.color} style={{ flex: 1 }}>
-                    {status.label}
-                  </Typography>
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.text}
-                    style={{ flex: 1, textAlign: "right" }}
-                  >
-                    {new Intl.NumberFormat("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    }).format(sale.total)}
-                  </Typography>
-                  <View
-                    style={{
-                      width: 158,
-                      flexDirection: "row",
-                      justifyContent: "flex-end",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    {sale.status === "pending" ? (
-                      <Pressable
-                        onPress={(event) => {
-                          event.stopPropagation();
-                          onMarkPaid(sale.id);
-                        }}
-                        accessibilityRole="button"
-                        style={{
-                          minHeight: 38,
-                          paddingHorizontal: spacing.md,
-                          borderRadius: radii.full,
-                          borderWidth: 1,
-                          borderColor: theme.colors.success,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Typography variant="captionBold" color={theme.colors.success}>
-                          Marcar pago
-                        </Typography>
-                      </Pressable>
-                    ) : null}
-                    <Pressable
-                      onPress={(event) => {
-                        event.stopPropagation();
-                        onSalePress(sale.id);
-                      }}
-                      accessibilityRole="button"
-                      style={{
-                        minHeight: 38,
-                        paddingHorizontal: spacing.md,
-                        borderRadius: radii.full,
-                        borderWidth: 1,
-                        borderColor: theme.colors.primary,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="captionBold"
-                        color={theme.colors.primaryStrong}
-                      >
-                        Abrir
-                      </Typography>
-                    </Pressable>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
-        <DesktopPagination
-          page={page}
-          total={total}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
-      </View>
-    </ScrollView>
-  );
-}
-
-function DesktopOrdersTable({
-  orders,
-  onOpenAgenda,
-}: Readonly<{ orders: Order[]; onOpenAgenda: () => void }>) {
-  const { theme } = useTheme();
-  const [filter, setFilter] = useState<"all" | "open" | "done">("all");
-  const [search, setSearch] = useState("");
-  const active = orders.filter((order) => !["done", "cancelled"].includes(order.status));
-  const toReceive = active.reduce(
-    (sum, order) => sum + Math.max((order.amount ?? 0) - (order.deposit ?? 0), 0),
-    0,
-  );
-  const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
-  const visibleOrders = orders.filter((order) => {
-    if (filter === "open" && ["done", "cancelled"].includes(order.status)) return false;
-    if (filter === "done" && order.status !== "done") return false;
-    if (!normalizedSearch) return true;
-    return [order.title, order.serviceName, order.clientName]
-      .filter(Boolean)
-      .some((value) => value?.toLocaleLowerCase("pt-BR").includes(normalizedSearch));
-  });
-  return (
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{
-        paddingVertical: spacing.xl,
-        gap: spacing.lg,
-        ...pageGutter(true),
-      }}
-    >
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
-        {[
-          ["Em andamento", active.length],
-          ["Entregues", orders.filter((order) => order.status === "done").length],
-          [
-            "A receber",
-            new Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(toReceive),
-          ],
-        ].map(([label, value]) => (
-          <View
-            key={String(label)}
-            style={{
-              flex: 1,
-              borderRadius: radii.xl,
-              borderWidth: 1,
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.surfaceElevated,
-              padding: spacing.lg,
-              gap: spacing.xs,
-            }}
-          >
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {label}
-            </Typography>
-            <Typography variant="moneyLg" color={theme.colors.text}>
-              {String(value)}
-            </Typography>
-          </View>
-        ))}
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-        <View
-          style={{
-            flex: 1,
-            minHeight: 48,
-            borderRadius: radii.xl,
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.surfaceElevated,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.sm,
-            paddingHorizontal: spacing.lg,
-          }}
-        >
-          <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
-          <CenteredTextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder="Buscar cliente ou encomenda"
-            placeholderTextColor={theme.colors.textSecondary}
-            style={{ flex: 1, color: theme.colors.text, fontFamily: fonts.regular }}
-          />
-        </View>
-        <FilterChipRow style={{ width: 330 }}>
-          {[
-            ["all", "Todas"],
-            ["open", "Em aberto"],
-            ["done", "Entregues"],
-          ].map(([value, label]) => (
-            <Chip
-              key={value}
-              label={label}
-              selected={filter === value}
-              onPress={() => setFilter(value as "all" | "open" | "done")}
-            />
-          ))}
-        </FilterChipRow>
-      </View>
-      <View
-        style={{
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          backgroundColor: theme.colors.surfaceElevated,
-          overflow: "hidden",
-        }}
-      >
-        <View
-          style={{
-            minHeight: 46,
-            paddingHorizontal: spacing.lg,
-            backgroundColor: theme.colors.surface,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.lg,
-          }}
-        >
-          {[
-            ["Encomenda", 2],
-            ["Cliente", 1.4],
-            ["Data", 1],
-            ["Pagamento", 1.2],
-            ["Entrega", 1],
-            ["Valor", 1],
-          ].map(([label, flex]) => (
-            <Typography
-              key={String(label)}
-              variant="caption"
-              style={{
-                flex: Number(flex),
-                fontFamily: fonts.bold,
-                textAlign: label === "Valor" ? "right" : "left",
-              }}
-            >
-              {label}
-            </Typography>
-          ))}
-          <View style={{ width: 90 }} />
-        </View>
-        {visibleOrders.map((order) => {
-          const amount = order.amount ?? 0;
-          const payment = orderPaymentLabel(order);
-          return (
-            <View
-              key={order.id}
-              style={{
-                minHeight: 62,
-                paddingHorizontal: spacing.lg,
-                borderTopWidth: 1,
-                borderTopColor: theme.colors.border,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.lg,
-              }}
-            >
-              <Typography variant="bodyBold" numberOfLines={1} style={{ flex: 2 }}>
-                {order.serviceName ?? order.title}
-              </Typography>
-              <Typography variant="body" numberOfLines={1} style={{ flex: 1.4 }}>
-                {order.clientName ?? "Sem cliente"}
-              </Typography>
-              <Typography variant="body" style={{ flex: 1 }}>
-                {order.deliveryDate.split("-").reverse().join("/")}
-              </Typography>
-              <Typography
-                variant="bodyBold"
-                color={payment === "Pago" ? theme.colors.success : theme.colors.premium}
-                style={{ flex: 1.2 }}
-              >
-                {payment}
-              </Typography>
-              <Typography variant="bodyBold" style={{ flex: 1 }}>
-                {orderDeliveryLabel(order)}
-              </Typography>
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ flex: 1, textAlign: "right" }}
-              >
-                {new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(amount)}
-              </Typography>
-              <Pressable
-                onPress={onOpenAgenda}
-                accessibilityRole="button"
-                style={{
-                  width: 90,
-                  minHeight: 40,
-                  borderRadius: radii.full,
-                  borderWidth: 1,
-                  borderColor: theme.colors.primary,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="captionBold" color={theme.colors.primaryStrong}>
-                  Abrir
-                </Typography>
-              </Pressable>
-            </View>
-          );
-        })}
-      </View>
-    </ScrollView>
-  );
-}
-
-function DesktopOperationKpis({
-  sales,
-  orders,
-}: Readonly<{ sales: Sale[]; orders: Order[] }>) {
-  const { theme } = useTheme();
-  const formatter = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  const activeSales = sales.filter((sale) => sale.status !== "cancelled");
-  const received = activeSales
-    .filter((sale) => sale.status === "paid")
-    .reduce((sum, sale) => sum + sale.total, 0);
-  const receivable = activeSales
-    .filter((sale) => sale.status === "pending")
-    .reduce((sum, sale) => sum + sale.total, 0);
-  const openOrders = orders.filter(
-    (order) => !["done", "cancelled"].includes(order.status),
-  ).length;
-  const values = [
-    [
-      "Vendido no período",
-      formatter.format(activeSales.reduce((sum, sale) => sum + sale.total, 0)),
-    ],
-    ["Recebido", formatter.format(received)],
-    ["A receber", formatter.format(receivable)],
-    ["Encomendas abertas", String(openOrders)],
-  ];
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: spacing.md,
-        paddingTop: spacing.lg,
-        ...pageGutter(true),
-      }}
-    >
-      {values.map(([label, value]) => (
-        <View
-          key={label}
-          style={{
-            flex: 1,
-            borderRadius: radii.xl,
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            backgroundColor: theme.colors.surfaceElevated,
-            padding: spacing.lg,
-            gap: spacing.xs,
-          }}
-        >
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            {label}
-          </Typography>
-          <Typography
-            variant="h3"
-            color={label === "Recebido" ? theme.colors.success : theme.colors.text}
-            numberOfLines={1}
-          >
-            {value}
-          </Typography>
-        </View>
-      ))}
-    </View>
-  );
-}
 
 function SalesContent({
   isLoading,
@@ -1039,18 +369,12 @@ function SalesContent({
   activeFilter,
   hasActiveFilters,
   groups,
-  items,
   isDesktop,
-  page,
-  total,
-  totalPages,
   primaryColor: _primaryColor,
   onSalePress,
-  onMarkPaid,
   onClearFilters,
   onNewSalePress,
   onRetry,
-  onPageChange,
   hasMore = false,
   loadingMore = false,
   onLoadMore,
@@ -1132,19 +456,6 @@ function SalesContent({
           }
         />
       </ScrollView>
-    );
-  }
-  if (isDesktop) {
-    return (
-      <DesktopSalesTable
-        items={items}
-        page={page}
-        total={total}
-        totalPages={totalPages}
-        onSalePress={onSalePress}
-        onMarkPaid={onMarkPaid}
-        onPageChange={onPageChange}
-      />
     );
   }
   return (
@@ -1314,209 +625,13 @@ export default function SalesScreen() {
   });
 
   const groups = filteredItems ? groupSalesByDate(filteredItems) : [];
-  const filteredTotal = filteredItems?.reduce((sum, sale) => sum + sale.total, 0) ?? 0;
   const receivedTotal =
     filteredItems
       ?.filter((sale) => sale.status === "paid")
       .reduce((sum, sale) => sum + sale.total, 0) ?? 0;
 
-  return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{
-        flex: 1,
-        height: "100%",
-        width: "100%",
-        overflow: "hidden",
-        backgroundColor: palette.background,
-      }}
-    >
-      <ScreenGuidance
-        renderHeader={(helpButton) => (
-          <SalesHeader
-            help={helpButton}
-            count={filteredItems?.length ?? 0}
-            isDesktop={isDesktop}
-            name={profile?.name ?? "Maria"}
-            receivedTotal={receivedTotal}
-          />
-        )}
-        area="sales"
-        onStart={() => router.push("/tabs/new-sale")}
-        hasRecords={(data?.total ?? 0) > 0}
-        loading={isLoading || !!error}
-        suspended={showFilters || !!selectedSaleId}
-      />
-      <View
-        style={{
-          flex: 1,
-          minHeight: 0,
-          backgroundColor: palette.background,
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            minHeight: 0,
-            width: "100%",
-          }}
-        >
-          {isDesktop ? (
-            <View
-              style={{
-                flexDirection: "row",
-                gap: spacing.sm,
-                paddingTop: spacing.xl,
-                width: 330,
-                ...pageGutter(isDesktop),
-              }}
-            >
-              <Chip
-                label="Vendas"
-                selected={operationView === "sales"}
-                onPress={() => setOperationView("sales")}
-              />
-              <Chip
-                label="Encomendas"
-                selected={operationView === "orders"}
-                onPress={() => setOperationView("orders")}
-              />
-            </View>
-          ) : null}
-
-          {isDesktop ? (
-            <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
-          ) : null}
-
-          {operationView === "sales" ? (
-            <>
-              <View
-                accessibilityRole="tablist"
-                accessibilityLabel="Status das vendas"
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  paddingTop: spacing.xs,
-                  paddingBottom: spacing.md,
-                  ...pageGutter(isDesktop),
-                }}
-              >
-                {FILTER_TABS.map((tab) => (
-                  <Pressable
-                    key={tab.key}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: activeFilter === tab.key }}
-                    onPress={() => {
-                      setActiveFilter(tab.key);
-                      setPage(1);
-                    }}
-                    style={({ pressed }) => ({
-                      flex: isDesktop ? undefined : 1,
-                      minWidth: isDesktop ? undefined : 90,
-                      minHeight: 44,
-                      paddingHorizontal: isDesktop ? spacing.lg : spacing.xs,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderBottomWidth: 2,
-                      borderBottomColor:
-                        activeFilter === tab.key ? palette.wine : theme.colors.border,
-                      backgroundColor: pressed ? theme.colors.surface : "transparent",
-                    })}
-                  >
-                    <Typography
-                      variant={activeFilter === tab.key ? "captionBold" : "caption"}
-                      color={
-                        activeFilter === tab.key
-                          ? palette.wine
-                          : theme.colors.textSecondary
-                      }
-                      style={{ textAlign: "center" }}
-                    >
-                      {tab.label}
-                    </Typography>
-                  </Pressable>
-                ))}
-              </View>
-
-              <View
-                style={{
-                  paddingTop: 0,
-                  paddingBottom: spacing.md,
-                  ...pageGutter(isDesktop),
-                  ...(isDesktop
-                    ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-                    : undefined),
-                }}
-              >
-                <SearchBar
-                  value={searchQuery}
-                  onChangeText={(value) => {
-                    setSearchQuery(value);
-                    setPage(1);
-                  }}
-                  onFilterPress={() => setShowFilters(true)}
-                />
-              </View>
-
-              {isDesktop ? (
-                <StatusSummary
-                  activeFilter={activeFilter}
-                  count={filteredItems?.length ?? 0}
-                  total={filteredTotal}
-                  isDesktop
-                />
-              ) : null}
-
-              <View
-                style={{
-                  flex: 1,
-                  minHeight: 0,
-                  paddingBottom: isDesktop
-                    ? 0
-                    : floatingTabBarContentPadding(insets.bottom),
-                }}
-              >
-                <SalesContent
-                  isLoading={isLoading}
-                  error={error}
-                  hasItems={!!filteredItems?.length}
-                  activeFilter={activeFilter}
-                  hasActiveFilters={!!searchQuery.trim()}
-                  groups={groups}
-                  items={filteredItems ?? []}
-                  isDesktop={isDesktop}
-                  page={data?.page ?? page}
-                  total={data?.total ?? 0}
-                  totalPages={data?.totalPages ?? 1}
-                  primaryColor={theme.colors.primary}
-                  onSalePress={setSelectedSaleId}
-                  onMarkPaid={(id) => {
-                    void updateSaleStatus
-                      .mutateAsync({ id, status: "paid" })
-                      .catch(() => {
-                        alertError("Não foi possível marcar a venda como paga.");
-                      });
-                  }}
-                  onClearFilters={handleClearFilters}
-                  onNewSalePress={() => router.push("/tabs/new-sale")}
-                  onRetry={() => void refetch()}
-                  onPageChange={setPage}
-                  hasMore={!isDesktop && salesFeed.hasNextPage}
-                  loadingMore={salesFeed.isFetchingNextPage}
-                  onLoadMore={() => void salesFeed.fetchNextPage()}
-                  compactEmpty={activeFilter !== "all"}
-                />
-              </View>
-            </>
-          ) : (
-            <DesktopOrdersTable
-              orders={orders}
-              onOpenAgenda={() => router.push("/tabs/agenda")}
-            />
-          )}
-        </View>
-      </View>
-
+  const modals = (
+    <>
       <ResponsiveOverlayModal
         visible={showFilters}
         animationType="slide"
@@ -1665,6 +780,232 @@ export default function SalesScreen() {
           />
         </View>
       </StandardModal>
+    </>
+  );
+
+  const handleMarkPaid = (id: string) => {
+    void updateSaleStatus.mutateAsync({ id, status: "paid" }).catch(() => {
+      alertError("Não foi possível marcar a venda como paga.");
+    });
+  };
+
+  if (isDesktop) {
+    return (
+      <SafeAreaView
+        edges={["top"]}
+        style={{
+          flex: 1,
+          height: "100%",
+          width: "100%",
+          backgroundColor: palette.background,
+        }}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <DesktopSalesPage
+            header={
+              <ScreenGuidance
+                renderHeader={(helpButton) => (
+                  <DesktopMeasuredHeader>
+                    <ScreenHeader
+                      help={helpButton}
+                      title="Vendas"
+                      subtitle="Acompanhe seus pedidos e recebimentos"
+                      hideBack
+                      right={
+                        <FAB
+                          icon="add"
+                          header
+                          accessibilityLabel="Nova venda"
+                          onPress={() => router.push("/tabs/new-sale")}
+                        />
+                      }
+                    />
+                  </DesktopMeasuredHeader>
+                )}
+                area="sales"
+                onStart={() => router.push("/tabs/new-sale")}
+                hasRecords={(data?.total ?? 0) > 0}
+                loading={isLoading || !!error}
+                suspended={showFilters || !!selectedSaleId}
+              />
+            }
+            view={operationView}
+            onViewChange={setOperationView}
+            orders={orders}
+            onOpenAgenda={() => router.push("/tabs/agenda")}
+            isLoading={isLoading}
+            error={error}
+            onRetry={() => void refetch()}
+            items={filteredItems ?? []}
+            activeFilter={activeFilter}
+            onFilterChange={(filter) => {
+              setActiveFilter(filter);
+              setPage(1);
+            }}
+            search={searchQuery}
+            onSearchChange={(value) => {
+              setSearchQuery(value);
+              setPage(1);
+            }}
+            onClearFilters={handleClearFilters}
+            onNewSale={() => router.push("/tabs/new-sale")}
+            onSalePress={setSelectedSaleId}
+            onMarkPaid={handleMarkPaid}
+            page={data?.page ?? page}
+            total={data?.total ?? 0}
+            totalPages={data?.totalPages ?? 1}
+            onPageChange={setPage}
+          />
+        </ScrollView>
+        {modals}
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView
+      edges={["top"]}
+      style={{
+        flex: 1,
+        height: "100%",
+        width: "100%",
+        overflow: "hidden",
+        backgroundColor: palette.background,
+      }}
+    >
+      <ScreenGuidance
+        renderHeader={(helpButton) => (
+          <SalesHeader
+            help={helpButton}
+            count={filteredItems?.length ?? 0}
+            name={profile?.name ?? "Maria"}
+            receivedTotal={receivedTotal}
+          />
+        )}
+        area="sales"
+        onStart={() => router.push("/tabs/new-sale")}
+        hasRecords={(data?.total ?? 0) > 0}
+        loading={isLoading || !!error}
+        suspended={showFilters || !!selectedSaleId}
+      />
+      <View
+        style={{
+          flex: 1,
+          minHeight: 0,
+          backgroundColor: palette.background,
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+            minHeight: 0,
+            width: "100%",
+          }}
+        >
+          <>
+            <View
+              accessibilityRole="tablist"
+              accessibilityLabel="Status das vendas"
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                paddingTop: spacing.xs,
+                paddingBottom: spacing.md,
+                ...pageGutter(isDesktop),
+              }}
+            >
+              {FILTER_TABS.map((tab) => (
+                <Pressable
+                  key={tab.key}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: activeFilter === tab.key }}
+                  onPress={() => {
+                    setActiveFilter(tab.key);
+                    setPage(1);
+                  }}
+                  style={({ pressed }) => ({
+                    flex: isDesktop ? undefined : 1,
+                    minWidth: isDesktop ? undefined : 90,
+                    minHeight: 44,
+                    paddingHorizontal: isDesktop ? spacing.lg : spacing.xs,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderBottomWidth: 2,
+                    borderBottomColor:
+                      activeFilter === tab.key ? palette.wine : theme.colors.border,
+                    backgroundColor: pressed ? theme.colors.surface : "transparent",
+                  })}
+                >
+                  <Typography
+                    variant={activeFilter === tab.key ? "captionBold" : "caption"}
+                    color={
+                      activeFilter === tab.key ? palette.wine : theme.colors.textSecondary
+                    }
+                    style={{ textAlign: "center" }}
+                  >
+                    {tab.label}
+                  </Typography>
+                </Pressable>
+              ))}
+            </View>
+
+            <View
+              style={{
+                paddingTop: 0,
+                paddingBottom: spacing.md,
+                ...pageGutter(isDesktop),
+                ...(isDesktop
+                  ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+                  : undefined),
+              }}
+            >
+              <SearchBar
+                value={searchQuery}
+                onChangeText={(value) => {
+                  setSearchQuery(value);
+                  setPage(1);
+                }}
+                onFilterPress={() => setShowFilters(true)}
+              />
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+                minHeight: 0,
+                paddingBottom: isDesktop
+                  ? 0
+                  : floatingTabBarContentPadding(insets.bottom),
+              }}
+            >
+              <SalesContent
+                isLoading={isLoading}
+                error={error}
+                hasItems={!!filteredItems?.length}
+                activeFilter={activeFilter}
+                hasActiveFilters={!!searchQuery.trim()}
+                groups={groups}
+                isDesktop={isDesktop}
+                primaryColor={theme.colors.primary}
+                onSalePress={setSelectedSaleId}
+                onClearFilters={handleClearFilters}
+                onNewSalePress={() => router.push("/tabs/new-sale")}
+                onRetry={() => void refetch()}
+                hasMore={!isDesktop && salesFeed.hasNextPage}
+                loadingMore={salesFeed.isFetchingNextPage}
+                onLoadMore={() => void salesFeed.fetchNextPage()}
+                compactEmpty={activeFilter !== "all"}
+              />
+            </View>
+          </>
+        </View>
+      </View>
+
+      {modals}
     </SafeAreaView>
   );
 }
