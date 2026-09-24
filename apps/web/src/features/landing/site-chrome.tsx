@@ -1,10 +1,17 @@
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import styles from "./landing-page.module.css";
+import { StartCta } from "./hero-actions";
 import { PointerFeedback } from "./pointer-feedback";
-import { playStoreUrl, pwaUrl, SUPPORT_EMAIL } from "./site-constants";
+import {
+  playStoreUrl,
+  pwaUrl,
+  SOCIAL_LINKS,
+  SUPPORT_EMAIL,
+  WHATSAPP_URL,
+} from "./site-constants";
 
 function CtaArrow() {
   return (
@@ -64,37 +71,115 @@ export function SiteHeader({ tone = "paper" }: SiteHeaderProps) {
             </a>
           </nav>
         </details>
-        <a
-          className={styles.headerCta}
-          data-pointer-ripple
-          href={playStoreUrl("play_store_header")}
-          data-analytics="play_store_header"
+        <StartCta
+          placement="header"
+          className={styles.headerCtaWrap}
+          buttonClassName={styles.headerCta}
+          showAlternative={false}
         >
-          {onWine ? "Baixar grátis" : "Baixar no Google Play"}
           {onWine ? null : <CtaArrow />}
-        </a>
+        </StartCta>
       </header>
     </>
   );
 }
 
+const footerColumns = [
+  {
+    title: "Venda",
+    links: [
+      { href: "/landing/calculadora", label: "Calculadora de preço" },
+      { href: "/landing/catalogo-digital-whatsapp", label: "Catálogo no WhatsApp" },
+      { href: "/landing/controle-de-vendas", label: "Controle de vendas" },
+    ],
+  },
+  {
+    title: "Organize",
+    links: [
+      { href: "/landing/controle-de-fiado", label: "Controle de fiado" },
+      { href: "/landing/guias/como-calcular-preco-de-venda", label: "Guias de preço" },
+      { href: "/#planos", label: "Planos" },
+    ],
+  },
+  {
+    title: "Para quem",
+    links: [
+      { href: "/landing/app-para-confeitaria", label: "Confeitaria" },
+      { href: "/landing/app-para-marmita", label: "Marmitas" },
+      { href: "/landing/app-para-manicure", label: "Manicure e beleza" },
+    ],
+  },
+] as const;
+
 export function SiteFooter() {
   return (
     <footer className={styles.footer}>
-      <div className={styles.footerBrand}>
-        <Image src="/landing/logo.png" width={40} height={40} alt="" />
-        <span>
-          <strong>lucro caseiro</strong>
-          Preço certo. Venda pronta.
-        </span>
+      <div className={styles.footerTop}>
+        <div className={styles.footerBrand}>
+          <Image src="/landing/logo.png" width={40} height={40} alt="" />
+          <span>
+            <strong>lucro caseiro</strong>
+            Preço certo. Venda pronta.
+          </span>
+        </div>
+        <nav className={styles.footerColumns} aria-label="Mais páginas">
+          {footerColumns.map((column) => (
+            <div key={column.title}>
+              <p>{column.title}</p>
+              {column.links.map((link) => (
+                <Link key={link.href} href={link.href}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          ))}
+          <div>
+            <p>Ajuda</p>
+            <Link href="/landing/suporte">Central de ajuda</Link>
+            {WHATSAPP_URL ? (
+              <a href={WHATSAPP_URL} rel="noopener noreferrer" target="_blank">
+                WhatsApp
+              </a>
+            ) : null}
+            <a href={`mailto:${SUPPORT_EMAIL}`}>Contato por e-mail</a>
+          </div>
+        </nav>
       </div>
-      <div className={styles.footerLinks}>
-        <Link href="/landing/privacidade">Privacidade</Link>
-        <Link href="/landing/termos">Termos</Link>
-        <Link href="/landing/excluir-conta">Excluir conta</Link>
-        <a href={`mailto:${SUPPORT_EMAIL}`}>Contato</a>
+      <div className={styles.footerBottom}>
+        <div className={styles.footerLinks}>
+          <Link href="/landing/privacidade">Privacidade</Link>
+          <Link href="/landing/termos">Termos</Link>
+          <Link href="/landing/excluir-conta">Excluir conta</Link>
+          {SOCIAL_LINKS.map((social) => (
+            <a
+              key={social.url}
+              href={social.url}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {social.name}
+            </a>
+          ))}
+        </div>
+        <p>© {new Date().getFullYear()} Lucro Caseiro · ORIONSEVEN SOFTWARE.</p>
       </div>
-      <p>© {new Date().getFullYear()} Lucro Caseiro · ORIONSEVEN SOFTWARE.</p>
     </footer>
+  );
+}
+
+/** Botão flutuante de atendimento. Só aparece com o número configurado. */
+export function SupportWhatsApp() {
+  if (!WHATSAPP_URL) return null;
+  return (
+    <a
+      className={styles.whatsappFloat}
+      href={WHATSAPP_URL}
+      rel="noopener noreferrer"
+      target="_blank"
+      data-analytics="whatsapp_float"
+    >
+      <MessageCircle aria-hidden="true" size={22} />
+      Tire sua dúvida
+    </a>
   );
 }

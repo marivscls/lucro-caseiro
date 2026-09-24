@@ -35,9 +35,25 @@ export function pwaUrl(content: string): string {
   return url.toString();
 }
 
+/**
+ * WhatsApp de atendimento (link wa.me completo). Enquanto estiver vazio, o
+ * botão flutuante e o link do rodapé não aparecem.
+ */
+export const WHATSAPP_URL: string | null = null;
+
+/** Perfis oficiais. Só entram no rodapé quando o endereço for preenchido. */
+export const SOCIAL_LINKS: readonly { readonly name: string; readonly url: string }[] =
+  [];
+
 export const PUBLIC_PATHS = [
   "/",
   "/landing/calculadora",
+  "/landing/controle-de-fiado",
+  "/landing/app-para-confeitaria",
+  "/landing/catalogo-digital-whatsapp",
+  "/landing/controle-de-vendas",
+  "/landing/app-para-marmita",
+  "/landing/app-para-manicure",
   "/landing/privacidade",
   "/landing/termos",
   "/landing/excluir-conta",
@@ -49,8 +65,14 @@ export const PUBLIC_PATHS = [
 
 /** Editorial review dates, not build timestamps. */
 export const PUBLIC_PAGE_UPDATED: Record<(typeof PUBLIC_PATHS)[number], string> = {
-  "/": "2026-09-10",
+  "/": "2026-09-24",
   "/landing/calculadora": "2026-09-10",
+  "/landing/controle-de-fiado": "2026-09-24",
+  "/landing/app-para-confeitaria": "2026-09-24",
+  "/landing/catalogo-digital-whatsapp": "2026-09-24",
+  "/landing/controle-de-vendas": "2026-09-24",
+  "/landing/app-para-marmita": "2026-09-24",
+  "/landing/app-para-manicure": "2026-09-24",
   "/landing/privacidade": "2026-09-10",
   "/landing/termos": "2026-07-16",
   "/landing/excluir-conta": "2026-07-16",
