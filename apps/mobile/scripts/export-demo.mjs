@@ -50,10 +50,15 @@ const withoutServiceWorker = html.replace(
   /<script>\s*window\.addEventListener\("load"[\s\S]*?serviceWorker[\s\S]*?<\/script>/,
   "",
 );
-if (withoutServiceWorker === html) {
-  throw new Error("O HTML exportado nao contem o registro do service worker.");
+// O que importa é a demo sair sem registro de worker. Se o HTML já veio sem
+// ele (ex.: pasta reaproveitada), segue; se sobrou um registro em outro
+// formato, falha para não publicar um worker por engano.
+if (withoutServiceWorker.includes("serviceWorker")) {
+  throw new Error("O HTML exportado ainda registra um service worker.");
 }
-await writeFile(indexPath, withoutServiceWorker, "utf8");
+if (withoutServiceWorker !== html) {
+  await writeFile(indexPath, withoutServiceWorker, "utf8");
+}
 await rm(resolve(outputDir, "push-worker.js"), { force: true });
 
 console.log(`Demonstração exportada em ${outputDir}`);

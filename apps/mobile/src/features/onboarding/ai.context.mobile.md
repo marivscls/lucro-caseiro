@@ -92,7 +92,8 @@ o caminho de produção (os módulos simulados nem são avaliados).
 
 - Gerar: `pnpm --filter @lucro-caseiro/mobile export:demo` (saída em `apps/mobile/dist/demo`;
   aceita `-- --output-dir <pasta>`). O script remove do `index.html` o registro do service
-  worker e o `push-worker.js`. Site estático na raiz da própria origem, com SPA fallback.
+  worker e o `push-worker.js`, e só falha se o HTML final ainda registrar um worker. Site
+  estático na raiz da própria origem, com SPA fallback.
 - Código em `apps/mobile/src/shared/mock/`: `mode.ts` (flag), `auth.ts` (cliente Supabase
   falso: auth + storage), `api.ts` (rotas em memória), `fixtures.ts` (confeitaria "Doces da
   Ana"), `db.ts`/`storage.ts` (estado por conta no localStorage com prefixo `lucro-demo:`),
