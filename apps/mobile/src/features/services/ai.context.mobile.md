@@ -93,7 +93,9 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 
 ## Error Handling
 
-- Validações de campo e nome duplicado usam `alertValidation`.
+- Validações de campo aparecem no próprio campo (`useFormValidation`), por etapa;
+  variações, adicionais e pacotes mostram o primeiro problema no campo dele. Só o
+  nome duplicado (checado na API ao salvar) usa `alertValidation`.
 - Falhas de rede ou da API são normalizadas por `alertError`.
 - Mutations só fecham o modal depois de uma resposta bem-sucedida.
 

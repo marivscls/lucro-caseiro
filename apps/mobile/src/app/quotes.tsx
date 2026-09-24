@@ -8,6 +8,7 @@ import {
   FilterChipRow,
   Input,
   Typography,
+  ValidationField,
   useTheme,
   fontSizes,
   iconSizes,
@@ -72,10 +73,13 @@ import {
   type DesktopTone,
 } from "../features/sales/components/desktop-list-kit";
 import { StandardModal } from "../shared/components/standard-modal";
+import { FormField, TextField } from "../shared/components/form-field";
+import { FormActions, FormGrid } from "../shared/components/form-layout";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
-import { alertValidation, alertError } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 
 const STATUS_META: Record<
@@ -435,18 +439,20 @@ function ConvertModal({
   const convert = useConvertQuote();
   const [dateText, setDateText] = useState("");
   const [deposit, setDeposit] = useState("");
+  const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
+  const validation = useFormValidation(
+    {
+      dateText: !brToIso(dateText) && "Informe a data de entrega no formato DD/MM/AAAA.",
+      deposit:
+        parsedDeposit !== undefined && Number.isNaN(parsedDeposit) && "Sinal inválido.",
+    },
+    visible,
+  );
 
   async function handleConvert() {
+    if (!validation.validate()) return;
     const iso = brToIso(dateText);
-    if (!iso) {
-      alertValidation("Informe a data de entrega no formato DD/MM/AAAA.");
-      return;
-    }
-    const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
-    if (parsedDeposit !== undefined && Number.isNaN(parsedDeposit)) {
-      alertValidation("Sinal inválido.");
-      return;
-    }
+    if (!iso) return;
     try {
       await convert.mutateAsync({
         id: quote.id,
@@ -463,39 +469,39 @@ function ConvertModal({
   return (
     <StandardModal
       title="Aprovar e criar encomenda"
+      subtitle={`O orçamento "${quote.title}" (${formatCurrency(quote.total)}) vira uma encomenda na sua agenda.`}
       visible={visible}
       onClose={onClose}
       footer={
-        <>
-          <Button
-            title="Cancelar"
-            variant="ghost"
-            onPress={onClose}
-            style={{ flex: 1 }}
-          />
+        <FormActions>
+          <Button title="Cancelar" variant="outline" onPress={onClose} />
           <Button
             title="Criar encomenda"
             onPress={() => void handleConvert()}
             loading={convert.isPending}
-            style={{ flex: 1 }}
           />
-        </>
+        </FormActions>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.md }}>
-        <Typography variant="caption">
-          O orçamento "{quote.title}" ({formatCurrency(quote.total)}) vira uma encomenda
-          na sua agenda.
-        </Typography>
-        <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
-        <Input
-          label="Sinal recebido (opcional)"
-          placeholder="Ex.: 60,00"
-          value={deposit}
-          onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
-          keyboardType="numeric"
-        />
-      </View>
+      <FormGrid>
+        <ValidationField {...validation.field("dateText")}>
+          <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
+        </ValidationField>
+        <FormField
+          label="Sinal recebido"
+          optional
+          validation={validation.field("deposit")}
+        >
+          <TextField
+            prefix="R$"
+            placeholder="60,00"
+            accessibilityLabel="Sinal recebido, em reais"
+            value={deposit}
+            onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+            keyboardType="numeric"
+          />
+        </FormField>
+      </FormGrid>
     </StandardModal>
   );
 }

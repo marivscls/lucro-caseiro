@@ -3,39 +3,28 @@ import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { guidanceEvent } from "../../../shared/guidance/guidance-events";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import type { Order } from "@lucro-caseiro/contracts";
-import {
-  CenteredTextInput,
-  Typography,
-  fontSizes,
-  fonts,
-  radii,
-  spacing,
-  useTheme,
-} from "@lucro-caseiro/ui";
+import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
-import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  Pressable,
-  View,
-  type TextInputProps,
-} from "react-native";
+import { Image, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import { CalendarModal } from "../../../shared/components/calendar-modal";
+import { DateField } from "../../../shared/components/date-field";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
-import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import {
-  brToIso,
-  isoToBR,
-  isValidTimeBR,
-  maskDateBR,
-  maskTimeBR,
-} from "../../../shared/utils/date";
+  ChoiceField,
+  FieldLinkAction,
+  FormField,
+  SelectField,
+  TextField,
+  fieldMetrics,
+  useFieldPalette,
+  type ChoiceOption,
+} from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { useImagePicker } from "../../../shared/hooks/use-image-picker";
+import { brToIso, isoToBR, isValidTimeBR, maskTimeBR } from "../../../shared/utils/date";
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
@@ -46,8 +35,6 @@ import {
   useServices,
 } from "../../services/hooks";
 import { FormSection } from "../../../shared/components/form-section";
-import { desktopCompactField } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertValidation } from "../../../shared/utils/alerts";
 import {
   currencyInput,
@@ -71,17 +58,13 @@ const ORDER_FORM_STEPS = [
   { label: "Detalhes", title: "Detalhes e confirmação" },
 ] as const;
 
-// Paleta derivada do tema ativo (antes eram constantes fixas de dark, que
-// deixavam o formulario de encomenda com cores erradas no modo claro).
-function formPalette(theme: { mode: string; colors: Record<string, string> }) {
-  return {
-    surface: theme.colors.surfaceElevated,
-    panel: theme.colors.surface,
-    border: theme.colors.border,
-    muted: theme.colors.textSecondary,
-    subtleFill: theme.colors.surface,
-  };
-}
+type LocationMode = "business" | "client" | "online";
+
+const LOCATION_OPTIONS: readonly ChoiceOption<LocationMode | "">[] = [
+  { value: "business", label: "Meu espaço" },
+  { value: "client", label: "Cliente" },
+  { value: "online", label: "Online" },
+];
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
@@ -91,70 +74,6 @@ function offsetIsoBr(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
   return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-}
-
-function Field({
-  icon,
-  trailingIcon,
-  trailingLabel,
-  onTrailingPress,
-  ...props
-}: Readonly<
-  TextInputProps & {
-    icon: AppIconName;
-    trailingIcon?: AppIconName;
-    trailingLabel?: string;
-    onTrailingPress?: () => void;
-  }
->) {
-  const { theme } = useTheme();
-  const pal = formPalette(theme);
-  const isMultiline = !!props.multiline;
-
-  return (
-    <View
-      style={{
-        minHeight: isMultiline ? 96 : 58,
-        borderRadius: radii.lg,
-        backgroundColor: pal.surface,
-        borderWidth: 1,
-        borderColor: pal.border,
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: spacing.md,
-        paddingVertical: isMultiline ? spacing.md : 0,
-        gap: spacing.md,
-      }}
-    >
-      <AppIcon name={icon} size={24} color={theme.colors.primaryLight} />
-      <CenteredTextInput
-        {...props}
-        placeholderTextColor={theme.colors.textSecondary}
-        style={[
-          {
-            flex: 1,
-            color: theme.colors.text,
-            fontSize: 18,
-            paddingVertical: 0,
-            minHeight: isMultiline ? 78 : 48,
-            textAlignVertical: "center",
-          },
-          props.style,
-        ]}
-      />
-      {trailingIcon ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={trailingLabel}
-          onPress={onTrailingPress}
-          disabled={!onTrailingPress}
-          hitSlop={12}
-        >
-          <AppIcon name={trailingIcon} size={24} color={theme.colors.primaryLight} />
-        </Pressable>
-      ) : null}
-    </View>
-  );
 }
 
 const THEME_SUGGESTIONS = [
@@ -204,67 +123,169 @@ function toggleColorName(value: string, name: string): string {
   return parts.join(", ");
 }
 
-/** Campo somente-toque que abre o seletor de cliente (mesmo visual do Field). */
-function ClientField({
-  clientName,
+/** Opção em pílula (mesmo visual das categorias do cadastro de produto). */
+function OptionChip({
+  label,
+  selected,
   onPress,
-  onClear,
-}: Readonly<{ clientName: string; onPress: () => void; onClear: () => void }>) {
+  accessibilityLabel,
+}: Readonly<{
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  accessibilityLabel?: string;
+}>) {
   const { theme } = useTheme();
-  const pal = formPalette(theme);
-
+  const pal = useFieldPalette();
   return (
     <Pressable
-      accessibilityRole="button"
       onPress={onPress}
-      style={{
-        minHeight: 58,
-        borderRadius: radii.lg,
-        backgroundColor: pal.surface,
-        borderWidth: 1,
-        borderColor: pal.border,
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: spacing.md,
-        gap: spacing.md,
-      }}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ selected }}
+      style={({ pressed }) => ({
+        minHeight: 44,
+        paddingHorizontal: spacing.lg,
+        justifyContent: "center",
+        borderRadius: radii.full,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primaryStrong : pal.border,
+        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+        opacity: pressed ? 0.85 : 1,
+      })}
     >
-      <AppIcon name="person-outline" size={24} color={theme.colors.primaryLight} />
       <Typography
         variant="body"
-        color={clientName ? theme.colors.text : theme.colors.textSecondary}
-        numberOfLines={1}
-        style={{ flex: 1, fontSize: 18 }}
+        color={selected ? theme.colors.primaryStrong : theme.colors.text}
       >
-        {clientName || "Nenhum cliente selecionado"}
+        {label}
       </Typography>
-      {clientName ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Remover cliente"
-          onPress={onClear}
-          hitSlop={12}
-        >
-          <AppIcon name="close-circle" size={22} color={pal.muted} />
-        </Pressable>
-      ) : null}
-      <AppIcon name="chevron-down" size={20} color={pal.muted} />
     </Pressable>
   );
 }
 
-function FieldLabel({ text }: Readonly<{ text: string }>) {
-  const { theme } = useTheme();
+function ChipRow({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <Typography variant="bodyBold" color={theme.colors.text}>
-      {text}
-    </Typography>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      {children}
+    </View>
+  );
+}
+
+/** Campo que abre o seletor de cliente; "Remover" fica ao lado do rótulo. */
+function ClientField({
+  clientName,
+  onPress,
+  onClear,
+}: Readonly<{
+  clientName: string;
+  onPress: () => void;
+  onClear: () => void;
+}>) {
+  return (
+    <FormField
+      label="Cliente"
+      optional
+      labelAction={
+        clientName ? (
+          <FieldLinkAction
+            label="Remover"
+            icon="close-circle-outline"
+            accessibilityLabel="Remover cliente"
+            onPress={onClear}
+          />
+        ) : null
+      }
+    >
+      <SelectField
+        icon="person-outline"
+        value={clientName}
+        placeholder="Escolher cliente"
+        accessibilityLabel="Escolher cliente"
+        onPress={onPress}
+      />
+    </FormField>
+  );
+}
+
+/** Imagem opcional do cadastro, com a mesma caixa tracejada da foto de produto. */
+function OrderPhotoField({
+  photoUrl,
+  onPick,
+  onRemove,
+}: Readonly<{
+  photoUrl: string | null;
+  onPick: () => void;
+  onRemove: () => void;
+  span?: "full";
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <FormField
+      label="Imagem"
+      optional
+      hint="Foto para identificar este cadastro."
+      labelAction={
+        photoUrl ? (
+          <FieldLinkAction
+            label="Remover imagem"
+            icon="trash-outline"
+            onPress={onRemove}
+          />
+        ) : null
+      }
+    >
+      <Pressable
+        onPress={onPick}
+        accessibilityRole="button"
+        accessibilityLabel={photoUrl ? "Trocar imagem" : "Adicionar imagem"}
+        style={({ pressed }) => ({
+          borderRadius: fieldMetrics.radius,
+          borderWidth: 1,
+          borderStyle: photoUrl ? "solid" : "dashed",
+          borderColor: pal.border,
+          backgroundColor: pal.fieldBg,
+          flexDirection: "row",
+          alignItems: "center",
+          padding: spacing.md,
+          gap: spacing.lg,
+          opacity: pressed ? 0.85 : 1,
+        })}
+      >
+        <View
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: radii.md,
+            backgroundColor: theme.colors.surfaceElevated,
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {photoUrl ? (
+            <Image source={{ uri: photoUrl }} style={{ width: 64, height: 64 }} />
+          ) : (
+            <AppIcon name="image-outline" size={24} color={theme.colors.textSecondary} />
+          )}
+        </View>
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            {photoUrl ? "Trocar imagem" : "Adicionar imagem"}
+          </Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            PNG ou JPG
+          </Typography>
+        </View>
+      </Pressable>
+    </FormField>
   );
 }
 
 /**
- * Campos de personalização enriquecidos: rótulos + chips de tema sugeridos
- * (toque preenche) + paleta de cores visual (toque adiciona/remove a cor).
+ * Personalização: tema (com sugestões), homenageado e cores (com paleta
+ * visual; o toque adiciona/remove a cor sem apagar o que foi digitado).
  */
 function PersonalizationFields({
   orderTheme,
@@ -282,109 +303,93 @@ function PersonalizationFields({
   setColors: (v: string) => void;
 }>) {
   const { theme } = useTheme();
-  const pal = formPalette(theme);
+  const pal = useFieldPalette();
 
   return (
-    <View style={{ gap: spacing.lg }}>
-      <View style={{ gap: spacing.sm }}>
-        <FieldLabel text="Tema da festa" />
-        <Field
-          icon="balloon-outline"
-          placeholder="Ex.: Safari, Princesas"
-          value={orderTheme}
-          onChangeText={setOrderTheme}
-        />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          {THEME_SUGGESTIONS.map((suggestion) => {
-            const active = orderTheme.trim().toLowerCase() === suggestion.toLowerCase();
-            return (
-              <Pressable
-                key={suggestion}
-                accessibilityRole="button"
-                onPress={() => setOrderTheme(active ? "" : suggestion)}
-                style={{
-                  minHeight: 38,
-                  justifyContent: "center",
-                  paddingHorizontal: spacing.md,
-                  borderRadius: radii.full,
-                  backgroundColor: active ? theme.colors.primary : pal.surface,
-                  borderWidth: 1,
-                  borderColor: active ? theme.colors.primary : pal.border,
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  color={active ? theme.colors.textOnPrimary : pal.muted}
-                  style={{ fontFamily: fonts.bold }}
-                >
-                  {suggestion}
-                </Typography>
-              </Pressable>
-            );
-          })}
+    <>
+      <FormField label="Tema da festa" optional>
+        <View style={{ gap: spacing.md }}>
+          <TextField
+            icon="balloon-outline"
+            placeholder="Ex.: Safari, Princesas"
+            value={orderTheme}
+            onChangeText={setOrderTheme}
+          />
+          <ChipRow>
+            {THEME_SUGGESTIONS.map((suggestion) => {
+              const active = orderTheme.trim().toLowerCase() === suggestion.toLowerCase();
+              return (
+                <OptionChip
+                  key={suggestion}
+                  label={suggestion}
+                  selected={active}
+                  onPress={() => setOrderTheme(active ? "" : suggestion)}
+                />
+              );
+            })}
+          </ChipRow>
         </View>
-      </View>
+      </FormField>
 
-      <View style={{ gap: spacing.sm }}>
-        <FieldLabel text="Homenageado" />
-        <Field
+      <FormField label="Homenageado" optional>
+        <TextField
           icon="person-outline"
           placeholder="Nome e idade, ex.: Alice, 5 anos"
           value={honoree}
           onChangeText={setHonoree}
         />
-      </View>
+      </FormField>
 
-      <View style={{ gap: spacing.sm }}>
-        <FieldLabel text="Cores" />
-        <Field
-          icon="color-palette-outline"
-          placeholder="Ex.: rosa e dourado"
-          value={colors}
-          onChangeText={setColors}
-        />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-          {COLOR_PALETTE.map((color) => {
-            const selected = isColorSelected(colors, color.name);
-            return (
-              <Pressable
-                key={color.name}
-                accessibilityRole="button"
-                accessibilityLabel={color.name}
-                accessibilityState={{ selected }}
-                onPress={() => setColors(toggleColorName(colors, color.name))}
-                style={{ alignItems: "center", gap: 4, width: 54 }}
-              >
-                <View
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.full,
-                    backgroundColor: color.hex,
-                    borderWidth: selected ? 3 : 1,
-                    borderColor: selected ? theme.colors.primary : pal.border,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+      <FormField label="Cores" optional>
+        <View style={{ gap: spacing.md }}>
+          <TextField
+            icon="color-palette-outline"
+            placeholder="Ex.: rosa e dourado"
+            value={colors}
+            onChangeText={setColors}
+          />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {COLOR_PALETTE.map((color) => {
+              const selected = isColorSelected(colors, color.name);
+              return (
+                <Pressable
+                  key={color.name}
+                  accessibilityRole="button"
+                  accessibilityLabel={color.name}
+                  accessibilityState={{ selected }}
+                  onPress={() => setColors(toggleColorName(colors, color.name))}
+                  style={{ alignItems: "center", gap: spacing.xs, width: 56 }}
                 >
-                  {selected ? (
-                    <AppIcon name="checkmark" size={20} color="#4A3228" />
-                  ) : null}
-                </View>
-                <Typography
-                  variant="caption"
-                  color={selected ? theme.colors.text : pal.muted}
-                  numberOfLines={1}
-                  style={{ fontSize: fontSizes.xs }}
-                >
-                  {color.name}
-                </Typography>
-              </Pressable>
-            );
-          })}
+                  <View
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: radii.full,
+                      backgroundColor: color.hex,
+                      borderWidth: selected ? 2 : 1,
+                      borderColor: selected ? theme.colors.primaryStrong : pal.border,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {selected ? (
+                      <AppIcon name="checkmark" size={20} color="#4A3228" />
+                    ) : null}
+                  </View>
+                  <Typography
+                    variant="caption"
+                    color={selected ? theme.colors.text : theme.colors.textSecondary}
+                    numberOfLines={1}
+                  >
+                    {color.name}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
-      </View>
-    </View>
+      </FormField>
+    </>
   );
 }
 
@@ -399,10 +404,6 @@ export function OrderForm({
   const guidanceUserId = useAuth((state) => state.userId);
   const { theme } = useTheme();
   const experienceCopy = useBusinessCopy();
-  const isDesktop = useDesktopLayout();
-  const compactField = desktopCompactField(isDesktop);
-  const isCompactPwa = Platform.OS === "web" && !isDesktop;
-  const pal = formPalette(theme);
   const submittingRef = React.useRef(false);
   const requestIdRef = React.useRef(createOrderRequestId());
   const [title, setTitle] = useState(order?.title ?? "");
@@ -410,7 +411,6 @@ export function OrderForm({
     order?.deliveryDate ? isoToBR(order.deliveryDate) : offsetIsoBr(0),
   );
   const [time, setTime] = useState(order?.deliveryTime ?? "");
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [amount, setAmount] = useState(
     order?.amount != null ? currencyInput(order.amount) : "",
   );
@@ -438,9 +438,9 @@ export function OrderForm({
   const [servicePackagePurchaseId, setServicePackagePurchaseId] = useState<string | null>(
     order?.servicePackagePurchaseId ?? null,
   );
-  const [locationMode, setLocationMode] = useState<
-    "business" | "client" | "online" | null
-  >(order?.locationMode ?? null);
+  const [locationMode, setLocationMode] = useState<LocationMode | null>(
+    order?.locationMode ?? null,
+  );
   const [locationDetails, setLocationDetails] = useState(order?.locationDetails ?? "");
   const [durationMinutes, setDurationMinutes] = useState(
     order?.durationMinutes ? String(order.durationMinutes) : "60",
@@ -472,7 +472,7 @@ export function OrderForm({
     setServiceId(initialService.id);
     setDurationMinutes(String(initialService.durationMinutes));
     setTitle((current) => current || initialService.name);
-    let initialLocationMode: "business" | "client" | "online" | null = null;
+    let initialLocationMode: LocationMode | null = null;
     if (initialService.locationMode !== "flexible") {
       initialLocationMode = initialService.locationMode;
     } else if (!isAppointment) {
@@ -488,10 +488,6 @@ export function OrderForm({
     if (visible) setFormStep(1);
   }, [order?.id, visible]);
 
-  function openDatePicker() {
-    setShowDatePicker(true);
-  }
-
   const serviceValidation = useFormValidation(
     {
       newServiceName: !newServiceName.trim() && "Informe o nome do serviço.",
@@ -506,10 +502,7 @@ export function OrderForm({
   async function handleCreateService() {
     if (!serviceValidation.validate()) return;
     const duration = Number.parseInt(newServiceDuration, 10);
-    if (!newServiceName.trim() || !Number.isInteger(duration) || duration < 5) {
-      alertValidation("Informe o nome e uma duração de pelo menos 5 minutos.");
-      return;
-    }
+    if (!Number.isInteger(duration)) return;
     try {
       const service = await createService.mutateAsync({
         name: newServiceName.trim(),
@@ -528,69 +521,66 @@ export function OrderForm({
     }
   }
 
-  const formValidation = useFormValidation(
+  // Cada etapa valida só os próprios campos, com o erro no campo.
+  const stepOneValidation = useFormValidation(
     {
-      serviceId: isAppointment && !serviceId && "Selecione o serviço deste atendimento.",
       title: !isAppointment && !title.trim() && "Dê um nome para este cadastro.",
+      serviceId: isAppointment && !serviceId && "Selecione o serviço deste atendimento.",
       locationMode:
         isAppointment &&
         !!serviceId &&
         !locationMode &&
         "Escolha o local do atendimento.",
-      dateText: !brToIso(dateText) && "Informe uma data válida no formato DD/MM/AAAA.",
-      time: isAppointment && !time.trim() && "Informe o horário do atendimento.",
     },
     visible,
   );
 
+  const parsedAmount = amount.trim() ? parseCurrencyInput(amount) : undefined;
+  const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
+  let timeError: string | false = false;
+  if (isAppointment && !time.trim()) timeError = "Informe o horário do atendimento.";
+  else if (time.trim() && !isValidTimeBR(time))
+    timeError = "Horário inválido. Use HH:MM, ex.: 14:30.";
+
+  const stepTwoValidation = useFormValidation(
+    {
+      dateText: !brToIso(dateText) && "Informe uma data válida no formato DD/MM/AAAA.",
+      time: timeError,
+      deposit:
+        parsedDeposit !== undefined &&
+        parsedAmount !== undefined &&
+        parsedDeposit > parsedAmount &&
+        "O sinal não pode ser maior que o valor combinado.",
+    },
+    visible,
+  );
+
+  function goToNextStep() {
+    if (formStep === 1 && !stepOneValidation.validate()) return;
+    if (formStep === 2 && !stepTwoValidation.validate()) return;
+    setFormStep((current) => current + 1);
+  }
+
   async function saveOrder() {
-    if (!formValidation.validate()) {
-      if (
-        (isAppointment && (!serviceId || !locationMode)) ||
-        (!isAppointment && !title.trim())
-      ) {
-        setFormStep(1);
-      } else {
-        setFormStep(2);
-      }
+    if (!stepOneValidation.validate()) {
+      setFormStep(1);
       return;
     }
-    if (isAppointment && !serviceId) {
-      alertValidation("Selecione o serviço deste atendimento.");
+    if (!stepTwoValidation.validate()) {
+      setFormStep(2);
       return;
     }
+    // No atendimento o nome vem do serviço; não há campo para mostrar o erro.
     if (!title.trim()) {
       alertValidation("Dê um nome para este cadastro.");
       return;
     }
     const iso = brToIso(dateText);
     if (!iso) {
-      alertValidation("Data inválida. Use o formato DD/MM/AAAA.");
-      return;
-    }
-    if (time.trim() && !isValidTimeBR(time)) {
-      alertValidation("Horário inválido. Use HH:MM, ex.: 14:30.");
-      return;
-    }
-    if (isAppointment && !time.trim()) {
-      alertValidation("Informe o horário do atendimento.");
-      return;
-    }
-    if (isAppointment && !locationMode) {
-      alertValidation("Escolha o local do atendimento.");
+      setFormStep(2);
       return;
     }
 
-    const parsedAmount = amount.trim() ? parseCurrencyInput(amount) : undefined;
-    const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
-    if (
-      parsedDeposit !== undefined &&
-      parsedAmount !== undefined &&
-      parsedDeposit > parsedAmount
-    ) {
-      alertValidation("O sinal não pode ser maior que o valor combinado.");
-      return;
-    }
     let photoUrl: string | null | undefined = savedPhotoUrl;
     if (imageUri && !imageUri.startsWith("http")) {
       try {
@@ -681,6 +671,50 @@ export function OrderForm({
     }
   }
 
+  function clearService() {
+    setServiceId(null);
+    setServiceVariationId(null);
+    setServiceAddOnIds([]);
+    setServicePackagePurchaseId(null);
+    setLocationMode(null);
+    setLocationDetails("");
+  }
+
+  function selectService(service: (typeof services)[number]) {
+    setServiceId(service.id);
+    setServiceVariationId(null);
+    setServiceAddOnIds([]);
+    setServicePackagePurchaseId(null);
+    setDurationMinutes(String(service.durationMinutes));
+    setLocationMode(
+      service.locationMode === "flexible" ? "business" : service.locationMode,
+    );
+    setTitle((current) => current || service.name);
+    if (service.defaultPrice !== null) {
+      setAmount(currencyInput(service.defaultPrice));
+    }
+  }
+
+  function toggleAddOn(addOn: { id: string; price: number; durationMinutes: number }) {
+    const selected = serviceAddOnIds.includes(addOn.id);
+    setServiceAddOnIds(
+      selected ? withoutValue(serviceAddOnIds, addOn.id) : [...serviceAddOnIds, addOn.id],
+    );
+    const currentAmount = parseCurrencyInput(amount) || 0;
+    setAmount(
+      currencyInput(Math.max(0, currentAmount + (selected ? -addOn.price : addOn.price))),
+    );
+    setDurationMinutes((current) =>
+      String(
+        Math.max(
+          5,
+          (Number.parseInt(current, 10) || 0) +
+            (selected ? -addOn.durationMinutes : addOn.durationMinutes),
+        ),
+      ),
+    );
+  }
+
   let modalTitle = isEditing
     ? `Editar ${experienceCopy.orderNoun}`
     : `Adicionar ${experienceCopy.orderNoun}`;
@@ -692,6 +726,236 @@ export function OrderForm({
   if (isAppointment) saveLabel = "Salvar atendimento";
   if (uploading) saveLabel = "Enviando imagem...";
 
+  function stepProps(step: number) {
+    const stepVisible = formStep === step;
+    return {
+      style: { display: stepVisible ? ("flex" as const) : ("none" as const) },
+      accessibilityElementsHidden: !stepVisible,
+      importantForAccessibility: stepVisible
+        ? ("auto" as const)
+        : ("no-hide-descendants" as const),
+    };
+  }
+
+  const availableServices = services.filter(
+    (service) =>
+      service.active &&
+      (!isAppointment || !initialServiceId || service.id === initialServiceId),
+  );
+  const activeVariations =
+    selectedService?.variations.filter((item) => item.active) ?? [];
+  const activeAddOns = selectedService?.addOns.filter((item) => item.active) ?? [];
+  const activePackages = packagePurchases.filter(
+    (purchase) =>
+      purchase.status === "active" && (!clientId || purchase.clientId === clientId),
+  );
+
+  const clientField = (
+    <ClientField
+      clientName={clientName}
+      onPress={() => setShowClientPicker(true)}
+      onClear={() => {
+        setClientId(undefined);
+        setClientName("");
+      }}
+    />
+  );
+
+  const serviceSection = (
+    <FormSection
+      collapsible={false}
+      title="Serviço"
+      subtitle={
+        isAppointment
+          ? "Confirme a opção, os adicionais e a duração."
+          : "Opcional. Use para bloquear o horário certo na agenda."
+      }
+    >
+      {availableServices.length > 0 || isAppointment ? (
+        <FormField validation={stepOneValidation.field("serviceId")}>
+          <ChipRow>
+            {!isAppointment ? (
+              <OptionChip
+                label="Sem serviço"
+                selected={serviceId === null}
+                onPress={clearService}
+              />
+            ) : null}
+            {availableServices.map((service) => (
+              <OptionChip
+                key={service.id}
+                label={service.name}
+                selected={serviceId === service.id}
+                onPress={() => selectService(service)}
+              />
+            ))}
+          </ChipRow>
+        </FormField>
+      ) : null}
+
+      {activeVariations.length > 0 ? (
+        <FormField label="Opção do serviço">
+          <ChipRow>
+            {activeVariations.map((variation) => (
+              <OptionChip
+                key={variation.id}
+                label={`${variation.name} · ${variation.durationMinutes} min`}
+                selected={serviceVariationId === variation.id}
+                onPress={() => {
+                  setServiceVariationId(variation.id);
+                  setDurationMinutes(String(variation.durationMinutes));
+                  setAmount(currencyInput(variation.price));
+                }}
+              />
+            ))}
+          </ChipRow>
+        </FormField>
+      ) : null}
+
+      {activeAddOns.length > 0 ? (
+        <FormField label="Adicionais" optional>
+          <ChipRow>
+            {activeAddOns.map((addOn) => (
+              <OptionChip
+                key={addOn.id}
+                label={`${addOn.name} · +${currencyInput(addOn.price)}`}
+                selected={serviceAddOnIds.includes(addOn.id)}
+                onPress={() => toggleAddOn(addOn)}
+              />
+            ))}
+          </ChipRow>
+        </FormField>
+      ) : null}
+
+      {packagePurchases.length > 0 ? (
+        <FormField label="Usar sessão de pacote">
+          <ChipRow>
+            <OptionChip
+              label="Cobrança avulsa"
+              selected={servicePackagePurchaseId === null}
+              onPress={() => setServicePackagePurchaseId(null)}
+            />
+            {activePackages.map((purchase) => (
+              <OptionChip
+                key={purchase.id}
+                label={`${purchase.clientName} · ${purchase.sessionsTotal - purchase.sessionsUsed} sessões`}
+                selected={servicePackagePurchaseId === purchase.id}
+                onPress={() => {
+                  setServicePackagePurchaseId(purchase.id);
+                  setClientId(purchase.clientId);
+                  setClientName(purchase.clientName);
+                }}
+              />
+            ))}
+          </ChipRow>
+        </FormField>
+      ) : null}
+
+      {serviceId ? (
+        <FormGrid>
+          <FormField label="Duração do atendimento">
+            <TextField
+              icon="time-outline"
+              placeholder="60"
+              suffix="min"
+              accessibilityLabel="Duração em minutos"
+              value={durationMinutes}
+              onChangeText={(value) =>
+                setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+              }
+              keyboardType="number-pad"
+            />
+          </FormField>
+          <FormField
+            label="Local do atendimento"
+            optional={!isAppointment}
+            validation={stepOneValidation.field("locationMode")}
+            span="full"
+          >
+            <ChoiceField
+              value={locationMode ?? ""}
+              options={LOCATION_OPTIONS}
+              onChange={(value) => setLocationMode(value || null)}
+              accessibilityLabel="Local do atendimento"
+            />
+          </FormField>
+          <FormField
+            label={locationMode === "online" ? "Link da chamada" : "Detalhes do local"}
+            optional
+            span="full"
+          >
+            <TextField
+              icon="location-outline"
+              placeholder={
+                locationMode === "online" ? "Ex: link do Meet" : "Ex: endereço, sala"
+              }
+              value={locationDetails}
+              onChangeText={setLocationDetails}
+            />
+          </FormField>
+        </FormGrid>
+      ) : null}
+
+      {!isAppointment ? (
+        <FormSection
+          title="Cadastrar serviço rápido"
+          subtitle="Se a opção ainda não estiver na lista, informe nome e duração."
+          initiallyOpen={availableServices.length === 0}
+        >
+          <FormGrid>
+            <FormField
+              label="Nome do serviço"
+              validation={serviceValidation.field("newServiceName")}
+            >
+              <TextField
+                icon="add-circle-outline"
+                placeholder="Ex: Corte e escova"
+                value={newServiceName}
+                onChangeText={setNewServiceName}
+              />
+            </FormField>
+            <FormField
+              label="Duração"
+              validation={serviceValidation.field("newServiceDuration")}
+            >
+              <TextField
+                icon="time-outline"
+                placeholder="60"
+                suffix="min"
+                accessibilityLabel="Duração do serviço em minutos"
+                value={newServiceDuration}
+                onChangeText={(value) =>
+                  setNewServiceDuration(value.replace(/\D/g, "").slice(0, 4))
+                }
+                keyboardType="number-pad"
+              />
+            </FormField>
+          </FormGrid>
+          <View style={{ alignSelf: "flex-start" }}>
+            <Button
+              title="Cadastrar serviço"
+              variant="outline"
+              loading={createService.isPending}
+              onPress={() => void handleCreateService()}
+            />
+          </View>
+        </FormSection>
+      ) : null}
+    </FormSection>
+  );
+
+  const secondaryAction =
+    formStep === 1 ? (
+      <Button title="Cancelar" variant="outline" disabled={isSaving} onPress={onClose} />
+    ) : (
+      <Button
+        title="Voltar"
+        variant="outline"
+        disabled={isSaving}
+        onPress={() => setFormStep((current) => current - 1)}
+      />
+    );
+
   return (
     <StandardModal
       title={modalTitle}
@@ -702,986 +966,204 @@ export function OrderForm({
       }
       visible={visible}
       onClose={onClose}
-      wide
+      size="form"
       footer={
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            justifyContent: isDesktop ? "flex-end" : "flex-start",
-            gap: spacing.sm,
-          }}
-        >
-          {isDesktop && formStep === 1 ? (
-            <Pressable
-              disabled={isSaving}
-              onPress={onClose}
-              accessibilityRole="button"
-              style={({ pressed }) => ({
-                minHeight: 48,
-                minWidth: 136,
-                paddingHorizontal: spacing.xl,
-                borderRadius: radii.md,
-                borderWidth: 1,
-                borderColor: pal.border,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed || isSaving ? 0.72 : 1,
-              })}
-            >
-              <Typography variant="bodyBold" color={theme.colors.textSecondary}>
-                Cancelar
-              </Typography>
-            </Pressable>
-          ) : null}
-          {formStep > 1 ? (
-            <Pressable
-              disabled={isSaving}
-              onPress={() => setFormStep((current) => current - 1)}
-              accessibilityRole="button"
-              style={({ pressed }) => ({
-                minHeight: 48,
-                minWidth: isDesktop ? 136 : undefined,
-                paddingHorizontal: spacing.xl,
-                borderRadius: radii.md,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed || isSaving ? 0.72 : 1,
-              })}
-            >
-              <Typography variant="bodyBold" color={theme.colors.textSecondary}>
-                Voltar
-              </Typography>
-            </Pressable>
-          ) : null}
-          <Pressable
-            disabled={isSaving}
-            onPress={() => {
-              if (formStep === 1) {
-                if (isAppointment && !serviceId) {
-                  alertValidation("Selecione o serviço deste atendimento.");
-                  return;
-                }
-                if (isAppointment && !locationMode) {
-                  alertValidation("Escolha o local do atendimento.");
-                  return;
-                }
-                if (!isAppointment && !title.trim()) {
-                  alertValidation("Dê um nome para este cadastro.");
-                  return;
-                }
-                setFormStep(2);
-                return;
-              }
-              if (formStep === 2) {
-                if (!brToIso(dateText)) {
-                  alertValidation("Informe uma data válida no formato DD/MM/AAAA.");
-                  return;
-                }
-                if (isAppointment && !time.trim()) {
-                  alertValidation("Informe o horário do atendimento.");
-                  return;
-                }
-                if (time.trim() && !isValidTimeBR(time)) {
-                  alertValidation("Horário inválido. Use HH:MM, ex.: 14:30.");
-                  return;
-                }
-                setFormStep(3);
-                return;
-              }
-              void handleSave();
-            }}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              {
-                minHeight: 48,
-                borderRadius: radii.md,
-                backgroundColor: theme.colors.primaryInteractive,
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "row",
-                gap: spacing.md,
-                opacity: pressed || isSaving ? 0.82 : 1,
-              },
-              isDesktop ? { minWidth: 220, paddingHorizontal: spacing.xl } : { flex: 1 },
-            ]}
-          >
-            {isSaving ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
-              <AppIcon
-                name={
-                  formStep === ORDER_FORM_STEPS.length
-                    ? "checkmark-circle"
-                    : "arrow-forward"
-                }
-                size={25}
-                color={theme.colors.textOnPrimary}
-              />
-            )}
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.textOnPrimary}
-              style={{ fontSize: 16 }}
-            >
-              {formStep === ORDER_FORM_STEPS.length ? saveLabel : "Continuar"}
-            </Typography>
-          </Pressable>
-        </View>
+        <FormActions>
+          {secondaryAction}
+          {formStep < ORDER_FORM_STEPS.length ? (
+            <Button title="Continuar" disabled={isSaving} onPress={goToNextStep} />
+          ) : (
+            <Button
+              title={saveLabel}
+              loading={isSaving}
+              onPress={() => {
+                void handleSave();
+              }}
+            />
+          )}
+        </FormActions>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.lg }}>
-        <FormStepProgress
-          current={formStep}
-          steps={ORDER_FORM_STEPS}
-          onStepPress={setFormStep}
-        />
-        <View
-          style={{
-            borderRadius: 24,
-            borderWidth: 1,
-            borderColor: pal.border,
-            backgroundColor: pal.panel,
-            padding: spacing.lg,
-            gap: spacing["2xl"],
+      <FormStepProgress
+        current={formStep}
+        steps={ORDER_FORM_STEPS}
+        onStepPress={setFormStep}
+      />
+
+      <View {...stepProps(1)}>
+        <FormBody>
+          {isAppointment ? (
+            <>
+              {serviceSection}
+              {clientField}
+            </>
+          ) : (
+            <>
+              <FormGrid>
+                <FormField label="O que é?" validation={stepOneValidation.field("title")}>
+                  <TextField
+                    icon="cube-outline"
+                    placeholder={`Ex: ${experienceCopy.productExample}`}
+                    accessibilityLabel="Nome da encomenda"
+                    value={title}
+                    onChangeText={setTitle}
+                    autoFocus={!isEditing}
+                  />
+                </FormField>
+                {clientField}
+                <OrderPhotoField
+                  span="full"
+                  photoUrl={currentPhotoUrl}
+                  onPick={showPicker}
+                  onRemove={() => {
+                    setSavedPhotoUrl(null);
+                    clear();
+                  }}
+                />
+              </FormGrid>
+              {serviceSection}
+            </>
+          )}
+        </FormBody>
+        <ClientPickerModal
+          visible={showClientPicker}
+          onClose={() => setShowClientPicker(false)}
+          onSelect={(client) => {
+            setClientId(client?.id);
+            setClientName(client?.name ?? "");
           }}
-        >
-          <View
-            style={{ display: formStep === 1 ? "flex" : "none", gap: spacing["2xl"] }}
-            accessibilityElementsHidden={formStep !== 1}
-            importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
-          >
-            <View
-              style={{
-                flexDirection: isDesktop ? "row" : "column",
-                alignItems: "stretch",
-                gap: spacing["2xl"],
-              }}
-            >
-              {!isAppointment ? (
-                <View
-                  style={[
-                    { gap: spacing.md },
-                    isDesktop ? { width: 280, flexShrink: 0 } : undefined,
-                  ]}
-                >
-                  <Typography variant="h3" color={theme.colors.text}>
-                    Imagem: {experienceCopy.orderNoun} (opcional)
-                  </Typography>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: spacing.md,
-                      alignItems: "center",
-                    }}
-                  >
-                    <Pressable
-                      onPress={showPicker}
-                      style={({ pressed }) => ({
-                        width: 96,
-                        height: 96,
-                        borderRadius: radii.lg,
-                        backgroundColor: pal.subtleFill,
-                        borderWidth: 1,
-                        borderStyle: currentPhotoUrl ? "solid" : "dashed",
-                        borderColor: pal.border,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        overflow: "hidden",
-                        opacity: pressed ? 0.86 : 1,
-                      })}
-                    >
-                      {currentPhotoUrl ? (
-                        <Image
-                          source={{ uri: currentPhotoUrl }}
-                          style={{ width: 96, height: 96 }}
-                        />
-                      ) : (
-                        <AppIcon
-                          name="image-outline"
-                          size={34}
-                          color={theme.colors.primaryLight}
-                        />
-                      )}
-                    </Pressable>
-                    <View style={{ flex: 1, gap: spacing.sm }}>
-                      <Pressable
-                        onPress={showPicker}
-                        style={({ pressed }) => ({
-                          minHeight: 46,
-                          borderRadius: radii.lg,
-                          borderWidth: 1,
-                          borderColor: theme.colors.primaryLight,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexDirection: "row",
-                          gap: spacing.sm,
-                          opacity: pressed ? 0.82 : 1,
-                        })}
-                      >
-                        <AppIcon
-                          name={
-                            currentPhotoUrl
-                              ? "swap-horizontal-outline"
-                              : "cloud-upload-outline"
-                          }
-                          size={19}
-                          color={theme.colors.primaryLight}
-                        />
-                        <Typography
-                          variant="bodyBold"
-                          color={theme.colors.primaryLight}
-                          numberOfLines={1}
-                          adjustsFontSizeToFit
-                        >
-                          {currentPhotoUrl ? "Trocar imagem" : "Adicionar imagem"}
-                        </Typography>
-                      </Pressable>
-                      <Typography variant="caption" color={pal.muted}>
-                        Foto opcional para identificar este cadastro.
-                      </Typography>
-                      {currentPhotoUrl ? (
-                        <Pressable
-                          onPress={() => {
-                            setSavedPhotoUrl(null);
-                            clear();
-                          }}
-                        >
-                          <Typography variant="caption" color={theme.colors.alert}>
-                            Remover imagem
-                          </Typography>
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  </View>
-                </View>
-              ) : null}
+        />
+      </View>
 
-              {!isAppointment ? (
-                <View
-                  style={
-                    isDesktop
-                      ? { width: 1, alignSelf: "stretch", backgroundColor: pal.border }
-                      : { height: 1, backgroundColor: pal.border }
-                  }
-                />
-              ) : null}
-
-              <ValidationField {...formValidation.field("serviceId")}>
-                <View
-                  style={[
-                    { gap: spacing.md },
-                    isDesktop ? { flex: 1, minWidth: 0 } : undefined,
-                  ]}
-                >
-                  <View>
-                    <Typography variant="h3" color={theme.colors.text}>
-                      Serviço{isAppointment ? "" : " (opcional)"}
-                      {isAppointment ? (
-                        <Typography variant="bodyBold" color={theme.colors.primary}>
-                          {" "}
-                          *
-                        </Typography>
-                      ) : null}
-                    </Typography>
-                    <Typography variant="caption" color={pal.muted}>
-                      {isAppointment
-                        ? "Confirme a opção, os adicionais e a duração."
-                        : "Use para bloquear o horário correto na agenda."}
-                    </Typography>
-                  </View>
-                  {services.length > 0 ? (
-                    <View
-                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                    >
-                      {!isAppointment ? (
-                        <Pressable
-                          onPress={() => {
-                            setServiceId(null);
-                            setServiceVariationId(null);
-                            setServiceAddOnIds([]);
-                            setServicePackagePurchaseId(null);
-                            setLocationMode(null);
-                            setLocationDetails("");
-                          }}
-                          style={{
-                            minHeight: 44,
-                            justifyContent: "center",
-                            paddingHorizontal: spacing.md,
-                            borderRadius: radii.full,
-                            borderWidth: 1,
-                            borderColor:
-                              serviceId === null ? theme.colors.primary : pal.border,
-                            backgroundColor:
-                              serviceId === null ? theme.colors.primaryBg : pal.surface,
-                          }}
-                        >
-                          <Typography variant="caption">Sem serviço</Typography>
-                        </Pressable>
-                      ) : null}
-                      {services
-                        .filter(
-                          (service) =>
-                            service.active &&
-                            (!isAppointment ||
-                              !initialServiceId ||
-                              service.id === initialServiceId),
-                        )
-                        .map((service) => (
-                          <Pressable
-                            key={service.id}
-                            onPress={() => {
-                              setServiceId(service.id);
-                              setServiceVariationId(null);
-                              setServiceAddOnIds([]);
-                              setServicePackagePurchaseId(null);
-                              setDurationMinutes(String(service.durationMinutes));
-                              setLocationMode(
-                                service.locationMode === "flexible"
-                                  ? "business"
-                                  : service.locationMode,
-                              );
-                              setTitle((current) => current || service.name);
-                              if (service.defaultPrice !== null) {
-                                setAmount(currencyInput(service.defaultPrice));
-                              }
-                            }}
-                            style={{
-                              minHeight: 44,
-                              justifyContent: "center",
-                              paddingHorizontal: spacing.md,
-                              borderRadius: radii.full,
-                              borderWidth: 1,
-                              borderColor:
-                                serviceId === service.id
-                                  ? theme.colors.primary
-                                  : pal.border,
-                              backgroundColor:
-                                serviceId === service.id
-                                  ? theme.colors.primaryBg
-                                  : pal.surface,
-                            }}
-                          >
-                            <Typography variant="caption">{service.name}</Typography>
-                          </Pressable>
-                        ))}
-                    </View>
-                  ) : null}
-                  {selectedService?.variations.some((item) => item.active) ? (
-                    <View style={{ gap: spacing.sm }}>
-                      <Typography variant="caption" color={pal.muted}>
-                        Opção do serviço
-                      </Typography>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          flexWrap: "wrap",
-                          gap: spacing.sm,
-                        }}
-                      >
-                        {selectedService.variations
-                          .filter((item) => item.active)
-                          .map((variation) => (
-                            <Pressable
-                              key={variation.id}
-                              onPress={() => {
-                                setServiceVariationId(variation.id);
-                                setDurationMinutes(String(variation.durationMinutes));
-                                setAmount(currencyInput(variation.price));
-                              }}
-                              style={{
-                                minHeight: 44,
-                                justifyContent: "center",
-                                paddingHorizontal: spacing.md,
-                                borderRadius: radii.full,
-                                borderWidth: 1,
-                                borderColor:
-                                  serviceVariationId === variation.id
-                                    ? theme.colors.primary
-                                    : pal.border,
-                                backgroundColor:
-                                  serviceVariationId === variation.id
-                                    ? theme.colors.primaryBg
-                                    : pal.surface,
-                              }}
-                            >
-                              <Typography variant="caption">
-                                {variation.name} · {variation.durationMinutes} min
-                              </Typography>
-                            </Pressable>
-                          ))}
-                      </View>
-                    </View>
-                  ) : null}
-                  {selectedService?.addOns.some((item) => item.active) ? (
-                    <View style={{ gap: spacing.sm }}>
-                      <Typography variant="caption" color={pal.muted}>
-                        Adicionais
-                      </Typography>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          flexWrap: "wrap",
-                          gap: spacing.sm,
-                        }}
-                      >
-                        {selectedService.addOns
-                          .filter((item) => item.active)
-                          .map((addOn) => {
-                            const selected = serviceAddOnIds.includes(addOn.id);
-                            return (
-                              <Pressable
-                                key={addOn.id}
-                                onPress={() => {
-                                  setServiceAddOnIds(
-                                    selected
-                                      ? withoutValue(serviceAddOnIds, addOn.id)
-                                      : [...serviceAddOnIds, addOn.id],
-                                  );
-                                  const currentAmount = parseCurrencyInput(amount) || 0;
-                                  setAmount(
-                                    currencyInput(
-                                      Math.max(
-                                        0,
-                                        currentAmount +
-                                          (selected ? -addOn.price : addOn.price),
-                                      ),
-                                    ),
-                                  );
-                                  setDurationMinutes((current) =>
-                                    String(
-                                      Math.max(
-                                        5,
-                                        (Number.parseInt(current, 10) || 0) +
-                                          (selected
-                                            ? -addOn.durationMinutes
-                                            : addOn.durationMinutes),
-                                      ),
-                                    ),
-                                  );
-                                }}
-                                style={{
-                                  minHeight: 44,
-                                  justifyContent: "center",
-                                  paddingHorizontal: spacing.md,
-                                  borderRadius: radii.full,
-                                  borderWidth: 1,
-                                  borderColor: selected
-                                    ? theme.colors.primary
-                                    : pal.border,
-                                  backgroundColor: selected
-                                    ? theme.colors.primaryBg
-                                    : pal.surface,
-                                }}
-                              >
-                                <Typography variant="caption">
-                                  {addOn.name} · +{currencyInput(addOn.price)}
-                                </Typography>
-                              </Pressable>
-                            );
-                          })}
-                      </View>
-                    </View>
-                  ) : null}
-                  {packagePurchases.length > 0 ? (
-                    <View style={{ gap: spacing.sm }}>
-                      <Typography variant="caption" color={pal.muted}>
-                        Usar sessão de pacote
-                      </Typography>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          flexWrap: "wrap",
-                          gap: spacing.sm,
-                        }}
-                      >
-                        <Pressable
-                          onPress={() => setServicePackagePurchaseId(null)}
-                          style={{
-                            minHeight: 44,
-                            justifyContent: "center",
-                            paddingHorizontal: spacing.md,
-                            borderRadius: radii.full,
-                            borderWidth: 1,
-                            borderColor:
-                              servicePackagePurchaseId === null
-                                ? theme.colors.primary
-                                : pal.border,
-                            backgroundColor:
-                              servicePackagePurchaseId === null
-                                ? theme.colors.primaryBg
-                                : pal.surface,
-                          }}
-                        >
-                          <Typography variant="caption">Cobrança avulsa</Typography>
-                        </Pressable>
-                        {packagePurchases
-                          .filter(
-                            (purchase) =>
-                              purchase.status === "active" &&
-                              (!clientId || purchase.clientId === clientId),
-                          )
-                          .map((purchase) => (
-                            <Pressable
-                              key={purchase.id}
-                              onPress={() => {
-                                setServicePackagePurchaseId(purchase.id);
-                                setClientId(purchase.clientId);
-                                setClientName(purchase.clientName);
-                              }}
-                              style={{
-                                minHeight: 44,
-                                justifyContent: "center",
-                                paddingHorizontal: spacing.md,
-                                borderRadius: radii.full,
-                                borderWidth: 1,
-                                borderColor:
-                                  servicePackagePurchaseId === purchase.id
-                                    ? theme.colors.primary
-                                    : pal.border,
-                                backgroundColor:
-                                  servicePackagePurchaseId === purchase.id
-                                    ? theme.colors.primaryBg
-                                    : pal.surface,
-                              }}
-                            >
-                              <Typography variant="caption">
-                                {purchase.clientName} ·{" "}
-                                {purchase.sessionsTotal - purchase.sessionsUsed} sessões
-                              </Typography>
-                            </Pressable>
-                          ))}
-                      </View>
-                    </View>
-                  ) : null}
-                  {serviceId ? (
-                    <View style={{ gap: spacing.sm }}>
-                      <Typography variant="caption" color={pal.muted}>
-                        Duração do atendimento
-                      </Typography>
-                      <View style={compactField}>
-                        <Field
-                          icon="time-outline"
-                          placeholder="Duração em minutos"
-                          value={durationMinutes}
-                          onChangeText={(value) =>
-                            setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
-                          }
-                          keyboardType="number-pad"
-                        />
-                      </View>
-                      <Typography variant="caption" color={pal.muted}>
-                        Local do atendimento
-                        {isAppointment ? (
-                          <Typography variant="bodyBold" color={theme.colors.primary}>
-                            {" "}
-                            *
-                          </Typography>
-                        ) : null}
-                      </Typography>
-                      <ValidationField {...formValidation.field("locationMode")}>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            flexWrap: "wrap",
-                            gap: spacing.sm,
-                          }}
-                        >
-                          {[
-                            { label: "Meu espaço", value: "business" as const },
-                            { label: "Cliente", value: "client" as const },
-                            { label: "Online", value: "online" as const },
-                          ].map((option) => (
-                            <Pressable
-                              key={option.value}
-                              onPress={() => setLocationMode(option.value)}
-                              style={{
-                                minHeight: 44,
-                                justifyContent: "center",
-                                paddingHorizontal: spacing.md,
-                                borderRadius: radii.full,
-                                borderWidth: 1,
-                                borderColor:
-                                  locationMode === option.value
-                                    ? theme.colors.primary
-                                    : pal.border,
-                                backgroundColor:
-                                  locationMode === option.value
-                                    ? theme.colors.primaryBg
-                                    : pal.surface,
-                              }}
-                            >
-                              <Typography variant="caption">{option.label}</Typography>
-                            </Pressable>
-                          ))}
-                        </View>
-                      </ValidationField>
-                      <Field
-                        icon="location-outline"
-                        placeholder={
-                          locationMode === "online"
-                            ? "Link da chamada (opcional)"
-                            : "Detalhes do local (opcional)"
-                        }
-                        value={locationDetails}
-                        onChangeText={setLocationDetails}
-                      />
-                    </View>
-                  ) : null}
-                  {!isAppointment ? (
-                    <View
-                      style={{
-                        gap: spacing.md,
-                        padding: spacing.md,
-                        borderRadius: radii.lg,
-                        backgroundColor: pal.subtleFill,
-                        borderWidth: 1,
-                        borderColor: pal.border,
-                      }}
-                    >
-                      <View>
-                        <Typography variant="bodyBold" color={theme.colors.text}>
-                          Cadastrar serviço rápido
-                        </Typography>
-                        <Typography variant="caption" color={pal.muted}>
-                          Se a opção ainda não estiver na lista, informe nome e duração.
-                        </Typography>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: isDesktop ? "row" : "column",
-                          alignItems: "stretch",
-                          gap: spacing.sm,
-                        }}
-                      >
-                        <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-                          <ValidationField {...serviceValidation.field("newServiceName")}>
-                            <Field
-                              icon="add-circle-outline"
-                              placeholder="Nome do serviço"
-                              value={newServiceName}
-                              onChangeText={setNewServiceName}
-                            />
-                          </ValidationField>
-                        </View>
-                        <View
-                          style={isDesktop ? { width: 152, flexShrink: 0 } : undefined}
-                        >
-                          <ValidationField
-                            {...serviceValidation.field("newServiceDuration")}
-                          >
-                            <Field
-                              icon="time-outline"
-                              placeholder="Minutos"
-                              value={newServiceDuration}
-                              onChangeText={(value) =>
-                                setNewServiceDuration(
-                                  value.replace(/\D/g, "").slice(0, 4),
-                                )
-                              }
-                              keyboardType="number-pad"
-                            />
-                          </ValidationField>
-                        </View>
-                        <Pressable
-                          onPress={() => void handleCreateService()}
-                          disabled={createService.isPending}
-                          accessibilityRole="button"
-                          style={({ pressed }) => ({
-                            minHeight: 58,
-                            minWidth: isDesktop ? 176 : undefined,
-                            justifyContent: "center",
-                            alignItems: "center",
-                            paddingHorizontal: spacing.lg,
-                            borderRadius: radii.lg,
-                            borderWidth: 1,
-                            borderColor: theme.colors.primary,
-                            backgroundColor: theme.colors.surfaceElevated,
-                            opacity: pressed || createService.isPending ? 0.72 : 1,
-                          })}
-                        >
-                          {createService.isPending ? (
-                            <ActivityIndicator color={theme.colors.primaryStrong} />
-                          ) : (
-                            <Typography
-                              variant="bodyBold"
-                              color={theme.colors.primaryStrong}
-                              numberOfLines={1}
-                            >
-                              Cadastrar serviço
-                            </Typography>
-                          )}
-                        </Pressable>
-                      </View>
-                    </View>
-                  ) : null}
-                </View>
-              </ValidationField>
-            </View>
-
-            <View style={{ height: 1, backgroundColor: pal.border }} />
-
-            <View
-              style={{
-                flexDirection: isDesktop ? "row" : "column",
-                gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
-              }}
-            >
-              {!isAppointment ? (
-                <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
-                  <Typography variant="h3" color={theme.colors.text}>
-                    O que é? ({experienceCopy.orderNoun}){" "}
-                    <Typography variant="bodyBold" color={theme.colors.primary}>
-                      *
-                    </Typography>
-                  </Typography>
-                  <ValidationField {...formValidation.field("title")}>
-                    <Field
-                      icon="cube-outline"
-                      placeholder={`Ex: ${experienceCopy.productExample}`}
-                      accessibilityLabel="Nome da encomenda"
-                      value={title}
-                      onChangeText={setTitle}
-                      autoFocus={!isEditing}
-                    />
-                  </ValidationField>
-                </View>
-              ) : null}
-
-              <View
-                style={{
-                  flex: isCompactPwa ? undefined : 1,
-                  gap: spacing.sm,
-                  justifyContent: "flex-end",
-                }}
-              >
-                <Typography variant="h3" color={theme.colors.text}>
-                  Cliente (opcional)
-                </Typography>
-                <ClientField
-                  clientName={clientName}
-                  onPress={() => setShowClientPicker(true)}
-                  onClear={() => {
-                    setClientId(undefined);
-                    setClientName("");
-                  }}
-                />
-                <ClientPickerModal
-                  visible={showClientPicker}
-                  onClose={() => setShowClientPicker(false)}
-                  onSelect={(client) => {
-                    setClientId(client?.id);
-                    setClientName(client?.name ?? "");
-                  }}
-                />
-              </View>
-            </View>
-          </View>
-          <View
-            style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
-            accessibilityElementsHidden={formStep !== 2}
-            importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
-          >
-            <View
-              style={{
-                flexDirection: isDesktop ? "row" : "column",
-                gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
-              }}
-            >
-              <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
-                <Typography variant="h3" color={theme.colors.text}>
-                  {isAppointment ? "Data do atendimento" : "Data de entrega"}{" "}
-                  <Typography variant="bodyBold" color={theme.colors.primary}>
-                    *
-                  </Typography>
-                </Typography>
-                <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                  {[
-                    {
-                      label: "Hoje",
-                      value: offsetIsoBr(0),
-                      icon: "calendar-outline" as const,
-                    },
-                    {
-                      label: "Amanhã",
-                      value: offsetIsoBr(1),
-                      icon: "sunny-outline" as const,
-                    },
-                  ].map((chip) => {
-                    const active = dateText === chip.value;
-                    return (
-                      <Pressable
-                        key={chip.label}
-                        onPress={() => setDateText(chip.value)}
-                        style={{
-                          minHeight: 48,
-                          borderRadius: radii.full,
-                          paddingHorizontal: spacing.lg,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexDirection: "row",
-                          gap: spacing.sm,
-                          backgroundColor: active ? theme.colors.primary : pal.surface,
-                        }}
-                      >
-                        <AppIcon
-                          name={chip.icon}
-                          size={21}
-                          color={active ? theme.colors.textOnPrimary : pal.muted}
-                        />
-                        <Typography
-                          variant="bodyBold"
-                          color={active ? theme.colors.textOnPrimary : pal.muted}
-                        >
-                          {chip.label}
-                        </Typography>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                <ValidationField {...formValidation.field("dateText")}>
-                  <Field
-                    icon="calendar-outline"
-                    trailingIcon="calendar-outline"
-                    trailingLabel="Abrir calendário"
-                    onTrailingPress={openDatePicker}
-                    value={dateText}
-                    onChangeText={(v) => setDateText(maskDateBR(v))}
-                    keyboardType="number-pad"
-                    placeholder="DD/MM/AAAA"
-                  />
-                </ValidationField>
-                <CalendarModal
-                  visible={showDatePicker}
+      <View {...stepProps(2)}>
+        <FormBody>
+          <FormGrid>
+            <View>
+              <ValidationField {...stepTwoValidation.field("dateText")}>
+                <DateField
+                  label={isAppointment ? "Data do atendimento" : "Data de entrega"}
                   value={dateText}
-                  onSelect={setDateText}
-                  onClose={() => setShowDatePicker(false)}
+                  onChange={setDateText}
                 />
-              </View>
-
-              <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
-                <Typography variant="h3" color={theme.colors.text}>
-                  Horário{isAppointment ? "" : " (opcional)"}
-                  {isAppointment ? (
-                    <Typography variant="bodyBold" color={theme.colors.primary}>
-                      {" "}
-                      *
-                    </Typography>
-                  ) : null}
-                </Typography>
-                <ValidationField {...formValidation.field("time")}>
-                  <Field
-                    icon="time-outline"
-                    placeholder="Ex: 14:30"
-                    value={time}
-                    onChangeText={(v) => setTime(maskTimeBR(v))}
-                    keyboardType="number-pad"
-                    maxLength={5}
-                  />
-                </ValidationField>
+              </ValidationField>
+              <View style={{ marginTop: spacing.md }}>
+                <ChipRow>
+                  {[
+                    { label: "Hoje", value: offsetIsoBr(0) },
+                    { label: "Amanhã", value: offsetIsoBr(1) },
+                  ].map((chip) => (
+                    <OptionChip
+                      key={chip.label}
+                      label={chip.label}
+                      selected={dateText === chip.value}
+                      onPress={() => setDateText(chip.value)}
+                    />
+                  ))}
+                </ChipRow>
               </View>
             </View>
-
-            <View
-              style={{
-                flexDirection: isDesktop ? "row" : "column",
-                gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
-                flexWrap: isDesktop ? "wrap" : undefined,
-              }}
+            <FormField
+              label="Horário"
+              optional={!isAppointment}
+              validation={stepTwoValidation.field("time")}
             >
-              <View
-                style={[
-                  { gap: spacing.sm },
-                  isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
-                ]}
-              >
-                <Typography variant="h3" color={theme.colors.text}>
-                  Valor combinado (opcional)
-                </Typography>
-                <Field
-                  icon="cash-outline"
-                  placeholder="Ex: 120,00"
+              <TextField
+                icon="time-outline"
+                placeholder="Ex: 14:30"
+                value={time}
+                onChangeText={(v) => setTime(maskTimeBR(v))}
+                keyboardType="number-pad"
+                maxLength={5}
+              />
+            </FormField>
+          </FormGrid>
+
+          <FormSection
+            collapsible={false}
+            title="Valores"
+            subtitle="O sinal é a entrada que já foi paga."
+          >
+            <FormGrid>
+              <FormField label="Valor combinado" optional>
+                <TextField
+                  prefix="R$"
+                  placeholder="120,00"
+                  accessibilityLabel="Valor combinado, em reais"
                   value={amount}
                   onChangeText={(value) => setAmount(maskCurrencyInput(value))}
                   keyboardType="numeric"
                 />
-              </View>
-
-              <View
-                style={[
-                  { gap: spacing.sm },
-                  isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
-                ]}
+              </FormField>
+              <FormField
+                label="Sinal recebido"
+                optional
+                validation={stepTwoValidation.field("deposit")}
               >
-                <Typography variant="h3" color={theme.colors.text}>
-                  Sinal recebido (opcional)
-                </Typography>
-                <Field
-                  icon="wallet-outline"
-                  placeholder="Ex: 60,00, entrada já paga"
+                <TextField
+                  prefix="R$"
+                  placeholder="60,00"
+                  accessibilityLabel="Sinal recebido, em reais"
                   value={deposit}
                   onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
                   keyboardType="numeric"
                 />
-              </View>
-            </View>
-          </View>
-          <View
-            style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
-            accessibilityElementsHidden={formStep !== 3}
-            importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
-          >
-            {!isAppointment ? (
-              <FormSection
-                title="Personalização"
-                subtitle={`Tema, homenageado e cores para ${experienceCopy.orderNounPlural}`}
-                icon="sparkles-outline"
-                initiallyOpen={!!(orderTheme || honoree || colors)}
-              >
-                <PersonalizationFields
-                  orderTheme={orderTheme}
-                  setOrderTheme={setOrderTheme}
-                  honoree={honoree}
-                  setHonoree={setHonoree}
-                  colors={colors}
-                  setColors={setColors}
-                />
-              </FormSection>
-            ) : null}
+              </FormField>
+            </FormGrid>
+          </FormSection>
+        </FormBody>
+      </View>
 
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="h3" color={theme.colors.text}>
-                Observações (opcional)
-              </Typography>
-              <Field
-                icon="document-text-outline"
-                placeholder={
-                  isAppointment
-                    ? "Anotações sobre o atendimento..."
-                    : `Anotações: ${experienceCopy.orderNoun}...`
-                }
-                value={notes}
-                onChangeText={(value) => setNotes(value.slice(0, 500))}
-                multiline
-                numberOfLines={3}
+      <View {...stepProps(3)}>
+        <FormBody>
+          <FormField label="Observações" optional>
+            <TextField
+              placeholder={
+                isAppointment
+                  ? "Anotações sobre o atendimento..."
+                  : `Anotações: ${experienceCopy.orderNoun}...`
+              }
+              value={notes}
+              onChangeText={(value) => setNotes(value.slice(0, 500))}
+              multiline
+              numberOfLines={3}
+            />
+          </FormField>
+
+          {!isAppointment ? (
+            <FormSection
+              title="Personalização"
+              subtitle={`Tema, homenageado e cores para ${experienceCopy.orderNounPlural}`}
+              initiallyOpen={!!(orderTheme || honoree || colors)}
+            >
+              <PersonalizationFields
+                orderTheme={orderTheme}
+                setOrderTheme={setOrderTheme}
+                honoree={honoree}
+                setHonoree={setHonoree}
+                colors={colors}
+                setColors={setColors}
               />
-            </View>
-          </View>
-        </View>
+            </FormSection>
+          ) : null}
 
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-          }}
-        >
-          <AppIcon name="shield-checkmark-outline" size={17} color={pal.muted} />
-          <Typography variant="caption" color={pal.muted}>
-            Seus dados estão seguros
-          </Typography>
-        </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: spacing.sm,
+            }}
+          >
+            <AppIcon
+              name="shield-checkmark-outline"
+              size={16}
+              color={theme.colors.textSecondary}
+            />
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Seus dados estão seguros
+            </Typography>
+          </View>
+        </FormBody>
       </View>
     </StandardModal>
   );
