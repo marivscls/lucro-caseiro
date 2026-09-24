@@ -143,6 +143,52 @@ export function hasActiveFeature(
   return planHasFeature(resolveActivePlan(plan, expiresAt), feature);
 }
 
+// ---------------------------------------------------------------------------
+// Teste grátis: toda conta NOVA ganha o Essencial por 7 dias, sem cartão.
+// Persistido como plan='essential' + plan_expires_at=criação+7d + plan_is_trial;
+// ao expirar, resolveActivePlan já devolve "free" (nada a desligar).
+// ---------------------------------------------------------------------------
+
+export const ESSENTIAL_TRIAL_DAYS = 7;
+
+/** Estado de plano gravado ao criar uma conta nova (teste do Essencial). */
+export function newAccountTrialPlan(now: Date = new Date()): {
+  plan: "essential";
+  planExpiresAt: Date;
+  planIsTrial: true;
+} {
+  return {
+    plan: "essential",
+    planExpiresAt: new Date(now.getTime() + ESSENTIAL_TRIAL_DAYS * 24 * 60 * 60 * 1000),
+    planIsTrial: true,
+  };
+}
+
+/**
+ * Dias de calendário (fuso local) até o fim do teste: 0 = termina hoje,
+ * 1 = amanhã... `null` quando não há data ou o teste já acabou.
+ */
+export function trialDaysLeft(
+  expiresAt: string | null,
+  now: Date = new Date(),
+): number | null {
+  if (!expiresAt) return null;
+  const end = new Date(expiresAt);
+  if (end.getTime() <= now.getTime()) return null;
+  const startOfDay = (d: Date) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.round((startOfDay(end) - startOfDay(now)) / (24 * 60 * 60 * 1000));
+}
+
+/** Teste do Essencial ainda valendo (plano pago em teste e não expirado). */
+export function isActiveTrial(
+  plan: string,
+  expiresAt: string | null,
+  planIsTrial: boolean | undefined,
+): boolean {
+  return planIsTrial === true && resolveActivePlan(plan, expiresAt) !== "free";
+}
+
 export function isPaidPlan(plan: PlanType): plan is PaidPlan {
   return plan === "essential" || plan === "professional";
 }

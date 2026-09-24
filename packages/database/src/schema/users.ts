@@ -27,6 +27,8 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   plan: planTypeEnum("plan").notNull().default("free"),
   planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
+  // true enquanto o plano veio do teste grátis do Essencial (sem pagamento).
+  planIsTrial: boolean("plan_is_trial").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();

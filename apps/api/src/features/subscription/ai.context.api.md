@@ -50,6 +50,7 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 - User profile and plan state live on the users table.
 - `users.plan` is the enum `plan_type = free | essential | professional` (+ legacy `premium`, kept in the enum but normalized to `professional` on read). Optional `users.planExpiresAt`.
 - `planExpiresAt = null` means the paid plan has no known expiry from the provider.
+- `users.plan_is_trial` (boolean, default false; `UserProfile.planIsTrial`) is true while the plan came from the free Essencial trial, not from a payment.
 - The plan matrix (limits + feature flags) is the single source of truth in `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). Free volume limits: sales unlimited (`null`), clients 50, products 30, recipes 5, packaging 3, suppliers 3. Essencial removes volume limits but keeps suppliers capped at 3, and gains the `exportBasic` feature (PDF do resumo mensal — ADR-0005). Profissional unlocks everything (all premium features + `exportBasic` + suppliers/compras).
 - `subscription_purchase_claims(user_id, provider, token_hash)` links a verified Play purchase token (SHA-256 only) to one account. `hasPurchaseClaim(userId, provider, tokenHash)` is the user-scoped lookup the RTDN flow uses.
 - The plan source (Stripe x Google Play) is **not** stored; RTDN decisions compare `planExpiresAt` with the Play expiry instead.
@@ -59,6 +60,10 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 
 - `userId` always comes from the Supabase JWT via `authMiddleware`.
 - Client cannot set a paid `plan` through profile update.
+- Every NEW account starts on a 7-day Essencial trial (`ESSENTIAL_TRIAL_DAYS`): `plan = essential`, `planExpiresAt = now + 7d`, `planIsTrial = true`. Granted only when the `users` row is inserted (signup trigger `handle_new_user`, auth-middleware fallback insert, `upsertProfile` insert); never on conflict/update, so existing accounts are untouched. The trial ends by date through `resolvePlan` (no job).
+- `updatePlan` (every purchase/provider write, including `deactivatePlan`) sets `planIsTrial = false`.
+- `activatePlan` treats an active trial as Free: buying during the trial records `subscription_completed` and sends `activated`.
+- `deactivatePlan` is a no-op while the trial is active (a Stripe/Play cancel or expiry can never end the trial early); RTDN also ignores an inactive purchase with `trial_in_progress` and never lets a trial block an active purchase.
 - Direct Data API access to `users` and `subscription_purchase_claims` is denied for `PUBLIC`, `anon`, and `authenticated`; versioned RLS/grants hardening preserves API-only billing and profile writes (ADR-0010).
 - `resolvePlan(plan, expiresAt)` (via contracts `resolveActivePlan`) falls back to `free` when `planExpiresAt` is in the past, and normalizes legacy `premium` → `professional`.
 - Provider sync activates a paid plan only after server-side validation; the tier comes from the purchased product id.
@@ -239,3 +244,7 @@ Decisão do dono do produto: registrar vendas é o hábito diário e não deve t
 ## Google Play RTDN — 2026-09-23
 
 Problema: o plano Play so era sincronizado quando o app chamava `POST /sync-plan`. `planExpiresAt` guarda a expiracao do periodo pago e `resolvePlan` cai para Free quando ela passa, entao um assinante que renovava sem abrir o app perdia o plano ate abrir; e um reembolso/revogacao nunca era refletido. Agora `POST /api/v1/webhooks/google-play` recebe as Real-time Developer Notifications via Pub/Sub push (OIDC) e reaplica o estado do subscriptionsv2. Env vars: `GOOGLE_PLAY_RTDN_AUDIENCE` e `GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT_EMAIL` (sem elas, 503). Setup no Play Console/GCP em `docs/subscription-setup.md`. Decisao: como a origem do plano nao e gravada, a desativacao so acontece quando `planExpiresAt` nao passa da expiracao da Play (e a renovacao nao encurta um plano mais longo); com isso uma revogacao que antecipa a expiracao da Play pode nao derrubar o plano na hora, e o acesso termina na expiracao ja gravada.
+
+## Teste grátis do Essencial — 2026-09-24
+
+Decisão do dono do produto: toda conta nova ganha 7 dias do Essencial, sem cartão, e volta sozinha para o Gratuito. Migration `20260924100000_essential_trial_signup.sql` (roda no boot, depois da 062): adiciona `users.plan_is_trial boolean NOT NULL DEFAULT false` e redefine `handle_new_user` para inserir `plan = 'essential'`, `plan_expires_at = now() + 7 days`, `plan_is_trial = true` só no INSERT. `newAccountTrialPlan()` (contracts) faz o mesmo no insert do `upsertProfile` e do fallback do `authMiddleware`. Os gates continuam usando `plan` + `planExpiresAt`. Não há evento de analytics `trial_started` (o teste nasce no trigger do banco, sem ponto único na API); dá para medir por `users.plan_is_trial`. Excluir a conta e recriar com o mesmo e-mail gera uma conta nova e, portanto, um novo teste.

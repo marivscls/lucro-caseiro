@@ -1,5 +1,5 @@
 import type { PaidPlan } from "@lucro-caseiro/contracts";
-import { normalizePlan } from "@lucro-caseiro/contracts";
+import { isActiveTrial, normalizePlan } from "@lucro-caseiro/contracts";
 
 import { resolvePlan } from "./subscription.domain";
 import type { GooglePlaySubscriptionSnapshot } from "./subscription.types";
@@ -95,6 +95,7 @@ export type PlayPlanIgnoreReason =
   | "unknown_user"
   | "current_plan_outlasts_play"
   | "already_free"
+  | "trial_in_progress"
   | "unknown_plan_source";
 
 export type PlayPlanDecision =
@@ -106,7 +107,11 @@ export interface PlayPlanDecisionInput {
   snapshot: GooglePlaySubscriptionSnapshot | null;
   /** O dono (obfuscatedExternalAccountId) ja fez `claimPurchaseToken` deste token. */
   claimedByOwner: boolean;
-  currentProfile: { plan: string; planExpiresAt: string | null } | null;
+  currentProfile: {
+    plan: string;
+    planExpiresAt: string | null;
+    planIsTrial?: boolean;
+  } | null;
 }
 
 /**
@@ -130,9 +135,18 @@ export function decidePlayPlanChange({
     ? new Date(currentProfile.planExpiresAt)
     : null;
   const playExpiry = snapshot.expiresAt;
+  // Teste grátis não é plano de outro canal: compra ativa sempre substitui, e
+  // uma compra inativa nunca encerra o teste (ele termina sozinho pela data).
+  const onTrial = isActiveTrial(
+    currentProfile.plan,
+    currentProfile.planExpiresAt,
+    currentProfile.planIsTrial,
+  );
 
   if (snapshot.active) {
-    const currentPlan = resolvePlan(currentProfile.plan, currentProfile.planExpiresAt);
+    const currentPlan = onTrial
+      ? "free"
+      : resolvePlan(currentProfile.plan, currentProfile.planExpiresAt);
     if (currentPlan !== "free") {
       if (!currentExpiry) return { action: "ignore", reason: "unknown_plan_source" };
       if (playExpiry && currentExpiry > playExpiry) {
@@ -145,6 +159,7 @@ export function decidePlayPlanChange({
   if (normalizePlan(currentProfile.plan) === "free") {
     return { action: "ignore", reason: "already_free" };
   }
+  if (onTrial) return { action: "ignore", reason: "trial_in_progress" };
   if (!currentExpiry || !playExpiry) {
     return { action: "ignore", reason: "unknown_plan_source" };
   }

@@ -1,5 +1,5 @@
 import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
-import { normalizePlan } from "@lucro-caseiro/contracts";
+import { newAccountTrialPlan, normalizePlan } from "@lucro-caseiro/contracts";
 import {
   clients,
   packaging,
@@ -46,6 +46,9 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
           | "other"
           | undefined,
         avatarUrl: data.avatarUrl ?? null,
+        // Conta nova nasce no teste do Essencial. Só no INSERT: o onConflict
+        // abaixo nunca mexe no plano de quem já existe.
+        ...newAccountTrialPlan(),
       })
       .onConflictDoUpdate({
         target: users.id,
@@ -75,7 +78,8 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
   ): Promise<UserProfile | null> {
     const [row] = await this.db
       .update(users)
-      .set({ plan, planExpiresAt: expiresAt })
+      // Toda escrita de plano vinda de compra/provedor encerra o teste.
+      .set({ plan, planExpiresAt: expiresAt, planIsTrial: false })
       .where(eq(users.id, userId))
       .returning();
 
@@ -267,6 +271,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       avatarUrl: row.avatarUrl,
       plan: normalizePlan(row.plan),
       planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
+      planIsTrial: row.planIsTrial,
       createdAt: row.createdAt.toISOString(),
     };
   }

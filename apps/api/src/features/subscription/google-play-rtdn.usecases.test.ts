@@ -30,6 +30,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     avatarUrl: null,
     plan: "professional",
     planExpiresAt: inDays(1).toISOString(),
+    planIsTrial: false,
     createdAt: new Date().toISOString(),
     ...overrides,
   };

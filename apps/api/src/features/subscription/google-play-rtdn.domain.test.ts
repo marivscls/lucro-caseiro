@@ -226,6 +226,43 @@ describe("decidePlayPlanChange", () => {
     expect(decision).toEqual({ action: "ignore", reason: "current_plan_outlasts_play" });
   });
 
+  it("never ends an Essential trial when a Play purchase is inactive", () => {
+    // Arrange
+    const input = makeInput({
+      snapshot: makeSnapshot({ active: false, expiresAt: inDays(30) }),
+      currentProfile: {
+        plan: "essential",
+        planExpiresAt: inDays(5).toISOString(),
+        planIsTrial: true,
+      },
+    });
+
+    // Act
+    const decision = decidePlayPlanChange(input);
+
+    // Assert
+    expect(decision).toEqual({ action: "ignore", reason: "trial_in_progress" });
+  });
+
+  it("activates a Play purchase even when the trial outlasts the Play expiry", () => {
+    // Arrange
+    const playExpiry = inDays(3);
+    const input = makeInput({
+      snapshot: makeSnapshot({ active: true, expiresAt: playExpiry }),
+      currentProfile: {
+        plan: "essential",
+        planExpiresAt: inDays(6).toISOString(),
+        planIsTrial: true,
+      },
+    });
+
+    // Act
+    const decision = decidePlayPlanChange(input);
+
+    // Assert
+    expect(decision).toMatchObject({ action: "activate", expiresAt: playExpiry });
+  });
+
   it("does nothing when the account is already free", () => {
     // Arrange
     const input = makeInput({

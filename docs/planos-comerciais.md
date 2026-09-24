@@ -23,6 +23,19 @@ A pessoa nunca deve perder acesso aos dados antigos ao bater limite. Ela pode co
 | Essencial    |     R$ 29,90 | Uso real para quem trabalha sozinha ou esta comecando. |
 | Profissional |     R$ 69,90 | Operacao mais completa para negocio em crescimento.    |
 
+## Teste gratis do Essencial (contas novas)
+
+Decisao de 2026-09-24: toda conta nova comeca com **7 dias do Essencial**, sem cartao e
+sem cobranca. Quando os 7 dias acabam, a conta volta sozinha para o Gratis, com todos os
+dados salvos (quem passou dos limites do Gratis so consulta; novos cadastros pedem plano).
+
+- Contas que ja existiam nao ganham o teste.
+- Durante o teste a pessoa pode assinar Essencial ou Profissional; a compra encerra o teste
+  e conta como primeira assinatura.
+- No banco: `plan = 'essential'`, `plan_expires_at = cadastro + 7 dias` e
+  `plan_is_trial = true` (migration `20260924100000_essential_trial_signup.sql`). A duracao
+  fica em `ESSENTIAL_TRIAL_DAYS` (`@lucro-caseiro/contracts`).
+
 ## Plano Gratis
 
 Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limite quando comecar a usar todos os dias.
