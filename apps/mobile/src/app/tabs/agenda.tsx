@@ -3,7 +3,6 @@ import { formatCurrency as formatMoney } from "../../shared/utils/format";
 import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
 import {
   Button,
-  Chip,
   EmptyState,
   fontSizes,
   Typography,
@@ -60,16 +59,29 @@ import { alertError } from "../../shared/utils/alerts";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { DesktopStatRow, desktopPageContent } from "../../shared/layout/desktop-page";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
-import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../shared/components/standard-modal";
 import {
-  desktopAction,
+  ChipChoiceField,
+  ChoiceField,
+  FormField,
+} from "../../shared/components/form-field";
+import { FormActions } from "../../shared/components/form-layout";
+import { FormSection } from "../../shared/components/form-section";
+import {
   desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../../shared/layout/desktop-density";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
+const ALL_DAYS = "all";
+const APPOINTMENT_OPTIONS = [
+  { value: "scheduled", label: "Agendado" },
+  { value: "confirmed", label: "Confirmado" },
+  { value: "in_progress", label: "Em atendimento" },
+  { value: "no_show", label: "Não compareceu" },
+  { value: "cancelled", label: "Cancelado" },
+] as const;
 // Paleta da agenda derivada do tema ativo (antes eram constantes fixas de dark,
 // que quebravam o modo claro).
 function agendaPalette(theme: ReturnType<typeof useTheme>["theme"]) {
@@ -271,19 +283,19 @@ function ModernOrderDetail({
     title,
     subtitle,
     onPress,
-    danger,
   }: Readonly<{
     icon: AppIconName;
     title: string;
     subtitle: string;
-    onPress?: () => void;
-    danger?: boolean;
+    onPress: () => void;
   }>) {
-    const iconColor = danger ? theme.colors.alert : agColors.muted;
+    const iconColor = agColors.muted;
     return (
       <Pressable
         onPress={onPress}
-        disabled={!onPress}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityHint={subtitle}
         style={({ pressed }) => ({
           minHeight: 74,
           borderRadius: radii.xl,
@@ -302,7 +314,7 @@ function ModernOrderDetail({
             width: 46,
             height: 46,
             borderRadius: radii.lg,
-            backgroundColor: danger ? `${theme.colors.alert}1F` : agColors.subtleFill,
+            backgroundColor: agColors.subtleFill,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -312,7 +324,7 @@ function ModernOrderDetail({
         <View style={{ flex: 1, gap: 2 }}>
           <Typography
             variant="bodyBold"
-            color={danger ? theme.colors.alert : theme.colors.text}
+            color={theme.colors.text}
             style={{ fontSize: fontSizes.md }}
           >
             {title}
@@ -325,9 +337,7 @@ function ModernOrderDetail({
             {subtitle}
           </Typography>
         </View>
-        {onPress ? (
-          <AppIcon name="chevron-forward" size={24} color={agColors.muted} />
-        ) : null}
+        <AppIcon name="chevron-forward" size={24} color={agColors.muted} />
       </Pressable>
     );
   }
@@ -527,21 +537,11 @@ function ModernOrderDetail({
       )}
 
       {(order.theme || order.honoree || order.colors) && (
-        <View style={{ gap: spacing.sm }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <AppIcon name="sparkles-outline" size={20} color={agColors.muted} />
-            <Typography
-              variant="h3"
-              color={agColors.muted}
-              style={{ fontSize: fontSizes.lg }}
-            >
-              Personalização
-            </Typography>
-          </View>
+        <FormSection collapsible={false} title="Personalização">
           {order.theme && <Typography variant="body">Tema: {order.theme}</Typography>}
           {order.honoree && <Typography variant="body">Para: {order.honoree}</Typography>}
           {order.colors && <Typography variant="body">Cores: {order.colors}</Typography>}
-        </View>
+        </FormSection>
       )}
 
       {client?.phone ? (
@@ -578,33 +578,21 @@ function ModernOrderDetail({
       <View style={{ height: 1, backgroundColor: agColors.border }} />
 
       {order.serviceId && !isFinished ? (
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="caption">Etapa do atendimento</Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {[
-              { value: "scheduled" as const, label: "Agendado" },
-              { value: "confirmed" as const, label: "Confirmado" },
-              { value: "in_progress" as const, label: "Em atendimento" },
-              { value: "no_show" as const, label: "Não compareceu" },
-              { value: "cancelled" as const, label: "Cancelado" },
-            ].map((status) => (
-              <Chip
-                key={status.value}
-                label={status.label}
-                selected={order.appointmentStatus === status.value}
-                onPress={() =>
-                  updateOrder.mutate(
-                    { id: order.id, data: { appointmentStatus: status.value } },
-                    {
-                      onError: () =>
-                        alertError("Não foi possível atualizar o atendimento."),
-                    },
-                  )
-                }
-              />
-            ))}
-          </View>
-        </View>
+        <FormField label="Etapa do atendimento">
+          <ChipChoiceField
+            accessibilityLabel="Etapa do atendimento"
+            value={order.appointmentStatus}
+            options={APPOINTMENT_OPTIONS}
+            onChange={(appointmentStatus) =>
+              updateOrder.mutate(
+                { id: order.id, data: { appointmentStatus } },
+                {
+                  onError: () => alertError("Não foi possível atualizar o atendimento."),
+                },
+              )
+            }
+          />
+        </FormField>
       ) : null}
 
       {isFinished ? (
@@ -616,41 +604,38 @@ function ModernOrderDetail({
           >
             Encomenda {STATUS_LABEL[order.status].toLowerCase()}.
           </Typography>
-          <Button
-            title="Reabrir encomenda"
-            variant="secondary"
-            onPress={() => setStatus("pending")}
-          />
+          <FormActions style={{ flexGrow: 0, flexBasis: "auto" }}>
+            <Button
+              title="Reabrir encomenda"
+              variant="secondary"
+              onPress={() => setStatus("pending")}
+            />
+          </FormActions>
         </View>
       ) : (
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="caption">Status</Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PIPELINE.map((s) => (
-              <Chip
-                key={s}
-                label={STATUS_LABEL[s]}
-                selected={order.status === s}
-                onPress={() => setStatus(s)}
+        <View style={{ gap: spacing.lg }}>
+          <FormField label="Status">
+            <ChoiceField
+              accessibilityLabel="Status da encomenda"
+              value={order.status}
+              options={PIPELINE.map((status) => ({
+                value: status,
+                label: STATUS_LABEL[status],
+              }))}
+              onChange={setStatus}
+            />
+          </FormField>
+          <FormActions style={{ flexGrow: 0, flexBasis: "auto" }}>
+            {order.serviceId ? (
+              <Button title="Concluir atendimento" onPress={onCompleteService} />
+            ) : (
+              <Button
+                title="Marcar como entregue"
+                onPress={handleDeliver}
+                loading={deliverOrder.isPending}
               />
-            ))}
-          </View>
-          {order.serviceId ? (
-            <Button
-              title="Concluir atendimento"
-              size="lg"
-              onPress={onCompleteService}
-              style={desktopAction(isDesktop, 240)}
-            />
-          ) : (
-            <Button
-              title="Marcar como entregue"
-              size="lg"
-              onPress={handleDeliver}
-              loading={deliverOrder.isPending}
-              style={desktopAction(isDesktop, 240)}
-            />
-          )}
+            )}
+          </FormActions>
         </View>
       )}
 
@@ -674,18 +659,23 @@ function ModernOrderDetail({
           }}
         />
       ) : null}
-      <RowAction
-        icon="trash-outline"
-        title="Excluir encomenda"
-        subtitle={deleteOrder.isPending ? "Excluindo..." : "Remover esta encomenda"}
-        onPress={handleDelete}
-        danger
-      />
-      <RowAction
-        icon="clipboard-outline"
-        title="Observações"
-        subtitle={order.notes || "Nenhuma observação adicionada."}
-      />
+      <FormSection collapsible={false} title="Observações">
+        <Typography
+          variant="body"
+          color={order.notes ? theme.colors.text : agColors.muted}
+        >
+          {order.notes || "Nenhuma observação adicionada."}
+        </Typography>
+      </FormSection>
+      <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+        <Button
+          title="Excluir encomenda"
+          variant="alertOutline"
+          icon={<AppIcon name="trash-outline" size={18} color={theme.colors.alert} />}
+          onPress={handleDelete}
+          loading={deleteOrder.isPending}
+        />
+      </View>
     </View>
   );
 }
@@ -1278,120 +1268,28 @@ function DayFilterModal({
   onSelect: (date: string | null) => void;
   onClose: () => void;
 }>) {
-  const { theme } = useTheme();
-  const agColors = agendaPalette(theme);
+  const choices = [
+    { value: ALL_DAYS, label: "Todos os dias" },
+    ...options.map((option) => ({
+      value: option.date,
+      label: `${formatDateBR(option.date)} · ${option.count} ${
+        option.count === 1 ? "encomenda" : "encomendas"
+      }`,
+    })),
+  ];
 
   return (
-    <ResponsiveOverlayModal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <Pressable
-        onPress={onClose}
-        style={{
-          flex: 1,
-          backgroundColor: theme.colors.overlay,
-          justifyContent: "center",
-          padding: spacing.xl,
+    <StandardModal visible={visible} onClose={onClose} title="Filtrar por dia">
+      <ChipChoiceField
+        accessibilityLabel="Dia de entrega"
+        value={selectedDate ?? ALL_DAYS}
+        options={choices}
+        onChange={(date) => {
+          onSelect(date === ALL_DAYS ? null : date);
+          onClose();
         }}
-      >
-        <Pressable
-          style={{
-            borderRadius: radii["2xl"],
-            backgroundColor: agColors.surface,
-            borderWidth: 1,
-            borderColor: agColors.border,
-            padding: spacing.lg,
-            gap: spacing.md,
-            maxHeight: "80%",
-            width: "100%",
-            maxWidth: 640,
-            alignSelf: "center",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon name="calendar-outline" size={24} color={agColors.muted} />
-              <Typography variant="h3" color={theme.colors.text}>
-                Filtrar por dia
-              </Typography>
-            </View>
-            <Pressable onPress={onClose} accessibilityLabel="Fechar" hitSlop={10}>
-              <AppIcon name="close" size={24} color={agColors.muted} />
-            </Pressable>
-          </View>
-
-          <ScrollView
-            style={{ flexShrink: 1 }}
-            contentContainerStyle={{ gap: spacing.sm }}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator
-          >
-            <Pressable
-              onPress={() => {
-                onSelect(null);
-                onClose();
-              }}
-              style={{
-                borderRadius: radii.lg,
-                backgroundColor:
-                  selectedDate === null ? theme.colors.primaryBg : agColors.pillFill,
-                padding: spacing.md,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                Todos os dias
-              </Typography>
-              <Typography variant="caption" color={agColors.muted}>
-                limpar filtro
-              </Typography>
-            </Pressable>
-
-            {options.map((option) => {
-              const selected = selectedDate === option.date;
-              return (
-                <Pressable
-                  key={option.date}
-                  onPress={() => {
-                    onSelect(option.date);
-                    onClose();
-                  }}
-                  style={{
-                    borderRadius: radii.lg,
-                    backgroundColor: selected
-                      ? theme.colors.primaryBg
-                      : agColors.pillFill,
-                    padding: spacing.md,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: spacing.md,
-                  }}
-                >
-                  <Typography variant="bodyBold" color={theme.colors.text}>
-                    {formatDateBR(option.date)}
-                  </Typography>
-                  <Typography variant="caption" color={agColors.muted}>
-                    {option.count} {option.count === 1 ? "encomenda" : "encomendas"}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </Pressable>
-      </Pressable>
-    </ResponsiveOverlayModal>
+      />
+    </StandardModal>
   );
 }
 
