@@ -1,6 +1,6 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import { Image, View } from "react-native";
 import { hasActiveFeature, type Pricing } from "@lucro-caseiro/contracts";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
@@ -12,6 +12,7 @@ import { useCalculatePricing } from "../hooks";
 import { usePricingSources } from "../use-pricing-sources";
 import {
   draftCalculation,
+  decimalValue,
   firstInvalidPricingStep,
   pricingStepError,
   type PricingStep,
@@ -38,6 +39,8 @@ import { PricingStepLayout } from "./pricing-step-layout";
 import { displayProductName } from "../../products/display";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { DesktopFormGrid } from "../../../shared/layout/desktop-page";
+import { PricingCostPreview, PricingResultPreview } from "./pricing-desktop";
 
 export function UnifiedPricingCalculator({
   step,
@@ -48,7 +51,10 @@ export function UnifiedPricingCalculator({
   initialProduct,
   onSave,
   onCreateProduct,
+  header,
 }: Readonly<{
+  /** Desktop: cabeçalho da página, dentro da rolagem. */
+  header?: ReactNode;
   step: PricingStep;
   onStepChange: (step: PricingStep) => void;
   onBusyChange: (busy: boolean) => void;
@@ -312,6 +318,43 @@ export function UnifiedPricingCalculator({
     </Card>
   );
 
+  const production = decimalValue(draft.production);
+  const fixedShare =
+    draft.allocation === "unit" && production > 0
+      ? moneyValue(draft.fixed) / production
+      : 0;
+  let desktopAside: ReactNode = null;
+  if (desktop && step === 3)
+    desktopAside = (
+      <PricingResultPreview
+        input={calculation.input}
+        alternative={draft.alternative}
+        productName={product ? displayProductName(product.name) : undefined}
+        message={calculation.error}
+      />
+    );
+  else if (desktop)
+    desktopAside = (
+      <PricingCostPreview
+        productName={product ? displayProductName(product.name) : undefined}
+        rows={[
+          { label: "Ingredientes ou material", value: moneyValue(draft.ingredient) },
+          { label: "Embalagem", value: moneyValue(draft.packaging) },
+          { label: "Seu trabalho", value: moneyValue(draft.labor) },
+          { label: "Despesas por unidade", value: fixedShare },
+        ]}
+      />
+    );
+
+  const costChangedButton =
+    importedCost == null ? null : (
+      <Button
+        title={`Custo mudou. Usar ${formatCurrency(importedCost)}`}
+        variant="secondary"
+        onPress={() => update({ ingredient: currencyInput(importedCost) })}
+      />
+    );
+
   const currentStepError = pricingStepError(step, draft, packaging, sourceError);
   const notice =
     attempted && currentStepError ? (
@@ -327,6 +370,8 @@ export function UnifiedPricingCalculator({
       step={step}
       onStepChange={changeStep}
       saving={blocked}
+      header={header}
+      aside={desktopAside}
       onNext={() => {
         if (step === 3) {
           void saveSuggested();
@@ -339,22 +384,43 @@ export function UnifiedPricingCalculator({
     >
       {[
         <React.Fragment key="costs">
-          <View style={{ gap: spacing.sm }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
-                Produto e custos
-              </Typography>
+          {desktop ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+              <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                <Typography variant="desktopSection" accessibilityRole="header">
+                  Produto e custos
+                </Typography>
+                <Typography variant="desktopBody">
+                  Escolha um produto ou informe o custo de uma unidade e sua embalagem.
+                </Typography>
+              </View>
               <Image
                 source={pricingIllustration}
                 resizeMode="contain"
                 accessible={false}
-                style={{ width: desktop ? 104 : 88, height: desktop ? 96 : 80 }}
+                style={{ width: 80, height: 72 }}
               />
             </View>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              Escolha um produto ou informe o custo de uma unidade e sua embalagem.
-            </Typography>
-          </View>
+          ) : (
+            <View style={{ gap: spacing.sm }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
+                  Produto e custos
+                </Typography>
+                <Image
+                  source={pricingIllustration}
+                  resizeMode="contain"
+                  accessible={false}
+                  style={{ width: 88, height: 80 }}
+                />
+              </View>
+              <Typography variant="body" color={theme.colors.textSecondary}>
+                Escolha um produto ou informe o custo de uma unidade e sua embalagem.
+              </Typography>
+            </View>
+          )}
           {step === 1 ? notice : null}
           <Card style={{ gap: spacing.xl }}>
             <View style={{ gap: spacing.xs }}>
@@ -402,33 +468,30 @@ export function UnifiedPricingCalculator({
                 Revise os valores que entram no preço de cada unidade vendida.
               </Typography>
             </View>
-            <ValidationField {...formValidation.field("ingredient")}>
+            <DesktopFormGrid>
+              <ValidationField {...formValidation.field("ingredient")}>
+                <PricingField
+                  label="Ingredientes ou material"
+                  value={draft.ingredient}
+                  onChange={(ingredient) =>
+                    update({ ingredient, source: "manual", recipeId: undefined })
+                  }
+                  hint={ingredientHint}
+                />
+              </ValidationField>
+              {costChanged && importedCost != null && !desktop ? costChangedButton : null}
               <PricingField
-                label="Ingredientes ou material"
-                value={draft.ingredient}
-                onChange={(ingredient) =>
-                  update({ ingredient, source: "manual", recipeId: undefined })
+                label="Embalagem"
+                value={draft.packaging}
+                onChange={(value) => update({ packaging: value, packagingIds: [] })}
+                hint={
+                  draft.packagingIds.length
+                    ? "Uma unidade de cada embalagem selecionada."
+                    : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
                 }
-                hint={ingredientHint}
               />
-            </ValidationField>
-            {costChanged && importedCost != null ? (
-              <Button
-                title={`Custo mudou. Usar ${formatCurrency(importedCost)}`}
-                variant="secondary"
-                onPress={() => update({ ingredient: currencyInput(importedCost) })}
-              />
-            ) : null}
-            <PricingField
-              label="Embalagem"
-              value={draft.packaging}
-              onChange={(value) => update({ packaging: value, packagingIds: [] })}
-              hint={
-                draft.packagingIds.length
-                  ? "Uma unidade de cada embalagem selecionada."
-                  : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
-              }
-            />
+            </DesktopFormGrid>
+            {costChanged && importedCost != null && desktop ? costChangedButton : null}
             {packagingChanged ? (
               <Button
                 title={`Atualizar embalagens: ${formatCurrency(currentPackaging)}`}
@@ -532,8 +595,13 @@ export function UnifiedPricingCalculator({
         </React.Fragment>,
         <React.Fragment key="expenses">
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3">Trabalho e despesas</Typography>
-            <Typography variant="body">
+            <Typography
+              variant={desktop ? "desktopSection" : "h3"}
+              accessibilityRole={desktop ? "header" : undefined}
+            >
+              Trabalho e despesas
+            </Typography>
+            <Typography variant={desktop ? "desktopBody" : "body"}>
               Abra cada detalhe para incluir os custos que se aplicam ao seu negócio.
             </Typography>
           </View>
@@ -550,14 +618,21 @@ export function UnifiedPricingCalculator({
         </React.Fragment>,
         <React.Fragment key="result">
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3">Preço e resultado</Typography>
-            <Typography variant="body">
+            <Typography
+              variant={desktop ? "desktopSection" : "h3"}
+              accessibilityRole={desktop ? "header" : undefined}
+            >
+              Preço e resultado
+            </Typography>
+            <Typography variant={desktop ? "desktopBody" : "body"}>
               Defina seu ganho, confira a estimativa e salve o cálculo.
             </Typography>
           </View>
           {step === 3 ? notice : null}
-          <View style={[split.row, { gap: spacing.lg }]}>
-            <View style={split.main}>
+          <View
+            style={desktop ? { gap: spacing["2xl"] } : [split.row, { gap: spacing.lg }]}
+          >
+            <View style={desktop ? undefined : split.main}>
               <Card style={{ gap: spacing.lg }}>
                 <Typography variant="bodyBold">Quanto você quer ganhar?</Typography>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
@@ -591,7 +666,7 @@ export function UnifiedPricingCalculator({
                 </ValidationField>
               </Card>
             </View>
-            <View style={split.aside}>{result}</View>
+            {desktop ? result : <View style={split.aside}>{result}</View>}
           </View>
         </React.Fragment>,
       ]}

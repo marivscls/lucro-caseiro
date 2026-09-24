@@ -54,9 +54,7 @@ export function PricingModeSwitch({ mode }: Readonly<{ mode: PricingMode }>) {
             borderRadius: radii.md,
             backgroundColor: theme.colors.surface,
           },
-          isDesktop
-            ? { maxWidth: 420, alignSelf: "flex-start" }
-            : undefined,
+          isDesktop ? { maxWidth: 420, alignSelf: "flex-start" } : undefined,
         ]}
       >
         {options.map((option) => {

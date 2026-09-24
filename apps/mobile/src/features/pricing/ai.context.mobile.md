@@ -111,3 +111,14 @@ Produto: custo antigo R$ 10, receita atual R$ 12, embalagem antiga R$ 1 e atual 
 A precificação usa o componente compartilhado de etapas, com número, nome completo da etapa atual, rótulos curtos e retorno apenas a etapas já alcançadas.
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Seletores de produto e embalagem usam FilterChipRow com quebra de linha e opções limitadas à largura disponível. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+
+## Desktop (web >= 1024px) — 2026-09-23
+
+Só no desktop; o celular continua com `FormStepProgress`, rodapé fixo e cabeçalho fora da rolagem.
+
+- `PricingStepLayout` recebe `header` e `aside`. No desktop a página rola inteira: o cabeçalho (título, subtítulo e "Histórico" como `DesktopToolbarButton`) vem de `app/pricing.tsx`, as etapas usam `DesktopStepper` e o título da etapa aparece uma vez no conteúdo.
+- `DesktopSplit`: a lateral fixa traz o resumo e as ações. "Continuar" ou "Salvar cálculo" ocupa a largura da lateral, com "Voltar" abaixo. Não existe botão de largura total na coluna.
+- Etapas 1 e 2: `PricingCostPreview` (em `components/pricing-desktop.tsx`) soma ingredientes, embalagem, trabalho e despesas por unidade (despesas ÷ produção, apenas no rateio por unidades), com o total de 36px. Avisa que o preço sugerido aparece na etapa 3.
+- Na etapa 1, os custos de ingredientes e de embalagem ficam lado a lado em `DesktopFormGrid` (uma coluna em 1024px).
+- Etapa 3: a coluna principal mostra "Quanto você quer ganhar?" e, abaixo, o `PricingSummary` completo, com simulação, composição e aplicar ou criar produto. A lateral mostra `PricingResultPreview`, com o preço sugerido (ou simulado), o ganho ou prejuízo e a margem, pelas mesmas contas do `PricingSummary` (`pricingQuote` e `evaluateSalePrice`).
+- No desktop, o rótulo do `PricingSummary` fica em caixa normal ("Preço sugerido por unidade").
