@@ -27,6 +27,8 @@ import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { DesktopStepper } from "../../../shared/layout/desktop-stepper";
 import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
+import { DesktopTag } from "../../../shared/layout/desktop-kit";
+import { DesktopFormGrid } from "../../../shared/layout/desktop-page";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { maskPhoneBR } from "../../../shared/utils/phone";
@@ -249,6 +251,22 @@ export function CreateLabelForm({
     }
   }
 
+  // Lista (não fragmento): no desktop cada data vira uma coluna do DesktopFormGrid.
+  const dateFields = [
+    <DateField
+      key="manufacturing"
+      label="Feito em"
+      value={labelData.manufacturingDate ?? ""}
+      onChange={(value) => updateField("manufacturingDate", value)}
+    />,
+    <DateField
+      key="expiration"
+      label="Validade"
+      value={labelData.expirationDate ?? ""}
+      onChange={(value) => updateField("expirationDate", value)}
+    />,
+  ];
+
   const previewBlock = (
     <View style={{ width: "100%", minWidth: 0, gap: spacing.sm }}>
       <View style={{ gap: 2 }}>
@@ -444,7 +462,13 @@ export function CreateLabelForm({
                   title="Formato de impressão"
                   subtitle="Tamanho exato e quantidade na folha A4"
                   icon="grid-outline"
-                  titleAccessory={<Badge label="Profissional" variant="premium" />}
+                  titleAccessory={
+                    isDesktop ? (
+                      <DesktopTag label="Profissional" variant="premium" strong />
+                    ) : (
+                      <Badge label="Profissional" variant="premium" />
+                    )
+                  }
                 >
                   <LabelLayoutEditor
                     value={labelData.layout}
@@ -493,18 +517,11 @@ export function CreateLabelForm({
                   subtitle="Imprima a produção e a validade se quiser"
                   icon="calendar-outline"
                 >
-                  <View style={{ gap: spacing.md }}>
-                    <DateField
-                      label="Feito em"
-                      value={labelData.manufacturingDate ?? ""}
-                      onChange={(value) => updateField("manufacturingDate", value)}
-                    />
-                    <DateField
-                      label="Validade"
-                      value={labelData.expirationDate ?? ""}
-                      onChange={(value) => updateField("expirationDate", value)}
-                    />
-                  </View>
+                  {isDesktop ? (
+                    <DesktopFormGrid minColumnWidth={200}>{dateFields}</DesktopFormGrid>
+                  ) : (
+                    <View style={{ gap: spacing.md }}>{dateFields}</View>
+                  )}
                 </FormSection>
               </View>
 
@@ -520,21 +537,23 @@ export function CreateLabelForm({
                   subtitle="Opcional: nome, telefone, logo e catálogo"
                   icon="person-circle-outline"
                 >
-                  <Input
-                    label="Seu nome / nome do negócio"
-                    placeholder={`Ex: ${experienceCopy.businessNameExample}`}
-                    value={labelData.producerName ?? ""}
-                    onChangeText={(value) => updateField("producerName", value)}
-                  />
-                  <Input
-                    label="Telefone"
-                    placeholder="(11) 99999-9999"
-                    value={labelData.producerPhone ?? ""}
-                    onChangeText={(value) =>
-                      updateField("producerPhone", maskPhoneBR(value))
-                    }
-                    keyboardType="phone-pad"
-                  />
+                  <DesktopFormGrid minColumnWidth={200}>
+                    <Input
+                      label="Seu nome / nome do negócio"
+                      placeholder={`Ex: ${experienceCopy.businessNameExample}`}
+                      value={labelData.producerName ?? ""}
+                      onChangeText={(value) => updateField("producerName", value)}
+                    />
+                    <Input
+                      label="Telefone"
+                      placeholder="(11) 99999-9999"
+                      value={labelData.producerPhone ?? ""}
+                      onChangeText={(value) =>
+                        updateField("producerPhone", maskPhoneBR(value))
+                      }
+                      keyboardType="phone-pad"
+                    />
+                  </DesktopFormGrid>
                   <View>
                     <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
                       Logo do negócio (opcional)
@@ -630,7 +649,8 @@ export function CreateLabelForm({
               </View>
             </View>
 
-            {isDesktop && formStep === 3 ? (
+            {/* Desktop: a prévia acompanha todas as etapas, ao lado dos campos. */}
+            {isDesktop ? (
               <View style={[split.aside, previewRailSticky]}>{previewBlock}</View>
             ) : null}
           </View>
