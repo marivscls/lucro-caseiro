@@ -3,6 +3,7 @@ import {
   Badge,
   Card,
   Typography,
+  fonts,
   fontSizes,
   radii,
   spacing,
@@ -11,6 +12,7 @@ import {
 import React from "react";
 import {
   Image,
+  Pressable,
   ScrollView,
   useWindowDimensions,
   View,
@@ -27,6 +29,12 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import {
+  DesktopGrid,
+  DesktopSection,
+  desktopCardStyle,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 const FAMILY_APPS = [
@@ -81,6 +89,72 @@ function ExtensionCard({
   );
 }
 
+/** Desktop: cartão com texto de 16px e selo "Em breve" de 14px. */
+function ExtensionCardDesktop({ app }: Readonly<{ app: BrandConfig }>) {
+  const { theme } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${app.appName}. ${app.vertical.operationDescription}. Em breve`}
+      onPress={() => showToast("Este aplicativo chega em breve.")}
+      style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
+        desktopCardStyle(theme),
+        { gap: spacing.lg, height: "100%" },
+        hovered ? { borderColor: theme.colors.textSecondary } : null,
+      ]}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+        <Image
+          source={brandLogoByMode[theme.mode][app.id]}
+          resizeMode="contain"
+          accessibilityLabel={`Ícone do ${app.appName}`}
+          style={{ width: 64, height: 64, borderRadius: radii.lg }}
+        />
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+          <Typography variant="desktopCardTitle">{app.appName}</Typography>
+          <View
+            style={{
+              alignSelf: "flex-start",
+              paddingHorizontal: spacing.sm,
+              paddingVertical: 2,
+              borderRadius: radii.sm,
+              backgroundColor: theme.colors.yellowBg,
+            }}
+          >
+            <Typography
+              variant="desktopMeta"
+              color={theme.colors.yellow}
+              style={{ fontFamily: fonts.bold }}
+            >
+              Em breve
+            </Typography>
+          </View>
+        </View>
+      </View>
+      <Typography variant="desktopBody" color={theme.colors.textSecondary}>
+        {app.vertical.operationDescription}
+      </Typography>
+    </Pressable>
+  );
+}
+
+function LucroAppsDesktop() {
+  return (
+    <ScrollView contentContainerStyle={desktopPageContent(true)}>
+      <DesktopSection
+        title="Aplicativos em breve"
+        description="Use a mesma Conta Lucro em aplicativos feitos para diferentes tipos de negócio. Seus dados e históricos continuam organizados no app certo."
+      >
+        <DesktopGrid minColumnWidth={280} maxColumns={3}>
+          {FAMILY_APPS.map((app) => (
+            <ExtensionCardDesktop key={app.id} app={app} />
+          ))}
+        </DesktopGrid>
+      </DesktopSection>
+    </ScrollView>
+  );
+}
+
 export default function LucroAppsScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -112,39 +186,43 @@ export default function LucroAppsScreen() {
         subtitle="Outras soluções da família Lucro"
         hideBack={isDesktop}
       />
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: spacing.md,
-          paddingBottom: spacing["3xl"],
-          gap: spacing.xl,
-          ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.data),
-        }}
-      >
-        <Typography
-          variant="body"
-          color={theme.colors.textSecondary}
-          style={{ maxWidth: desktopWidths.standard }}
+      {isDesktop ? (
+        <LucroAppsDesktop />
+      ) : (
+        <ScrollView
+          contentContainerStyle={{
+            paddingTop: spacing.md,
+            paddingBottom: spacing["3xl"],
+            gap: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
         >
-          Use a mesma Conta Lucro em aplicativos feitos para diferentes tipos de negócio.
-          Seus dados e históricos continuam organizados no app certo.
-        </Typography>
-
-        <View style={{ gap: spacing.md }}>
           <Typography
-            variant="caption"
+            variant="body"
             color={theme.colors.textSecondary}
-            style={{ textTransform: "uppercase", letterSpacing: 0.4 }}
+            style={{ maxWidth: desktopWidths.standard }}
           >
-            Aplicativos em breve
+            Use a mesma Conta Lucro em aplicativos feitos para diferentes tipos de
+            negócio. Seus dados e históricos continuam organizados no app certo.
           </Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-            {FAMILY_APPS.map((app) => (
-              <ExtensionCard key={app.id} app={app} style={cardStyle} />
-            ))}
+
+          <View style={{ gap: spacing.md }}>
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ textTransform: "uppercase", letterSpacing: 0.4 }}
+            >
+              Aplicativos em breve
+            </Typography>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              {FAMILY_APPS.map((app) => (
+                <ExtensionCard key={app.id} app={app} style={cardStyle} />
+              ))}
+            </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
