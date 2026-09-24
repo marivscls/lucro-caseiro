@@ -10,7 +10,7 @@ import { fieldMetrics } from "./form-field";
 interface FormSectionProps {
   readonly title: string;
   readonly subtitle?: string;
-  /** @deprecated as seções não levam mais ícone: o título já diz o assunto. */
+  /** Ignorado: as seções não levam mais ícone, o título já diz o assunto. */
   readonly icon?: AppIconName;
   readonly titleAccessory?: React.ReactNode;
   readonly collapsible?: boolean;
