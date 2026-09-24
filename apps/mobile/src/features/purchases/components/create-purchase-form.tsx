@@ -1,11 +1,9 @@
-import { FilterChipRow, ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Product, Purchase } from "@lucro-caseiro/contracts";
 import {
   Button,
-  Chip,
-  Input,
   Typography,
+  ValidationField,
   radii,
   useFeature,
   useTheme,
@@ -16,24 +14,29 @@ import { Pressable, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
+import { FormSection } from "../../../shared/components/form-section";
 import {
-  desktopAction,
-  desktopCompactField,
-} from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+  ChoiceField,
+  FormField,
+  TextField,
+  useFieldPalette,
+} from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { DateField } from "../../../shared/components/date-field";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
-import { alertError, alertValidation } from "../../../shared/utils/alerts";
+import { alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
   isPositiveCurrency,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
-import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
+import { brToIso, isoToBR } from "../../../shared/utils/date";
 import { PURCHASE_CATEGORIES, type PurchaseCategoryValue } from "../domain";
 import { useCreatePurchase, useUpdatePurchase } from "../hooks";
 import { useProducts } from "../../products/hooks";
 import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import { useBusinessCopy } from "../../subscription/business-copy";
 
 type PurchaseItemDraft = {
@@ -97,6 +100,93 @@ function enrichItemProducts(
   });
 }
 
+/** Ficha no visual das categorias do produto (44 px, raio cheio). */
+function OptionChip({
+  label,
+  selected = false,
+  icon,
+  onPress,
+  accessibilityLabel,
+  accessibilityRole = "radio",
+}: Readonly<{
+  label: string;
+  selected?: boolean;
+  icon?: AppIconName;
+  onPress: () => void;
+  accessibilityLabel?: string;
+  accessibilityRole?: "radio" | "button";
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={
+        accessibilityRole === "radio" ? { selected, checked: selected } : undefined
+      }
+      style={({ pressed }) => ({
+        minHeight: 44,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.xs,
+        paddingHorizontal: spacing.lg,
+        justifyContent: "center",
+        borderRadius: radii.full,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.colors.primaryStrong : pal.border,
+        backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+        opacity: pressed ? 0.85 : 1,
+      })}
+    >
+      {icon ? (
+        <AppIcon
+          name={icon}
+          size={18}
+          color={selected ? theme.colors.primaryStrong : pal.icon}
+        />
+      ) : null}
+      <Typography
+        variant={selected ? "bodyBold" : "body"}
+        color={selected ? theme.colors.primaryStrong : theme.colors.text}
+      >
+        {label}
+      </Typography>
+    </Pressable>
+  );
+}
+
+function ChipRow({
+  children,
+  accessibilityLabel,
+}: Readonly<{ children: React.ReactNode; accessibilityLabel?: string }>) {
+  return (
+    <View
+      accessibilityRole={accessibilityLabel ? "radiogroup" : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {children}
+    </View>
+  );
+}
+
+function stepVisibility(visible: boolean) {
+  return {
+    style: { display: visible ? ("flex" as const) : ("none" as const) },
+    accessibilityElementsHidden: !visible,
+    importantForAccessibility: visible
+      ? ("auto" as const)
+      : ("no-hide-descendants" as const),
+  };
+}
+
+function itemQuantityInvalid(item: PurchaseItemDraft) {
+  const quantity = Number(item.quantity);
+  return !Number.isInteger(quantity) || quantity <= 0;
+}
+
 export function CreatePurchaseForm({
   visible,
   onClose,
@@ -105,8 +195,6 @@ export function CreatePurchaseForm({
   onSuccess,
 }: Readonly<CreatePurchaseFormProps>) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
-  const compactField = desktopCompactField(isDesktop);
   const experienceCopy = useBusinessCopy();
   const stockPurchaseEnabled = useFeature("comprasComEstoque");
   const purchaseCategories = PURCHASE_CATEGORIES.map((item) => {
@@ -146,6 +234,7 @@ export function CreatePurchaseForm({
   const createPurchase = useCreatePurchase();
   const updatePurchase = useUpdatePurchase();
   const isEditing = !!purchase;
+  const saving = createPurchase.isPending || updatePurchase.isPending;
 
   useEffect(() => {
     if (products.length > 0) {
@@ -186,82 +275,81 @@ export function CreatePurchaseForm({
     );
   }
 
-  const formValidation = useFormValidation<string>({
-    description: !description.trim() && "Descreva a compra.",
-    amount:
-      !receiveStock && !isPositiveCurrency(amount) && "Informe um valor maior que zero.",
-    date: !date.trim() && "Informe a data da compra.",
+  // Uma validação por etapa: "Continuar" confere só os campos da etapa atual.
+  const infoValidation = useFormValidation(
+    { description: !description.trim() && "Descreva a compra (ex.: Farinha 25kg)." },
+    visible,
+  );
+  const valuesValidation = useFormValidation<string>(
+    {
+      amount:
+        !receiveStock &&
+        !isPositiveCurrency(amount) &&
+        "Informe um valor maior que zero.",
+      items:
+        receiveStock && items.length === 0 && "Adicione ao menos um produto recebido.",
+      ...Object.fromEntries(
+        items.flatMap((item, index) => [
+          [
+            `item-${index}-variation`,
+            receiveStock &&
+              !!item.product.variations?.length &&
+              !item.variationId &&
+              "Escolha a variação recebida.",
+          ],
+          [
+            `item-${index}-quantity`,
+            receiveStock && itemQuantityInvalid(item) && "Informe a quantidade recebida.",
+          ],
+          [
+            `item-${index}-cost`,
+            receiveStock && !item.unitCost.trim() && "Informe o custo unitário.",
+          ],
+        ]),
+      ),
+    },
+    visible,
+  );
+  const finishValidation = useFormValidation(
+    {
+      date:
+        !brToIso(date) &&
+        (date.trim()
+          ? "Data da compra inválida. Use DD/MM/AAAA."
+          : "Informe a data da compra."),
+    },
+    visible,
+  );
+  const stepValidations = [infoValidation, valuesValidation, finishValidation];
 
-    ...Object.fromEntries(
-      items.flatMap((item, index) => [
-        [
-          `item-${index}-quantity`,
-          receiveStock &&
-            (!Number.isFinite(Number(item.quantity.replace(",", "."))) ||
-              Number(item.quantity.replace(",", ".")) <= 0) &&
-            "Informe a quantidade recebida.",
-        ],
-        [
-          `item-${index}-cost`,
-          receiveStock && !item.unitCost.trim() && "Informe o custo unitário.",
-        ],
-      ]),
-    ),
-  });
+  function goToStep(target: number) {
+    // Voltar é livre; avançar confere as etapas no caminho.
+    for (let current = formStep; current < target; current += 1) {
+      if (!stepValidations[current - 1].validate()) {
+        setFormStep(current);
+        return;
+      }
+    }
+    setFormStep(target);
+  }
 
   async function handleSubmit() {
     if (incompatibleEdit) return;
-    if (!description.trim()) setFormStep(1);
-    else if (
-      (!receiveStock && !isPositiveCurrency(amount)) ||
-      (receiveStock &&
-        (items.length === 0 ||
-          items.some(
-            (item) =>
-              Number(item.quantity.replace(",", ".")) <= 0 || !item.unitCost.trim(),
-          )))
-    )
-      setFormStep(2);
-    else if (!brToIso(date)) setFormStep(3);
-    if (!formValidation.validate()) return;
-    if (!description.trim()) {
-      alertValidation("Descreva a compra (ex.: Farinha 25kg).");
-      return;
+    for (let index = 0; index < stepValidations.length; index += 1) {
+      if (!stepValidations[index].validate()) {
+        setFormStep(index + 1);
+        return;
+      }
     }
     const value = parseCurrencyInput(amount);
-    if (!receiveStock && !isPositiveCurrency(amount)) {
-      alertValidation("O valor precisa ser maior que zero.");
-      return;
-    }
-    if (receiveStock && items.length === 0) {
-      alertValidation("Adicione ao menos um produto recebido.");
-      return;
-    }
     const parsedItems = items.map((item) => ({
       productId: item.product.id,
       ...(item.variationId ? { variationId: item.variationId } : {}),
       quantity: Number(item.quantity),
       unitCost: parseCurrencyInput(item.unitCost),
     }));
-    if (
-      receiveStock &&
-      parsedItems.some(
-        (item, index) =>
-          !Number.isInteger(item.quantity) ||
-          item.quantity <= 0 ||
-          !Number.isFinite(item.unitCost) ||
-          item.unitCost < 0 ||
-          (!!items[index]?.product.variations?.length && !item.variationId),
-      )
-    ) {
-      alertValidation("Confira variação, quantidade e custo de cada item.");
-      return;
-    }
     const purchasedAt = brToIso(date);
-    if (!purchasedAt) {
-      alertValidation("Data da compra inválida. Use DD/MM/AAAA.");
-      return;
-    }
+    if (!purchasedAt) return;
 
     try {
       let purchaseItems: typeof parsedItems | undefined = parsedItems;
@@ -307,7 +395,11 @@ export function CreatePurchaseForm({
         title="Compra com estoque"
         visible={visible}
         onClose={onClose}
-        footer={<Button title="Voltar" onPress={onClose} />}
+        footer={
+          <FormActions>
+            <Button title="Voltar" onPress={onClose} />
+          </FormActions>
+        }
       >
         <Typography variant="body">
           A edição desta compra com estoque não está disponível nesta versão do
@@ -317,301 +409,320 @@ export function CreatePurchaseForm({
     );
   }
 
+  const itemsTotal = items.reduce(
+    (total, item) =>
+      total + Number(item.quantity || 0) * parseCurrencyInput(item.unitCost || "0"),
+    0,
+  );
+
+  let primaryAction = (
+    <Button title="Continuar" disabled={saving} onPress={() => goToStep(formStep + 1)} />
+  );
+  if (formStep === PURCHASE_FORM_STEPS.length) {
+    primaryAction = (
+      <Button
+        title={isEditing ? "Salvar alterações" : "Registrar compra"}
+        onPress={() => {
+          void handleSubmit();
+        }}
+        loading={saving}
+      />
+    );
+  }
+
   return (
     <StandardModal
       title={isEditing ? "Editar compra" : "Nova compra"}
+      size="form"
       visible={visible}
       onClose={onClose}
       footer={
-        <>
+        <FormActions>
           {formStep > 1 ? (
             <Button
               title="Voltar"
-              variant="ghost"
+              variant="outline"
+              disabled={saving}
               onPress={() => setFormStep(formStep - 1)}
-            />
-          ) : null}
-          {formStep < PURCHASE_FORM_STEPS.length ? (
-            <Button
-              title="Continuar"
-              size="lg"
-              onPress={() => {
-                if (formStep === 1 && !description.trim()) {
-                  alertValidation("Descreva a compra antes de continuar.");
-                  return;
-                }
-                if (formStep === 2 && receiveStock && items.length === 0) {
-                  alertValidation("Adicione ao menos um produto recebido.");
-                  return;
-                }
-                if (formStep === 2 && !receiveStock && !isPositiveCurrency(amount)) {
-                  alertValidation("Informe um valor maior que zero.");
-                  return;
-                }
-                setFormStep(formStep + 1);
-              }}
-              style={{
-                flex: isDesktop ? undefined : 1,
-                ...desktopAction(isDesktop, 240),
-              }}
             />
           ) : (
             <Button
-              title={isEditing ? "Salvar alterações" : "Registrar compra"}
-              size="lg"
-              onPress={() => void handleSubmit()}
-              loading={createPurchase.isPending || updatePurchase.isPending}
-              style={{
-                flex: isDesktop ? undefined : 1,
-                ...desktopAction(isDesktop, 240),
-              }}
+              title="Cancelar"
+              variant="outline"
+              disabled={saving}
+              onPress={onClose}
             />
           )}
-        </>
+          {primaryAction}
+        </FormActions>
       }
     >
       <FormStepProgress
         current={formStep}
         steps={PURCHASE_FORM_STEPS}
-        onStepPress={setFormStep}
+        onStepPress={goToStep}
       />
       {!stockPurchaseEnabled && !!prefill?.items.length ? (
-        <Typography variant="body" style={{ marginBottom: spacing.md }}>
+        <Typography variant="body">
           Esta nova compra será registrada somente como despesa, sem alterar o estoque.
           Confira o valor antes de registrar.
         </Typography>
       ) : null}
-      <View
-        style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.lg }}
-        accessibilityElementsHidden={formStep !== 1}
-        importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
-      >
-        <View>
-          <Typography variant="bodyBold" style={{ marginBottom: spacing.sm }}>
-            Fornecedor <Typography variant="caption">(opcional)</Typography>
-          </Typography>
-          <SupplierSelector value={supplierId} onChange={setSupplierId} />
-        </View>
 
-        <ValidationField {...formValidation.field("description")}>
-          <Input
-            label="Descrição"
-            placeholder={receiveStock ? "Ex: Reposição semanal" : "Ex: Energia, frete..."}
-            value={description}
-            onChangeText={setDescription}
-            autoFocus
-          />
-        </ValidationField>
-
-        {stockPurchaseEnabled ? (
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="label">TIPO DE COMPRA</Typography>
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <Chip
-                label="Entrada de estoque"
-                selected={receiveStock}
-                onPress={() => setReceiveStock(true)}
+      <View {...stepVisibility(formStep === 1)}>
+        <FormBody>
+          <FormGrid>
+            <FormField label="Descrição" validation={infoValidation.field("description")}>
+              <TextField
+                icon="document-text-outline"
+                accessibilityLabel="Descrição"
+                placeholder={
+                  receiveStock ? "Ex: Reposição semanal" : "Ex: Energia, frete..."
+                }
+                value={description}
+                onChangeText={setDescription}
+                autoFocus
               />
-              <Chip
-                label="Somente despesa"
-                selected={!receiveStock}
-                onPress={() => setReceiveStock(false)}
-              />
-            </View>
-          </View>
-        ) : null}
+            </FormField>
+            <FormField label="Fornecedor" optional>
+              <SupplierSelector value={supplierId} onChange={setSupplierId} />
+            </FormField>
+            {stockPurchaseEnabled ? (
+              <FormField label="Tipo de compra" span="full">
+                <ChoiceField
+                  value={receiveStock ? "stock" : "expense"}
+                  accessibilityLabel="Tipo de compra"
+                  options={[
+                    {
+                      value: "stock",
+                      label: "Entrada de estoque",
+                      icon: "cube-outline",
+                    },
+                    {
+                      value: "expense",
+                      label: "Somente despesa",
+                      icon: "receipt-outline",
+                    },
+                  ]}
+                  onChange={(kind) => setReceiveStock(kind === "stock")}
+                />
+              </FormField>
+            ) : null}
+          </FormGrid>
+        </FormBody>
       </View>
 
-      <View
-        style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
-        accessibilityElementsHidden={formStep !== 2}
-        importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
-      >
+      <View {...stepVisibility(formStep === 2)}>
         {receiveStock ? (
-          <View style={{ gap: spacing.md }}>
-            <View>
-              <Typography variant="label">PRODUTOS RECEBIDOS</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Toque para adicionar um produto à compra.
-              </Typography>
-            </View>
-            <FilterChipRow>
-              {products.map((product) => (
-                <Chip
-                  key={product.id}
-                  label={product.name}
-                  selected={false}
-                  onPress={() => addProduct(product)}
-                />
-              ))}
-            </FilterChipRow>
-            {products.length === 0 ? (
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Cadastre um produto antes de receber mercadoria.
-              </Typography>
-            ) : null}
-
-            {items.map((item, index) => (
-              <View
-                key={`${item.product.id}-${index}`}
-                style={{
-                  gap: spacing.sm,
-                  padding: spacing.md,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Typography variant="bodyBold" style={{ flex: 1 }}>
-                    {item.product.name}
+          <FormBody>
+            <FormSection
+              collapsible={false}
+              title="Produtos recebidos"
+              subtitle="Toque em um produto para adicioná-lo à compra."
+            >
+              <ValidationField {...valuesValidation.field("items")}>
+                <ChipRow>
+                  {products.map((product) => (
+                    <OptionChip
+                      key={product.id}
+                      label={product.name}
+                      icon="add"
+                      accessibilityRole="button"
+                      accessibilityLabel={`Adicionar ${product.name}`}
+                      onPress={() => addProduct(product)}
+                    />
+                  ))}
+                </ChipRow>
+                {products.length === 0 ? (
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Cadastre um produto antes de receber mercadoria.
                   </Typography>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Remover ${item.product.name}`}
-                    onPress={() => removeItem(index)}
-                  >
-                    <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
-                  </Pressable>
-                </View>
-                {item.product.variations?.length ? (
-                  <FilterChipRow>
-                    {item.product.variations.map((variation) => (
-                      <Chip
-                        key={variation.id}
-                        label={variation.name}
-                        selected={item.variationId === variation.id}
-                        onPress={() => updateItem(index, { variationId: variation.id })}
-                      />
-                    ))}
-                  </FilterChipRow>
                 ) : null}
-                <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                  <View style={[{ flex: 1 }, compactField]}>
-                    <ValidationField {...formValidation.field(`item-${index}-quantity`)}>
-                      <Input
-                        label="Quantidade"
+              </ValidationField>
+
+              {items.map((item, index) => (
+                <View
+                  key={`${item.product.id}-${index}`}
+                  style={{
+                    gap: spacing.lg,
+                    padding: spacing.lg,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    borderRadius: radii.lg,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <Typography variant="bodyBold" style={{ flex: 1 }}>
+                      {item.product.name}
+                    </Typography>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remover ${item.product.name}`}
+                      onPress={() => removeItem(index)}
+                      hitSlop={4}
+                      style={({ pressed }) => ({
+                        width: 44,
+                        height: 44,
+                        marginRight: -spacing.sm,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        opacity: pressed ? 0.6 : 1,
+                      })}
+                    >
+                      <AppIcon
+                        name="trash-outline"
+                        size={20}
+                        color={theme.colors.alert}
+                      />
+                    </Pressable>
+                  </View>
+                  <FormGrid>
+                    {item.product.variations?.length ? (
+                      <FormField
+                        label="Variação"
+                        span="full"
+                        validation={valuesValidation.field(`item-${index}-variation`)}
+                      >
+                        <ChipRow accessibilityLabel="Variação">
+                          {item.product.variations.map((variation) => (
+                            <OptionChip
+                              key={variation.id}
+                              label={variation.name}
+                              selected={item.variationId === variation.id}
+                              onPress={() =>
+                                updateItem(index, { variationId: variation.id })
+                              }
+                            />
+                          ))}
+                        </ChipRow>
+                      </FormField>
+                    ) : null}
+                    <FormField
+                      label="Quantidade"
+                      validation={valuesValidation.field(`item-${index}-quantity`)}
+                    >
+                      <TextField
+                        accessibilityLabel="Quantidade"
+                        placeholder="Ex: 10"
                         value={item.quantity}
                         keyboardType="number-pad"
                         numericMode="integer"
                         onChangeText={(quantity) => updateItem(index, { quantity })}
                       />
-                    </ValidationField>
-                  </View>
-                  <View style={[{ flex: 1 }, compactField]}>
-                    <ValidationField {...formValidation.field(`item-${index}-cost`)}>
-                      <Input
-                        label="Custo unitário"
+                    </FormField>
+                    <FormField
+                      label="Custo unitário"
+                      validation={valuesValidation.field(`item-${index}-cost`)}
+                    >
+                      <TextField
+                        prefix="R$"
+                        accessibilityLabel="Custo unitário, em reais"
+                        placeholder="0,00"
                         value={item.unitCost}
                         keyboardType="numeric"
                         onChangeText={(unitCost) =>
                           updateItem(index, { unitCost: maskCurrencyInput(unitCost) })
                         }
                       />
-                    </ValidationField>
-                  </View>
+                    </FormField>
+                  </FormGrid>
                 </View>
-              </View>
-            ))}
+              ))}
 
-            {items.length ? (
-              <Typography variant="h3">
-                Total:{" "}
-                {items
-                  .reduce(
-                    (total, item) =>
-                      total +
-                      Number(item.quantity || 0) *
-                        parseCurrencyInput(item.unitCost || "0"),
-                    0,
-                  )
-                  .toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </Typography>
-            ) : null}
-          </View>
+              {items.length ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingTop: spacing.md,
+                    borderTopWidth: 1,
+                    borderTopColor: theme.colors.border,
+                  }}
+                >
+                  <Typography variant="body">Total</Typography>
+                  <Typography variant="h3">
+                    {itemsTotal.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </Typography>
+                </View>
+              ) : null}
+            </FormSection>
+          </FormBody>
         ) : (
-          <View style={compactField}>
-            <ValidationField {...formValidation.field("amount")}>
-              <Input
-                label="Valor (R$)"
-                placeholder="0,00"
-                value={amount}
-                onChangeText={(v) => setAmount(maskCurrencyInput(v))}
-                keyboardType="numeric"
-              />
-            </ValidationField>
-          </View>
+          <FormBody>
+            <FormGrid>
+              <FormField label="Valor" validation={valuesValidation.field("amount")}>
+                <TextField
+                  prefix="R$"
+                  accessibilityLabel="Valor, em reais"
+                  placeholder="0,00"
+                  value={amount}
+                  onChangeText={(v) => setAmount(maskCurrencyInput(v))}
+                  keyboardType="numeric"
+                />
+              </FormField>
+            </FormGrid>
+          </FormBody>
         )}
       </View>
 
-      <View
-        style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
-        accessibilityElementsHidden={formStep !== 3}
-        importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
-      >
-        <View>
-          <Typography variant="label" style={{ marginBottom: spacing.sm }}>
-            CATEGORIA
-          </Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {purchaseCategories.map((c) => (
-              <Chip
-                key={c.value}
-                label={c.label}
-                selected={category === c.value}
-                onPress={() => setCategory(c.value)}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={compactField}>
-          <ValidationField {...formValidation.field("date")}>
-            <Input
-              label="Data da compra"
-              placeholder="DD/MM/AAAA"
-              value={date}
-              onChangeText={(v) => setDate(maskDateBR(v))}
-              keyboardType="number-pad"
-            />
-          </ValidationField>
-        </View>
-
-        {isEditing ? (
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            {purchase?.paymentStatus === "paid"
-              ? "Esta compra está paga. As alterações também serão refletidas no caixa."
-              : "Esta compra continua a pagar até você marcá-la como paga."}
-          </Typography>
-        ) : (
-          <View>
-            <Typography variant="label" style={{ marginBottom: spacing.sm }}>
-              PAGAMENTO
+      <View {...stepVisibility(formStep === 3)}>
+        <FormBody>
+          <FormGrid>
+            <FormField label="Categoria" span="full">
+              <ChipRow accessibilityLabel="Categoria">
+                {purchaseCategories.map((c) => (
+                  <OptionChip
+                    key={c.value}
+                    label={c.label}
+                    selected={category === c.value}
+                    onPress={() => setCategory(c.value)}
+                  />
+                ))}
+              </ChipRow>
+            </FormField>
+            <ValidationField {...finishValidation.field("date")}>
+              <DateField label="Data da compra" value={date} onChange={setDate} />
+            </ValidationField>
+            {isEditing ? null : (
+              <FormField label="Pagamento" span="full">
+                <ChoiceField
+                  value={alreadyPaid ? "paid" : "pending"}
+                  accessibilityLabel="Pagamento"
+                  options={[
+                    {
+                      value: "pending",
+                      label: "A pagar",
+                      description: "Fica como conta a pagar até você marcar como paga.",
+                    },
+                    {
+                      value: "paid",
+                      label: "Já paguei",
+                      description: "Entra como saída no seu caixa agora.",
+                    },
+                  ]}
+                  onChange={(status) => setAlreadyPaid(status === "paid")}
+                />
+              </FormField>
+            )}
+          </FormGrid>
+          {isEditing ? (
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {purchase?.paymentStatus === "paid"
+                ? "Esta compra está paga. As alterações também serão refletidas no caixa."
+                : "Esta compra continua a pagar até você marcá-la como paga."}
             </Typography>
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <Chip
-                label="A pagar"
-                selected={!alreadyPaid}
-                onPress={() => setAlreadyPaid(false)}
-              />
-              <Chip
-                label="Já paguei"
-                selected={alreadyPaid}
-                onPress={() => setAlreadyPaid(true)}
-              />
-            </View>
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ marginTop: spacing.xs }}
-            >
-              {alreadyPaid
-                ? "Entra como saída no seu caixa agora."
-                : "Fica como conta a pagar até você marcar como paga."}
-            </Typography>
-          </View>
-        )}
+          ) : null}
+        </FormBody>
       </View>
     </StandardModal>
   );

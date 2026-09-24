@@ -817,36 +817,20 @@ function PackagingScreenContent() {
           existingPackaging={items}
           onSuccess={() => setEditing(false)}
           onCancel={() => setEditing(false)}
-          headerRight={
-            <Pressable
-              onPress={() => {
-                showAlert({
-                  title: "Excluir embalagem",
-                  message: "Tem certeza que deseja excluir esta embalagem?",
-                  buttons: [
-                    { text: "Cancelar", style: "cancel" },
-                    {
-                      text: "Excluir",
-                      style: "destructive",
-                      onPress: () => deleteById(selected.id),
-                    },
-                  ],
-                });
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Excluir embalagem"
-              hitSlop={8}
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed ? 0.6 : 1,
-              })}
-            >
-              <AppIcon name="trash-outline" size={22} color={theme.colors.alert} />
-            </Pressable>
-          }
+          onDelete={() => {
+            showAlert({
+              title: "Excluir embalagem",
+              message: "Tem certeza que deseja excluir esta embalagem?",
+              buttons: [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Excluir",
+                  style: "destructive",
+                  onPress: () => deleteById(selected.id),
+                },
+              ],
+            });
+          }}
         />
       ) : null}
     </SafeAreaView>

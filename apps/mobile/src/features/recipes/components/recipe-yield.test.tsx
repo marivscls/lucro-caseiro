@@ -68,7 +68,7 @@ describe("recipe yield step", () => {
   it("blocks words in the actual recipe field", () => {
     render(<EditRecipeForm recipe={recipe} visible onClose={() => undefined} />);
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    const input = screen.getByLabelText<HTMLInputElement>("Ex: 30 ou 1,5");
+    const input = screen.getByPlaceholderText<HTMLInputElement>("Ex: 30 ou 1,5");
     fireEvent.change(input, { target: { value: "sadasd" } });
     expect(input.value).toBe("12");
   });
@@ -78,7 +78,9 @@ describe("recipe yield step", () => {
     (value) => {
       render(<EditRecipeForm recipe={recipe} visible onClose={() => undefined} />);
       fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
-      fireEvent.change(screen.getByLabelText("Ex: 30 ou 1,5"), { target: { value } });
+      fireEvent.change(screen.getByPlaceholderText("Ex: 30 ou 1,5"), {
+        target: { value },
+      });
       fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
       expect(screen.queryByRole("button", { name: "Continuar" })).not.toBeNull();
       expect(screen.queryByText("Salvar alterações")).toBeNull();
@@ -88,7 +90,7 @@ describe("recipe yield step", () => {
   it("allows advancing with fractional yield", () => {
     render(<EditRecipeForm recipe={recipe} visible onClose={() => undefined} />);
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    fireEvent.change(screen.getByLabelText("Ex: 30 ou 1,5"), {
+    fireEvent.change(screen.getByPlaceholderText("Ex: 30 ou 1,5"), {
       target: { value: "1,5" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));

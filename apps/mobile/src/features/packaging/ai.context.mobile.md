@@ -123,7 +123,7 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
   busca/Filtros -> chips Todas/Caixas/Potes/Sacolas/Filmes -> "Suas embalagens"
   com contagem filtrada -> cards -> `ScreenCreateBar` `+ Nova embalagem`.
 - Fluxo detalhe: card -> modal detalhe (Fechar/Editar) -> "Editar" abre o form de edicao
-  (voltar + "Editar embalagem" + Excluir no topo).
+  ("Editar embalagem"; "Excluir embalagem" no fim do formulario, com confirmacao).
 
 ## Change log / Decisions
 
