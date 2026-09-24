@@ -1,31 +1,19 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import {
-  CenteredTextInput,
-  Button,
-  Typography,
-  useTheme,
-  spacing,
-  radii,
-  fonts,
-} from "@lucro-caseiro/ui";
+import { Button, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
-import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
 import {
-  FieldLabel,
-  TextFieldCard,
+  FormField,
+  TextField,
+  fieldMetrics,
   useFieldPalette,
 } from "../../../shared/components/form-field";
-import {
-  desktopAction,
-  desktopCompactField,
-} from "../../../shared/layout/desktop-density";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -56,7 +44,8 @@ interface PackagingFormProps {
   readonly onClose: () => void;
   readonly onSuccess?: () => void;
   readonly onCancel?: () => void;
-  readonly headerRight?: React.ReactNode;
+  /** Mostra "Excluir embalagem" no fim do formulário (a tela confirma). */
+  readonly onDelete?: () => void;
 }
 
 /** Cabeçalho de resumo (avatar + nome + tipo + custo) exibido na edição. */
@@ -65,7 +54,14 @@ function SummaryHero({
   type,
   cost,
   photoUrl,
-}: Readonly<{ name: string; type: string; cost: string; photoUrl?: string | null }>) {
+}: Readonly<{
+  name: string;
+  type: string;
+  cost: string;
+  photoUrl?: string | null;
+  /** Lido pelo `FormGrid`: o resumo ocupa a linha inteira. */
+  span?: "full";
+}>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const price = cost.trim() ? parseCurrencyInput(cost) : NaN;
@@ -76,7 +72,7 @@ function SummaryHero({
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.md,
-        borderRadius: radii.lg,
+        borderRadius: fieldMetrics.radius,
         borderWidth: 1,
         borderColor: pal.border,
         backgroundColor: pal.fieldBg,
@@ -121,79 +117,55 @@ function SummaryHero({
   );
 }
 
-/** Cabeçalho de seção: ícone rosa contornado + título. */
-function SectionHeader({ icon, title }: Readonly<{ icon: AppIconName; title: string }>) {
-  const { theme } = useTheme();
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-      <AppIcon name={icon} size={20} color={theme.colors.primary} />
-      <Typography variant="bodyBold" color={theme.colors.text}>
-        {title}
-      </Typography>
-    </View>
-  );
-}
-
-/** Campo com círculo de ícone à esquerda + label pequeno + input grande (estilo "stat"). */
-function IconInputCard({
-  icon,
-  iconColor,
-  label,
-  ...inputProps
+/**
+ * Tipo da embalagem: escolha única com mais de 4 opções, em fichas no mesmo
+ * visual das categorias do produto.
+ */
+function TypeChips({
+  value,
+  onChange,
 }: Readonly<{
-  icon: AppIconName;
-  iconColor: string;
-  label: string;
-}> &
-  React.ComponentProps<typeof TextInput>) {
+  value: PackagingTypeValue;
+  onChange: (value: PackagingTypeValue) => void;
+}>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   return (
     <View
-      style={{
-        flex: 1,
-        borderRadius: radii.lg,
-        borderWidth: 1,
-        borderColor: pal.border,
-        backgroundColor: pal.fieldBg,
-        padding: spacing.md,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.sm,
-      }}
+      accessibilityRole="radiogroup"
+      accessibilityLabel="Tipo de embalagem"
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
     >
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: radii.full,
-          borderWidth: 1.5,
-          borderColor: `${iconColor}80`,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <AppIcon name={icon} size={20} color={iconColor} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          numberOfLines={1}
-        >
-          {label}
-        </Typography>
-        <CenteredTextInput
-          placeholderTextColor={pal.placeholder}
-          style={{
-            color: theme.colors.text,
-            fontSize: 16,
-            fontFamily: fonts.bold,
-            padding: 0,
-          }}
-          {...inputProps}
-        />
-      </View>
+      {PACKAGING_TYPES.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected, checked: selected }}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: spacing.lg,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: radii.full,
+              borderWidth: selected ? 2 : 1,
+              borderColor: selected ? theme.colors.primaryStrong : pal.border,
+              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant={selected ? "bodyBold" : "body"}
+              color={selected ? theme.colors.primaryStrong : theme.colors.text}
+            >
+              {option.label}
+            </Typography>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -205,12 +177,11 @@ export function PackagingForm({
   onClose,
   onSuccess,
   onCancel,
-  headerRight,
+  onDelete,
 }: PackagingFormProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
-  const pal = useFieldPalette();
   const isEditing = !!packaging;
 
   const [name, setName] = useState(packaging ? displayPackagingName(packaging.name) : "");
@@ -246,15 +217,7 @@ export function PackagingForm({
   async function handleSave() {
     if (!formValidation.validate()) return;
     if (!isEditing && checkPackagingLimit()) return;
-    if (!name.trim()) {
-      alertValidation("Coloque o nome da embalagem");
-      return;
-    }
     const cost = parseCurrencyInput(unitCost);
-    if (isNaN(cost) || cost <= 0) {
-      alertValidation("O custo precisa ser maior que zero");
-      return;
-    }
     const refreshedPackaging = await refetchMatchingPackaging();
     const duplicateCandidates = [
       ...existingPackaging,
@@ -297,167 +260,88 @@ export function PackagingForm({
   return (
     <StandardModal
       title={isEditing ? "Editar embalagem" : "Nova embalagem"}
+      subtitle={
+        isEditing ? undefined : "Cadastre uma embalagem para usar nos seus produtos."
+      }
+      size="form"
       visible={visible}
       onClose={onClose}
-      right={headerRight}
       footer={
-        <View
-          style={{
-            flexDirection: "row",
-            gap: spacing.md,
-            justifyContent: isDesktop ? "flex-end" : undefined,
-            width: "100%",
-          }}
-        >
-          <Pressable
-            onPress={() => (onCancel ?? onClose)()}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              {
-                minHeight: 48,
-                borderRadius: radii.md,
-                borderWidth: 1,
-                borderColor: pal.border,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed ? 0.7 : 1,
-              },
-              isDesktop ? desktopAction(isDesktop, 160) : { flex: 1 },
-            ]}
-          >
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Cancelar
-            </Typography>
-          </Pressable>
+        <FormActions>
           <Button
-            title={isEditing ? "Salvar" : "Cadastrar"}
-            size="lg"
-            compact
-            icon={
-              <AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />
-            }
+            title="Cancelar"
+            variant="outline"
+            disabled={saving}
+            onPress={() => (onCancel ?? onClose)()}
+          />
+          <Button
+            title={isEditing ? "Salvar alterações" : "Cadastrar embalagem"}
             onPress={() => {
               if (!saving) void handleSave();
             }}
-            disabled={saving}
             loading={saving}
-            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
           />
-        </View>
+        </FormActions>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.xl }}>
-        {isEditing ? (
-          <SummaryHero
-            name={name}
-            type={type}
-            cost={unitCost}
-            photoUrl={packaging?.photoUrl}
-          />
-        ) : (
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={{ marginTop: -spacing.sm }}
+      <FormBody>
+        <FormGrid>
+          {isEditing ? (
+            <SummaryHero
+              span="full"
+              name={name}
+              type={type}
+              cost={unitCost}
+              photoUrl={packaging?.photoUrl}
+            />
+          ) : null}
+          <FormField span="full" label="Nome" validation={formValidation.field("name")}>
+            <TextField
+              icon="pricetag-outline"
+              accessibilityLabel="Nome da embalagem"
+              placeholder={
+                experienceCopy.profile === "food"
+                  ? "Ex.: Caixa kraft P"
+                  : "Ex.: Caixa para envio"
+              }
+              value={name}
+              onChangeText={setName}
+              autoFocus={!isEditing}
+            />
+          </FormField>
+          <FormField span="full" label="Tipo de embalagem">
+            <TypeChips value={type} onChange={setType} />
+          </FormField>
+          <FormField
+            label="Custo por unidade"
+            validation={formValidation.field("unitCost")}
           >
-            Cadastre uma embalagem que será utilizada nos seus produtos.
-          </Typography>
-        )}
+            <TextField
+              prefix="R$"
+              accessibilityLabel="Custo por unidade, em reais"
+              placeholder="0,00"
+              value={unitCost}
+              onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
+              keyboardType="numeric"
+            />
+          </FormField>
+          <FormField label="Fornecedor" optional>
+            <SupplierSelector value={supplierId} onChange={setSupplierId} />
+          </FormField>
+        </FormGrid>
 
-        <View style={{ gap: spacing.md }}>
-          <View>
-            <FieldLabel label="Nome" required />
-            <ValidationField {...formValidation.field("name")}>
-              <TextFieldCard
-                icon="pricetag-outline"
-                placeholder={
-                  experienceCopy.profile === "food"
-                    ? "Ex.: Caixa kraft P"
-                    : "Ex.: Caixa para envio"
-                }
-                value={name}
-                onChangeText={setName}
-                autoFocus={!isEditing}
-              />
-            </ValidationField>
+        {onDelete ? (
+          <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+            <Button
+              title="Excluir embalagem"
+              variant="alertOutline"
+              icon={<AppIcon name="trash-outline" size={18} color={theme.colors.alert} />}
+              onPress={onDelete}
+              disabled={saving}
+            />
           </View>
-        </View>
-
-        <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="albums-outline" title="Tipo de embalagem" />
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PACKAGING_TYPES.map((t) => {
-              const active = type === t.value;
-              return (
-                <Pressable
-                  key={t.value}
-                  onPress={() => setType(t.value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  accessibilityLabel={t.label}
-                  style={({ pressed }) => ({
-                    minHeight: 44,
-                    flexBasis: "30%",
-                    flexGrow: 1,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: spacing.xs,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm,
-                    borderRadius: radii.md,
-                    borderWidth: 1,
-                    borderColor: active ? theme.colors.primary : pal.border,
-                    backgroundColor: active ? theme.colors.primaryBg : pal.fieldBg,
-                    opacity: pressed ? 0.8 : 1,
-                  })}
-                >
-                  <View style={{ width: 16 }}>
-                    {active ? (
-                      <AppIcon
-                        name="checkmark"
-                        size={16}
-                        color={theme.colors.primaryStrong}
-                      />
-                    ) : null}
-                  </View>
-                  <Typography
-                    variant={active ? "captionBold" : "caption"}
-                    color={
-                      active ? theme.colors.primaryStrong : theme.colors.textSecondary
-                    }
-                  >
-                    {t.label}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="cash-outline" title="Custo por unidade" />
-          <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
-            <ValidationField {...formValidation.field("unitCost")}>
-              <IconInputCard
-                icon="cash-outline"
-                iconColor={theme.colors.success}
-                label="Valor em reais"
-                accessibilityLabel="Custo por unidade em reais"
-                placeholder="0,00"
-                value={unitCost}
-                onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
-                keyboardType="numeric"
-              />
-            </ValidationField>
-          </View>
-        </View>
-
-        <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="business-outline" title="Fornecedor (opcional)" />
-          <SupplierSelector value={supplierId} onChange={setSupplierId} />
-        </View>
-      </View>
+        ) : null}
+      </FormBody>
     </StandardModal>
   );
 }
