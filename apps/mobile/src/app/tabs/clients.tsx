@@ -1385,35 +1385,42 @@ export default function ClientsScreen() {
 
       {screen.name === "detail" && (
         <>
-          <View
-            style={{
-              paddingTop: spacing.xl,
-              paddingBottom: spacing.sm,
-              ...pageGutter(isDesktop),
-            }}
-          >
-            <Pressable
-              onPress={goToList}
-              accessibilityRole="button"
-              accessibilityLabel="Voltar para clientes"
-              hitSlop={10}
+          {isDesktop ? null : (
+            <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.sm,
-                alignSelf: "flex-start",
-                minHeight: 44,
+                paddingTop: spacing.xl,
+                paddingBottom: spacing.sm,
+                ...pageGutter(isDesktop),
               }}
             >
-              <AppIcon name="chevron-back" size={24} color={theme.colors.primaryStrong} />
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                Voltar
-              </Typography>
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={goToList}
+                accessibilityRole="button"
+                accessibilityLabel="Voltar para clientes"
+                hitSlop={10}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  alignSelf: "flex-start",
+                  minHeight: 44,
+                }}
+              >
+                <AppIcon
+                  name="chevron-back"
+                  size={24}
+                  color={theme.colors.primaryStrong}
+                />
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  Voltar
+                </Typography>
+              </Pressable>
+            </View>
+          )}
           <ClientDetail
             clientId={screen.clientId}
             onEditPress={() => setEditingClientId(screen.clientId)}
+            onBack={goToList}
           />
         </>
       )}

@@ -180,3 +180,17 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 - Vazio com ilustração e "Novo cliente"; busca sem resultado oferece limpar filtros.
 - `daysAgoLabel` e `clientSecondaryLabel` saíram da rota para `client-list.ts`, com teste.
 - O detalhe do cliente não mudou nesta rodada.
+
+## Desktop do detalhe — 2026-09-24
+
+- `components/client-detail-desktop.tsx`, só em web >= 1024px; o celular segue igual.
+- Cabeçalho da página com o nome, "Cliente desde" e as ações "Clientes" (volta para a
+  lista, `onBack`), "Editar cliente" e "WhatsApp" (só com telefone). Abaixo de 1200px as
+  ações ficam numa linha própria para o nome não quebrar.
+- Indicadores: Total em compras, Compras (total do filtro `clientId`) e A receber (soma das
+  vendas pendentes entre as 10 mais recentes exibidas).
+- Histórico em `DesktopTable` (Venda, Data, Situação, Total) com as mesmas 10 vendas do
+  celular; "Dados do cliente" (telefone, endereço, aniversário, observações e tags) na
+  lateral, ou acima da tabela abaixo de 1200px. No mês do aniversário, um cartão oferece
+  "Enviar parabéns" pelo WhatsApp.
+- Sem regra nova: os dados e ações são os mesmos do detalhe do celular.
