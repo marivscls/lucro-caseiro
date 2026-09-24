@@ -29,8 +29,11 @@ import fiadoNotebook from "../assets/fiado-notebook-calendar.png";
 import { useAllClients } from "../features/clients/hooks";
 import {
   buildChargeMessage,
+  fiadoInitials,
   fiadoTiming,
+  fiadoTimingLabel,
   groupFiados,
+  launchCountLabel,
   totalOwed,
   type FiadoGroup,
   type FiadoTiming,
@@ -52,7 +55,11 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import { desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopFiadoPage } from "../features/sales/components/fiado-desktop";
+import { DesktopMeasuredHeader } from "../features/sales/components/desktop-list-kit";
+import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
@@ -97,26 +104,6 @@ function saleDateParts(iso: string): { day: string; month: string } {
       .replace(".", "")
       .toLocaleUpperCase(LOCALE),
   };
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 1).toLocaleUpperCase(LOCALE);
-  return `${parts[0][0]}${parts[1][0]}`.toLocaleUpperCase(LOCALE);
-}
-
-function launchCountLabel(count: number): string {
-  return count === 1 ? "1 lançamento" : `${count} lançamentos`;
-}
-
-function timingLabel(timing: FiadoTiming): string {
-  if (timing.kind === "open") return COPY.open;
-  if (timing.kind === "upcoming") {
-    return timing.days === 1 ? "Vence amanhã" : `Vence em ${timing.days} dias`;
-  }
-  if (timing.days === 0) return "Venceu hoje";
-  return timing.days === 1 ? "Vencido há 1 dia" : `Vencido há ${timing.days} dias`;
 }
 
 function groupDate(group: FiadoGroup, order: SortOrder): number {
@@ -170,7 +157,7 @@ function StatusBadge({ timing }: Readonly<{ timing: FiadoTiming }>) {
 
   return (
     <View
-      accessibilityLabel={`Situação: ${timingLabel(timing)}`}
+      accessibilityLabel={`Situação: ${fiadoTimingLabel(timing)}`}
       style={[styles.statusBadge, { backgroundColor }]}
     >
       <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
@@ -180,7 +167,7 @@ function StatusBadge({ timing }: Readonly<{ timing: FiadoTiming }>) {
         numberOfLines={1}
         style={styles.statusText}
       >
-        {timingLabel(timing)}
+        {fiadoTimingLabel(timing)}
       </Typography>
     </View>
   );
@@ -331,7 +318,7 @@ function FiadoGroupCard({
       <View style={styles.cardHeader}>
         <View style={styles.avatar}>
           <Typography variant="bodyBold" color={colors.wine} style={styles.avatarText}>
-            {initials(group.clientName)}
+            {fiadoInitials(group.clientName)}
           </Typography>
         </View>
 
@@ -820,6 +807,83 @@ export default function FiadoScreen() {
     }
 
     return renderLoadedContent();
+  }
+
+  if (isDesktop) {
+    return (
+      <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ScrollView
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+        >
+          <DesktopFiadoPage
+            header={
+              <ScreenGuidance
+                renderHeader={(helpButton) => (
+                  <DesktopMeasuredHeader>
+                    <ScreenHeader
+                      help={helpButton}
+                      title="Fiado"
+                      subtitle="Quem comprou para pagar depois e quanto falta receber"
+                      hideBack
+                      right={
+                        <FAB
+                          icon="add"
+                          header
+                          accessibilityLabel="Nova venda"
+                          onPress={() => router.push("/tabs/new-sale")}
+                        />
+                      }
+                    />
+                  </DesktopMeasuredHeader>
+                )}
+                area="fiado"
+                onStart={() => router.push("/tabs/new-sale")}
+                hasRecords={(data?.items.length ?? 0) > 0}
+                loading={isLoading || !!error}
+                suspended={false}
+              />
+            }
+            art={fiadoNotebook}
+            isLoading={isLoading}
+            error={error}
+            onRetry={() => void refetch()}
+            grandTotal={grandTotal}
+            clientsCount={groups.length}
+            launchesCount={pendingSales.length}
+            overdueCount={overdueCount}
+            upcomingCount={upcomingCount}
+            groups={groups}
+            visibleGroups={visibleGroups}
+            search={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            contactFilter={contactFilter}
+            onContactFilterChange={setContactFilter}
+            sortOrder={sortOrder}
+            onToggleSort={() =>
+              setSortOrder((current) => (current === "oldest" ? "newest" : "oldest"))
+            }
+            hasPhone={(group) => {
+              const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
+              return Boolean(phone && isValidBrazilPhone(phone));
+            }}
+            onCharge={handleCharge}
+            onCall={(group) => {
+              const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
+              void Linking.openURL(`tel:${(phone ?? "").replace(/\D/g, "")}`);
+            }}
+            onMarkPaid={handleMarkPaid}
+            onMarkAllPaid={handleMarkAllPaid}
+            onResetFilters={resetFilters}
+            onNewSale={() => router.push("/tabs/new-sale")}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 
   return (
