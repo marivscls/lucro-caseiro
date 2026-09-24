@@ -56,12 +56,6 @@ const MANAGEMENT_NAV: ReadonlyArray<NavigationItem> = [
   },
   { label: "Precificação", href: "/pricing", icon: "calculator-outline" },
   { label: "Financeiro", href: "/tabs/finance", icon: "wallet-outline" },
-  {
-    label: "Conheça também",
-    href: "/lucro-apps",
-    icon: "apps-outline",
-    feature: "familiaLucro",
-  },
   { label: "Mais opções", href: "/tabs/more", icon: "grid-outline" },
 ];
 

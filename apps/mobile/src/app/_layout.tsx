@@ -311,15 +311,6 @@ function AppContent() {
             }}
           />
           <Stack.Screen
-            name="lucro-apps"
-            options={{
-              headerShown: false,
-              title: "Conheça também",
-              headerStyle: { backgroundColor: theme.colors.background },
-              headerTintColor: theme.colors.text,
-            }}
-          />
-          <Stack.Screen
             name="agenda"
             options={{
               headerShown: !showDesktopShell,
