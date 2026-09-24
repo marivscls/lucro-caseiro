@@ -2,14 +2,14 @@ import { publicMetadata } from "@/features/landing/public-metadata";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
-import { LandingPage } from "@/features/landing/landing-page";
+import { LandingPage, landingFaqs } from "@/features/landing/landing-page";
 import { PLAY_STORE_URL, PWA_URL, SITE_URL } from "@/features/landing/site-constants";
 import { PLAN_PRICING } from "@lucro-caseiro/contracts";
 
 export const metadata: Metadata = publicMetadata({
   title: "App de precificação e vendas",
   description:
-    "Calcule custos, inclua seu trabalho e saiba quanto sobra de cada venda. Organize produtos, catálogo e pedidos. Comece grátis no Android ou no navegador.",
+    "Calcule custos, inclua seu trabalho e saiba quanto sobra de cada venda. Organize vendas, fiado e catálogo. Grátis, com 7 dias do Essencial para testar.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -66,6 +66,15 @@ export default async function Page() {
               name: "Lucro Caseiro",
               url: SITE_URL,
               inLanguage: "pt-BR",
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: landingFaqs.map((faq) => ({
+                "@type": "Question",
+                name: faq.question,
+                acceptedAnswer: { "@type": "Answer", text: faq.answer },
+              })),
             },
             {
               "@context": "https://schema.org",
