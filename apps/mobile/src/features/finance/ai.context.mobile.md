@@ -20,15 +20,18 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 ## Code pointers
 
-| Arquivo                                                                | Descricao                                                                                      |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/finance/api.ts`                              | Funcoes HTTP (fetchEntries, fetchSummary, createEntry, updateEntry, deleteEntry, getExportUrl) |
-| `apps/mobile/src/features/finance/hooks.ts`                            | React Query hooks                                                                              |
-| `apps/mobile/src/features/finance/components/finance-dashboard.tsx`    | Dashboard principal com resumo, seletor de mes e exportacao                                    |
-| `apps/mobile/src/features/finance/components/finance-entry-list.tsx`   | Lista de lancamentos com filtro                                                                |
-| `apps/mobile/src/features/finance/components/create-finance-entry.tsx` | Formulario de criacao de lancamento                                                            |
-| `apps/mobile/src/app/tabs/finance.tsx`                                 | Screen canônica na aba Financeiro (`/tabs/finance`)                                            |
-| `apps/mobile/src/app/finance.tsx`                                      | Redirecionamento compatível da rota antiga `/finance`                                          |
+| Arquivo                                                                      | Descricao                                                                                      |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `apps/mobile/src/features/finance/api.ts`                                    | Funcoes HTTP (fetchEntries, fetchSummary, createEntry, updateEntry, deleteEntry, getExportUrl) |
+| `apps/mobile/src/features/finance/hooks.ts`                                  | React Query hooks                                                                              |
+| `apps/mobile/src/features/finance/components/finance-dashboard.tsx`          | Dashboard principal com resumo, seletor de mes e exportacao                                    |
+| `apps/mobile/src/features/finance/components/finance-entry-list.tsx`         | Lista de lancamentos com filtro                                                                |
+| `apps/mobile/src/features/finance/components/create-finance-entry.tsx`       | Formulario de criacao de lancamento                                                            |
+| `apps/mobile/src/app/tabs/finance.tsx`                                       | Screen canônica na aba Financeiro (`/tabs/finance`)                                            |
+| `apps/mobile/src/app/finance.tsx`                                            | Redirecionamento compatível da rota antiga `/finance`                                          |
+| `apps/mobile/src/features/finance/components/finance-dashboard-desktop.tsx`  | Apresentação desktop do Financeiro                                                             |
+| `apps/mobile/src/features/finance/components/recurring-expenses-desktop.tsx` | Apresentação desktop dos Gastos fixos                                                          |
+| `apps/mobile/src/features/finance/entry-display.ts`                          | Textos de exibição dos lançamentos (puro)                                                      |
 
 ## Components
 
@@ -160,3 +163,23 @@ Foco de erro é aplicado após o layout da mensagem; categoria inválida rola at
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Categorias de lançamento quebram em linhas; período usa largura natural, resumos empilham abaixo de 520px e valores extensos ganham a largura do hero sem sobrepor a ilustração. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
 - 2026-09-23: **meses anteriores liberados** — navegar para meses passados (setas e seletor de mês) deixou de abrir `showPaywall("reports")`; vale para qualquer plano. Exportações continuam pagas (`exportBasic` no Essencial, `export` no Profissional).
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+Só apresentação; estado, regras, rótulos de acessibilidade e ações são os mesmos do celular,
+que não mudou (tudo atrás de `useDesktopLayout`).
+
+- **Financeiro** (`finance-dashboard-desktop.tsx`): cabeçalho dentro da rolagem; barra com o
+  período (Hoje / 7 dias / Mês) e o seletor de mês à direita. A partir de 960px de conteúdo,
+  `DesktopSplit`: à esquerda o painel vinho com o resultado (48px), variação e os atalhos
+  Entradas/Saídas, e abaixo "Lançamentos" em `DesktopTable` (Data, Descrição, Categoria, Valor),
+  com busca, filtro Tudo/Entradas/Saídas e "Mostrar mais" de 30 em 30; à direita, cartões de
+  Entradas x saídas, Precisa de atenção, Recebimentos de encomendas e Exportar relatório.
+  Abaixo de 960px os cartões laterais descem para uma grade de 2 colunas.
+- **Gastos fixos** (`recurring-expenses-desktop.tsx`): painel "Compromissos do mês" com total,
+  quantidade e os dias de vencimento; no Profissional, tabela Gasto / Categoria / Vencimento /
+  Valor (etiquetas "Próximo" e "Inativo") e a lateral com o gasto selecionado (Editar/Excluir);
+  sem plano, o bloqueio aparece em duas colunas com o botão na largura do texto.
+- Peças locais em `finance-desktop-parts.tsx` (`DesktopSegmented`, `DesktopMonthStepper`,
+  `DesktopEmptyCard`, `DesktopTag`, `AsideCard`...), candidatas a subir para `shared/layout`.
+- Textos de exibição dos lançamentos ficaram puros em `entry-display.ts` (com teste).

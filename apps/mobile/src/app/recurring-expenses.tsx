@@ -54,7 +54,20 @@ import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { desktopStretch, pageGutter } from "../shared/layout/desktop-density";
 import { brandScreenPalette } from "../shared/brand-palette";
+import {
+  DesktopSection,
+  DesktopSplit,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  RecurringAsideDesktop,
+  RecurringCommitmentsDesktop,
+  RecurringEmptyDesktop,
+  RecurringGateDesktop,
+  RecurringTableDesktop,
+  type RecurringDesktopRow,
+} from "../features/finance/components/recurring-expenses-desktop";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
@@ -82,6 +95,12 @@ const CATEGORY_SURFACES: Record<ExpenseCategory, keyof Theme["colors"]> = {
   fee: "surface",
   other: "lavenderBg",
 };
+
+const GATE_BENEFITS = [
+  "Aluguel, internet, gás e outros custos caem sozinhos no caixa todo mês.",
+  "Você não esquece nenhuma conta — o app lança na data certa.",
+  "Enxergue o lucro real, já com os custos fixos descontados.",
+];
 
 function useRecurringTheme() {
   const { theme } = useTheme();
@@ -140,6 +159,24 @@ export default function RecurringExpensesScreen() {
     [items],
   );
 
+  function desktopRow(item: RecurringExpense): RecurringDesktopRow {
+    return {
+      id: item.id,
+      name: displayRecurringExpenseName(item.description),
+      category: categoryLabel(
+        item.category,
+        experienceCopy.materialNoun,
+        experienceCopy.packagingNoun,
+      ),
+      icon: categoryIcon(item.category),
+      iconSurface: theme.colors[CATEGORY_SURFACES[item.category]],
+      day: item.dayOfMonth,
+      amount: item.amount,
+      active: item.active,
+      isNext: item.id === nextExpense?.id,
+    };
+  }
+
   function handleBack() {
     if (router.canGoBack()) {
       router.back();
@@ -184,114 +221,198 @@ export default function RecurringExpensesScreen() {
     });
   }
 
+  const guidance = (
+    <ScreenGuidance
+      renderHeader={(helpButton) => (
+        <RecurringHeader
+          help={helpButton}
+          title="Gastos fixos"
+          subtitle="Organize o que se repete todo mês."
+          onBack={handleBack}
+          onAdd={isDesktop ? handleAddPress : undefined}
+          isDesktop={isDesktop}
+        />
+      )}
+      area="recurring_expenses"
+      onStart={handleAddPress}
+      hasRecords={recurringItems.length > 0}
+      loading={isLoading || !items}
+      suspended={showForm || !!selectedExpense}
+    />
+  );
+
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
 
       <View style={styles.screen}>
-        <ScreenGuidance
-          renderHeader={(helpButton) => (
-            <RecurringHeader
-              help={helpButton}
-              title="Gastos fixos"
-              subtitle="Organize o que se repete todo mês."
-              onBack={handleBack}
-              onAdd={isDesktop ? handleAddPress : undefined}
-              isDesktop={isDesktop}
-            />
-          )}
-          area="recurring_expenses"
-          onStart={handleAddPress}
-          hasRecords={recurringItems.length > 0}
-          loading={isLoading || !items}
-          suspended={showForm || !!selectedExpense}
-        />
+        {isDesktop ? null : guidance}
         <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            pageGutter(isDesktop, spacing.lg),
-            desktopStretch(isDesktop),
-            { paddingBottom: spacing.lg },
-          ]}
+          contentContainerStyle={
+            isDesktop
+              ? desktopPageContent(true)
+              : [
+                  styles.content,
+                  pageGutter(isDesktop, spacing.lg),
+                  desktopStretch(isDesktop),
+                  { paddingBottom: spacing.lg },
+                ]
+          }
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <MonthlyCommitmentsCard
-            compact={viewportWidth <= 360}
-            count={recurringItems.length}
-            imageSize={Math.min(
-              160,
-              Math.max(
-                96,
-                (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
-                  (viewportWidth <= 360 ? 0.4 : 0.44) *
-                  0.92,
-              ),
-            )}
-            nextDay={nextExpense?.dayOfMonth ?? null}
-            timelineDays={timelineDays}
-            total={total}
-          />
-
-          {!canUseRecurringExpenses ? (
-            <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
-          ) : (
+          {isDesktop ? (
             <>
-              <View style={styles.listHeadingCopy}>
-                <Typography variant="h3" color={palette.wine}>
-                  Seus gastos fixos
-                </Typography>
-                <Typography variant="caption">Próximos vencimentos primeiro</Typography>
-              </View>
-
-              {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
-
-              {!isLoading && recurringItems.length === 0 ? (
-                <EmptyRecurringState isDesktop={isDesktop} />
-              ) : null}
-
-              {!isLoading && orderedItems.length > 0 ? (
-                <View style={styles.expenseList}>
-                  {orderedItems.map((item, index) => (
-                    <ExpenseRow
-                      key={item.id}
-                      item={item}
-                      isLast={index === orderedItems.length - 1}
-                      isNext={item.id === nextExpense?.id}
-                      isSelected={selectedExpense?.id === item.id}
-                      materialNoun={experienceCopy.materialNoun}
-                      packagingNoun={experienceCopy.packagingNoun}
-                      onPress={() => {
-                        setSelectedExpense(item);
-                        setEditingExpense(null);
-                      }}
-                    />
-                  ))}
-                </View>
-              ) : null}
-
-              {selectedExpense && !isLoading ? (
-                <RecurringDetails
-                  item={selectedExpense}
-                  onClose={() => setSelectedExpense(null)}
-                  onDelete={() =>
-                    confirmDelete(
-                      selectedExpense.id,
-                      displayRecurringExpenseName(selectedExpense.description),
+              <View>{guidance}</View>
+              <RecurringCommitmentsDesktop
+                total={total}
+                count={recurringItems.length}
+                nextDay={nextExpense?.dayOfMonth ?? null}
+                timelineDays={timelineDays}
+              />
+              {canUseRecurringExpenses ? (
+                <DesktopSplit
+                  aside={
+                    recurringItems.length === 0 ? null : (
+                      <RecurringAsideDesktop
+                        selected={
+                          selectedExpense
+                            ? {
+                                ...desktopRow(selectedExpense),
+                                categoryLabel: categoryLabel(
+                                  selectedExpense.category,
+                                  experienceCopy.materialNoun,
+                                  experienceCopy.packagingNoun,
+                                ),
+                              }
+                            : null
+                        }
+                        onClose={() => setSelectedExpense(null)}
+                        onDelete={() => {
+                          if (!selectedExpense) return;
+                          confirmDelete(
+                            selectedExpense.id,
+                            displayRecurringExpenseName(selectedExpense.description),
+                          );
+                        }}
+                        onEdit={() => {
+                          setEditingExpense(selectedExpense);
+                          setShowForm(true);
+                        }}
+                      />
                     )
                   }
-                  onEdit={() => {
-                    setEditingExpense(selectedExpense);
-                    setShowForm(true);
-                  }}
+                >
+                  <DesktopSection
+                    title="Seus gastos fixos"
+                    description="Próximos vencimentos primeiro"
+                  >
+                    {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
+                    {!isLoading && recurringItems.length === 0 ? (
+                      <RecurringEmptyDesktop onAdd={handleAddPress} />
+                    ) : null}
+                    {!isLoading && orderedItems.length > 0 ? (
+                      <RecurringTableDesktop
+                        rows={orderedItems.map(desktopRow)}
+                        onRowPress={(id) => {
+                          setSelectedExpense(
+                            orderedItems.find((item) => item.id === id) ?? null,
+                          );
+                          setEditingExpense(null);
+                        }}
+                      />
+                    ) : null}
+                  </DesktopSection>
+                </DesktopSplit>
+              ) : (
+                <RecurringGateDesktop
+                  benefits={GATE_BENEFITS}
+                  onUnlock={() => showPaywall("recurring")}
                 />
-              ) : null}
+              )}
+            </>
+          ) : (
+            <>
+              <MonthlyCommitmentsCard
+                compact={viewportWidth <= 360}
+                count={recurringItems.length}
+                imageSize={Math.min(
+                  160,
+                  Math.max(
+                    96,
+                    (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
+                      (viewportWidth <= 360 ? 0.4 : 0.44) *
+                      0.92,
+                  ),
+                )}
+                nextDay={nextExpense?.dayOfMonth ?? null}
+                timelineDays={timelineDays}
+                total={total}
+              />
+
+              {!canUseRecurringExpenses ? (
+                <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
+              ) : (
+                <>
+                  <View style={styles.listHeadingCopy}>
+                    <Typography variant="h3" color={palette.wine}>
+                      Seus gastos fixos
+                    </Typography>
+                    <Typography variant="caption">
+                      Próximos vencimentos primeiro
+                    </Typography>
+                  </View>
+
+                  {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
+
+                  {!isLoading && recurringItems.length === 0 ? (
+                    <EmptyRecurringState isDesktop={isDesktop} />
+                  ) : null}
+
+                  {!isLoading && orderedItems.length > 0 ? (
+                    <View style={styles.expenseList}>
+                      {orderedItems.map((item, index) => (
+                        <ExpenseRow
+                          key={item.id}
+                          item={item}
+                          isLast={index === orderedItems.length - 1}
+                          isNext={item.id === nextExpense?.id}
+                          isSelected={selectedExpense?.id === item.id}
+                          materialNoun={experienceCopy.materialNoun}
+                          packagingNoun={experienceCopy.packagingNoun}
+                          onPress={() => {
+                            setSelectedExpense(item);
+                            setEditingExpense(null);
+                          }}
+                        />
+                      ))}
+                    </View>
+                  ) : null}
+
+                  {selectedExpense && !isLoading ? (
+                    <RecurringDetails
+                      item={selectedExpense}
+                      onClose={() => setSelectedExpense(null)}
+                      onDelete={() =>
+                        confirmDelete(
+                          selectedExpense.id,
+                          displayRecurringExpenseName(selectedExpense.description),
+                        )
+                      }
+                      onEdit={() => {
+                        setEditingExpense(selectedExpense);
+                        setShowForm(true);
+                      }}
+                    />
+                  ) : null}
+                </>
+              )}
             </>
           )}
         </ScrollView>
 
-        {canUseRecurringExpenses ? (
+        {canUseRecurringExpenses && !isDesktop ? (
           <ScreenCreateBar title="+ Novo gasto fixo" onPress={handleAddPress} />
         ) : null}
       </View>
@@ -878,11 +999,7 @@ function DetailItem({
 
 function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme, styles } = useRecurringTheme();
-  const benefits = [
-    "Aluguel, internet, gás e outros custos caem sozinhos no caixa todo mês.",
-    "Você não esquece nenhuma conta — o app lança na data certa.",
-    "Enxergue o lucro real, já com os custos fixos descontados.",
-  ];
+  const benefits = GATE_BENEFITS;
 
   return (
     <View style={styles.gateCard}>
