@@ -8,7 +8,6 @@ import {
   Badge,
   Button,
   Card,
-  Chip,
   Typography,
   useBrand,
   useFeature,
@@ -71,6 +70,7 @@ import {
   TextField,
   fieldMetrics,
   ChipChoiceField,
+  ChoiceField,
 } from "../shared/components/form-field";
 import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import {
@@ -118,6 +118,9 @@ const PRODUCT_STATUS_FILTERS: ReadonlyArray<{
   { value: "fast", label: "Venda rápida" },
   { value: "slow", label: "Venda lenta" },
 ];
+
+/** Valor da opção "Todas" no filtro de categoria (a categoria vazia é `null`). */
+const ALL_CATEGORIES = "__all__";
 
 const PRODUCT_SORT_LABELS: Record<ProductSort, string> = {
   name: "A–Z",
@@ -200,6 +203,7 @@ function ProductDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const palette = brandScreenPalette(theme);
   const brand = useBrand();
   const { copy } = brand;
@@ -834,12 +838,14 @@ function ProductDetailModal({
                       />
                     </FormField>
                   </FormGrid>
-                  <Button
-                    title="Adicionar ao estoque"
-                    variant="secondary"
-                    onPress={handleAddStock}
-                    loading={adjustStock.isPending}
-                  />
+                  <FormActions style={{ flexGrow: 0, flexBasis: "auto" }}>
+                    <Button
+                      title="Adicionar ao estoque"
+                      variant="secondary"
+                      onPress={handleAddStock}
+                      loading={adjustStock.isPending}
+                    />
+                  </FormActions>
                 </FormSection>
               </Card>
             ) : null}
@@ -946,12 +952,17 @@ function ProductDetailModal({
               </Card>
             ) : null}
 
-            <Button
-              title="Excluir produto"
-              variant="alertOutline"
-              onPress={handleDelete}
-              loading={deleteProduct.isPending}
-            />
+            <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+              <Button
+                title="Excluir produto"
+                variant="alertOutline"
+                icon={
+                  <AppIcon name="trash-outline" size={18} color={theme.colors.alert} />
+                }
+                onPress={handleDelete}
+                loading={deleteProduct.isPending}
+              />
+            </View>
           </View>
         ) : null}
       </StandardModal>
@@ -1735,9 +1746,6 @@ export default function ProductsScreen() {
     Number(statusFilter !== "all") +
     Number(categoryFilter !== null) +
     Number(sort !== "name");
-  const selectedStatusLabel =
-    PRODUCT_STATUS_FILTERS.find((filter) => filter.value === statusFilter)?.label ??
-    "Qualquer situação";
 
   useEffect(() => {
     if (create === "from-pricing" || guidedCreate) setShowCreate(true);
@@ -1941,74 +1949,58 @@ export default function ProductsScreen() {
       visible={filtersOpen}
       onClose={() => setFiltersOpen(false)}
       title="Filtros"
-      subtitle="Abra somente a opção que quiser mudar"
       footer={
-        <>
+        <FormActions>
           <Button
             title="Limpar"
-            variant="secondary"
+            variant="outline"
             onPress={() => {
               setStatusFilter("all");
               setCategoryFilter(null);
               setSort("name");
             }}
-            style={{ flex: 1 }}
           />
-          <Button
-            title="Ver produtos"
-            onPress={() => setFiltersOpen(false)}
-            style={{ flex: 1 }}
-          />
-        </>
+          <Button title="Ver produtos" onPress={() => setFiltersOpen(false)} />
+        </FormActions>
       }
     >
-      {stockEnabled ? (
-        <FormSection title="Situação" subtitle={selectedStatusLabel}>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PRODUCT_STATUS_FILTERS.map((filter) => (
-              <Chip
-                key={filter.value}
-                label={filter.label}
-                selected={statusFilter === filter.value}
-                onPress={() => setStatusFilter(filter.value)}
-              />
-            ))}
-          </View>
-        </FormSection>
-      ) : null}
-
-      <FormSection title="Categoria" subtitle={categoryFilter ?? "Todas"}>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          <Chip
-            label="Todas"
-            selected={categoryFilter === null}
-            onPress={() => setCategoryFilter(null)}
-          />
-          {categories.map((item) => (
-            <Chip
-              key={item}
-              label={item}
-              selected={categoryFilter === item}
-              onPress={() => setCategoryFilter(item)}
+      <FormBody>
+        {stockEnabled ? (
+          <FormField label="Situação">
+            <ChipChoiceField
+              accessibilityLabel="Situação"
+              value={statusFilter}
+              options={PRODUCT_STATUS_FILTERS}
+              onChange={setStatusFilter}
             />
-          ))}
-        </View>
-      </FormSection>
+          </FormField>
+        ) : null}
 
-      <FormSection title="Ordenação" subtitle={PRODUCT_SORT_LABELS[sort]}>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          {(Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>).map(
-            ([value, label]) => (
-              <Chip
-                key={value}
-                label={label}
-                selected={sort === value}
-                onPress={() => setSort(value)}
-              />
-            ),
-          )}
-        </View>
-      </FormSection>
+        <FormField label="Categoria">
+          <ChipChoiceField
+            accessibilityLabel="Categoria"
+            value={categoryFilter ?? ALL_CATEGORIES}
+            options={[
+              { value: ALL_CATEGORIES, label: "Todas" },
+              ...categories.map((item) => ({ value: item, label: item })),
+            ]}
+            onChange={(value) =>
+              setCategoryFilter(value === ALL_CATEGORIES ? null : value)
+            }
+          />
+        </FormField>
+
+        <FormField label="Ordenação">
+          <ChoiceField
+            accessibilityLabel="Ordenação"
+            value={sort}
+            options={(
+              Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>
+            ).map(([value, label]) => ({ value, label }))}
+            onChange={setSort}
+          />
+        </FormField>
+      </FormBody>
     </StandardModal>
   );
 
