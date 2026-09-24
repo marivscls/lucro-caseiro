@@ -28,6 +28,7 @@ import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ContentTransition } from "../shared/components/motion-feedback";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import { useBrandScreenPalette } from "../shared/brand-palette";
 import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
@@ -52,6 +53,24 @@ import {
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  DesktopTable,
+  desktopPageContent,
+  type DesktopTableColumn,
+} from "../shared/layout/desktop-page";
+import {
+  DesktopCellText,
+  DesktopEmptyCard,
+  DesktopHeaderBlock,
+  DesktopListHeader,
+  DesktopMeasuredHeader,
+  DesktopSearchField,
+  DesktopSegmented,
+  DesktopStatusPill,
+  DesktopToolbar,
+  DesktopWineHero,
+  type DesktopTone,
+} from "../features/sales/components/desktop-list-kit";
 import { StandardModal } from "../shared/components/standard-modal";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
@@ -688,6 +707,227 @@ function QuoteDetail({
   );
 }
 
+function quoteTone(status: string): DesktopTone {
+  if (status === "accepted") return "positive";
+  if (status === "rejected") return "negative";
+  return "attention";
+}
+
+function sentDateCell(createdAt: string): string {
+  const label = formatSentDate(createdAt).replace(/^Enviado /, "");
+  return label.charAt(0).toLocaleUpperCase("pt-BR") + label.slice(1);
+}
+
+/** Orçamentos no desktop: painel vinho, barra de ferramentas e tabela. */
+function DesktopQuotesBody({
+  isLoading,
+  error,
+  onRetry,
+  quotes,
+  filteredQuotes,
+  filter,
+  onFilterChange,
+  filterCounts,
+  search,
+  onSearchChange,
+  quoteNumberById,
+  onQuotePress,
+  onCreate,
+}: Readonly<{
+  isLoading: boolean;
+  error: Error | null;
+  onRetry: () => void;
+  quotes: Quote[];
+  filteredQuotes: Quote[];
+  filter: QuoteStatusType | "all";
+  onFilterChange: (filter: QuoteStatusType | "all") => void;
+  filterCounts: Record<QuoteStatusType | "all", number>;
+  search: string;
+  onSearchChange: (value: string) => void;
+  quoteNumberById: Map<string, number>;
+  onQuotePress: (id: string) => void;
+  onCreate: () => void;
+}>) {
+  const pal = useBrandScreenPalette();
+  const { width: viewportWidth } = useWindowDimensions();
+  const wide = viewportWidth >= 1280;
+  if (isLoading) return <SkeletonList rows={5} variant="quote" />;
+  if (error) {
+    return (
+      <DesktopEmptyCard
+        title="Não foi possível carregar os orçamentos"
+        description="Verifique sua conexão e tente novamente."
+        actionLabel="Tentar novamente"
+        secondary
+        onAction={onRetry}
+      />
+    );
+  }
+  const pending = quotes.filter((quote) => quote.status === "pending");
+  const accepted = quotes.filter((quote) => quote.status === "accepted");
+  const sum = (items: Quote[]) => items.reduce((total, quote) => total + quote.total, 0);
+  const proposals = (count: number) =>
+    count === 1 ? "1 proposta" : `${count} propostas`;
+
+  // Em 1024px a data de envio vai para a linha de apoio do orçamento.
+  const quoteMeta = (quote: Quote) =>
+    [
+      `Nº ${String(quoteNumberById.get(quote.id) ?? 1).padStart(2, "0")}`,
+      quote.items.length === 1 ? "1 item" : `${quote.items.length} itens`,
+      wide ? null : sentDateCell(quote.createdAt),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+  const columns: DesktopTableColumn<Quote>[] = [
+    {
+      key: "quote",
+      title: "Orçamento",
+      flex: wide ? 2.2 : 1.8,
+      render: (quote) => (
+        <View style={{ gap: 2, width: "100%" }}>
+          <DesktopCellText strong lines={wide ? 1 : 2}>
+            {quote.title}
+          </DesktopCellText>
+          <Typography variant="desktopMeta" numberOfLines={1}>
+            {quoteMeta(quote)}
+          </Typography>
+        </View>
+      ),
+    },
+    {
+      key: "client",
+      title: "Cliente",
+      flex: wide ? 1.4 : 1,
+      render: (quote) => (
+        <DesktopCellText color={quote.clientName ? undefined : pal.muted}>
+          {quote.clientName ?? "Sem cliente"}
+        </DesktopCellText>
+      ),
+    },
+    ...(wide
+      ? [
+          {
+            key: "sent",
+            title: "Enviado",
+            flex: 1,
+            render: (quote: Quote) => (
+              <DesktopCellText>{sentDateCell(quote.createdAt)}</DesktopCellText>
+            ),
+          },
+        ]
+      : []),
+    {
+      key: "status",
+      title: "Situação",
+      width: 132,
+      render: (quote) => (
+        <DesktopStatusPill
+          label={quoteStatusMeta(quote.status).label}
+          tone={quoteTone(quote.status)}
+        />
+      ),
+    },
+    {
+      key: "total",
+      title: "Total",
+      width: wide ? 128 : 116,
+      align: "right",
+      render: (quote) => (
+        <DesktopCellText strong align="right">
+          {formatCurrency(quote.total)}
+        </DesktopCellText>
+      ),
+    },
+    {
+      key: "open",
+      title: "",
+      width: 24,
+      align: "right",
+      render: () => <AppIcon name="chevron-forward" size={20} color={pal.muted} />,
+    },
+  ];
+
+  let list: React.ReactNode;
+  if (quotes.length === 0) {
+    list = (
+      <DesktopEmptyCard
+        title="Nenhum orçamento ainda"
+        description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
+        actionLabel="Novo orçamento"
+        onAction={onCreate}
+      />
+    );
+  } else if (filteredQuotes.length === 0) {
+    list = (
+      <DesktopEmptyCard
+        title="Nenhum orçamento encontrado"
+        description="Tente outro termo ou escolha um filtro diferente."
+        actionLabel="Limpar filtros"
+        secondary
+        onAction={() => {
+          onSearchChange("");
+          onFilterChange("all");
+        }}
+      />
+    );
+  } else {
+    list = (
+      <DesktopTable
+        columns={columns}
+        rows={filteredQuotes}
+        keyExtractor={(quote) => quote.id}
+        onRowPress={(quote) => onQuotePress(quote.id)}
+        rowAccessibilityLabel={(quote) =>
+          `Abrir orçamento ${quote.title}, ${formatCurrency(quote.total)}`
+        }
+      />
+    );
+  }
+
+  return (
+    <View style={{ gap: spacing["3xl"] }}>
+      <DesktopWineHero
+        label="Em negociação"
+        value={formatCurrency(sum(pending))}
+        meta={`${proposals(pending.length)} aguardando`}
+        stats={[
+          {
+            label: "Aprovados",
+            value: formatCurrency(sum(accepted)),
+            hint: proposals(accepted.length),
+          },
+          { label: "Recusados", value: String(filterCounts.rejected) },
+        ]}
+        art={quotesDocument3d}
+      />
+      <View style={{ gap: spacing["2xl"] }}>
+        <DesktopListHeader
+          title="Orçamentos recentes"
+          count={proposals(filteredQuotes.length)}
+        />
+        <DesktopToolbar>
+          <DesktopSearchField
+            value={search}
+            onChangeText={onSearchChange}
+            placeholder="Buscar orçamento ou cliente"
+          />
+          <DesktopSegmented
+            options={FILTERS.map((option) => ({
+              ...option,
+              count: filterCounts[option.key],
+            }))}
+            value={filter}
+            onChange={onFilterChange}
+            accessibilityLabel="Situação dos orçamentos"
+          />
+        </DesktopToolbar>
+        {list}
+      </View>
+    </View>
+  );
+}
+
 export default function QuotesScreen() {
   const pal = useBrandScreenPalette();
   const router = useRouter();
@@ -739,6 +979,93 @@ export default function QuotesScreen() {
       return;
     }
     router.back();
+  }
+
+  const modals = (
+    <>
+      {/* Criar */}
+      <QuoteForm
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSuccess={() => setShowCreate(false)}
+      />
+
+      {/* Detalhe */}
+      {selected && !editing ? (
+        <QuoteDetail
+          quote={selected}
+          onClose={() => setSelectedId(null)}
+          onEdit={() => setEditing(true)}
+        />
+      ) : null}
+
+      {/* Editar */}
+      {selected && editing ? (
+        <QuoteForm
+          quote={selected}
+          visible
+          onClose={() => setEditing(false)}
+          onSuccess={() => setEditing(false)}
+        />
+      ) : null}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ScrollView
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+        >
+          <DesktopHeaderBlock>
+            <ScreenGuidance
+              renderHeader={(helpButton) => (
+                <DesktopMeasuredHeader>
+                  <ScreenHeader
+                    help={helpButton}
+                    title="Orçamentos"
+                    subtitle="Propostas organizadas, pedidos mais perto."
+                    hideBack
+                    right={
+                      <FAB
+                        icon="add"
+                        header
+                        accessibilityLabel="Novo orçamento"
+                        onPress={() => setShowCreate(true)}
+                      />
+                    }
+                  />
+                </DesktopMeasuredHeader>
+              )}
+              area="quotes"
+              onStart={() => setShowCreate(true)}
+              hasRecords={(data?.items.length ?? 0) > 0}
+              loading={isLoading || !!error}
+              suspended={showCreate}
+            />
+          </DesktopHeaderBlock>
+          <DesktopQuotesBody
+            isLoading={isLoading}
+            error={error}
+            onRetry={() => void refetch()}
+            quotes={quotes}
+            filteredQuotes={filteredQuotes}
+            filter={filter}
+            onFilterChange={setFilter}
+            filterCounts={filterCounts}
+            search={search}
+            onSearchChange={setSearch}
+            quoteNumberById={quoteNumberById}
+            onQuotePress={setSelectedId}
+            onCreate={() => setShowCreate(true)}
+          />
+        </ScrollView>
+        {modals}
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -881,31 +1208,7 @@ export default function QuotesScreen() {
         <ScreenCreateBar title="+ Novo orçamento" onPress={() => setShowCreate(true)} />
       ) : null}
 
-      {/* Criar */}
-      <QuoteForm
-        visible={showCreate}
-        onClose={() => setShowCreate(false)}
-        onSuccess={() => setShowCreate(false)}
-      />
-
-      {/* Detalhe */}
-      {selected && !editing ? (
-        <QuoteDetail
-          quote={selected}
-          onClose={() => setSelectedId(null)}
-          onEdit={() => setEditing(true)}
-        />
-      ) : null}
-
-      {/* Editar */}
-      {selected && editing ? (
-        <QuoteForm
-          quote={selected}
-          visible
-          onClose={() => setEditing(false)}
-          onSuccess={() => setEditing(false)}
-        />
-      ) : null}
+      {modals}
     </SafeAreaView>
   );
 }
