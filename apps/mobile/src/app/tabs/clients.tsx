@@ -1,7 +1,6 @@
 import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
-import type { Client } from "@lucro-caseiro/contracts";
 import {
   CenteredTextInput,
   Button,
@@ -26,7 +25,6 @@ import {
   RefreshControl,
   ScrollView,
   View,
-  type ViewStyle,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,6 +40,7 @@ import {
 } from "../../features/clients/hooks";
 import {
   buildClientListInsights,
+  clientSecondaryLabel,
   countClientListFilters,
   filterAndSortClientInsights,
   type ClientListFilter,
@@ -63,18 +62,35 @@ import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { FAB } from "../../shared/components/fab";
 import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { ClientFormFields } from "../../features/clients/components/client-form-fields";
-import { DesktopPagination } from "../../shared/components/desktop-pagination";
 import {
+  DesktopEmptyCard,
+  DesktopHeaderBlock,
+  DesktopListHeader,
+  DesktopMeasuredHeader,
+  DesktopPager,
+  DesktopSearchField,
+  DesktopSegmented,
+  DesktopSelectButton,
+  DesktopStatusPill,
+  DesktopToolbar,
+  DesktopCellText,
+  type DesktopTone,
+} from "../../features/sales/components/desktop-list-kit";
+import {
+  DesktopStatRow,
+  DesktopTable,
+  desktopPageContent,
+  type DesktopTableColumn,
+} from "../../shared/layout/desktop-page";
+import {
+  desktopLayout,
   desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
-import {
-  useBrandScreenPalette,
-  type BrandScreenPalette,
-} from "../../shared/brand-palette";
+import { useBrandScreenPalette } from "../../shared/brand-palette";
 import { formatCurrency } from "../../shared/utils/format";
 import clientsCommunity from "../../assets/clients-community.png";
 
@@ -99,15 +115,6 @@ const SORT_OPTIONS: ReadonlyArray<{ key: ClientListSort; label: string }> = [
   { key: "highest", label: "Maior valor comprado" },
   { key: "frequent", label: "Clientes frequentes" },
 ];
-
-function surfaceStyle(pal: BrandScreenPalette, extra?: ViewStyle): ViewStyle {
-  return {
-    backgroundColor: pal.white,
-    borderWidth: 1,
-    borderColor: pal.border,
-    ...extra,
-  };
-}
 
 interface SearchBoxProps {
   value: string;
@@ -211,24 +218,6 @@ function Avatar({ label, size = 44 }: Readonly<AvatarProps>) {
 interface ClientCardProps {
   insight: ClientListInsight;
   onPress: () => void;
-}
-
-function daysAgoLabel(date: string, now = new Date()): string {
-  const difference = Math.max(
-    0,
-    Math.floor((now.getTime() - new Date(date).getTime()) / 86_400_000),
-  );
-  if (difference === 0) return "Comprou hoje";
-  if (difference === 1) return "Comprou há 1 dia";
-  return `Comprou há ${difference} dias`;
-}
-
-function clientSecondaryLabel(insight: ClientListInsight): string {
-  if (insight.monthOrders > 1) {
-    return `${insight.monthOrders} pedidos neste mês`;
-  }
-  if (insight.lastSaleAt) return daysAgoLabel(insight.lastSaleAt);
-  return "Sem compras registradas";
 }
 
 function ClientCard({ insight, onPress }: Readonly<ClientCardProps>) {
@@ -529,146 +518,117 @@ function OptionsModal<T extends string>({
   );
 }
 
+function clientSituation(
+  insight: ClientListInsight,
+): { label: string; tone: DesktopTone } | null {
+  if (insight.pendingTotal > 0) {
+    return { label: `Fiado ${formatCurrency(insight.pendingTotal)}`, tone: "attention" };
+  }
+  if (insight.frequent) return { label: "Cliente frequente", tone: "brand" };
+  return null;
+}
+
+function birthdayLabel(birthday: string | null): string {
+  if (!birthday) return "—";
+  return new Date(`${birthday}T12:00:00`).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
+/** Tabela de clientes do desktop: colunas extras só a partir de 1280px. */
 function DesktopClientsTable({
-  items,
-  page,
-  total,
-  totalPages,
+  insights,
   onClientPress,
-  onPageChange,
 }: Readonly<{
-  items: Client[];
-  page: number;
-  total: number;
-  totalPages: number;
+  insights: ClientListInsight[];
   onClientPress: (id: string) => void;
-  onPageChange: (page: number) => void;
 }>) {
   const pal = useBrandScreenPalette();
-  const headerStyle = {
-    fontFamily: fonts.bold,
-    fontSize: fontSizes.xs,
-    letterSpacing: 0.4,
-  } as const;
-
-  return (
-    <View
-      style={surfaceStyle(pal, {
-        borderRadius: radii.xl,
-        overflow: "hidden",
-      })}
-    >
-      <View
-        style={{
-          minHeight: 46,
-          paddingHorizontal: spacing.lg,
-          backgroundColor: pal.surface,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.lg,
-        }}
-      >
-        <Typography
-          variant="caption"
-          color={pal.muted}
-          style={[headerStyle, { flex: 1.6 }]}
-        >
-          Cliente
-        </Typography>
-        <Typography
-          variant="caption"
-          color={pal.muted}
-          style={[headerStyle, { flex: 1.1 }]}
-        >
-          Telefone
-        </Typography>
-        <Typography
-          variant="caption"
-          color={pal.muted}
-          style={[headerStyle, { flex: 0.9 }]}
-        >
-          Aniversário
-        </Typography>
-        <Typography
-          variant="caption"
-          color={pal.muted}
-          style={[headerStyle, { flex: 1.8 }]}
-        >
-          Observações
-        </Typography>
-        <View style={{ width: 20 }} />
-      </View>
-
-      {items.map((client) => (
-        <Pressable
-          key={client.id}
-          accessibilityRole="button"
-          onPress={() => onClientPress(client.id)}
-          style={({ pressed }) => ({
-            minHeight: 62,
-            paddingHorizontal: spacing.lg,
-            borderTopWidth: 1,
-            borderTopColor: pal.border,
-            backgroundColor: pressed ? pal.softRose : pal.white,
+  const { width } = useWindowDimensions();
+  const wide = width >= 1280;
+  const columns: DesktopTableColumn<ClientListInsight>[] = [
+    {
+      key: "client",
+      title: "Cliente",
+      flex: 2,
+      render: (insight) => (
+        <View
+          style={{
+            width: "100%",
             flexDirection: "row",
             alignItems: "center",
-            gap: spacing.lg,
-          })}
+            gap: spacing.md,
+          }}
         >
-          <View
-            style={{
-              flex: 1.6,
-              minWidth: 0,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-            }}
-          >
-            <Avatar label={client.name} size={36} />
-            <Typography
-              variant="bodyBold"
-              color={pal.ink}
-              numberOfLines={1}
-              style={{ flex: 1 }}
-            >
-              {client.name}
+          <Avatar label={insight.client.name} size={40} />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <DesktopCellText strong>{insight.client.name}</DesktopCellText>
+            <Typography variant="desktopMeta" numberOfLines={1}>
+              {clientSecondaryLabel(insight)}
             </Typography>
           </View>
-          <Typography
-            variant="body"
-            color={pal.ink}
-            numberOfLines={1}
-            style={{ flex: 1.1 }}
-          >
-            {client.phone || "—"}
-          </Typography>
-          <Typography variant="body" color={pal.ink} style={{ flex: 0.9 }}>
-            {client.birthday
-              ? new Date(`${client.birthday}T12:00:00`).toLocaleDateString("pt-BR", {
-                  day: "2-digit",
-                  month: "short",
-                })
-              : "—"}
-          </Typography>
-          <Typography
-            variant="body"
-            color={pal.ink}
-            numberOfLines={1}
-            style={{ flex: 1.8 }}
-          >
-            {client.notes || "—"}
-          </Typography>
-          <AppIcon name="chevron-forward" size={20} color={pal.muted} />
-        </Pressable>
-      ))}
-
-      <DesktopPagination
-        page={page}
-        total={total}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-      />
-    </View>
+        </View>
+      ),
+    },
+    {
+      key: "phone",
+      title: "Telefone",
+      flex: 1.2,
+      render: ({ client }) => (
+        <DesktopCellText color={client.phone ? undefined : pal.muted}>
+          {client.phone || "Sem telefone"}
+        </DesktopCellText>
+      ),
+    },
+    ...(wide
+      ? [
+          {
+            key: "birthday",
+            title: "Aniversário",
+            flex: 0.9,
+            render: ({ client }: ClientListInsight) => (
+              <DesktopCellText>{birthdayLabel(client.birthday)}</DesktopCellText>
+            ),
+          },
+        ]
+      : []),
+    {
+      key: "situation",
+      title: "Situação",
+      width: wide ? 168 : 152,
+      render: (insight) => {
+        const situation = clientSituation(insight);
+        return situation ? <DesktopStatusPill {...situation} /> : null;
+      },
+    },
+    {
+      key: "spent",
+      title: "Total comprado",
+      width: wide ? 136 : 124,
+      align: "right",
+      render: ({ client }) => (
+        <DesktopCellText strong align="right">
+          {formatCurrency(client.totalSpent)}
+        </DesktopCellText>
+      ),
+    },
+    {
+      key: "open",
+      title: "",
+      width: 24,
+      align: "right",
+      render: () => <AppIcon name="chevron-forward" size={20} color={pal.muted} />,
+    },
+  ];
+  return (
+    <DesktopTable
+      columns={columns}
+      rows={insights}
+      keyExtractor={(insight) => insight.client.id}
+      onRowPress={(insight) => onClientPress(insight.client.id)}
+      rowAccessibilityLabel={(insight) => `Abrir cliente ${insight.client.name}`}
+    />
   );
 }
 
@@ -806,17 +766,6 @@ function ClientsListScreen({
         </Typography>
       </View>
     );
-  } else if (isDesktop) {
-    clientsContent = (
-      <DesktopClientsTable
-        items={visibleInsights.map((insight) => insight.client)}
-        page={listClientsQuery.data?.page ?? page}
-        total={listClientsQuery.data?.total ?? 0}
-        totalPages={listClientsQuery.data?.totalPages ?? 1}
-        onClientPress={onClientPress}
-        onPageChange={setPage}
-      />
-    );
   } else {
     const hiddenCount = visibleInsights.length - visibleCount;
     clientsContent = (
@@ -837,6 +786,152 @@ function ClientsListScreen({
           />
         ) : null}
       </View>
+    );
+  }
+
+  const sortModal = (
+    <OptionsModal
+      visible={sortModalOpen}
+      title="Ordenar clientes"
+      options={SORT_OPTIONS}
+      selected={sort}
+      onSelect={setSort}
+      onClose={() => setSortModalOpen(false)}
+    />
+  );
+
+  if (isDesktop) {
+    let desktopContent: React.ReactNode;
+    if (listClientsQuery.isLoading) {
+      desktopContent = <SkeletonList rows={6} variant="client" />;
+    } else if (listClientsQuery.error) {
+      desktopContent = (
+        <DesktopEmptyCard
+          title="Algo deu errado"
+          description="Não foi possível carregar seus clientes."
+          actionLabel="Tentar novamente"
+          secondary
+          onAction={() => void listClientsQuery.refetch()}
+        />
+      );
+    } else if (totalClients === 0 && !search.trim()) {
+      desktopContent = (
+        <DesktopEmptyCard
+          art={clientsCommunity}
+          title="Nenhum cliente ainda"
+          description="Cadastre seu primeiro cliente pra acompanhar pedidos e aniversários"
+          actionLabel="Novo cliente"
+          actionIcon="person-add-outline"
+          onAction={onCreatePress}
+        />
+      );
+    } else if (visibleInsights.length === 0) {
+      desktopContent = (
+        <DesktopEmptyCard
+          title="Nenhum cliente encontrado"
+          description="Ajuste a busca ou escolha outro filtro."
+          actionLabel="Limpar filtros"
+          secondary
+          onAction={() => {
+            setSearch("");
+            setFilter("all");
+          }}
+        />
+      );
+    } else {
+      desktopContent = (
+        <View style={{ gap: spacing.md }}>
+          <DesktopClientsTable insights={visibleInsights} onClientPress={onClientPress} />
+          <DesktopPager
+            page={listClientsQuery.data?.page ?? page}
+            total={listClientsQuery.data?.total ?? 0}
+            totalPages={listClientsQuery.data?.totalPages ?? 1}
+            noun={["cliente", "clientes"]}
+            onPageChange={setPage}
+          />
+        </View>
+      );
+    }
+    const loadingValue = (value: number) => (clientsLoading ? "—" : String(value));
+    return (
+      <>
+        <ScrollView
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+        >
+          <DesktopHeaderBlock>
+            <ScreenGuidance
+              renderHeader={(helpButton) => (
+                <DesktopMeasuredHeader>
+                  <ScreenHeader
+                    help={helpButton}
+                    title="Clientes"
+                    subtitle={clientsSubtitle}
+                    hideBack
+                    right={
+                      <FAB
+                        icon="add"
+                        header
+                        accessibilityLabel="Novo cliente"
+                        onPress={onCreatePress}
+                      />
+                    }
+                  />
+                </DesktopMeasuredHeader>
+              )}
+              area="clients"
+              onStart={onCreatePress}
+              hasRecords={totalClients > 0}
+              loading={clientsLoading || baseClientsQuery.isError}
+              suspended={filterModalOpen || sortModalOpen}
+            />
+          </DesktopHeaderBlock>
+          <View style={{ gap: desktopLayout.blockGap }}>
+            <DesktopStatRow
+              items={[
+                { label: "Clientes", value: loadingValue(totalClients) },
+                { label: "Compraram no mês", value: loadingValue(boughtThisMonth) },
+                { label: "Com fiado", value: loadingValue(withCredit) },
+              ]}
+            />
+            <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
+            <View style={{ gap: desktopLayout.sectionGap }}>
+              <DesktopListHeader
+                title="Seus clientes"
+                right={
+                  <DesktopSelectButton
+                    label="Ordenar:"
+                    value={selectedSortLabel}
+                    onPress={() => setSortModalOpen(true)}
+                  />
+                }
+              />
+              <DesktopToolbar>
+                <DesktopSearchField
+                  value={search}
+                  onChangeText={(value) => {
+                    setSearch(value);
+                    setPage(1);
+                  }}
+                  placeholder="Buscar cliente"
+                />
+                <DesktopSegmented
+                  options={FILTER_OPTIONS.map((option) => ({
+                    ...option,
+                    count: clientsLoading ? undefined : filterCounts[option.key],
+                  }))}
+                  value={filter}
+                  onChange={setFilter}
+                  accessibilityLabel="Filtrar clientes"
+                />
+              </DesktopToolbar>
+              {desktopContent}
+            </View>
+          </View>
+        </ScrollView>
+        {sortModal}
+      </>
     );
   }
 
@@ -1049,14 +1144,7 @@ function ClientsListScreen({
         onSelect={setFilter}
         onClose={() => setFilterModalOpen(false)}
       />
-      <OptionsModal
-        visible={sortModalOpen}
-        title="Ordenar clientes"
-        options={SORT_OPTIONS}
-        selected={sort}
-        onSelect={setSort}
-        onClose={() => setSortModalOpen(false)}
-      />
+      {sortModal}
     </>
   );
 }
