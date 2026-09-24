@@ -76,6 +76,10 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 
 ## Change log / Decisions
 
+- 2026-09-24: formulário no padrão de formulários (`form-standard.md`): `StandardModal
+size="form"`, seções fixas, categoria em `ChoiceField` (4 opções), telefone e email lado a
+  lado, erros só no campo (`useFormValidation`) e rodapé Cancelar + ação. O cadastro rápido do
+  `SupplierSelector` abre o mesmo modal de `CreateSupplierForm` (sem folha própria).
 - 2026-09-09: detalhes usam identificação compacta, contatos com divisórias e observações
   separadas. O formulário agrupa identificação, contato e compras; os seis presets ficam
   em grade de três colunas, com upload visível abaixo e estados adaptados ao tema escuro.

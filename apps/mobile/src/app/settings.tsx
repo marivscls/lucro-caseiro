@@ -1,10 +1,8 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import {
   Badge,
   Button,
   Card,
-  Chip,
   Typography,
   useBrand,
   useFeature,
@@ -44,7 +42,8 @@ import { useSubscription } from "../features/subscription/use-subscription";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { showAlert } from "../shared/components/alert-store";
 import { AppIcon, type AppIconName } from "../shared/components/app-icon";
-import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
+import { FormField, TextField, useFieldPalette } from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
@@ -58,7 +57,6 @@ import { isPrefEnabled, useNotificationPrefs } from "../shared/hooks/notificatio
 import { useBrowserNotifications } from "../shared/hooks/use-browser-notifications";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import {
-  desktopAction,
   desktopStretch,
   desktopWidths,
   pageGutter,
@@ -66,7 +64,7 @@ import {
 import { DesktopSplit, desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
-import { alertError, alertValidation } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadProfilePhoto } from "../shared/utils/upload-image";
 import {
@@ -137,6 +135,62 @@ function businessTypeValue(value: string): string | undefined {
       (type) =>
         type.value === trimmed || type.label.toLowerCase() === trimmed.toLowerCase(),
     )?.value ?? trimmed
+  );
+}
+
+/**
+ * Escolha única com mais de 4 opções: chips no mesmo visual das categorias do
+ * cadastro de produto (44 px, borda do campo, selecionado em vinho).
+ */
+function ChoiceChips<T extends string>({
+  value,
+  options,
+  onChange,
+  accessibilityLabel,
+}: Readonly<{
+  value: T | "";
+  options: readonly { value: T; label: string }[];
+  onChange: (value: T) => void;
+  accessibilityLabel: string;
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={accessibilityLabel}
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected, checked: selected }}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: spacing.lg,
+              justifyContent: "center",
+              borderRadius: radii.full,
+              borderWidth: selected ? 2 : 1,
+              borderColor: selected ? theme.colors.primaryStrong : pal.border,
+              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant="body"
+              color={selected ? theme.colors.primaryStrong : theme.colors.text}
+            >
+              {option.label}
+            </Typography>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -340,10 +394,6 @@ export default function SettingsScreen() {
 
   async function handleSaveProfile() {
     if (!formValidation.validate()) return;
-    if (!editName.trim()) {
-      alertValidation("O nome é obrigatório");
-      return;
-    }
 
     let newAvatarUrl: string | undefined;
     if (pickedAvatar) {
@@ -1250,20 +1300,28 @@ export default function SettingsScreen() {
 
       <StandardModal
         title="Editar perfil"
+        size="form"
         visible={showEditProfile}
         onClose={() => setShowEditProfile(false)}
+        dismissDisabled={updateProfile.isPending || savingAvatar}
         footer={
-          <Button
-            title={savingAvatar ? "Enviando foto..." : "Salvar"}
-            size="lg"
-            onPress={() => void handleSaveProfile()}
-            loading={updateProfile.isPending || savingAvatar}
-            style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 220) }}
-          />
+          <FormActions>
+            <Button
+              title="Cancelar"
+              variant="outline"
+              disabled={updateProfile.isPending || savingAvatar}
+              onPress={() => setShowEditProfile(false)}
+            />
+            <Button
+              title={savingAvatar ? "Enviando foto…" : "Salvar perfil"}
+              onPress={() => void handleSaveProfile()}
+              loading={updateProfile.isPending || savingAvatar}
+            />
+          </FormActions>
         }
       >
-        <View style={{ flexShrink: 1, gap: spacing.lg }}>
-          <View style={{ alignItems: "center", gap: spacing.sm }}>
+        <FormBody>
+          <View style={{ alignItems: "center" }}>
             <Pressable
               onPress={pickAvatar}
               accessibilityRole="button"
@@ -1275,7 +1333,7 @@ export default function SettingsScreen() {
                   width: 96,
                   height: 96,
                   borderRadius: radii.full,
-                  backgroundColor: theme.colors.surfaceElevated,
+                  backgroundColor: theme.colors.primaryBg,
                   alignItems: "center",
                   justifyContent: "center",
                   overflow: "hidden",
@@ -1311,7 +1369,7 @@ export default function SettingsScreen() {
               </View>
               <Typography
                 variant="bodyBold"
-                color={theme.colors.primary}
+                color={theme.colors.primaryStrong}
                 style={{ marginTop: spacing.sm }}
               >
                 {pickedAvatar || avatarUrl ? "Alterar foto" : "Adicionar foto"}
@@ -1319,56 +1377,45 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
 
-          <View>
-            <FieldLabel label="Nome" required />
-            <ValidationField {...formValidation.field("editName")}>
-              <TextFieldCard
+          <FormGrid>
+            <FormField label="Seu nome" validation={formValidation.field("editName")}>
+              <TextField
                 icon="person-outline"
                 placeholder="Seu nome"
+                accessibilityLabel="Seu nome"
                 value={editName}
                 onChangeText={setEditName}
               />
-            </ValidationField>
-          </View>
-          <View>
-            <FieldLabel label="Nome do negócio" />
-            <TextFieldCard
-              icon="storefront-outline"
-              placeholder={`Ex: ${experienceCopy.businessNameExample}`}
-              accessibilityLabel="Nome do negocio"
-              value={editBusinessName}
-              onChangeText={setEditBusinessName}
-            />
-          </View>
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Tipo de negócio
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Toque para selecionar
-            </Typography>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {BUSINESS_TYPES.map((type) => (
-                <Chip
-                  key={type.value}
-                  label={type.label}
-                  selected={editBusinessType === type.value}
-                  onPress={() => setEditBusinessType(type.value)}
-                />
-              ))}
-            </View>
-          </View>
-          <View>
-            <FieldLabel label="Telefone" />
-            <TextFieldCard
-              icon="call-outline"
-              placeholder="Ex: (11) 99999-9999"
-              value={editPhone}
-              onChangeText={(value: string) => setEditPhone(maskPhoneBR(value))}
-              keyboardType="phone-pad"
-            />
-          </View>
-        </View>
+            </FormField>
+            <FormField label="Telefone" optional>
+              <TextField
+                icon="call-outline"
+                placeholder="Ex: (11) 99999-9999"
+                accessibilityLabel="Telefone"
+                value={editPhone}
+                onChangeText={(value: string) => setEditPhone(maskPhoneBR(value))}
+                keyboardType="phone-pad"
+              />
+            </FormField>
+            <FormField label="Nome do negócio" optional span="full">
+              <TextField
+                icon="storefront-outline"
+                placeholder={`Ex: ${experienceCopy.businessNameExample}`}
+                accessibilityLabel="Nome do negocio"
+                value={editBusinessName}
+                onChangeText={setEditBusinessName}
+              />
+            </FormField>
+            <FormField label="Tipo de negócio" optional span="full">
+              <ChoiceChips
+                value={editBusinessType}
+                options={BUSINESS_TYPES}
+                onChange={setEditBusinessType}
+                accessibilityLabel="Tipo de negócio"
+              />
+            </FormField>
+          </FormGrid>
+        </FormBody>
       </StandardModal>
     </SafeAreaView>
   );

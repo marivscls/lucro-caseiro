@@ -133,6 +133,11 @@ Importados de `@lucro-caseiro/contracts`.
 
 ## Change log / Decisions
 
+- 2026-09-24: cadastro e edição no padrão de formulários (`form-standard.md`):
+  `StandardModal size="form"`, telefone e aniversário lado a lado (`FormGrid`),
+  aniversário e próximo contato escolhidos no calendário (`SelectField` com "Limpar"),
+  telefone inválido marcado no próprio campo e rodapé Cancelar + ação. O próximo
+  contato virou `FormSection` recolhível.
 - 2026-09-10: cadastro e edição compartilham `components/client-form-fields.tsx`:
   rótulos acima dos campos, telefone com máscara, calendário de aniversário e
   contador de observações. Somente o nome é obrigatório; ações ficam no rodapé

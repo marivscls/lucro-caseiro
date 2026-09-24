@@ -55,7 +55,6 @@ import { ApiError } from "../../shared/utils/api-client";
 import { brToIso } from "../../shared/utils/date";
 import { phoneDuplicateKey } from "../../shared/utils/duplicates";
 import { isValidBrazilPhone } from "../../shared/utils/phone";
-import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
@@ -90,6 +89,7 @@ import {
 } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
+import { FormActions, FormBody } from "../../shared/components/form-layout";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
 import { formatCurrency } from "../../shared/utils/format";
 import clientsCommunity from "../../assets/clients-community.png";
@@ -1160,7 +1160,6 @@ interface NewClientModalProps {
 }
 
 function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
-  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -1190,6 +1189,10 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const formValidation = useFormValidation(
     {
       name: !name.trim() && "Informe o nome do cliente.",
+      phone:
+        !!phone.trim() &&
+        !isValidBrazilPhone(phone.trim()) &&
+        "Use DDD + número, ex: (11) 99999-9999.",
     },
     visible,
   );
@@ -1204,15 +1207,6 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
 
       const trimmedName = name.trim();
       const trimmedPhone = phone.trim();
-      if (!trimmedName) {
-        alertValidation("Coloque o nome do cliente.");
-        return;
-      }
-
-      if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-        alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
-        return;
-      }
 
       const phoneDigits = phoneDuplicateKey(trimmedPhone);
       let duplicateCandidates = matchingClients?.items ?? [];
@@ -1287,42 +1281,44 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
     <StandardModal
       title="Novo cliente"
       subtitle="Só o nome é obrigatório. Complete o restante quando quiser."
+      size="form"
       visible={visible}
       onClose={close}
       dismissDisabled={createClient.isPending}
       footer={
-        <Button
-          title="Cadastrar cliente"
-          size="lg"
-          onPress={() => {
-            void handleCreate();
-          }}
-          disabled={createClient.isPending}
-          loading={createClient.isPending}
-          icon={
-            <AppIcon
-              name="person-add-outline"
-              size={20}
-              color={theme.colors.textOnPrimary}
-            />
-          }
-          style={{ flex: 1 }}
-        />
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            onPress={close}
+            disabled={createClient.isPending}
+          />
+          <Button
+            title="Cadastrar cliente"
+            onPress={() => {
+              void handleCreate();
+            }}
+            loading={createClient.isPending}
+          />
+        </FormActions>
       }
     >
-      <ClientFormFields
-        name={name}
-        phone={phone}
-        address={address}
-        birthday={birthday}
-        notes={notes}
-        onNameChange={setName}
-        onPhoneChange={setPhone}
-        onAddressChange={setAddress}
-        onBirthdayChange={setBirthday}
-        onNotesChange={setNotes}
-        nameValidation={formValidation.field("name")}
-      />
+      <FormBody>
+        <ClientFormFields
+          name={name}
+          phone={phone}
+          address={address}
+          birthday={birthday}
+          notes={notes}
+          onNameChange={setName}
+          onPhoneChange={setPhone}
+          onAddressChange={setAddress}
+          onBirthdayChange={setBirthday}
+          onNotesChange={setNotes}
+          nameValidation={formValidation.field("name")}
+          phoneValidation={formValidation.field("phone")}
+        />
+      </FormBody>
     </StandardModal>
   );
 }
