@@ -34,7 +34,7 @@ const OK_BUTTON: AppAlertButton[] = [{ text: "OK" }];
 export function shouldStackAlertButtons(buttons: readonly AppAlertButton[]): boolean {
   return (
     buttons.length > 2 ||
-    (buttons.length === 2 && buttons.some(({ text }) => text.length > 18))
+    (buttons.length === 2 && buttons.some(({ text }) => text.length > 12))
   );
 }
 
