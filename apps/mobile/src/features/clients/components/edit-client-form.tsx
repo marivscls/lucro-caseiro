@@ -1,13 +1,10 @@
-import { Typography, useTheme } from "@lucro-caseiro/ui";
-import { ClientFormFields } from "./client-form-fields";
-import { AppIcon } from "../../../shared/components/app-icon";
+import { ClientDateField, ClientFormFields } from "./client-form-fields";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Client } from "@lucro-caseiro/contracts";
-import { Button, Input, spacing } from "@lucro-caseiro/ui";
+import { Button } from "@lucro-caseiro/ui";
 import React, { useRef, useState } from "react";
-import { Pressable, View } from "react-native";
 
-import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
+import { brToIso, isoToBR } from "../../../shared/utils/date";
 import { phoneDuplicateKey } from "../../../shared/utils/duplicates";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useClients, useUpdateClient } from "../hooks";
@@ -15,11 +12,9 @@ import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { ApiError } from "../../../shared/utils/api-client";
 import { StandardModal } from "../../../shared/components/standard-modal";
-import {
-  desktopAction,
-  desktopCompactField,
-} from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { FormField, TextField } from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
 
 interface EditClientFormProps {
   client: Client;
@@ -34,10 +29,10 @@ export function EditClientForm({
   onClose,
   onSuccess,
 }: Readonly<EditClientFormProps>) {
-  const isDesktop = useDesktopLayout();
-  const { theme } = useTheme();
-  const [contactExpanded, setContactExpanded] = useState(
-    !!(client.nextContactAt || client.nextContactReason || client.nextContactNotes),
+  const hasNextContact = !!(
+    client.nextContactAt ||
+    client.nextContactReason ||
+    client.nextContactNotes
   );
   const [name, setName] = useState(client.name);
   const [phone, setPhone] = useState(maskPhoneBR(client.phone ?? ""));
@@ -59,6 +54,10 @@ export function EditClientForm({
   const formValidation = useFormValidation(
     {
       name: !name.trim() && "Informe o nome do cliente.",
+      phone:
+        !!phone.trim() &&
+        !isValidBrazilPhone(phone.trim()) &&
+        "Use DDD + número, ex: (11) 99999-9999.",
     },
     visible,
   );
@@ -69,16 +68,7 @@ export function EditClientForm({
     submittingRef.current = true;
 
     try {
-      if (!name.trim()) {
-        alertValidation("Coloque o nome do cliente.");
-        return;
-      }
-
       const trimmedPhone = phone.trim();
-      if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-        alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
-        return;
-      }
 
       const phoneDigits = phoneDuplicateKey(trimmedPhone);
       let duplicateCandidates = matchingClients?.items ?? [];
@@ -147,34 +137,29 @@ export function EditClientForm({
     <StandardModal
       title="Editar cliente"
       subtitle="Só o nome é obrigatório. Mantenha os dados sempre por perto."
+      size="form"
       dismissDisabled={updateClient.isPending}
       visible={visible}
       onClose={onClose}
       footer={
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: isDesktop ? "flex-end" : undefined,
-            width: "100%",
-          }}
-        >
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            onPress={onClose}
+            disabled={updateClient.isPending}
+          />
           <Button
             title="Salvar alterações"
-            size="lg"
             onPress={() => {
               void handleSubmit();
             }}
             loading={updateClient.isPending}
-            disabled={updateClient.isPending}
-            icon={
-              <AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />
-            }
-            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
           />
-        </View>
+        </FormActions>
       }
     >
-      <View style={{ gap: spacing.xl }}>
+      <FormBody>
         <ClientFormFields
           name={name}
           phone={phone}
@@ -187,85 +172,42 @@ export function EditClientForm({
           onBirthdayChange={setBirthday}
           onNotesChange={setNotes}
           nameValidation={formValidation.field("name")}
+          phoneValidation={formValidation.field("phone")}
         />
-        <View
-          style={{
-            borderTopWidth: 1,
-            borderTopColor: theme.colors.border,
-            paddingTop: spacing.md,
-            gap: spacing.md,
-          }}
+        <FormSection
+          title="Próximo contato"
+          subtitle="Combine uma data para falar com o cliente."
+          initiallyOpen={hasNextContact}
         >
-          <Pressable
-            onPress={() => setContactExpanded((value) => !value)}
-            accessibilityRole="button"
-            accessibilityLabel="Próximo contato"
-            accessibilityState={{ expanded: contactExpanded }}
-            style={({ pressed }) => ({
-              minHeight: 48,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              opacity: pressed ? 0.65 : 1,
-            })}
-          >
-            <AppIcon
-              name="calendar-outline"
-              size={20}
-              color={theme.colors.primaryStrong}
+          <FormGrid>
+            <ClientDateField
+              label="Data do contato"
+              value={nextContactAt}
+              onChange={setNextContactAt}
+              accessibilityLabel="Data do próximo contato"
             />
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Typography variant="bodyBold">Próximo contato</Typography>
-              <Typography variant="caption">
-                Combine uma data para falar com o cliente.
-              </Typography>
-            </View>
-            <AppIcon
-              name={contactExpanded ? "chevron-up" : "chevron-down"}
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </Pressable>
-          {contactExpanded && (
-            <View style={{ gap: spacing.lg }}>
-              <View
-                style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}
-              >
-                <View style={desktopCompactField(isDesktop)}>
-                  <Input
-                    label="Próximo contato (opcional)"
-                    placeholder="DD/MM/AAAA"
-                    value={nextContactAt}
-                    onChangeText={(value) => setNextContactAt(maskDateBR(value))}
-                    keyboardType="number-pad"
-                  />
-                </View>
-
-                <View style={isDesktop ? { flex: 1 } : undefined}>
-                  <Input
-                    label="Motivo do próximo contato"
-                    placeholder="Ex.: confirmar encomenda"
-                    value={nextContactReason}
-                    onChangeText={setNextContactReason}
-                    maxLength={200}
-                  />
-                </View>
-              </View>
-
-              <Input
-                label="Nota para o contato"
+            <FormField label="Motivo" optional>
+              <TextField
+                accessibilityLabel="Motivo do próximo contato"
+                placeholder="Ex.: confirmar encomenda"
+                value={nextContactReason}
+                onChangeText={setNextContactReason}
+                maxLength={200}
+              />
+            </FormField>
+            <FormField label="Nota para o contato" optional span="full">
+              <TextField
+                accessibilityLabel="Nota para o contato"
                 placeholder="Ex.: perguntar quantidade final"
                 value={nextContactNotes}
                 onChangeText={setNextContactNotes}
                 maxLength={500}
                 multiline
-                numberOfLines={2}
-                style={{ height: 78, textAlignVertical: "center" }}
               />
-            </View>
-          )}
-        </View>
-      </View>
+            </FormField>
+          </FormGrid>
+        </FormSection>
+      </FormBody>
     </StandardModal>
   );
 }
