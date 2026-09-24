@@ -128,3 +128,26 @@ export function filterAndSortClientInsights(
     return bTime - aTime || a.client.name.localeCompare(b.client.name, "pt-BR");
   });
 }
+
+/** "Comprou hoje", "Comprou há 1 dia", "Comprou há N dias". */
+export function daysAgoLabel(date: string, now = new Date()): string {
+  const difference = Math.max(
+    0,
+    Math.floor((now.getTime() - new Date(date).getTime()) / 86_400_000),
+  );
+  if (difference === 0) return "Comprou hoje";
+  if (difference === 1) return "Comprou há 1 dia";
+  return `Comprou há ${difference} dias`;
+}
+
+/** Linha secundária do cliente na lista: pedidos no mês ou última compra. */
+export function clientSecondaryLabel(
+  insight: ClientListInsight,
+  now = new Date(),
+): string {
+  if (insight.monthOrders > 1) {
+    return `${insight.monthOrders} pedidos neste mês`;
+  }
+  if (insight.lastSaleAt) return daysAgoLabel(insight.lastSaleAt, now);
+  return "Sem compras registradas";
+}

@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildClientListInsights,
+  clientSecondaryLabel,
   countClientListFilters,
+  daysAgoLabel,
   filterAndSortClientInsights,
 } from "./client-list";
 
@@ -104,5 +106,27 @@ describe("client list insights", () => {
       frequent: 1,
       credit: 1,
     });
+  });
+
+  it("descreve a última compra em dias", () => {
+    expect(daysAgoLabel("2026-08-16T08:00:00.000Z", now)).toBe("Comprou hoje");
+    expect(daysAgoLabel("2026-08-15T08:00:00.000Z", now)).toBe("Comprou há 1 dia");
+    expect(daysAgoLabel("2026-08-06T12:00:00.000Z", now)).toBe("Comprou há 10 dias");
+  });
+
+  it("prioriza pedidos do mês e cai para a última compra ou ausência dela", () => {
+    const [frequent, single, none] = buildClientListInsights(
+      [client("c1", "Aline"), client("c2", "Bruna"), client("c3", "Carla")],
+      [
+        sale("s1", "c1", "2026-08-14T12:00:00.000Z", "paid"),
+        sale("s2", "c1", "2026-08-10T12:00:00.000Z", "paid"),
+        sale("s3", "c2", "2026-08-13T12:00:00.000Z", "paid"),
+      ],
+      now,
+    );
+
+    expect(clientSecondaryLabel(frequent, now)).toBe("2 pedidos neste mês");
+    expect(clientSecondaryLabel(single, now)).toBe("Comprou há 3 dias");
+    expect(clientSecondaryLabel(none, now)).toBe("Sem compras registradas");
   });
 });
