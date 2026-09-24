@@ -9,7 +9,6 @@ import {
   EmptyState,
   fonts,
   iconSizes,
-  Input,
   Typography,
   useBrand,
   useTheme,
@@ -48,6 +47,12 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../shared/components/standard-modal";
+import {
+  FormField,
+  TextField,
+  useFieldPalette,
+} from "../../shared/components/form-field";
+import { FormActions, FormBody } from "../../shared/components/form-layout";
 import { showAlert } from "../../shared/components/alert-store";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
@@ -126,6 +131,55 @@ function groupSalesByDate(items: Sale[]): SaleGroup[] {
 }
 
 // Cards flat com borda sutil, no padrao canonico da home (sem sombra hardcoded).
+/**
+ * Forma de pagamento (5 opções, mais que o `ChoiceField` comporta): chips no
+ * mesmo visual das categorias do cadastro de produto.
+ */
+function PaymentChips({
+  value,
+  onChange,
+}: Readonly<{ value: string; onChange: (value: string) => void }>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel="Forma de pagamento"
+      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+    >
+      {PAYMENT_OPTIONS.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected, checked: selected }}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              paddingHorizontal: spacing.lg,
+              justifyContent: "center",
+              borderRadius: radii.full,
+              borderWidth: selected ? 2 : 1,
+              borderColor: selected ? theme.colors.primaryStrong : pal.border,
+              backgroundColor: selected ? theme.colors.primaryBg : pal.fieldBgFocus,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant="body"
+              color={selected ? theme.colors.primaryStrong : theme.colors.text}
+            >
+              {option.label}
+            </Typography>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   const palette = brandScreenPalette(theme);
   return {
@@ -734,50 +788,39 @@ export default function SalesScreen() {
         title="Editar venda"
         visible={showEdit}
         onClose={() => setShowEdit(false)}
+        dismissDisabled={updateSale.isPending}
         footer={
-          <>
+          <FormActions>
             <Button
               title="Cancelar"
-              variant="secondary"
+              variant="outline"
+              disabled={updateSale.isPending}
               onPress={() => setShowEdit(false)}
-              style={{ flex: 1 }}
             />
             <Button
               title="Salvar alterações"
-              size="lg"
               onPress={() => {
                 handleSaveEdit().catch(() => {});
               }}
               loading={updateSale.isPending}
-              style={{ flex: 1 }}
             />
-          </>
+          </FormActions>
         }
       >
-        <View style={{ flexShrink: 1, gap: spacing.lg }}>
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="caption">Forma de pagamento</Typography>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {PAYMENT_OPTIONS.map((opt) => (
-                <Chip
-                  key={opt.value}
-                  label={opt.label}
-                  selected={editPayment === opt.value}
-                  onPress={() => setEditPayment(opt.value)}
-                />
-              ))}
-            </View>
-          </View>
-          <Input
-            label="Observações"
-            placeholder="Alguma anotação sobre a venda..."
-            value={editNotes}
-            onChangeText={setEditNotes}
-            multiline
-            numberOfLines={3}
-            style={{ height: 80, textAlignVertical: "center" }}
-          />
-        </View>
+        <FormBody>
+          <FormField label="Forma de pagamento">
+            <PaymentChips value={editPayment} onChange={setEditPayment} />
+          </FormField>
+          <FormField label="Observações" optional>
+            <TextField
+              accessibilityLabel="Observações"
+              placeholder="Alguma anotação sobre a venda…"
+              value={editNotes}
+              onChangeText={setEditNotes}
+              multiline
+            />
+          </FormField>
+        </FormBody>
       </StandardModal>
     </>
   );
