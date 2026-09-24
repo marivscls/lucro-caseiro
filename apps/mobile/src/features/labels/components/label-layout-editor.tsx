@@ -9,6 +9,7 @@ import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
+import { FormGrid } from "../../../shared/components/form-layout";
 
 interface LabelLayoutEditorProps {
   readonly value: LabelLayout | undefined;
@@ -78,42 +79,51 @@ export function LabelLayoutEditor({
     onChange({ widthMm: widthValue, heightMm: heightValue, copiesPerSheet: nextCopies });
   }
 
+  const mm = (
+    <Typography variant="body" color={theme.colors.textSecondary}>
+      mm
+    </Typography>
+  );
+
   const fields = (
     <View style={{ gap: spacing.md }} pointerEvents={locked ? "none" : "auto"}>
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
+      <FormGrid minColumnWidth={140}>
         <Input
-          label="Largura (mm)"
+          label="Largura"
           value={width}
           onChangeText={setWidth}
           onBlur={() => commitDraft(true)}
           keyboardType="decimal-pad"
           numericMode="decimal"
           inputMode="decimal"
+          accessibilityLabel="Largura em milímetros"
+          rightIcon={mm}
           error={
             widthValid
               ? undefined
               : `${LABEL_LAYOUT_LIMITS.minWidthMm} a ${LABEL_LAYOUT_LIMITS.maxWidthMm} mm`
           }
-          containerStyle={{ flex: 1 }}
         />
         <Input
-          label="Altura (mm)"
+          label="Altura"
           value={height}
           onChangeText={setHeight}
           onBlur={() => commitDraft(true)}
           keyboardType="decimal-pad"
           numericMode="decimal"
           inputMode="decimal"
+          accessibilityLabel="Altura em milímetros"
+          rightIcon={mm}
           error={
             heightValid
               ? undefined
               : `${LABEL_LAYOUT_LIMITS.minHeightMm} a ${LABEL_LAYOUT_LIMITS.maxHeightMm} mm`
           }
-          containerStyle={{ flex: 1 }}
         />
-      </View>
+      </FormGrid>
       <Input
-        label="Número de cópias por folha A4"
+        label="Cópias por folha A4"
+        hint={`Nesse tamanho cabem até ${capacity} etiquetas por folha, com espaço para corte.`}
         value={copies}
         onChangeText={(next) => {
           setCopies(next.replace(/\D/g, ""));
@@ -123,17 +133,17 @@ export function LabelLayoutEditor({
         inputMode="numeric"
         error={copiesValid ? undefined : `Escolha de 1 a ${capacity}`}
       />
-      <Typography variant="caption" color={theme.colors.textSecondary}>
-        Nesse tamanho cabem até {capacity} etiquetas por folha, com espaçamento para
-        corte.
-      </Typography>
     </View>
   );
 
   return (
     <View style={{ gap: spacing.md }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <Typography variant="caption" style={{ flex: 1 }}>
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ flex: 1 }}
+        >
           {locked
             ? "Defina medidas e quantidade por folha no plano Profissional."
             : "As medidas são aplicadas exatamente no PDF para impressão."}
