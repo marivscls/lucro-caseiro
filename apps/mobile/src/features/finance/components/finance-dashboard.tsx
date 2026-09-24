@@ -76,6 +76,8 @@ import {
   pageGutter,
 } from "../../../shared/layout/desktop-density";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormActions } from "../../../shared/components/form-layout";
+import { fieldMetrics, useFieldPalette } from "../../../shared/components/form-field";
 import { useOrdersSummary } from "../../orders/hooks";
 import { usePayPurchase, usePurchases } from "../../purchases/hooks";
 import { useQuotes } from "../../quotes/hooks";
@@ -122,6 +124,7 @@ export function FinanceDashboard({
   onAddPress,
 }: Readonly<FinanceDashboardProps>) {
   const { theme } = useTheme();
+  const fieldPalette = useFieldPalette();
   const colors = brandScreenPalette(theme);
   const experienceCopy = useBusinessCopy();
   const router = useRouter();
@@ -499,12 +502,7 @@ export function FinanceDashboard({
           closeAccessibilityLabel="Fechar detalhes do lançamento"
           dismissDisabled={deleteEntry.isPending}
           footer={
-            <View style={styles.detailActions}>
-              <Button
-                title="Fechar"
-                disabled={deleteEntry.isPending}
-                onPress={() => setSelectedEntry(null)}
-              />
+            <FormActions stack>
               <Button
                 title={deleteEntry.isPending ? "Excluindo…" : "Excluir lançamento"}
                 variant="alertOutline"
@@ -516,7 +514,6 @@ export function FinanceDashboard({
                   disabled: deleteEntry.isPending,
                   busy: deleteEntry.isPending,
                 }}
-                style={styles.detailDeleteButton}
                 icon={
                   <AppIcon
                     name="trash-outline"
@@ -550,7 +547,12 @@ export function FinanceDashboard({
                   });
                 }}
               />
-            </View>
+              <Button
+                title="Fechar"
+                disabled={deleteEntry.isPending}
+                onPress={() => setSelectedEntry(null)}
+              />
+            </FormActions>
           }
         >
           <View style={styles.detailContent}>
@@ -687,7 +689,11 @@ export function FinanceDashboard({
             </Pressable>
           </View>
 
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          <View
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Mês"
+            style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+          >
             {MONTH_NAMES.map((name, i) => {
               const m = i + 1;
               const isSel = m === month && pickerYear === year;
@@ -699,19 +705,23 @@ export function FinanceDashboard({
                     setYear(pickerYear);
                     setShowMonthPicker(false);
                   }}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSel }}
-                  style={{
+                  accessibilityRole="radio"
+                  accessibilityLabel={name}
+                  accessibilityState={{ selected: isSel, checked: isSel }}
+                  style={({ pressed }) => ({
                     width: "30%",
                     flexGrow: 1,
-                    minHeight: 48,
-                    borderRadius: radii.md,
+                    minHeight: fieldMetrics.height,
+                    borderRadius: fieldMetrics.radius,
+                    borderWidth: isSel ? 2 : 1,
+                    borderColor: isSel ? theme.colors.primaryStrong : fieldPalette.border,
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundColor: isSel
                       ? theme.colors.primaryBg
-                      : theme.colors.surface,
-                  }}
+                      : fieldPalette.fieldBgFocus,
+                    opacity: pressed ? 0.85 : 1,
+                  })}
                 >
                   <Typography
                     variant="bodyBold"
@@ -724,19 +734,16 @@ export function FinanceDashboard({
             })}
           </View>
 
-          <Pressable
+          <Button
+            title="Ir para o mês atual"
+            variant="text"
+            style={{ alignSelf: "center" }}
             onPress={() => {
               setMonth(now.getMonth() + 1);
               setYear(now.getFullYear());
               setShowMonthPicker(false);
             }}
-            accessibilityRole="button"
-            style={{ alignItems: "center", paddingVertical: spacing.sm }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              Ir para o mês atual
-            </Typography>
-          </Pressable>
+          />
         </View>
       </StandardModal>
     </>
@@ -2112,14 +2119,6 @@ function createStyles(theme: Theme) {
     detailMetaValue: {
       flexShrink: 1,
       textAlign: "right",
-    },
-    detailActions: {
-      flex: 1,
-      gap: spacing.xs,
-      minWidth: 0,
-    },
-    detailDeleteButton: {
-      borderWidth: 0,
     },
     emptyState: {
       alignItems: "center",
