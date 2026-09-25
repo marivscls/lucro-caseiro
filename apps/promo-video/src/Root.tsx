@@ -9,6 +9,7 @@ import { PlayStoreComposition } from "./PlayStoreVideo";
 import { ReelsCharacterComposition, ReelsComposition } from "./ReelsVideo";
 import { StoreScreenshotCompositions } from "./StoreScreenshots";
 import { TourComposition } from "./TourVideo";
+import { PrecoPecaReelComposition } from "./reel-preco-peca/PrecoPecaReel";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -24,6 +25,7 @@ export const RemotionRoot: React.FC = () => {
       <StoreScreenshotCompositions />
       <PixDepoisReelCompositions />
       <CadernosReelCompositions />
+      <PrecoPecaReelComposition />
     </>
   );
 };
