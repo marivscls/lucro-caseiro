@@ -1,5 +1,6 @@
 import "./index.css";
 import { AvatarDemoComposition } from "./AvatarDemo";
+import { CadernosReelCompositions } from "./reel-cadernos/CadernosReel";
 import { CampaignCompositions } from "./Campaigns";
 import { FeatureGraphicCompositions } from "./FeatureGraphics";
 import { MyComposition } from "./Composition";
@@ -22,6 +23,7 @@ export const RemotionRoot: React.FC = () => {
       <PlayStoreComposition />
       <StoreScreenshotCompositions />
       <PixDepoisReelCompositions />
+      <CadernosReelCompositions />
     </>
   );
 };
