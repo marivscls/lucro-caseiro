@@ -3,6 +3,7 @@ import { AvatarDemoComposition } from "./AvatarDemo";
 import { CampaignCompositions } from "./Campaigns";
 import { FeatureGraphicCompositions } from "./FeatureGraphics";
 import { MyComposition } from "./Composition";
+import { PixDepoisReelCompositions } from "./PixDepoisReel";
 import { PlayStoreComposition } from "./PlayStoreVideo";
 import { ReelsCharacterComposition, ReelsComposition } from "./ReelsVideo";
 import { StoreScreenshotCompositions } from "./StoreScreenshots";
@@ -20,6 +21,7 @@ export const RemotionRoot: React.FC = () => {
       <TourComposition />
       <PlayStoreComposition />
       <StoreScreenshotCompositions />
+      <PixDepoisReelCompositions />
     </>
   );
 };
