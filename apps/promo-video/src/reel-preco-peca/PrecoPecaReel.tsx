@@ -22,7 +22,7 @@ import {MARKETING_COLORS as C, MARKETING_FONTS as F} from "../marketing-brand";
  */
 
 const FPS = 30;
-const DIR = "reel-preco-peca";
+export const DIR = "reel-preco-peca";
 
 // Cenas (frames)
 const HOOK = {from: 0, to: 66};
@@ -46,18 +46,18 @@ const VOICE = [
 const LEAF = "#6F8F55";
 const KRAFT = "#C9A27A";
 
-const ease = Easing.bezier(0.16, 1, 0.3, 1);
-const clamp = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
-const r = (frame: number, a: number, b: number) =>
+export const ease = Easing.bezier(0.16, 1, 0.3, 1);
+export const clamp = {extrapolateLeft: "clamp", extrapolateRight: "clamp"} as const;
+export const r = (frame: number, a: number, b: number) =>
   interpolate(frame, [a, b], [0, 1], {...clamp, easing: ease});
 
 /* ---------- elementos comuns ---------- */
 
-const Canvas = ({children, dark = false}: {children: ReactNode; dark?: boolean}) => (
+export const Canvas = ({children, dark = false}: {children: ReactNode; dark?: boolean}) => (
   <AbsoluteFill style={{backgroundColor: dark ? C.wine : C.canvas}}>{children}</AbsoluteFill>
 );
 
-const Tag = ({children, dark = false}: {children: ReactNode; dark?: boolean}) => (
+export const Tag = ({children, dark = false}: {children: ReactNode; dark?: boolean}) => (
   <div
     style={{
       position: "absolute",
@@ -86,7 +86,7 @@ const Tag = ({children, dark = false}: {children: ReactNode; dark?: boolean}) =>
 );
 
 /** Legenda grande, legível sem áudio. */
-const Caption = ({
+export const Caption = ({
   children,
   top = 260,
   start = 0,
@@ -124,7 +124,7 @@ const Caption = ({
   );
 };
 
-const StepChip = ({n, label}: {n: string; label: string}) => {
+export const StepChip = ({n, label}: {n: string; label: string}) => {
   const frame = useCurrentFrame();
   const p = r(frame, 0, 8);
   return (
@@ -175,7 +175,7 @@ const StepChip = ({n, label}: {n: string; label: string}) => {
 };
 
 /** Corte próximo: leve "punch-in" no começo de cada plano. */
-const Punch = ({children, zoom = 1}: {children: ReactNode; zoom?: number}) => {
+export const Punch = ({children, zoom = 1}: {children: ReactNode; zoom?: number}) => {
   const frame = useCurrentFrame();
   const s = interpolate(frame, [0, 12], [1.07, 1], {...clamp, easing: ease});
   const drift = interpolate(frame, [0, 60], [0, 0.03], clamp);
@@ -188,7 +188,7 @@ const Punch = ({children, zoom = 1}: {children: ReactNode; zoom?: number}) => {
 
 const leaves = Array.from({length: 18}, (_, i) => i);
 
-const Plate = ({paint = 1, size = 700}: {paint?: number; size?: number}) => {
+export const Plate = ({paint = 1, size = 700}: {paint?: number; size?: number}) => {
   const textP = interpolate(paint, [0.45, 1], [0, 1], clamp);
   return (
     <svg width={size} height={size} viewBox="-360 -360 720 720">
@@ -330,7 +330,7 @@ const Brush = ({x, y, rot, delay, tip}: {x: number; y: number; rot: number; dela
   );
 };
 
-const Materiais = () => (
+export const Materiais = () => (
   <Canvas>
     <Tag>Exemplo ilustrativo</Tag>
     <Caption>Materiais</Caption>
@@ -348,7 +348,7 @@ const Materiais = () => (
   </Canvas>
 );
 
-const Pintura = () => {
+export const Pintura = () => {
   const frame = useCurrentFrame();
   const paint = interpolate(frame, [0, 50], [0.15, 1], clamp);
   // pincel acompanha a escrita do nome
@@ -388,7 +388,7 @@ const Pintura = () => {
   );
 };
 
-const Embalagem = () => {
+export const Embalagem = () => {
   const frame = useCurrentFrame();
   const drop = r(frame, 0, 16);
   const lid = r(frame, 16, 30);
@@ -459,7 +459,7 @@ const Embalagem = () => {
   );
 };
 
-const Tempo = () => {
+export const Tempo = () => {
   const frame = useCurrentFrame();
   const t = interpolate(frame, [4, 48], [0, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
   const minutes = t * 180;
@@ -522,7 +522,7 @@ const K = SCREEN_W / SHOT_W; // css px → px do vídeo
 
 type Box = {y: number; h: number; x?: number; w?: number};
 
-const SHOTS: {
+export const SHOTS: {
   src: string;
   from: number;
   to: number;
@@ -578,11 +578,24 @@ const SHOTS: {
   },
 ];
 
-const AppScreen = () => {
+export const AppScreen = ({
+  starts,
+  pace = 1,
+}: {
+  /** Início de cada captura (frames); padrão = SHOTS. */
+  starts?: number[];
+  /** Multiplica a duração das animações de destaque. */
+  pace?: number;
+}) => {
   const frame = useCurrentFrame();
   const enter = r(frame, 0, 14);
-  const shot = SHOTS.find((s) => frame >= s.from && frame < s.to) ?? SHOTS[SHOTS.length - 1];
-  const local = frame - shot.from;
+  const from = starts ?? SHOTS.map((s) => s.from);
+  let index = 0;
+  from.forEach((f, i) => {
+    if (frame >= f) index = i;
+  });
+  const shot = SHOTS[index];
+  const local = (frame - from[index]) / pace;
   const viewH = (PHONE_H - BEZEL * 2) / K; // css px visíveis
   const offset = Math.max(0, Math.min(1500 - viewH, shot.focusY - viewH / 2));
   const drift = interpolate(local, [0, shot.to - shot.from], [14, -14], clamp);
@@ -683,7 +696,7 @@ const AppScreen = () => {
 
 /* ---------- fechamento ---------- */
 
-const Final = () => {
+export const Final = () => {
   const frame = useCurrentFrame();
   const brand = r(frame, 80, 96);
   const text: CSSProperties = {
