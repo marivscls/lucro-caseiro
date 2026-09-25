@@ -3,6 +3,7 @@ import { AvatarDemoComposition } from "./AvatarDemo";
 import { CadernosReelCompositions } from "./reel-cadernos/CadernosReel";
 import { CampaignCompositions } from "./Campaigns";
 import { FeatureGraphicCompositions } from "./FeatureGraphics";
+import { LajotaCompositions } from "./reel-lajota/LajotaReel";
 import { MyComposition } from "./Composition";
 import { PixDepoisReelCompositions } from "./PixDepoisReel";
 import { PlayStoreComposition } from "./PlayStoreVideo";
@@ -28,6 +29,7 @@ export const RemotionRoot: React.FC = () => {
       <CadernosReelCompositions />
       <PrecoPecaReelComposition />
       <PrecoPecaLongoComposition />
+      <LajotaCompositions />
     </>
   );
 };

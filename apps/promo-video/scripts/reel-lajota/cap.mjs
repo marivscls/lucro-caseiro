@@ -1,0 +1,27 @@
+import {open} from './login.mjs';
+const H=Number(process.env.VH||800);
+const {b,p}=await open(H);
+await p.evaluate(()=>{
+  const k=Object.keys(localStorage).find(k=>k.startsWith('lucro-demo:data:'));
+  const x=JSON.parse(localStorage.getItem(k));
+  const base=x.products.find(p=>p.name==='Bolo de cenoura com chocolate');
+  x.products.unshift({...base,id:'b0b0b0b0-0000-4000-8000-000000000001',name:'Bolo de festa decorado',description:'Bolo de aniversário por encomenda.',salePrice:180,costPrice:62,stockQuantity:5,stockAlertThreshold:1,createdAt:'2026-09-01T10:00:00.000Z'});
+  const cida=x.clients.find(c=>c.name==='Dona Cida');
+  const tpl=x.sales.find(s=>s.status==='pending');
+  const pud=x.products.find(p=>p.name==='Pudim de leite');
+  x.sales.unshift({...tpl,id:'c1d0c1d0-0000-4000-8000-000000000002',clientId:cida.id,clientName:'Dona Cida',subtotal:35,total:35,items:[{...tpl.items[0],id:'c1d0c1d0-0000-4000-8000-0000000000a2',productId:pud.id,productName:'Pudim de leite',quantity:1,unitPrice:35,subtotal:35}],soldAt:'2026-09-22T15:00:00.000Z',createdAt:'2026-09-22T15:00:00.000Z'});
+  localStorage.setItem(k,JSON.stringify(x));
+});
+const shot=async n=>{await p.waitForTimeout(1200);await p.screenshot({path:`s-${n}.png`});};
+await p.goto('http://localhost:8123/fiado'); await p.waitForTimeout(3000); await shot('fiado-antes');
+await p.goto('http://localhost:8123/tabs/new-sale'); await p.waitForTimeout(3000); await shot('1-produtos');
+await p.getByText('Bolo de festa decorado').first().click(); await shot('2-carrinho');
+await p.getByText('Continuar',{exact:true}).last().click(); await shot('3-cliente');
+await p.getByText('Carla Mendes').first().click(); await shot('4-pagamento');
+await p.getByText('Fiado',{exact:true}).first().click(); await shot('5-fiado-sel');
+await p.getByText('Revisar venda',{exact:true}).last().click(); await shot('6-revisao');
+await p.getByText('Registrar venda',{exact:true}).last().click(); await shot('7-registrada');
+await p.goto('http://localhost:8123/fiado'); await p.waitForTimeout(3000); await shot('8-fiado-depois');
+await p.getByText('Mais antigos').click(); await p.waitForTimeout(800); await shot('9-ordem');
+await p.getByText(/recentes/i).last().click().catch(()=>{}); await shot('10-recentes');
+await b.close();
