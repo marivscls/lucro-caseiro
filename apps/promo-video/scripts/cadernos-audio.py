@@ -8,18 +8,18 @@ from pathlib import Path
 import numpy as np
 
 SR = 44100
-DURATION = 21.0
+DURATION = 41.0
 BPM = 84
 BAR = 4 * 60 / BPM
 OUT = Path(__file__).resolve().parent.parent / "public" / "reel-cadernos" / "musica.wav"
 
-# Cmaj7, Am7, Fmaj7, G6 (duas voltas), graves em oitava baixa.
+# Cmaj7, Am7, Fmaj7, G6 (quatro voltas), graves em oitava baixa.
 CHORDS = [
     (48, [60, 64, 67, 71]),
     (45, [57, 60, 64, 67]),
     (41, [57, 60, 64, 65]),
     (43, [59, 62, 64, 67]),
-] * 2
+] * 4
 
 
 def hz(note):
