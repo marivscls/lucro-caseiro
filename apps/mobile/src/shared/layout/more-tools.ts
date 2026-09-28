@@ -31,6 +31,13 @@ export const DAILY_ITEMS = [
     icon: "people-outline",
     route: "/tabs/clients",
   },
+  {
+    title: "Anotar falando",
+    description: "Venda por voz e foto do caderno",
+    icon: "mic-outline",
+    route: "/assistant",
+    badge: "Novo",
+  },
 ] as const satisfies ReadonlyArray<ToolItem>;
 
 export const FEATURED_MANAGEMENT_ITEMS = [
@@ -45,6 +52,13 @@ export const FEATURED_MANAGEMENT_ITEMS = [
     description: "Link para os clientes",
     icon: "storefront-outline",
     route: "/catalog",
+  },
+  {
+    title: "Receber no Pix",
+    description: "Pix com valor na cobrança",
+    icon: "qr-code-outline",
+    route: "/pix",
+    badge: "Novo",
   },
   {
     title: "Gastos fixos",
@@ -68,6 +82,12 @@ export const FEATURED_MANAGEMENT_ITEMS = [
 ] as const satisfies ReadonlyArray<ToolItem>;
 
 export const MORE_MANAGEMENT_ITEMS = [
+  {
+    title: "Cantinho do MEI",
+    description: "Teto do ano, relatório e DAS",
+    icon: "landmark-outline",
+    route: "/mei",
+  },
   {
     title: "Resultados",
     description: "Gráficos e desempenho",
@@ -135,6 +155,12 @@ export const MORE_MANAGEMENT_ITEMS = [
 ] as const satisfies ReadonlyArray<ToolItem>;
 
 export const ACCOUNT_HELP_ITEMS = [
+  {
+    title: "Indique e ganhe",
+    description: "1 mês grátis para vocês duas",
+    icon: "gift-outline",
+    route: "/referrals",
+  },
   {
     title: "Central de ajuda",
     description: "Dúvidas e suporte",

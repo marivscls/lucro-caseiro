@@ -11,6 +11,7 @@ describe("more-tools", () => {
     expect(routesOf(FEATURED_MANAGEMENT_ITEMS)).toEqual([
       "/pricing",
       "/catalog",
+      "/pix",
       "/recurring-expenses",
       "/products",
       "/packaging",

@@ -2,8 +2,10 @@ import type {
   CatalogSettings,
   Client,
   FinanceEntry,
+  MeiActivity,
   Order,
   PaymentMethod,
+  PixSettings,
   Product,
   ProlaboreGoal,
   Sale,
@@ -24,6 +26,10 @@ export interface DemoData {
   prolaboreGoal?: ProlaboreGoal | null;
   /** Vitrine; criada com os padrões da API na primeira leitura. */
   catalogSettings?: CatalogSettings | null;
+  /** Chave Pix da demonstração (Receber no Pix). */
+  pixSettings?: PixSettings | null;
+  /** Atividade do Cantinho do MEI. */
+  meiActivity?: MeiActivity | null;
 }
 
 interface DemoAccount {

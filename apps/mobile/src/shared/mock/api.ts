@@ -13,6 +13,7 @@ import {
 
 import { currentDemoAccount, userIdFromToken } from "./auth";
 import { loadDemoData, saveDemoData } from "./db";
+import { growthRoutes } from "./growth-routes";
 import {
   buildClient,
   buildOrder,
@@ -835,6 +836,9 @@ const routes: [string, RegExp, Handler][] = [
       return noContent(true);
     },
   ],
+
+  // Pix, indicação, MEI e anotar falando
+  ...growthRoutes,
 ];
 
 /** Rotas atendidas sem conta: coleta de uso e notificações viram no-op. */
