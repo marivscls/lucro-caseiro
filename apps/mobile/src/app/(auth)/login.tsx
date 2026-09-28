@@ -46,7 +46,7 @@ export default function LoginScreen() {
   const brand = useBrand();
   const brandName = getBrandDisplayName(brand);
   const router = useRouter();
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithEmail, signInWithGoogle, resendConfirmation } = useAuth();
   const [resetLoading, setResetLoading] = useState(false);
 
   const [email, setEmail] = useState("");
@@ -84,7 +84,16 @@ export default function LoginScreen() {
     setEmailLoading(true);
     try {
       const result = await signInWithEmail(email, password);
-      if (result.error) {
+      if (result.needsConfirmation) {
+        showAlert({
+          title: "Confirme seu e-mail",
+          message: result.error,
+          buttons: [
+            { text: "Ok", style: "cancel" },
+            { text: "Reenviar e-mail", onPress: () => void handleResendConfirmation() },
+          ],
+        });
+      } else if (result.error) {
         showAlert({ title: "Ops!", message: result.error });
       }
     } catch (e: unknown) {
@@ -93,6 +102,19 @@ export default function LoginScreen() {
     } finally {
       setEmailLoading(false);
     }
+  }
+
+  async function handleResendConfirmation() {
+    const result = await resendConfirmation(email);
+    showAlert(
+      result.error
+        ? { title: "Ops!", message: result.error }
+        : {
+            title: "E-mail reenviado!",
+            message:
+              "Abra o link que enviamos para confirmar a conta. Se não achar, olhe no spam ou lixo eletrônico.",
+          },
+    );
   }
 
   async function handleGoogleLogin() {

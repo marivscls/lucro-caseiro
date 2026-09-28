@@ -265,6 +265,7 @@ vi.mock("@supabase/supabase-js", () => ({
       signInWithPassword: vi.fn(),
       signInWithOAuth: vi.fn(),
       signUp: vi.fn(),
+      resend: vi.fn(),
       signOut: vi.fn(),
       setSession: vi.fn(),
       updateUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),

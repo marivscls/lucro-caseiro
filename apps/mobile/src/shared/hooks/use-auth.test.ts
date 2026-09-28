@@ -133,6 +133,58 @@ describe("getAuthRedirectUrl", () => {
     expect(result.error).not.toContain("{}");
   });
 
+  it("sinaliza e-mail não confirmado no login para oferecer o reenvio", async () => {
+    vi.spyOn(supabase.auth, "signInWithPassword").mockResolvedValue({
+      data: { user: null, session: null },
+      error: {
+        name: "AuthApiError",
+        message: "Email not confirmed",
+        code: "email_not_confirmed",
+        status: 400,
+      } as AuthError,
+    });
+
+    const result = await useAuth.getState().signInWithEmail("conta@exemplo.com", "senha");
+
+    expect(result.needsConfirmation).toBe(true);
+    expect(result.error).toContain("Confirme seu e-mail");
+  });
+
+  it("reenvia o link de confirmação do cadastro", async () => {
+    platform.OS = "android";
+    vi.stubEnv("EXPO_PUBLIC_AUTH_REDIRECT_URL", "lucrocaseiro://auth/callback");
+    const resend = vi
+      .spyOn(supabase.auth, "resend")
+      .mockResolvedValue({ data: { user: null, session: null }, error: null });
+
+    const result = await useAuth.getState().resendConfirmation(" conta@exemplo.com ");
+
+    expect(result).toEqual({});
+    expect(resend).toHaveBeenCalledWith({
+      type: "signup",
+      email: "conta@exemplo.com",
+      options: { emailRedirectTo: "lucrocaseiro://auth/callback" },
+    });
+  });
+
+  it("explica o limite de reenvio sem exibir o erro técnico", async () => {
+    vi.spyOn(supabase.auth, "resend").mockResolvedValue({
+      data: { user: null, session: null },
+      error: {
+        name: "AuthApiError",
+        message: "For security purposes, you can only request this after 42 seconds.",
+        code: "over_email_send_rate_limit",
+        status: 429,
+      } as AuthError,
+    });
+
+    const result = await useAuth.getState().resendConfirmation("conta@exemplo.com");
+
+    expect(result).toEqual({
+      error: "Acabamos de enviar um e-mail. Espere 1 minuto e tente de novo.",
+    });
+  });
+
   it("trata exceção de transporte durante o login", async () => {
     vi.spyOn(supabase.auth, "signInWithPassword").mockRejectedValue({});
 

@@ -134,7 +134,11 @@ interface AuthState {
   passwordRecoveryError: string | null;
 
   initialize: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error?: string }>;
+  signInWithEmail: (
+    email: string,
+    password: string,
+  ) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  resendConfirmation: (email: string) => Promise<{ error?: string }>;
   signUpWithEmail: (
     email: string,
     password: string,
@@ -174,6 +178,32 @@ type AuthFailure = {
   readonly name?: unknown;
 };
 
+function isEmailNotConfirmed(error: AuthFailure) {
+  const message = typeof error.message === "string" ? error.message.toLowerCase() : "";
+  const code = typeof error.code === "string" ? error.code.toLowerCase() : "";
+  return code === "email_not_confirmed" || message.includes("email not confirmed");
+}
+
+function resendErrorMessage(error: AuthFailure) {
+  const message = typeof error.message === "string" ? error.message.toLowerCase() : "";
+  const code = typeof error.code === "string" ? error.code.toLowerCase() : "";
+  const status = typeof error.status === "number" ? error.status : undefined;
+
+  if (
+    code === "over_email_send_rate_limit" ||
+    code === "over_request_rate_limit" ||
+    message.includes("rate limit") ||
+    message.includes("only request this after") ||
+    status === 429
+  ) {
+    return "Acabamos de enviar um e-mail. Espere 1 minuto e tente de novo.";
+  }
+  if (error.name === "AuthRetryableFetchError" || status === 0) {
+    return "Não foi possível conectar. Verifique sua internet e tente novamente.";
+  }
+  return "Não foi possível reenviar o e-mail agora. Tente novamente em alguns minutos.";
+}
+
 function signInErrorMessage(error: AuthFailure) {
   const rawMessage = typeof error.message === "string" ? error.message.trim() : "";
   const message = rawMessage.toLowerCase();
@@ -185,7 +215,7 @@ function signInErrorMessage(error: AuthFailure) {
     return "E-mail ou senha incorretos";
   }
   if (code === "email_not_confirmed" || message.includes("email not confirmed")) {
-    return "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.";
+    return "Confirme seu e-mail antes de entrar. Procure o e-mail do Lucro Caseiro na caixa de entrada e no spam.";
   }
   if (code === "over_request_rate_limit" || status === 429) {
     return "Muitas tentativas seguidas. Espere um pouco e tente novamente.";
@@ -334,7 +364,9 @@ export const useAuth = create<AuthState>((set, get) => ({
             status: error.status,
           });
         }
-        return { error: signInErrorMessage(error) };
+        return isEmailNotConfirmed(error)
+          ? { error: signInErrorMessage(error), needsConfirmation: true }
+          : { error: signInErrorMessage(error) };
       }
 
       // Não marca onboarding como concluído aqui: quem decide é o index.tsx pela
@@ -347,6 +379,35 @@ export const useAuth = create<AuthState>((set, get) => ({
       }
       return {
         error: signInErrorMessage(
+          typeof error === "object" && error !== null ? error : {},
+        ),
+      };
+    }
+  },
+
+  // Reenvia o link de confirmação do cadastro. O Supabase responde sucesso também
+  // para e-mail inexistente ou já confirmado, então a mensagem de sucesso é neutra.
+  resendConfirmation: async (email) => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim(),
+        options: { emailRedirectTo: getAuthRedirectUrl() },
+      });
+      if (error) {
+        if (__DEV__) {
+          console.warn("[auth] resendConfirmation failed", {
+            code: error.code,
+            message: error.message,
+            status: error.status,
+          });
+        }
+        return { error: resendErrorMessage(error) };
+      }
+      return {};
+    } catch (error) {
+      return {
+        error: resendErrorMessage(
           typeof error === "object" && error !== null ? error : {},
         ),
       };

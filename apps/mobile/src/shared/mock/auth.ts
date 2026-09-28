@@ -271,6 +271,10 @@ export const mockSupabase = {
     setSession(_tokens: { access_token: string; refresh_token: string }) {
       return Promise.resolve({ data: { session: currentSession() }, error: noError });
     },
+    async resend(_params: { type: string; email: string; options?: unknown }) {
+      await wait(AUTH_DELAY_MS);
+      return { data: {}, error: noError };
+    },
     async resetPasswordForEmail(_email: string, _options?: unknown) {
       await wait(AUTH_DELAY_MS);
       return { data: {}, error: noError };

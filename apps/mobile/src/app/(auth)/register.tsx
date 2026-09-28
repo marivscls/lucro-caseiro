@@ -130,7 +130,8 @@ export default function RegisterScreen() {
     if (result.needsConfirmation) {
       showAlert({
         title: "Conta criada!",
-        message: "Verifique seu e-mail para confirmar a conta. Depois é só entrar!",
+        message:
+          "Enviamos um link de confirmação para o seu e-mail. Se não achar, olhe no spam. Depois de confirmar é só entrar!",
         buttons: [{ text: "Ok", onPress: () => router.push("/(auth)/login") }],
       });
     } else {
