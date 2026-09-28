@@ -1,31 +1,10 @@
 export const ANALYTICS_DASHBOARD_QUERY = `
-  WITH first_pricing AS (
-    SELECT user_id, MIN(occurred_at) AS pricing_at
+  WITH first_activation AS (
+    SELECT user_id, MIN(occurred_at) AS activated_at
     FROM analytics_events
-    WHERE user_id IS NOT NULL
-      AND event_type = 'action'
-      AND event_name = 'pricing_completed'
+    WHERE user_id IS NOT NULL AND event_type = 'action'
+      AND event_name IN ('pricing_completed', 'sale_completed', 'order_created')
     GROUP BY user_id
-  ),
-  first_priced_product AS (
-    SELECT pricing.user_id, MIN(event.occurred_at) AS product_at
-    FROM first_pricing pricing
-    JOIN analytics_events event
-      ON event.user_id = pricing.user_id
-      AND event.event_type = 'action'
-      AND event.event_name = 'product_created_from_pricing'
-      AND event.occurred_at >= pricing.pricing_at
-    GROUP BY pricing.user_id
-  ),
-  first_activation AS (
-    SELECT product.user_id, MIN(event.occurred_at) AS activated_at
-    FROM first_priced_product product
-    JOIN analytics_events event
-      ON event.user_id = product.user_id
-      AND event.event_type = 'action'
-      AND event.event_name IN ('catalog_published', 'sale_completed')
-      AND event.occurred_at >= product.product_at
-    GROUP BY product.user_id
   ),
   retention AS (
     SELECT
@@ -67,7 +46,7 @@ export const ANALYTICS_DASHBOARD_QUERY = `
         WHERE users.created_at <= NOW() - INTERVAL '7 days'
           AND activation.activated_at <= users.created_at + INTERVAL '7 days'
       )::int AS activated_within_7d
-    FROM users
+    FROM auth.users users
     LEFT JOIN first_activation activation ON activation.user_id = users.id
   ),
   active AS (
@@ -86,12 +65,12 @@ export const ANALYTICS_DASHBOARD_QUERY = `
   ),
   retained AS (
     SELECT
-      COUNT(*) FILTER (WHERE cohort_date <= (NOW() AT TIME ZONE 'UTC')::date - 1)::int AS eligible_d1,
-      COUNT(*) FILTER (WHERE cohort_date <= (NOW() AT TIME ZONE 'UTC')::date - 1 AND retained_d1)::int AS retained_d1,
-      COUNT(*) FILTER (WHERE cohort_date <= (NOW() AT TIME ZONE 'UTC')::date - 7)::int AS eligible_d7,
-      COUNT(*) FILTER (WHERE cohort_date <= (NOW() AT TIME ZONE 'UTC')::date - 7 AND retained_d7)::int AS retained_d7,
-      COUNT(*) FILTER (WHERE cohort_date <= (NOW() AT TIME ZONE 'UTC')::date - 30)::int AS eligible_d30,
-      COUNT(*) FILTER (WHERE cohort_date <= (NOW() AT TIME ZONE 'UTC')::date - 30 AND retained_d30)::int AS retained_d30
+      COUNT(*) FILTER (WHERE cohort_date < (NOW() AT TIME ZONE 'UTC')::date - 1)::int AS eligible_d1,
+      COUNT(*) FILTER (WHERE cohort_date < (NOW() AT TIME ZONE 'UTC')::date - 1 AND retained_d1)::int AS retained_d1,
+      COUNT(*) FILTER (WHERE cohort_date < (NOW() AT TIME ZONE 'UTC')::date - 7)::int AS eligible_d7,
+      COUNT(*) FILTER (WHERE cohort_date < (NOW() AT TIME ZONE 'UTC')::date - 7 AND retained_d7)::int AS retained_d7,
+      COUNT(*) FILTER (WHERE cohort_date < (NOW() AT TIME ZONE 'UTC')::date - 30)::int AS eligible_d30,
+      COUNT(*) FILTER (WHERE cohort_date < (NOW() AT TIME ZONE 'UTC')::date - 30 AND retained_d30)::int AS retained_d30
     FROM retention
   ),
   screen_usage AS (
@@ -241,7 +220,7 @@ export const ANALYTICS_DASHBOARD_QUERY = `
         AND event.occurred_at >= installation.first_opened_at
         AND event.occurred_at <= installation.first_opened_at + INTERVAL '7 days'
     )
-    WHERE installation.first_opened_at <= NOW() - INTERVAL '7 days'
+    WHERE (installation.first_opened_at AT TIME ZONE 'UTC')::date < (NOW() AT TIME ZONE 'UTC')::date - 7
     GROUP BY behavior_names.behavior
   ),
   behavior_retention_rows AS (

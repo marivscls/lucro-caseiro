@@ -1,5 +1,6 @@
 import type {
   ProductAnalyticsDashboard,
+  InstallAttribution,
   ProductAnalyticsEvent,
 } from "@lucro-caseiro/contracts";
 
@@ -10,6 +11,7 @@ export interface AppOpenPayload {
   platform: "android" | "ios" | "web";
   appVersion: string;
   appBuild?: string;
+  attribution?: InstallAttribution;
 }
 
 export async function recordAppOpen(

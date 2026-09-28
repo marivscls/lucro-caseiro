@@ -16,6 +16,7 @@ import { marketingIdeas } from "./business-profile-data";
 import { BusinessProfileForm } from "./business-profile-form";
 import { profileRecommendation, type BusinessProfileAnswers } from "./profile-data";
 import { useBusinessOnboarding } from "./use-business-onboarding";
+import { FirstTask } from "./first-task";
 
 export function BusinessProfileFlow({
   onClose,
@@ -29,6 +30,7 @@ export function BusinessProfileFlow({
   const state = useBusinessOnboarding();
   const router = useRouter();
   const colors = useBrandScreenPalette();
+  const [configureProfile, setConfigureProfile] = useState(!firstAccess);
   useEffect(() => {
     if (closeRequest)
       closeRequest.current = () => {
@@ -99,6 +101,19 @@ export function BusinessProfileFlow({
         )}
       </View>
     );
+  if (firstAccess && !configureProfile && !state.record) {
+    return (
+      <FirstTask
+        onConfigure={() => setConfigureProfile(true)}
+        onStart={async (route) => {
+          if (!(await state.save(null))) return false;
+          onClose();
+          router.push(route);
+          return true;
+        }}
+      />
+    );
+  }
   return (
     <BusinessProfileForm
       initialProfile={state.answers}

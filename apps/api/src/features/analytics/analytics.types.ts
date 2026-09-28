@@ -1,5 +1,6 @@
 import type {
   AnalyticsActionName,
+  InstallAttribution,
   ProductAnalyticsDashboard,
   ProductAnalyticsEvent,
 } from "@lucro-caseiro/contracts";
@@ -11,6 +12,7 @@ export interface RecordOpenInput {
   platform: AnalyticsPlatform;
   appVersion: string;
   appBuild?: string;
+  attribution?: InstallAttribution;
 }
 
 export interface PersistedOpen extends RecordOpenInput {

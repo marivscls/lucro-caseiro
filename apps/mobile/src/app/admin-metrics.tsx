@@ -19,6 +19,7 @@ import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAdminAnalyticsDashboard } from "../features/analytics/hooks";
+import { AccountAcquisition } from "../features/analytics/account-acquisition";
 import { ListCard, ListCardItem } from "../shared/components/list-card";
 import { ScreenHeader } from "../shared/components/screen-header";
 import {
@@ -34,10 +35,11 @@ import {
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 
-type DashboardSection = "overview" | "usage" | "funnel" | "retention";
+type DashboardSection = "overview" | "acquisition" | "usage" | "funnel" | "retention";
 
 const SECTIONS: { key: DashboardSection; label: string }[] = [
   { key: "overview", label: "Visão geral" },
+  { key: "acquisition", label: "Aquisição" },
   { key: "usage", label: "Telas e funções" },
   { key: "funnel", label: "Funil" },
   { key: "retention", label: "Retenção" },
@@ -485,6 +487,14 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
   const [section, setSection] = useState<DashboardSection>("overview");
   let sectionContent: React.ReactNode = <OverviewSection data={data} />;
+  if (section === "acquisition")
+    sectionContent = data.acquisition ? (
+      <AccountAcquisition data={data.acquisition} />
+    ) : (
+      <Typography variant="body">
+        Atualize os dados para carregar a medição por conta.
+      </Typography>
+    );
   if (section === "usage") sectionContent = <UsageSection data={data} />;
   if (section === "funnel") sectionContent = <FunnelSection data={data} />;
   if (section === "retention") sectionContent = <RetentionSection data={data} />;

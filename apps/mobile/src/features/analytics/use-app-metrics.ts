@@ -5,6 +5,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import { recordAppOpen } from "./api";
 import { getOrCreateInstallationId } from "./installation";
 import { appMetadata } from "./metadata";
+import { getInstallAttribution } from "./install-attribution";
 
 export function useAppMetrics(): void {
   const { isLoading, token, userId } = useAuth();
@@ -15,7 +16,11 @@ export function useAppMetrics(): void {
   const sendOpen = useCallback(async () => {
     try {
       const installationId = await getOrCreateInstallationId();
-      await recordAppOpen({ installationId, ...appMetadata() }, latestToken.current);
+      const attribution = await getInstallAttribution();
+      await recordAppOpen(
+        { installationId, ...appMetadata(), attribution },
+        latestToken.current,
+      );
     } catch (error) {
       if (__DEV__) console.warn("[analytics] abertura não registrada", error);
     }

@@ -10,7 +10,7 @@ conta autorizada pelo backend.
 
 ## Non-goals
 
-- Não rastreia toques livres, texto, conteúdo, buscas, crashes ou origem de campanha.
+- Não rastreia toques livres, texto, conteúdo, buscas ou crashes.
 - Não mostra métricas a contas comuns.
 - Não adiciona SDK ou dependência analítica externa.
 
@@ -31,11 +31,13 @@ conta autorizada pelo backend.
 - `hooks.ts`: acesso administrativo e consulta do painel com React Query.
 - `app/admin-metrics.tsx`: painel visual interno.
 - `installation.test.ts`: persistência e formato do UUID.
+- `attribution.ts`, `install-attribution.ts`: leitura Android com expo-application, prazo de 1500 ms, repetição após erro e cache em memória da atribuição válida. Só rótulos UTM são enviados.
+- `account-acquisition.tsx`: seção Aquisição, separando contas confirmadas, instalações, denominadores elegíveis, tempo mediano e retorno por semana de cadastro.
 
 ## Components
 
-`admin-metrics.tsx` reutiliza Card, Typography, Button e EmptyState. Possui Visão geral, Telas e
-funções, Funil e Retenção, com pull-to-refresh.
+`admin-metrics.tsx` reutiliza Card, Typography, Button e EmptyState. Possui Visão geral, Aquisição,
+Telas e funções, Funil e Retenção, com pull-to-refresh.
 
 ## Hooks
 
@@ -49,7 +51,7 @@ relógio no foreground. Segmentos menores que 250 ms são ignorados e os demais 
 
 - Sem token: `POST /api/v1/analytics/open`.
 - Com token: `POST /api/v1/analytics/identify`.
-- Payload: UUID da instalação, plataforma, versão e build.
+- Payload: UUID da instalação, plataforma, versão, build e atribuição UTM opcional e validada.
 - Eventos: `POST /events` sem token e `POST /events/identify` com token.
 - `GET /api/v1/analytics/admin/access`: decide se o item aparece em “Mais”.
 - `GET /api/v1/analytics/admin/dashboard`: carrega os dados; o servidor continua sendo a barreira.
@@ -83,6 +85,9 @@ Uma instalação anônima abre o app, recebe UUID local e chama `/open`; após l
 `/identify`, vinculando também os dias anteriores.
 
 ## Change log / Decisions
+
+- 2026-09-28: atribuição Android entregue pela Google Play sem referrer bruto. Links de divulgação precisam do parâmetro `referrer` com UTMs codificados; versões antigas continuam aceitas. Origem ausente não é classificada como orgânica. A coleta não bloqueia login ou navegação.
+- 2026-09-28: cadastro canônico passa a ser responsabilidade do backend, incluindo Google; removida a emissão isolada na tela de cadastro por e-mail.
 
 - 2026-07-13: coleta mínima própria, sem SDK externo e sem fila dedicada; falhas tentam novamente
   em uma abertura futura.

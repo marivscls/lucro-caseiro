@@ -1,12 +1,27 @@
 import { ANALYTICS_ACTION_NAMES, ANALYTICS_SCREEN_NAMES } from "@lucro-caseiro/contracts";
 import { z } from "zod";
 
+const CampaignIdentifier = z
+  .string()
+  .min(1)
+  .max(100)
+  .regex(/^[a-zA-Z0-9_.-]+$/);
+const InstallAttributionDto = z
+  .object({
+    source: CampaignIdentifier,
+    medium: CampaignIdentifier.optional(),
+    campaign: CampaignIdentifier.optional(),
+    content: CampaignIdentifier.optional(),
+  })
+  .strict();
+
 const RecordOpenDto = z
   .object({
     installationId: z.string().uuid(),
     platform: z.enum(["android", "ios", "web"]),
     appVersion: z.string().trim().min(1).max(32),
     appBuild: z.string().trim().min(1).max(32).optional(),
+    attribution: InstallAttributionDto.optional(),
   })
   .strict();
 

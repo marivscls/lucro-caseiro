@@ -247,7 +247,9 @@ const accountUseCases = new AccountUseCases(accountRepo, {
     }
   },
 });
-const analyticsUseCases = new AnalyticsUseCases(new AnalyticsRepoPg(db));
+const analyticsUseCases = new AnalyticsUseCases(
+  new AnalyticsRepoPg(db, config.adminUserIds),
+);
 const emailSender = config.resendApiKey
   ? createResendEmailSender(config.resendApiKey, config.emailFrom)
   : undefined;

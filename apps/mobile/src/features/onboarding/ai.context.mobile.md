@@ -30,7 +30,7 @@ O formulário `business-profile-form.tsx` é compartilhado pelo fluxo real. A co
 
 ## Test matrix
 
-Testes cobrem validação, mapeamento de segmentos, recomendações/canais, falhas de API e Auth, nova tentativa, dispensa remota, isolamento e troca de conta, textos personalizados e regressão do guia anterior. Revisão visual na prévia web usando a leitura do perfil existente, sem gravar dados fictícios na conta. Publicação de produção não executada.
+Testes cobrem validação, mapeamento de segmentos, recomendações/canais, falhas de API e Auth, nova tentativa, dispensa remota, isolamento e troca de conta, textos personalizados e regressão do guia anterior. Os testes de `first-task.tsx` cobrem os destinos das escolhas e a permanência das opções após falha. Revisão visual da nova escolha inicial em prévia local isolada, sem gravar dados fictícios na conta. O registro de publicação está em `docs/analise-aquisicao-2026-09-28/implementacao-app.md`.
 
 ## Non-goals
 
@@ -65,6 +65,8 @@ Falha em qualquer escrita mantém o formulário aberto e o rascunho disponível.
 Artesanato com prioridade de preço destaca a precificação de uma peça. Serviços com prioridade de organização abrem a agenda. Canais WhatsApp e Instagram produzem duas ideias distintas de divulgação. Uma conta dispensada mantém a edição disponível em Configurações.
 
 ## Change log / Decisions
+
+- 2026-09-28: no primeiro acesso, `first-task.tsx` permite escolher precificação ou nova venda antes do questionário. Completar o perfil continua opcional em Configurações. A dispensa só é confirmada após salvar na conta; falhas mantêm as opções e permitem nova tentativa. A edição de perfis existentes mantém o formulário completo.
 
 - 2026-09-04: prévia convertida em fluxo real com persistência por conta e layout compacto.
 - 2026-09-04: removidos nomes e convite de demonstração; Início só mostra o cartão personalizado após conclusão. A edição continua em Configurações.

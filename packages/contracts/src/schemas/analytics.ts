@@ -69,11 +69,19 @@ export const ANALYTICS_ACTION_NAMES = [
 export type AnalyticsScreenName = (typeof ANALYTICS_SCREEN_NAMES)[number];
 export type AnalyticsActionName = (typeof ANALYTICS_ACTION_NAMES)[number];
 
+export interface InstallAttribution {
+  source: string;
+  medium?: string;
+  campaign?: string;
+  content?: string;
+}
+
 export type ProductAnalyticsEvent =
   | { type: "screen_view"; name: AnalyticsScreenName; durationMs: number }
   | { type: "action"; name: AnalyticsActionName };
 
 export interface ProductAnalyticsDashboard {
+  acquisition?: AccountAcquisitionReport;
   generatedAt: string;
   installations: {
     total: number;
@@ -105,6 +113,35 @@ export interface ProductAnalyticsDashboard {
   funnel: FunnelMetric[];
   versionAdoption: VersionAdoptionMetric[];
   behaviorRetention: BehaviorRetentionMetric[];
+}
+
+export interface AccountAcquisitionReport {
+  since: string;
+  accounts: number;
+  eligible7Days: number;
+  excludedAccounts: number;
+  milestones: {
+    action: "first_value" | "product" | "pricing" | "sale";
+    users: number;
+    eligible: number;
+    percent: number | null;
+    medianMinutes: number | null;
+  }[];
+  retention: { day1: RetentionMetric; day7: RetentionMetric };
+  cohorts: {
+    week: string;
+    accounts: number;
+    eligibleD1: number;
+    retainedD1: number;
+    eligibleD7: number;
+    retainedD7: number;
+  }[];
+  sources: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    installations: number;
+  }[];
 }
 
 export interface RetentionMetric {

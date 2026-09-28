@@ -9,7 +9,7 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Non-goals
 
-- Não rastreia toques livres, campanhas, crashes, texto digitado ou conteúdo criado.
+- Não rastreia toques livres, crashes, texto digitado ou conteúdo criado.
 - Não substitui métricas de download e aquisição da Google Play.
 - Não oferece endpoint público de relatório; o painel exige autenticação e allowlist.
 
@@ -26,7 +26,8 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 - `analytics.admin.ts`: regra pura de autorização por UUID configurado.
 - `analytics.usecases.ts`: relógio e chave de dia UTC.
 - `analytics.repo.pg.ts`: upserts idempotentes e vínculo retroativo.
-- `analytics.report-query.ts`: consulta canônica compartilhada pelo endpoint e pelo comando.
+- `analytics.report-query.ts`: métricas históricas por instalação.
+- `analytics.acquisition-query.ts`: contas confirmadas em 90 dias, primeira utilidade em 7 dias, coortes e campanhas; compartilhada pelo endpoint e pelo comando.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
 - `packages/database/src/migrations/034_product_analytics.sql`: instalações e atividade.
 - `packages/database/src/migrations/035_analytics_behavior_events.sql`: eventos e segurança.
@@ -69,6 +70,8 @@ O envelope usa `{ installationId, platform, appVersion, appBuild? }`. Eventos s�
 discriminada: `screen_view` exige nome permitido e duração de 250 ms a 6 h; `action` aceita apenas
 as dez ações do contrato. Metadata arbitrária é rejeitada.
 
+`attribution?` aceita somente source, medium, campaign e content: identificadores de 1 a 100 caracteres ASCII alfanuméricos, ponto, hífen ou sublinhado. A primeira campanha conhecida é preservada em bloco; o referrer bruto nunca é persistido.
+
 ## Errors
 
 - 400 para payload inválido, via error handler existente.
@@ -106,6 +109,10 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
 `POST /api/v1/analytics/open` com UUID, `android`, versão `1.2.0` e build `19` retorna 204.
 
 ## Change log / Decisions
+
+- 2026-09-28: `signup_completed` pertence ao servidor, registrado na identificação autenticada com `auth.users.created_at` e bloqueio transacional por conta. Alegações de cadastro do cliente são ignoradas. Contas antigas que retornam recebem o evento ausente com a data original; isso não recupera a instalação original.
+- 2026-09-28: ativação não exige mais a sequência de precificação. D1/D7/D30 por instalação só incluem dias UTC completos. Aquisição por conta usa contas confirmadas e exclui `ADMIN_USER_IDS`; marcos combinam registros de produto, preço, venda e encomenda com eventos, sem exigir ordem. Mediana e conversão em 7 dias usam somente contas com 7 dias completos. Exclusões de registros e falhas históricas de coleta limitam o histórico.
+- 2026-09-28: migração idempotente 064 alinha as colunas UTM já existentes em produção. Testes PostgreSQL com PGlite verificam cadastro, atribuição e coortes.
 
 - 2026-07-13: implementação inicial sem SDK externo; ativação derivada das tabelas canônicas.
 - Retenção usa dia exato D1/D7/D30 e calendário UTC.
