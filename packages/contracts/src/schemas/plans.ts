@@ -128,10 +128,14 @@ export function planHasFeature(plan: PlanType, feature: PlanFeature): boolean {
  * e cai para "free" se a assinatura paga já expirou. Fonte única de "qual plano
  * vale agora" — todo gate de limite/feature deve passar por aqui.
  */
-export function resolveActivePlan(plan: string, expiresAt: string | null): PlanType {
+export function resolveActivePlan(
+  plan: string,
+  expiresAt: string | null,
+  now: Date = new Date(),
+): PlanType {
   const normalized = normalizePlan(plan);
   if (normalized === "free") return "free";
-  if (expiresAt && new Date(expiresAt) <= new Date()) return "free";
+  if (expiresAt && new Date(expiresAt) <= now) return "free";
   return normalized;
 }
 
@@ -185,8 +189,9 @@ export function isActiveTrial(
   plan: string,
   expiresAt: string | null,
   planIsTrial: boolean | undefined,
+  now: Date = new Date(),
 ): boolean {
-  return planIsTrial === true && resolveActivePlan(plan, expiresAt) !== "free";
+  return planIsTrial === true && resolveActivePlan(plan, expiresAt, now) !== "free";
 }
 
 export function isPaidPlan(plan: PlanType): plan is PaidPlan {

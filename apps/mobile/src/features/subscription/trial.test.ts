@@ -39,6 +39,18 @@ describe("essential trial helpers", () => {
     // API antiga sem o campo: não é teste.
     expect(isProfileOnTrial({ plan: "essential", planExpiresAt: future })).toBe(false);
     expect(isProfileOnTrial(null)).toBe(false);
+    expect(
+      isProfileOnTrial(
+        { plan: "essential", planExpiresAt: atDays(3), planIsTrial: true },
+        NOW,
+      ),
+    ).toBe(true);
+    expect(
+      isProfileOnTrial(
+        { plan: "essential", planExpiresAt: NOW.toISOString(), planIsTrial: true },
+        NOW,
+      ),
+    ).toBe(false);
   });
 
   it("shows when the trial ends and, after it, that the account went back to free", () => {

@@ -23,4 +23,6 @@ Base remota integrada: `b9c8628f`. Foram encontrados 11 conflitos de conteúdo, 
 
 ## Limites
 
+A primeira execução do gate completo encontrou uma falha no teste de apresentação do período grátis: `trialNotice` recebia uma data fixa, mas a checagem de plano consultava o relógio real. A correção repassa a mesma data por todos os helpers envolvidos, mantendo a data atual como padrão.
+
 Arquivos temporários, caches, requisições de automação e o AAB compilado permanecem locais. O push não representa publicação de uma versão Android na Play Store. Os testes nativos da versão integrada continuam pendentes conforme combinado; o snapshot EAS 32 antecede esta integração.

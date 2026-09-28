@@ -187,6 +187,8 @@ Em 1024 px o botão "Continuar para pagamento" da lateral quebra em duas linhas 
 
 ## Teste grátis do Essencial — 2026-09-24
 
+Em 28/09, a validação de integração detectou uma mistura de relógios no aviso do teste. `trialNotice`, `isProfileOnTrial`, `isActiveTrial` e `resolveActivePlan` agora aceitam/repassam a mesma data de referência; o padrão continua sendo a data atual. O estado de vencimento e o texto usam o mesmo instante, inclusive nos testes determinísticos.
+
 Conta nova chega com `plan = essential`, `planExpiresAt` em 7 dias e `planIsTrial = true`
 (API). Gates, limites e anúncios não mudam: o teste vale como Essencial. `trial.ts`
 (`isProfileOnTrial`, `trialEndLabel`, `trialNotice`) cuida só da apresentação:
