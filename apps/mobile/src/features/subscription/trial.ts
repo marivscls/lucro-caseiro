@@ -7,9 +7,12 @@ type TrialProfile = Pick<UserProfile, "plan" | "planExpiresAt"> & {
 };
 
 /** Conta nova usando o teste grátis do Essencial (ainda dentro dos 7 dias). */
-export function isProfileOnTrial(profile?: TrialProfile | null): boolean {
+export function isProfileOnTrial(
+  profile?: TrialProfile | null,
+  now: Date = new Date(),
+): boolean {
   if (!profile) return false;
-  return isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial);
+  return isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial, now);
 }
 
 /** "hoje", "amanhã" ou "em N dias" até o fim do teste. */
@@ -40,7 +43,7 @@ export function trialNotice(
 ): TrialNotice | null {
   if (!profile?.planIsTrial || !profile.planExpiresAt) return null;
 
-  if (isProfileOnTrial(profile)) {
+  if (isProfileOnTrial(profile, now)) {
     return {
       title: `Seu teste do Essencial termina ${trialEndLabel(profile.planExpiresAt, now)}`,
       message:
