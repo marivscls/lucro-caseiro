@@ -27,5 +27,10 @@ export * from "./schemas/retail";
 export * from "./schemas/operations";
 export * from "./schemas/verticals";
 export * from "./pricing-calculator";
+export * from "./pix";
+export * from "./schemas/fiado";
+export * from "./schemas/referral";
+export * from "./schemas/mei";
+export * from "./schemas/assistant";
 
 export * from "./schemas/guidance";
