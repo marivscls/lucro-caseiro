@@ -89,3 +89,15 @@ describe("buildQuoteMessage valores", () => {
     expect(message).toContain("R$ 1.500,00");
   });
 });
+
+describe("buildQuoteMessage com Pix", () => {
+  it("termina com o Pix copia e cola do total", () => {
+    const msg = buildQuoteMessage(makeQuote(), "Ateliê da Ana", "000201PIX");
+    expect(msg).toContain("pagar R$ 130,00 no *Pix copia e cola*");
+    expect(msg.split("\n")).toContain("000201PIX");
+  });
+
+  it("sem Pix não fala de pagamento", () => {
+    expect(buildQuoteMessage(makeQuote(), "Ateliê da Ana")).not.toContain("Pix");
+  });
+});

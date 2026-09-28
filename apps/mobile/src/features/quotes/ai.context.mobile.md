@@ -136,3 +136,6 @@ Orçamentos usam três etapas antes da confirmação existente: orçamento e cli
   título pode ocupar 2 linhas), Situação e Total. A linha abre o mesmo detalhe do celular.
 - Vazio com "Novo orçamento"; busca sem resultado oferece limpar filtros.
 - A apresentação fica em `app/quotes.tsx` e usa o kit `features/sales/components/desktop-list-kit.tsx`.
+
+- 2026-09-28: `buildQuoteMessage(quote, businessName, pixCode?)` termina com o Pix copia e cola
+  do total quando a pessoa tem chave Pix (não vai em orçamento recusado).

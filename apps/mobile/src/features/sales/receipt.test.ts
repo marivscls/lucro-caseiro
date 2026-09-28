@@ -73,3 +73,15 @@ describe("buildReceiptMessage", () => {
     expect(msg).toContain("em aberto");
   });
 });
+
+describe("buildReceiptMessage com Pix", () => {
+  it("leva o Pix quando a venda está em aberto", () => {
+    const msg = buildReceiptMessage(makeSale({ status: "pending" }), "000201PIX");
+    expect(msg.split("\n")).toContain("000201PIX");
+  });
+
+  it("não leva o Pix quando a venda já foi paga", () => {
+    const msg = buildReceiptMessage(makeSale({ status: "paid" }), "000201PIX");
+    expect(msg).not.toContain("000201PIX");
+  });
+});

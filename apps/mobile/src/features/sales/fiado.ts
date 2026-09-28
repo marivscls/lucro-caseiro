@@ -114,8 +114,21 @@ export function oldFiadoSummary(
   return { count: old.length, total: totalOwed(old) };
 }
 
+/** Extras opcionais da cobrança: Pix com o valor e link do extrato. */
+export interface ChargeExtras {
+  /** Pix copia e cola com o total já preenchido. */
+  pixCode?: string | null;
+  /** Link público do extrato do cliente. */
+  statementUrl?: string | null;
+}
+
+/** Linhas do Pix copia e cola, com o código sozinho na última linha para copiar fácil. */
+export function pixMessageLines(pixCode: string): string[] {
+  return ["", "*Pix copia e cola* (o valor já vem preenchido):", pixCode];
+}
+
 /** Mensagem de cobrança gentil (pt-BR) com os valores em aberto do cliente. */
-export function buildChargeMessage(group: FiadoGroup): string {
+export function buildChargeMessage(group: FiadoGroup, extras: ChargeExtras = {}): string {
   const lines: string[] = [];
   const hello = group.clientId ? `Oi, ${firstName(group.clientName)}!` : "Oi!";
   lines.push(`${hello} Passando para lembrar do valor em aberto:`);
@@ -129,6 +142,15 @@ export function buildChargeMessage(group: FiadoGroup): string {
   }
   lines.push("");
   lines.push(`*Total: ${formatCurrency(group.total)}*`);
-  lines.push("Quando puder acertar, é só me chamar. Obrigada! 💛");
+  if (extras.statementUrl) {
+    lines.push("", `Seu extrato completo: ${extras.statementUrl}`);
+  }
+  if (extras.pixCode) {
+    lines.push(...pixMessageLines(extras.pixCode));
+    lines.push("");
+    lines.push("Depois de pagar, me avisa por aqui. Obrigada! 💛");
+  } else {
+    lines.push("Quando puder acertar, é só me chamar. Obrigada! 💛");
+  }
   return lines.join("\n");
 }

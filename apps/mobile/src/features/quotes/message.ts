@@ -9,8 +9,15 @@ function qty(value: number): string {
   return Number.isInteger(value) ? String(value) : String(value).replace(".", ",");
 }
 
-/** Texto do orçamento para enviar no WhatsApp. */
-export function buildQuoteMessage(quote: Quote, businessName: string): string {
+/**
+ * Texto do orçamento para enviar no WhatsApp. Com `pixCode`, termina com o
+ * Pix copia e cola do total para fechar na hora.
+ */
+export function buildQuoteMessage(
+  quote: Quote,
+  businessName: string,
+  pixCode?: string | null,
+): string {
   const lines = [
     `*Orçamento: ${quote.title}*`,
     businessName,
@@ -34,6 +41,13 @@ export function buildQuoteMessage(quote: Quote, businessName: string): string {
   }
   if (quote.notes) {
     lines.push("", quote.notes);
+  }
+  if (pixCode) {
+    lines.push(
+      "",
+      `Para confirmar, é só pagar ${money(quote.total)} no *Pix copia e cola* (o valor já vem preenchido):`,
+      pixCode,
+    );
   }
   lines.push("", "Qualquer dúvida é só chamar! 😊");
   return lines.join("\n");

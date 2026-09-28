@@ -134,3 +134,21 @@ describe("buildChargeMessage", () => {
     expect(msg).toContain("*Total: R$ 30,00*");
   });
 });
+
+describe("buildChargeMessage com Pix e extrato", () => {
+  it("inclui o link do extrato e o Pix sozinho numa linha", () => {
+    const [group] = groupFiados([makeSale({ total: 45 })]);
+    const msg = buildChargeMessage(group, {
+      pixCode: "00020126PIX",
+      statementUrl: "https://api.exemplo/f/abc",
+    });
+    expect(msg).toContain("Seu extrato completo: https://api.exemplo/f/abc");
+    expect(msg.split("\n")).toContain("00020126PIX");
+    expect(msg).toContain("me avisa por aqui");
+  });
+
+  it("sem Pix mantém o fechamento de antes", () => {
+    const [group] = groupFiados([makeSale({ total: 45 })]);
+    expect(buildChargeMessage(group)).toContain("é só me chamar");
+  });
+});

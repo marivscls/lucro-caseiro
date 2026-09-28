@@ -213,6 +213,8 @@ function DesktopFiadoCard({
 
 export type DesktopFiadoPageProps = Readonly<{
   header: ReactNode;
+  /** Aviso opcional acima da lista (ex.: cadastrar a chave Pix). */
+  notice?: ReactNode;
   art: ImageSourcePropType;
   isLoading: boolean;
   error: Error | null;
@@ -382,7 +384,10 @@ export function DesktopFiadoPage(props: DesktopFiadoPageProps) {
   return (
     <>
       {props.header}
-      <View style={{ gap: spacing["3xl"] }}>{body}</View>
+      <View style={{ gap: spacing["3xl"] }}>
+        {props.notice}
+        {body}
+      </View>
     </>
   );
 }

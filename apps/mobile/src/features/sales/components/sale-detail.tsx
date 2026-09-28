@@ -22,6 +22,8 @@ import { displayProductName, productInitial } from "../../products/display";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { useProfile } from "../../subscription/hooks";
+import { chargePix } from "../../pix/domain";
+import { usePixSettings } from "../../pix/hooks";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useUpdateSaleStatus } from "../hooks";
 import { paymentLabel } from "../payment";
@@ -67,6 +69,7 @@ export function SaleDetail({
   const { theme, mode } = useTheme();
   const updateStatus = useUpdateSaleStatus();
   const { data: profile } = useProfile();
+  const { data: pixSettings } = usePixSettings();
   const showPaywall = usePaywall((st) => st.show);
   const [exporting, setExporting] = useState(false);
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -90,7 +93,11 @@ export function SaleDetail({
   }
 
   function handleSendReceipt() {
-    const message = buildReceiptMessage(sale);
+    const openAmount = Math.max(0, sale.total - sale.paidAmount);
+    const message = buildReceiptMessage(
+      sale,
+      chargePix(pixSettings, profile, openAmount),
+    );
     if (clientPhone && isValidBrazilPhone(clientPhone)) {
       void openWhatsApp(clientPhone, message);
     } else {

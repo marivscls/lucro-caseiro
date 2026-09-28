@@ -273,3 +273,7 @@ A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida n
   `ScreenHeader`/`ScreenGuidance` compartilhados (32px); as telas não medem o cabeçalho.
 - Detalhe da venda (modal) no desktop: situação em `DesktopTag` de 14 px no lugar do
   `Badge` de 12 px.
+
+- 2026-09-28: `buildChargeMessage(group, extras)` aceita `pixCode` e `statementUrl` (cobrança
+  do fiado com Pix copia e cola e link do extrato); `buildReceiptMessage(sale, pixCode)` põe o
+  Pix só em venda pendente. `DesktopFiadoPage` ganhou `notice` (aviso de cadastrar a chave Pix).

@@ -41,6 +41,8 @@ import {
   useUpdateQuoteStatus,
 } from "../features/quotes/hooks";
 import { buildQuoteMessage } from "../features/quotes/message";
+import { chargePix } from "../features/pix/domain";
+import { usePixSettings } from "../features/pix/hooks";
 import { exportQuotePdf } from "../features/quotes/quote-pdf";
 import { useProfile } from "../features/subscription/hooks";
 import { DateField } from "../shared/components/date-field";
@@ -515,6 +517,7 @@ function QuoteDetail({
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { data: profile } = useProfile();
+  const { data: pixSettings } = usePixSettings();
   const { data: client, refetch: refetchClient } = useClient(quote.clientId ?? "");
   const showPaywall = usePaywall((s) => s.show);
   const setStatus = useUpdateQuoteStatus();
@@ -524,7 +527,9 @@ function QuoteDetail({
   const businessName = profile?.businessName ?? profile?.name ?? "Meu negócio";
 
   async function handleWhatsApp() {
-    const message = buildQuoteMessage(quote, businessName);
+    const pixCode =
+      quote.status === "rejected" ? null : chargePix(pixSettings, profile, quote.total);
+    const message = buildQuoteMessage(quote, businessName, pixCode);
     const currentClient =
       client ?? (quote.clientId ? (await refetchClient()).data : undefined);
     if (currentClient?.phone && isValidBrazilPhone(currentClient.phone)) {

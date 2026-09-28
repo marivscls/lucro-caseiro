@@ -13,8 +13,11 @@ function dateBR(iso: string): string {
   });
 }
 
-/** Monta o texto do recibo de uma venda para enviar no WhatsApp. */
-export function buildReceiptMessage(sale: Sale): string {
+/**
+ * Monta o texto do recibo de uma venda para enviar no WhatsApp. Com a venda
+ * em aberto e um Pix pronto (`pixCode`), o recibo já leva o copia e cola.
+ */
+export function buildReceiptMessage(sale: Sale, pixCode?: string | null): string {
   const lines: string[] = [];
   lines.push("🧾 *Recibo de compra*");
   lines.push(dateBR(sale.soldAt));
@@ -36,6 +39,9 @@ export function buildReceiptMessage(sale: Sale): string {
   lines.push(`Pagamento: ${paymentLabel(sale.paymentMethod)}`);
   if (sale.status === "pending") lines.push("Situação: em aberto");
   if (sale.notes) lines.push(`Observações: ${sale.notes}`);
+  if (sale.status === "pending" && pixCode) {
+    lines.push("", "*Pix copia e cola* (o valor em aberto já vem preenchido):", pixCode);
+  }
   lines.push("");
   lines.push("Obrigada pela preferência! 💛");
 

@@ -39,6 +39,11 @@ import {
   type FiadoTiming,
 } from "../features/sales/fiado";
 import { useAllSales, useUpdateSaleStatus } from "../features/sales/hooks";
+import { fiadoStatementUrl } from "../features/pix/api";
+import { PixNudge } from "../features/pix/components/pix-nudge";
+import { chargePix } from "../features/pix/domain";
+import { useCreateFiadoLink, usePixSettings } from "../features/pix/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { brandScreenPalette } from "../shared/brand-palette";
 import type { AppIconName } from "../shared/components/app-icon";
 import { AppIcon } from "../shared/components/app-icon";
@@ -514,6 +519,9 @@ export default function FiadoScreen() {
   const { data, isLoading, error, refetch } = useAllSales({ status: "pending" });
   const { data: clientsData } = useAllClients();
   const updateStatus = useUpdateSaleStatus();
+  const { data: pixSettings } = usePixSettings();
+  const { data: profile } = useProfile();
+  const createLink = useCreateFiadoLink();
 
   const sales = data?.items ?? [];
   const pendingSales = React.useMemo(
@@ -574,8 +582,22 @@ export default function FiadoScreen() {
       return sortOrder === "oldest" ? delta : -delta;
     });
 
-  function handleCharge(group: FiadoGroup) {
-    const message = buildChargeMessage(group);
+  /** Link do extrato; sem rede ou lento, a cobrança sai sem ele. */
+  async function statementLink(clientId: string | null): Promise<string | null> {
+    if (!clientId) return null;
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    const link = createLink
+      .mutateAsync(clientId)
+      .then((result) => fiadoStatementUrl(result.token))
+      .catch(() => null);
+    return Promise.race([link, timeout]);
+  }
+
+  async function handleCharge(group: FiadoGroup) {
+    const message = buildChargeMessage(group, {
+      pixCode: chargePix(pixSettings, profile, group.total),
+      statementUrl: await statementLink(group.clientId),
+    });
     const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
     if (phone && isValidBrazilPhone(phone)) void openWhatsApp(phone, message);
     else void openWhatsAppShare(message);
@@ -684,7 +706,7 @@ export default function FiadoScreen() {
               phone={group.clientId ? phoneById.get(group.clientId) : undefined}
               isNarrow={isNarrow}
               sortOrder={sortOrder}
-              onCharge={handleCharge}
+              onCharge={(item) => void handleCharge(item)}
               onMarkPaid={handleMarkPaid}
               onMarkAllPaid={handleMarkAllPaid}
             />
@@ -713,6 +735,10 @@ export default function FiadoScreen() {
           isCompact={width < 460}
           isNarrow={isNarrow}
         />
+
+        {groups.length > 0 ? (
+          <PixNudge text="Cadastre sua chave Pix e a cobrança já sai com o valor pronto para pagar." />
+        ) : null}
 
         <FilterChipRow>
           <Chip
@@ -868,7 +894,12 @@ export default function FiadoScreen() {
               const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
               return Boolean(phone && isValidBrazilPhone(phone));
             }}
-            onCharge={handleCharge}
+            onCharge={(group) => void handleCharge(group)}
+            notice={
+              groups.length > 0 ? (
+                <PixNudge text="Cadastre sua chave Pix e a cobrança já sai com o valor pronto para pagar." />
+              ) : null
+            }
             onCall={(group) => {
               const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
               void Linking.openURL(`tel:${(phone ?? "").replace(/\D/g, "")}`);
