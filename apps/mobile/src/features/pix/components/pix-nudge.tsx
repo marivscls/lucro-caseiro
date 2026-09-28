@@ -35,12 +35,7 @@ export function PixNudge({ text }: Readonly<{ text: string }>) {
       <Typography variant="body" color={palette.wine} style={{ flex: 1, minWidth: 180 }}>
         {text}
       </Typography>
-      <Button
-        title="Cadastrar chave Pix"
-        size="md"
-        variant="secondary"
-        onPress={() => router.push("/pix")}
-      />
+      <Button title="Cadastrar chave Pix" size="md" onPress={() => router.push("/pix")} />
     </View>
   );
 }

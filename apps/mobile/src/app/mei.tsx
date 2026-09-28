@@ -49,6 +49,12 @@ const PGMEI_URL =
 
 const ACTIVITIES: MeiActivity[] = ["commerce", "industry", "services"];
 
+const SHORT_LABELS: Record<MeiActivity, string> = {
+  commerce: "Revendo",
+  industry: "Fabrico",
+  services: "Presto serviço",
+};
+
 function todayMonth() {
   const now = new Date();
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
@@ -68,14 +74,14 @@ function ActivityPicker({
     <View style={{ gap: spacing.lg }}>
       <FormField
         label="O que você faz como MEI?"
-        hint="Vale a atividade principal do seu CNPJ."
+        hint={`${MEI_ACTIVITY_LABELS[choice]}. Vale a atividade principal do seu CNPJ.`}
       >
         <ChoiceField
           value={choice}
           accessibilityLabel="Atividade do MEI"
           options={ACTIVITIES.map((activity) => ({
             value: activity,
-            label: MEI_ACTIVITY_LABELS[activity],
+            label: SHORT_LABELS[activity],
           }))}
           onChange={setChoice}
         />
@@ -292,9 +298,10 @@ export default function MeiScreen() {
             onPress={() => previous && setPeriod(previous)}
           />
           <View style={{ flex: 1, alignItems: "center" }}>
-            <Typography variant="h3">
-              Relatório de {monthLabel(period.year, period.month)}
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Relatório mensal
             </Typography>
+            <Typography variant="h3">{monthLabel(period.year, period.month)}</Typography>
           </View>
           <IconButton
             icon={<AppIcon name="chevron-forward" size={20} color={theme.colors.text} />}
@@ -307,7 +314,7 @@ export default function MeiScreen() {
         </View>
         <View style={{ gap: spacing.xs }}>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Entradas do mês ({MEI_ACTIVITY_LABELS[activity].toLocaleLowerCase("pt-BR")})
+            Entradas do mês
           </Typography>
           <Typography variant="money">{formatCurrency(summary.monthRevenue)}</Typography>
         </View>
