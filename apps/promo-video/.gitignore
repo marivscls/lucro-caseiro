@@ -5,3 +5,6 @@ dist
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# Trilha intermediária do vídeo de lançamento (o render usa o MP3)
+public/launch/trilha.wav
