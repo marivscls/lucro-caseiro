@@ -138,6 +138,9 @@ importers:
       postgres:
         specifier: ^3.4.5
         version: 3.4.8
+      qrcode-generator:
+        specifier: ^2.0.4
+        version: 2.0.4
       stripe:
         specifier: ^22.1.1
         version: 22.1.1(@types/node@25.5.0)
@@ -4011,6 +4014,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -7285,7 +7289,7 @@ snapshots:
     dependencies:
       '@babel/template': 7.29.7
       '@babel/traverse': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/types': 7.29.8
     transitivePeerDependencies:
       - supports-color
 

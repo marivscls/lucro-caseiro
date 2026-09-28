@@ -17,6 +17,25 @@ import {
 import { CatalogRepoPg } from "./features/catalog/catalog.repo.pg";
 import { CatalogUseCases } from "./features/catalog/catalog.usecases";
 import { createClientsRouter } from "./features/clients/clients.routes";
+import {
+  createFiadoRouter,
+  createPublicFiadoRouter,
+} from "./features/fiado/fiado.routes";
+import { FiadoRepoPg } from "./features/fiado/fiado.repo.pg";
+import { FiadoUseCases } from "./features/fiado/fiado.usecases";
+import { createAssistantRouter } from "./features/assistant/assistant.routes";
+import {
+  GeminiAssistantAi,
+  UnavailableAssistantAi,
+} from "./features/assistant/assistant.ai";
+import { AssistantUsageRepoPg } from "./features/assistant/assistant.repo.pg";
+import { AssistantUseCases } from "./features/assistant/assistant.usecases";
+import { createMeiRouter } from "./features/mei/mei.routes";
+import { MeiRepoPg } from "./features/mei/mei.repo.pg";
+import { MeiUseCases } from "./features/mei/mei.usecases";
+import { createReferralsRouter } from "./features/referrals/referrals.routes";
+import { ReferralsRepoPg } from "./features/referrals/referrals.repo.pg";
+import { ReferralsUseCases } from "./features/referrals/referrals.usecases";
 import { ClientsRepoPg } from "./features/clients/clients.repo.pg";
 import { ClientsUseCases } from "./features/clients/clients.usecases";
 import { createSuppliersRouter } from "./features/suppliers/suppliers.routes";
@@ -203,6 +222,7 @@ const clientsUseCases = new ClientsUseCases(clientsRepo);
 const suppliersUseCases = new SuppliersUseCases(suppliersRepo);
 const materialsUseCases = new MaterialsUseCases(materialsRepo);
 const financeUseCases = new FinanceUseCases(financeRepo);
+const referralsUseCases = new ReferralsUseCases(new ReferralsRepoPg(db));
 const salesUseCases = new SalesUseCases(
   salesRepo,
   productsRepo,
@@ -227,6 +247,8 @@ const salesUseCases = new SalesUseCases(
   },
   // Venda paga → entrada automática no caixa (idempotente por saleId).
   financeUseCases,
+  // Indicação premiada: a 3ª venda da conta indicada libera o prêmio das duas.
+  { onSaleCreated: (userId) => referralsUseCases.checkReward(userId) },
 );
 const retailUseCases = new RetailUseCases(
   new RetailRepoPg(db),
@@ -387,6 +409,42 @@ const goalsUseCases = new GoalsUseCases(
 );
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases, salesUseCases);
 const insightsUseCases = new InsightsUseCases(insightsRepo);
+const fiadoUseCases = new FiadoUseCases(new FiadoRepoPg(db));
+const meiUseCases = new MeiUseCases(new MeiRepoPg(db), financeUseCases);
+
+// Assistente: anotar venda falando/escrevendo e ler a foto do caderno de fiado.
+const assistantUseCases = new AssistantUseCases(
+  marketingAi
+    ? new GeminiAssistantAi((id) => marketingAi(id))
+    : new UnavailableAssistantAi(),
+  new AssistantUsageRepoPg(db),
+  {
+    listProducts: async (userId) => {
+      const { items } = await productsUseCases.list(userId, {
+        page: 1,
+        limit: 500,
+        activeOnly: true,
+      });
+      return items.map((p) => ({ id: p.id, name: p.name, price: p.salePrice }));
+    },
+    listClients: async (userId) => {
+      const { items } = await clientsUseCases.list(userId, { page: 1, limit: 1000 });
+      return items.map((c) => ({ id: c.id, name: c.name }));
+    },
+    activePlan: (userId) => subscriptionUseCases.getActivePlan(userId),
+    remainingClients: async (userId) => {
+      const limits = await subscriptionUseCases.getLimits(userId);
+      return limits.maxClients === null
+        ? null
+        : Math.max(0, limits.maxClients - limits.currentClients);
+    },
+    createClient: async (userId, name) =>
+      (await clientsUseCases.create(userId, { name })).id,
+    createOpeningFiado: async (userId, data) => {
+      await salesUseCases.createOpeningFiado(userId, data);
+    },
+  },
+);
 
 const googlePlayNotificationsUseCases = new GooglePlayNotificationsUseCases(
   subscriptionRepo,
@@ -474,6 +532,9 @@ app.use(
   billingLimit,
 );
 app.use("/api/v1/marketing/ai", expensiveLimit);
+app.use(["/api/v1/assistant/sale-draft", "/api/v1/assistant/notebook"], expensiveLimit);
+// Montado antes do parser global: áudio e foto do assistente passam de 256 KB.
+app.use("/api/v1/assistant", createAssistantRouter(assistantUseCases));
 app.use(express.json({ limit: "256kb" }));
 
 // Structured request log for multi-brand operation (ADR-0009).
@@ -552,6 +613,9 @@ app.use(
   ),
 );
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
+app.use("/api/v1/fiado", createFiadoRouter(fiadoUseCases));
+app.use("/api/v1/referrals", createReferralsRouter(referralsUseCases));
+app.use("/api/v1/mei", createMeiRouter(meiUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
 app.use("/api/v1/production", createProductionRouter(productionUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
@@ -590,6 +654,8 @@ app.use(
 );
 // Catalogo publico (sem auth): pagina HTML compartilhavel em /c/:slug.
 app.use("/c", createPublicCatalogRouter(catalogUseCases));
+// Extrato publico do fiado (sem auth): /f/:token.
+app.use("/f", createPublicFiadoRouter(fiadoUseCases));
 app.use("/api/v1/subscription", createSubscriptionRouter(subscriptionUseCases));
 app.use("/api/v1/payments/stripe", createStripeCheckoutRouter(stripeUseCases));
 
