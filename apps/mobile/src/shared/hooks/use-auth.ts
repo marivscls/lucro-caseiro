@@ -10,6 +10,11 @@ import { getRecoveryLinkError } from "../utils/password-recovery";
 import { markSignedInOnDevice } from "../utils/returning-user";
 import { useOnboarding } from "./use-onboarding";
 import { stopBrowserPush } from "./browser-push";
+import {
+  applyPendingGoogleSignupEmailConsent,
+  clearPendingGoogleSignupEmailConsent,
+  savePendingGoogleSignupEmailConsent,
+} from "../utils/signup-email-consent";
 
 export function getAuthRedirectUrl(): string {
   if (Platform.OS === "web" && typeof window !== "undefined") {
@@ -144,8 +149,9 @@ interface AuthState {
     password: string,
     name: string,
     businessName?: string,
+    actionEmailOptIn?: boolean,
   ) => Promise<{ error?: string; needsConfirmation?: boolean }>;
-  signInWithGoogle: () => Promise<{ error?: string }>;
+  signInWithGoogle: (actionEmailOptIn?: boolean) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   clearPasswordRecovery: () => void;
 }
@@ -160,6 +166,9 @@ function setSession(set: (state: Partial<AuthState>) => void, session: Session |
       session,
       isAuthenticated: true,
     });
+    void Promise.resolve()
+      .then(() => applyPendingGoogleSignupEmailConsent(session))
+      .catch(() => {});
   } else {
     set({
       token: null,
@@ -350,6 +359,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   signInWithEmail: async (email, password) => {
     try {
+      await clearPendingGoogleSignupEmailConsent();
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -414,8 +424,9 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  signUpWithEmail: async (email, password, name, businessName) => {
+  signUpWithEmail: async (email, password, name, businessName, actionEmailOptIn) => {
     try {
+      await clearPendingGoogleSignupEmailConsent();
       const { error, data } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -425,6 +436,7 @@ export const useAuth = create<AuthState>((set, get) => ({
             name,
             business_name: businessName,
             onboarding_completed: false,
+            action_email_opt_in: actionEmailOptIn === true,
           },
         },
       });
@@ -470,9 +482,15 @@ export const useAuth = create<AuthState>((set, get) => ({
     }
   },
 
-  signInWithGoogle: async () => {
+  signInWithGoogle: async (actionEmailOptIn) => {
     let callbackWaiter: ReturnType<typeof waitForNativeAuthCallback> | null = null;
+    let keepPendingConsent = false;
     try {
+      if (actionEmailOptIn === true) {
+        await savePendingGoogleSignupEmailConsent();
+      } else {
+        await clearPendingGoogleSignupEmailConsent();
+      }
       const authRedirectUrl = getAuthRedirectUrl();
       const isWeb = Platform.OS === "web";
 
@@ -493,7 +511,10 @@ export const useAuth = create<AuthState>((set, get) => ({
 
       // O Supabase redireciona a propria aba no navegador. O popup do Expo
       // exige um handshake adicional e pode deixar o PWA esperando para sempre.
-      if (isWeb) return {};
+      if (isWeb) {
+        keepPendingConsent = true;
+        return {};
+      }
 
       // No Android, o WebBrowser pode observar o app ativo antes de o evento de
       // deep link chegar e retornar `dismiss`. Mantemos um listener próprio para
@@ -504,6 +525,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       if (result.type === "success" && result.url) {
         callbackWaiter.cancel();
         const ok = await applySessionFromUrl(result.url);
+        keepPendingConsent = ok;
         return ok ? {} : { error: "Erro ao finalizar login com Google." };
       }
 
@@ -513,10 +535,14 @@ export const useAuth = create<AuthState>((set, get) => ({
       if (String(result.type) === "cancel" || String(result.type) === "dismiss") {
         const callbackUrl = await callbackWaiter.promise;
         if (callbackUrl && (await applySessionFromUrl(callbackUrl))) {
+          keepPendingConsent = true;
           return {};
         }
         const { data: after } = await supabase.auth.getSession();
-        if (after.session) return {};
+        if (after.session) {
+          keepPendingConsent = true;
+          return {};
+        }
         return {
           error: "Não foi possível concluir o login com Google. Tente novamente.",
         };
@@ -527,6 +553,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       return { error: "Erro ao entrar com Google. Tente novamente." };
     } finally {
       callbackWaiter?.cancel();
+      if (!keepPendingConsent) await clearPendingGoogleSignupEmailConsent();
     }
   },
 

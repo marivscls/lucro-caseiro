@@ -47,8 +47,8 @@ export default function PrivacyPage() {
               conclusão de funcionalidades importantes para métricas agregadas.
             </li>
             <li>
-              Quando você ativa dicas por e-mail, datas de uso e conclusão de ações
-              básicas, como calcular um preço, para evitar dicas desnecessárias.
+              Quando você aceita dicas por e-mail no cadastro, datas de uso e conclusão de
+              ações básicas, como calcular um preço, para evitar dicas desnecessárias.
             </li>
           </ul>
         </section>
@@ -65,8 +65,8 @@ export default function PrivacyPage() {
             <li>Medir estabilidade, ativação e uso agregado para melhorar o produto.</li>
             <li>
               Enviar dicas pontuais para concluir ações no aplicativo somente quando você
-              ativar “Dicas por e-mail” nas preferências. Você pode desativar essa opção
-              no aplicativo ou pelo link presente em cada dica.
+              marcar a opção de dicas no cadastro. Você pode cancelar pelo link presente
+              em cada dica.
             </li>
           </ul>
         </section>

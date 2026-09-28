@@ -23,7 +23,28 @@ function resultRows<T>(result: unknown): T[] {
 export class ActionEmailRepoPg implements ActionEmailRepo {
   constructor(private db: AppDatabase) {}
 
+  private async adoptSignupConsent(userId?: string): Promise<void> {
+    const userFilter = userId ? sql`AND a.id=${userId}::uuid` : sql``;
+    const rows = await this.db.execute(sql`
+      SELECT a.id AS "userId" FROM auth.users a
+      JOIN public.users u ON u.id=a.id
+      WHERE a.raw_user_meta_data->>'action_email_opt_in'='true'
+        AND NOT EXISTS (SELECT 1 FROM app_email.action_preferences p WHERE p.user_id=a.id)
+        ${userFilter}
+      ORDER BY a.created_at LIMIT 100
+    `);
+    for (const row of resultRows<{ userId: string }>(rows)) {
+      const token = randomBytes(32).toString("hex");
+      await this.db.execute(sql`
+        INSERT INTO app_email.action_preferences(user_id,enabled,consented_at,unsubscribe_token)
+        VALUES (${row.userId}::uuid,true,now(),${token})
+        ON CONFLICT (user_id) DO NOTHING
+      `);
+    }
+  }
+
   async getPreference(userId: string): Promise<boolean> {
+    await this.adoptSignupConsent(userId);
     const rows = await this.db.execute(sql`
       SELECT enabled FROM app_email.action_preferences WHERE user_id=${userId}::uuid
     `);
@@ -54,6 +75,7 @@ export class ActionEmailRepoPg implements ActionEmailRepo {
   }
 
   async candidates(): Promise<ActionEmailCandidate[]> {
+    await this.adoptSignupConsent();
     const rows = await this.db.execute(sql`
       SELECT u.id AS "userId", a.email, u.name,
         p.unsubscribe_token AS "unsubscribeToken"

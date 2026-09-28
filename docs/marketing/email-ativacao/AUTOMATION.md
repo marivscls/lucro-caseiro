@@ -4,7 +4,7 @@ Automação de ativação criada em 28/09/2026. O código fica inativo por padr�
 
 ## Público e momento
 
-- A pessoa ativa **Dicas por e-mail** em Configurações. O estado começa desligado, inclusive para contas antigas e contas criadas com Google.
+- A pessoa marca a opção de dicas no cadastro. Ela começa desmarcada tanto para e-mail quanto para Google; contas antigas não são inscritas automaticamente. O aceite do cadastro por e-mail fica nos metadados do Supabase e é adotado na preferência privada pela API, inclusive se a confirmação acontecer em outro dispositivo. No Google, a escolha é guardada antes do redirecionamento e aplicada à conta autenticada quando a pessoa volta ao app.
 - Pelo menos três dias se passaram desde o cadastro **e** desde a adesão.
 - O e-mail foi confirmado, a conta está ativa e pertence ao Lucro Caseiro.
 - Nesta primeira campanha, o perfil do negócio é alimentação, artesanato ou comércio/outros. Serviços e beleza aguardam mensagem própria.
@@ -15,13 +15,13 @@ O botão abre `lucrocaseiro://pricing`, a tela de Precificação do aplicativo i
 
 ## Ativação
 
-1. Publicar a API e o app com a nova preferência em Configurações. No Android instalado, a opção só aparece após novo build; no app web aparece após o deploy.
+1. Publicar a API e o app com a opção no cadastro. No Android instalado, ela só aparece após novo build; no app web aparece após o deploy.
 2. O `start.ts` aplica a migration idempotente `20260928182000_action_email_automation.sql`, que cria preferências e fila privadas em `app_email`.
 3. Conferir `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, definir `ACTION_EMAIL_PUBLIC_URL` com a origem HTTPS pública da API, sem barra final, e `ACTION_EMAIL_BUSINESS_ADDRESS` com o endereço comercial válido que aparecerá no rodapé. O e-mail de boas-vindas já usa o mesmo remetente e Reply-To, mas não inclui endereço físico; sem esse endereço a campanha não inicia.
 4. Definir `ACTION_EMAIL_ENABLED=true` e reiniciar a API. Verificar o log `[action-email] first-price automation enabled`.
 5. Testar com conta própria confirmada que tenha ativado a preferência. Aguardar o prazo ou usar relógio/banco de teste, sem antecipar artificialmente uma conta real.
 
-Para pausar, definir `ACTION_EMAIL_ENABLED=false` e reiniciar. A preferência continua disponível; nenhum novo envio ocorre. Uma requisição já em andamento pode concluir.
+Para pausar, definir `ACTION_EMAIL_ENABLED=false` e reiniciar. O aceite do cadastro continua registrado; nenhum novo envio ocorre. Uma requisição já em andamento pode concluir.
 
 ## Operação e limites
 

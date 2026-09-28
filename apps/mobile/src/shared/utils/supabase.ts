@@ -83,7 +83,7 @@ async function secureSet(key: string, value: string): Promise<void> {
   }
 }
 
-const ExpoSecureStoreAdapter = {
+export const authStorage = {
   getItem: (key: string): Promise<string | null> =>
     Platform.OS === "web" ? Promise.resolve(webStorage.getItem(key)) : secureGet(key),
   setItem: (key: string, value: string): Promise<void> => {
@@ -115,7 +115,7 @@ export const supabase: AppSupabaseClient = isMockMode
   ? loadMockSupabase()
   : createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        storage: ExpoSecureStoreAdapter as unknown as Storage,
+        storage: authStorage as unknown as Storage,
         autoRefreshToken: true,
         persistSession: true,
         flowType: Platform.OS === "web" ? "pkce" : "implicit",

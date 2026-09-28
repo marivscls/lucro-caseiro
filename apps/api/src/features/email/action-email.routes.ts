@@ -44,7 +44,7 @@ export function createActionEmailRouter(repo: PreferenceRepo): Router {
         .type("html")
         .send(
           page(
-            "<h1>Pronto, dicas desativadas.</h1><p>Você pode ativá-las novamente nas configurações do app.</p>",
+            "<h1>Pronto, dicas desativadas.</h1><p>Você continuará recebendo apenas mensagens necessárias para acessar sua conta.</p>",
           ),
         );
     } catch (error) {

@@ -31,7 +31,7 @@ Send transactional Lucro Caseiro emails through a verified Resend domain.
 
 The signup automation stores its activation boundary and delivery jobs in the private `app_email` schema. `welcome_settings` records activation once; `welcome_jobs` has one row per user, a frozen payload, claim token, retry state and provider message id. User deletion cascades to jobs.
 
-The first-price automation stores explicit consent in `app_email.action_preferences` and one durable job per user in `app_email.first_price_jobs`. New and existing accounts start opted out. A public tokenized POST disables product tips; authentication emails are unaffected. The worker checks confirmation, consent, inactivity and lack of pricing/product/sale evidence before each send. It is controlled by `ACTION_EMAIL_ENABLED` and `ACTION_EMAIL_PUBLIC_URL`.
+The first-price automation stores explicit consent in `app_email.action_preferences` and one durable job per user in `app_email.first_price_jobs`. Signup consent starts unchecked; existing accounts have no recorded consent. Email signup metadata is adopted once by the API, while Google signup consent is submitted after OAuth. A public tokenized POST disables product tips; authentication emails are unaffected. The worker checks confirmation, consent, inactivity and lack of pricing/product/sale evidence before each send. It is controlled by `ACTION_EMAIL_ENABLED` and `ACTION_EMAIL_PUBLIC_URL`.
 The API request log redacts unsubscribe tokens from the logged path.
 
 ## Invariants

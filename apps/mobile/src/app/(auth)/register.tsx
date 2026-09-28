@@ -13,7 +13,7 @@ import {
 import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Image, Pressable, type TextInput, View } from "react-native";
+import { Image, Linking, Pressable, type TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
@@ -100,6 +100,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [actionEmailOptIn, setActionEmailOptIn] = useState(false);
 
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const emailRef = useRef<TextInput>(null);
@@ -117,7 +118,13 @@ export default function RegisterScreen() {
 
     setRegisterLoading(true);
     // O nome do negócio é perguntado no primeiro acesso, não aqui.
-    const result = await signUpWithEmail(email, password, name);
+    const result = await signUpWithEmail(
+      email,
+      password,
+      name,
+      undefined,
+      brand.id === "lucro-caseiro" && actionEmailOptIn,
+    );
     setRegisterLoading(false);
 
     if (result.error) {
@@ -148,7 +155,9 @@ export default function RegisterScreen() {
   async function handleGoogleRegister() {
     setGoogleLoading(true);
     try {
-      const result = await signInWithGoogle();
+      const result = await signInWithGoogle(
+        brand.id === "lucro-caseiro" && actionEmailOptIn,
+      );
       if (result.error) {
         showAlert({ title: "Ops!", message: result.error });
       }
@@ -205,6 +214,70 @@ export default function RegisterScreen() {
             gap: spacing.lg,
           }}
         >
+          {brand.id === "lucro-caseiro" ? (
+            <View style={{ gap: spacing.xs }}>
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityLabel="Quero receber dicas por e-mail"
+                accessibilityState={{ checked: actionEmailOptIn }}
+                onPress={() => setActionEmailOptIn((value) => !value)}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: spacing.sm,
+                  minHeight: 44,
+                }}
+              >
+                <View
+                  style={{
+                    width: 22,
+                    height: 22,
+                    marginTop: 2,
+                    borderRadius: radii.sm,
+                    borderWidth: 1.5,
+                    borderColor: actionEmailOptIn
+                      ? theme.colors.primary
+                      : theme.colors.border,
+                    backgroundColor: actionEmailOptIn
+                      ? theme.colors.primary
+                      : theme.colors.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {actionEmailOptIn ? (
+                    <AppIcon
+                      name="checkmark"
+                      size={15}
+                      color={theme.colors.textOnPrimary}
+                    />
+                  ) : null}
+                </View>
+                <Typography
+                  variant="body"
+                  style={{ flex: 1, fontSize: 14, lineHeight: 21 }}
+                >
+                  Quero receber por e-mail dicas pontuais para usar o app. Posso cancelar
+                  em qualquer mensagem.
+                </Typography>
+              </Pressable>
+              <Pressable
+                accessibilityRole="link"
+                onPress={() =>
+                  void Linking.openURL("https://lucrocaseiro.com.br/landing/privacidade")
+                }
+                style={{
+                  alignSelf: "flex-start",
+                  minHeight: 36,
+                  justifyContent: "center",
+                }}
+              >
+                <Typography variant="caption" color={theme.colors.primary}>
+                  Política de Privacidade
+                </Typography>
+              </Pressable>
+            </View>
+          ) : null}
           <Button
             title="Criar com Google"
             variant="secondary"

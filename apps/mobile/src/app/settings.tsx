@@ -49,7 +49,6 @@ import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { useAuth } from "../shared/hooks/use-auth";
-import { useActionEmailPreference } from "../shared/hooks/use-action-email-preference";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import {
   NOTIFICATION_TYPES,
@@ -282,7 +281,6 @@ export default function SettingsScreen() {
   const notifPrefs = useNotificationPrefs((state) => state.prefs);
   const setNotifPref = useNotificationPrefs((state) => state.setPref);
   const browserNotifications = useBrowserNotifications();
-  const actionEmailPreference = useActionEmailPreference(brand.id === "lucro-caseiro");
 
   const userName = profile?.name ?? "...";
   const businessName = profile?.businessName ?? "Meu negócio";
@@ -996,56 +994,6 @@ export default function SettingsScreen() {
                 );
               })
             : null}
-          {brand.id === "lucro-caseiro" ? (
-            <View
-              style={{
-                minHeight: 76,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.md,
-                paddingHorizontal: spacing.xs,
-                borderTopWidth: 1,
-                borderTopColor: theme.colors.border,
-              }}
-            >
-              <IconSurface
-                name="mail-outline"
-                color={theme.colors.textSecondary}
-                backgroundColor={theme.colors.surface}
-                size={38}
-                iconSize={18}
-              />
-              <View style={{ flex: 1 }}>
-                <Typography variant="bodyBold">Dicas por e-mail</Typography>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {actionEmailPreference.status === "error"
-                    ? "Não foi possível carregar sua preferência. Abra esta tela novamente."
-                    : "Receba dicas pontuais para começar a usar o app. Você pode desligar quando quiser."}
-                </Typography>
-              </View>
-              <Switch
-                accessibilityLabel="Receber dicas por e-mail"
-                disabled={
-                  actionEmailPreference.status !== "ready" || actionEmailPreference.saving
-                }
-                trackColor={{
-                  false: theme.colors.surface,
-                  true: theme.colors.primaryInteractive,
-                }}
-                thumbColor={theme.colors.textOnPrimary}
-                value={actionEmailPreference.enabled}
-                onValueChange={(value) => {
-                  void actionEmailPreference
-                    .update(value)
-                    .catch(() =>
-                      alertError(
-                        "Não foi possível salvar sua preferência de e-mail. Tente novamente.",
-                      ),
-                    );
-                }}
-              />
-            </View>
-          ) : null}
         </Card>
       </View>
     </>

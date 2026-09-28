@@ -5,6 +5,7 @@ import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "../utils/supabase";
+import * as api from "../utils/api-client";
 import { useOnboarding } from "./use-onboarding";
 import { getAuthRedirectUrl, useAuth } from "./use-auth";
 
@@ -13,6 +14,8 @@ const originalPlatform = platform.OS;
 
 afterEach(() => {
   platform.OS = originalPlatform;
+  localStorage.clear();
+  sessionStorage.clear();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
   useOnboarding.setState({
@@ -57,6 +60,102 @@ describe("getAuthRedirectUrl", () => {
       },
     });
     expect(openAuthSession).not.toHaveBeenCalled();
+  });
+
+  it("aplica o aceite feito antes do cadastro com Google após voltar ao app", async () => {
+    platform.OS = "web";
+    vi.spyOn(supabase.auth, "signInWithOAuth").mockResolvedValue({
+      data: { provider: "google", url: "https://accounts.google.com/oauth" },
+      error: null,
+    });
+    const savePreference = vi
+      .spyOn(api, "apiClient")
+      .mockResolvedValue({ actionEmails: true });
+    await useAuth.getState().signInWithGoogle(true);
+    expect(
+      sessionStorage.getItem("lucro-caseiro:pending-google-email-opt-in"),
+    ).not.toBeNull();
+    expect(localStorage.getItem("lucro-caseiro:pending-google-email-opt-in")).toBeNull();
+
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: {
+        session: {
+          access_token: "google-access",
+          user: {
+            id: "67e5db17-3f41-46ee-9dbd-9df536cf3d2c",
+            app_metadata: { provider: "google" },
+          },
+        } as Session,
+      },
+      error: null,
+    });
+    await useAuth.getState().initialize();
+
+    await vi.waitFor(() =>
+      expect(savePreference).toHaveBeenCalledWith(
+        "/api/v1/email-preferences",
+        expect.objectContaining({
+          method: "PUT",
+          token: "google-access",
+          body: { actionEmails: true },
+        }),
+      ),
+    );
+  });
+
+  it("não aplica um aceite Google pendente a uma sessão de email", async () => {
+    platform.OS = "web";
+    vi.spyOn(supabase.auth, "signInWithOAuth").mockResolvedValue({
+      data: { provider: "google", url: "https://accounts.google.com/oauth" },
+      error: null,
+    });
+    const savePreference = vi
+      .spyOn(api, "apiClient")
+      .mockResolvedValue({ actionEmails: true });
+    await useAuth.getState().signInWithGoogle(true);
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: {
+        session: {
+          access_token: "email-access",
+          user: {
+            id: "67e5db17-3f41-46ee-9dbd-9df536cf3d2c",
+            app_metadata: { provider: "email" },
+          },
+        } as Session,
+      },
+      error: null,
+    });
+
+    await useAuth.getState().initialize();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(savePreference).not.toHaveBeenCalled();
+  });
+
+  it("descarta o aceite se o cadastro com Google falhar", async () => {
+    platform.OS = "web";
+    vi.spyOn(supabase.auth, "signInWithOAuth").mockResolvedValue({
+      data: { provider: "google", url: "" },
+      error: null,
+    });
+    const savePreference = vi
+      .spyOn(api, "apiClient")
+      .mockResolvedValue({ actionEmails: true });
+    expect(await useAuth.getState().signInWithGoogle(true)).toHaveProperty("error");
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: {
+        session: {
+          access_token: "other-google-access",
+          user: {
+            id: "67e5db17-3f41-46ee-9dbd-9df536cf3d2c",
+            app_metadata: { provider: "google" },
+          },
+        } as Session,
+      },
+      error: null,
+    });
+    await useAuth.getState().initialize();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(savePreference).not.toHaveBeenCalled();
   });
 
   it("conclui no Android quando o deep link chega depois de o navegador retornar dismiss", async () => {
@@ -220,6 +319,31 @@ describe("getAuthRedirectUrl", () => {
       }),
     );
     expect(useOnboarding.getState().pendingUserIds).toContain(userId);
+  });
+
+  it("envia o aceite opcional de dicas como metadata no cadastro por email", async () => {
+    const signUp = vi.spyOn(supabase.auth, "signUp").mockResolvedValue({
+      data: {
+        user: {
+          id: "67e5db17-3f41-46ee-9dbd-9df536cf3d2c",
+          identities: [{ id: "email" }],
+        } as User,
+        session: null,
+      },
+      error: null,
+    });
+
+    await useAuth
+      .getState()
+      .signUpWithEmail("nova@conta.com", "Senha123!", "Nova Conta", undefined, true);
+
+    expect(signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          data: expect.objectContaining({ action_email_opt_in: true }),
+        }),
+      }),
+    );
   });
 
   it("explica a falha de conexão sem exibir o objeto técnico vazio", async () => {

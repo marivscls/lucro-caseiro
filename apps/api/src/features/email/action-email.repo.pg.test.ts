@@ -16,7 +16,7 @@ describe("action email eligibility in PostgreSQL", () => {
     await pg.exec(`CREATE ROLE anon; CREATE ROLE authenticated;
       CREATE SCHEMA auth;
       CREATE TABLE public.users(id uuid PRIMARY KEY, name text NOT NULL, business_type text, created_at timestamptz NOT NULL, is_active boolean NOT NULL DEFAULT true);
-      CREATE TABLE auth.users(id uuid PRIMARY KEY, email text, email_confirmed_at timestamptz, created_at timestamptz NOT NULL, deleted_at timestamptz, banned_until timestamptz);
+      CREATE TABLE auth.users(id uuid PRIMARY KEY, email text, email_confirmed_at timestamptz, created_at timestamptz NOT NULL, deleted_at timestamptz, banned_until timestamptz, raw_user_meta_data jsonb);
       CREATE TABLE public.products(user_id uuid);
       CREATE TABLE public.sales(user_id uuid);
       CREATE TABLE public.analytics_events(user_id uuid, event_type text, event_name text, occurred_at timestamptz);
@@ -47,6 +47,32 @@ describe("action email eligibility in PostgreSQL", () => {
     expect(rows[0]?.unsubscribe_token).toMatch(/^[a-f0-9]{64}$/);
     expect(await repo.unsubscribe(rows[0]!.unsubscribe_token)).toBe(true);
     expect(await repo.getPreference(USER)).toBe(false);
+  });
+
+  it("adopts only an explicit signup opt-in and never restores it after unsubscribe", async () => {
+    const newcomer = "22222222-2222-4222-8222-222222222222";
+    await pg.exec(`INSERT INTO public.users(id,name,business_type,created_at) VALUES ('${newcomer}','Ana','food',now());
+      INSERT INTO auth.users(id,email,email_confirmed_at,created_at,raw_user_meta_data)
+      VALUES ('${newcomer}','ana@example.com',now(),now(),'{"action_email_opt_in":true}');`);
+    expect(await repo.getPreference(newcomer)).toBe(true);
+    await repo.setPreference(newcomer, false);
+    expect(await repo.getPreference(newcomer)).toBe(false);
+    expect(await repo.getPreference(USER)).toBe(false);
+  });
+
+  it("finds signup consent during the worker scan without requiring an app settings visit", async () => {
+    const newcomer = "33333333-3333-4333-8333-333333333333";
+    await pg.exec(`INSERT INTO public.users(id,name,business_type,created_at) VALUES ('${newcomer}','Bia','crafts',now()-interval '10 days');
+      INSERT INTO auth.users(id,email,email_confirmed_at,created_at,raw_user_meta_data)
+      VALUES ('${newcomer}','bia@example.com',now()-interval '10 days',now()-interval '10 days','{"action_email_opt_in":true}');`);
+
+    await repo.candidates();
+
+    const { rows } = await pg.query<{ enabled: boolean; consented_at: Date }>(
+      `SELECT enabled, consented_at FROM app_email.action_preferences WHERE user_id='${newcomer}'`,
+    );
+    expect(rows[0]?.enabled).toBe(true);
+    expect(rows[0]?.consented_at).toBeTruthy();
   });
 
   it("excludes completed pricing and recent app activity", async () => {
