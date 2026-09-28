@@ -14,28 +14,29 @@ Alternativas equivalentes: **Fly.io** (free tier maior, exige `flyctl`), **Rende
 
 Lista completa em [apps/api/.env.example](../apps/api/.env.example). Resumo:
 
-| Variavel                               | Obrigatoria | Descricao                                                    |
-| -------------------------------------- | ----------- | ------------------------------------------------------------ |
-| `DATABASE_URL`                         | sim         | Postgres connection string (Supabase pooler, porta 5432)     |
-| `SUPABASE_URL`                         | sim         | URL do projeto Supabase                                      |
-| `SUPABASE_ANON_KEY`                    | sim         | Anon key (publica) do Supabase                               |
-| `API_PORT`                             | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora)  |
-| `CORS_ORIGIN`                          | nao         | Origens permitidas (comma-separated, default `*`)            |
-| `COSMOS_API_TOKEN`                     | nao         | Token Cosmos para sugerir cadastro por GTIN/EAN              |
-| `COSMOS_USER_AGENT`                    | nao         | User-Agent liberado junto ao token Cosmos                    |
-| `GOOGLE_PLAY_PACKAGE_NAME`             | sim         | Package name Android (`br.com.orionseven.lucrocaseiro`)      |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`     | sim         | JSON da service account para validar assinaturas Google Play |
-| `STRIPE_SECRET_KEY`                    | sim         | Secret key live da Stripe (`sk_live_...`)                    |
-| `STRIPE_WEBHOOK_SECRET`                | sim         | Signing secret do webhook Stripe (`whsec_...`)               |
-| `STRIPE_PRICE_ESSENTIAL_MONTHLY_ID`    | sim         | Price mensal do Essencial (`price_...`)                      |
-| `STRIPE_PRICE_ESSENTIAL_ANNUAL_ID`     | sim         | Price anual do Essencial (`price_...`)                       |
-| `STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID` | sim         | Price mensal do Profissional (`price_...`)                   |
-| `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID`  | sim         | Price anual do Profissional (`price_...`)                    |
-| `STRIPE_SUCCESS_URL`                   | sim         | URL de retorno apos checkout aprovado                        |
-| `STRIPE_CANCEL_URL`                    | sim         | URL de retorno apos checkout cancelado                       |
-| `RESEND_API_KEY`                       | nao         | Chave backend do Resend para e-mail transacional             |
-| `EMAIL_FROM`                           | nao         | Remetente em dominio verificado no Resend                    |
-| `EMAIL_REPLY_TO`                       | nao         | Endereco opcional que recebe respostas                       |
+| Variavel                               | Obrigatoria | Descricao                                                              |
+| -------------------------------------- | ----------- | ---------------------------------------------------------------------- |
+| `DATABASE_URL`                         | sim         | Postgres connection string (Supabase pooler, porta 5432)               |
+| `SUPABASE_URL`                         | sim         | URL do projeto Supabase                                                |
+| `SUPABASE_ANON_KEY`                    | sim         | Anon key (publica) do Supabase                                         |
+| `API_PORT`                             | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora)            |
+| `CORS_ORIGIN`                          | nao         | Origens permitidas (comma-separated, default `*`)                      |
+| `COSMOS_API_TOKEN`                     | nao         | Token Cosmos para sugerir cadastro por GTIN/EAN                        |
+| `COSMOS_USER_AGENT`                    | nao         | User-Agent liberado junto ao token Cosmos                              |
+| `GOOGLE_PLAY_PACKAGE_NAME`             | sim         | Package name Android (`br.com.orionseven.lucrocaseiro`)                |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`     | sim         | JSON da service account para validar assinaturas Google Play           |
+| `STRIPE_SECRET_KEY`                    | sim         | Secret key live da Stripe (`sk_live_...`)                              |
+| `STRIPE_WEBHOOK_SECRET`                | sim         | Signing secret do webhook Stripe (`whsec_...`)                         |
+| `STRIPE_PRICE_ESSENTIAL_MONTHLY_ID`    | sim         | Price mensal do Essencial (`price_...`)                                |
+| `STRIPE_PRICE_ESSENTIAL_ANNUAL_ID`     | sim         | Price anual do Essencial (`price_...`)                                 |
+| `STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID` | sim         | Price mensal do Profissional (`price_...`)                             |
+| `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID`  | sim         | Price anual do Profissional (`price_...`)                              |
+| `STRIPE_SUCCESS_URL`                   | sim         | URL de retorno apos checkout aprovado                                  |
+| `STRIPE_CANCEL_URL`                    | sim         | URL de retorno apos checkout cancelado                                 |
+| `RESEND_API_KEY`                       | nao         | Chave backend do Resend para e-mail transacional                       |
+| `EMAIL_FROM`                           | nao         | Remetente em dominio verificado no Resend                              |
+| `EMAIL_REPLY_TO`                       | nao         | Endereco opcional que recebe respostas                                 |
+| `TRIAL_REMINDER_ENABLED`               | nao         | Habilita avisos graduais do teste Essencial (requer Resend e Reply-To) |
 
 ---
 

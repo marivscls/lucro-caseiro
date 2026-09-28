@@ -21,7 +21,8 @@ export class WelcomeEmailRepoPg implements IWelcomeEmailRepo {
     // Internal, operator-authorized signup sweep. All delivery writes are scoped
     // to one user. Auth confirmation is checked independently of editable metadata.
     const rows = await this.db.execute(sql`
-      SELECT u.id AS "userId", a.email, u.name, u.business_name AS "businessName", u.business_type AS "businessType"
+      SELECT u.id AS "userId", a.email, u.name, u.business_name AS "businessName", u.business_type AS "businessType",
+        (u.plan = 'essential' AND u.plan_is_trial = true AND u.plan_expires_at > now()) AS "trialActive"
       FROM public.users u
       JOIN auth.users a ON a.id = u.id
       CROSS JOIN app_email.welcome_settings settings

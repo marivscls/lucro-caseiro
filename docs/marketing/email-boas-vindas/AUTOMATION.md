@@ -11,6 +11,20 @@ Implementação de 09/09/2026. **Ativa em produção**, com `WELCOME_EMAIL_ENABL
 
 A API verifica novos cadastros a cada minuto. Após pelo menos cinco minutos do cadastro e a confirmação do email, prepara o modelo aprovado “Passo a passo”, personalizado com primeiro nome, negócio e orientações para produtos ou serviços. O botão principal usa `lucrocaseiro://`; o site aparece no rodapé.
 
+Para quem ainda esta no teste do Essencial, o modelo agora informa os 7 dias, a ausencia de cartao e cobranca, a permanencia dos dados e a opcao de seguir no Gratuito. A fila antiga de boas-vindas nao e reaberta quando o modelo muda.
+
+## Avisos graduais do teste Essencial
+
+`TRIAL_REMINDER_ENABLED=true` inicia um segundo worker no servico da API. Ele usa o mesmo dominio Resend e a caixa de resposta monitorada. As mensagens sao enviadas quando faltam entre 3 e 2 dias, nas ultimas 24 horas, e apos o vencimento. Se uma etapa for perdida por indisponibilidade, o worker nao envia um aviso antigo fora da janela. Apos o vencimento, o ultimo aviso pode ser enviado por ate sete dias. Compra, mudanca de validade ou email, desativacao e exclusao da conta cancelam avisos pendentes.
+
+A fila privada `app_email.trial_reminder_jobs` limita cada etapa a uma mensagem por pessoa. O conteudo e a chave de idempotencia ficam congelados para tentativas; o envio ambiguo para e a revisao apos 23 horas ou oito falhas. O acesso ao Essencial expira pela regra do plano, independente do worker: os dados continuam salvos e a conta passa a usar os limites do Gratuito. Para pausar apenas os avisos, definir `TRIAL_REMINDER_ENABLED=false` e reiniciar a API.
+
+Consulta administrativa sem expor destinatarios ou conteudo:
+
+```sql
+SELECT stage, status, count(*) FROM app_email.trial_reminder_jobs GROUP BY stage, status;
+```
+
 O remetente é Lucro Caseiro e as respostas vão para a caixa configurada em `EMAIL_REPLY_TO`. Contas antigas, desativadas, excluídas, bloqueadas ou de outras marcas não entram na seleção inicial. A ativação grava um marco permanente no banco: reiniciar a API não reenviará boas-vindas aos usuários antigos.
 
 Exceção autorizada expressamente em 09/09/2026: o segundo modelo personalizado foi enviado ao Gamaliel às 14:58 de Brasília. O Resend aceitou a mensagem `2bfee72f-d130-4d97-9006-066f383ef413`, registrada como `sent` na fila após uma tentativa. A leitura posterior confirmou um único registro. A chave de envio não permitiu consultar os eventos de entrega; não foi comprovada chegada à caixa de entrada nem abertura.
