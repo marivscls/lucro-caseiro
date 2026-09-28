@@ -1,0 +1,36 @@
+appId: br.com.orionseven.lucrocaseiro
+name: Release - abertura, primeira acao e retorno
+---
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 45000
+- tapOn: "Início"
+- tapOn: "Calcular preço"
+- extendedWaitUntil:
+    visible: "Produto e custos"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Ingredientes ou material"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    below: "Ingredientes ou material"
+    text: "0"
+- inputText: "10,00"
+- tapOn: "Produto e custos"
+- tapOn: "Continuar"
+- extendedWaitUntil:
+    visible: "Despesas.*|Margem.*"
+    timeout: 10000
+- takeScreenshot: 02-primeira-acao-31
+- tapOn: "Início"
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 45000
+- assertNotVisible: "Que bom te ver!"
+- takeScreenshot: 03-retorno-31

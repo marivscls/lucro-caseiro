@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "confeitaria",
+    "referenceName": "Confeitaria — catálogo e encomendas",
+    "title": "Lucro Caseiro: Confeitaria",
+    "shortDescription": "Catálogo de doces, orçamentos, encomendas e custos da sua confeitaria.",
+    "introduction": "Seu catálogo de doces, suas encomendas e o dinheiro da confeitaria organizados.\n\nApresente bolos e doces em um catálogo online, prepare orçamentos e transforme aprovações em encomendas com data e sinal. Acompanhe ingredientes, embalagens, pagamentos pendentes e resultados para cuidar de cada pedido com mais clareza.",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=confeitaria"
+  },
+  {
+    "slug": "artesanato",
+    "referenceName": "Artesanato — catálogo e pedidos",
+    "title": "Lucro Caseiro: Artesanato",
+    "shortDescription": "Catálogo das suas peças, orçamentos, pedidos e controle de materiais e valores.",
+    "introduction": "Apresente suas peças e organize cada encomenda do seu artesanato.\n\nCompartilhe um catálogo online, prepare propostas para clientes e acompanhe pedidos com data e sinal. Reúna materiais, embalagens, custos e valores a receber para entender o resultado do seu trabalho.",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=artesanato"
+  },
+  {
+    "slug": "servicos",
+    "referenceName": "Serviços — orçamentos e agenda",
+    "title": "Lucro Caseiro: Serviços",
+    "shortDescription": "Apresente seus serviços, prepare orçamentos e organize agenda e recebimentos.",
+    "introduction": "Seus serviços, seus orçamentos e sua agenda no mesmo lugar.\n\nApresente seu trabalho em um catálogo online e facilite o contato pelo WhatsApp. Prepare propostas, organize atendimentos por data e acompanhe sinais, pagamentos pendentes e despesas para ter clareza sobre o dinheiro do negócio.",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=servicos"
+  }
+]

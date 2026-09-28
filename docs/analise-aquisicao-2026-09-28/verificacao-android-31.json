@@ -1,0 +1,30 @@
+{
+  "file": "lucro-caseiro-1.2.2-31.aab",
+  "bytes": 103080944,
+  "sha256": "1A964EC02296D95FE7A66D52EC5BFC8AD2B31BD7CA4AA1E4C69051BC9D8EC304",
+  "mapping": "BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map",
+  "mappingBytes": 59956958,
+  "mappingHeader": [
+    "# compiler: R8",
+    "# compiler_version: 8.11.18",
+    "# min_api: 24",
+    "# common_typos_disable",
+    "# {\"id\":\"com.android.tools.r8.mapping\",\"version\":\"2.2\"}",
+    "# pg_map_id: ac224aa",
+    "# pg_map_hash: SHA-256 ac224aa18edb0fb0b1f27664291efeccf0b7c0bbbf03c4a95ad4fbf91aad9fb5"
+  ],
+  "dexFiles": [
+    {
+      "FullName": "base/dex/classes.dex",
+      "Length": 7021376
+    },
+    {
+      "FullName": "base/dex/classes2.dex",
+      "Length": 7960820
+    },
+    {
+      "FullName": "base/dex/classes3.dex",
+      "Length": 4286948
+    }
+  ]
+}

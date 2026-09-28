@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="lucro_e2e" tests="1" failures="0" time="23.0">
+    <testcase id="Release - primeiro uso sem perfil obrigatorio" name="Release - primeiro uso sem perfil obrigatorio" classname="Release - primeiro uso sem perfil obrigatorio" file="tmp\android-validation\onboarding-release.yaml" time="23.0" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

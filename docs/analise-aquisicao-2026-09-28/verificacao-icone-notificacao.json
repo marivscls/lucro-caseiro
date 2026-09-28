@@ -1,0 +1,40 @@
+{
+  "notification": {
+    "icon": "C:\\Users\\maria\\Documents\\projects\\lucro-caseiro\\packages\\brands\\lucro-caseiro\\assets\\notification-icon.png",
+    "color": "#B65F72",
+    "defaultChannel": "default"
+  },
+  "sizes": [
+    {
+      "density": "mdpi",
+      "width": 24,
+      "height": 24,
+      "hasAlpha": true
+    },
+    {
+      "density": "hdpi",
+      "width": 36,
+      "height": 36,
+      "hasAlpha": true
+    },
+    {
+      "density": "xhdpi",
+      "width": 48,
+      "height": 48,
+      "hasAlpha": true
+    },
+    {
+      "density": "xxhdpi",
+      "width": 72,
+      "height": 72,
+      "hasAlpha": true
+    },
+    {
+      "density": "xxxhdpi",
+      "width": 96,
+      "height": 96,
+      "hasAlpha": true
+    }
+  ],
+  "deviceUiTested": false
+}

@@ -1,0 +1,27 @@
+appId: br.com.orionseven.lucrocaseiro
+name: Release - tela de cadastro e abertura do Google
+---
+- openLink: "lucrocaseiro://settings"
+- scrollUntilVisible:
+    element: "Sair da conta"
+    direction: DOWN
+- tapOn: "Sair da conta"
+- tapOn:
+    text: "^Sair$"
+    index: 1
+- extendedWaitUntil:
+    visible: "Que bom te ver!"
+    timeout: 20000
+- openLink: "lucrocaseiro://register"
+- extendedWaitUntil:
+    visible: "Crie sua conta"
+    timeout: 15000
+- assertVisible: "Criar com Google"
+- takeScreenshot: 08-cadastro-31
+- openLink: "lucrocaseiro://login"
+- extendedWaitUntil:
+    visible: "Que bom te ver!"
+    timeout: 15000
+- tapOn: "Entrar com Google"
+- waitForAnimationToEnd
+- takeScreenshot: 09-google-aberto-31

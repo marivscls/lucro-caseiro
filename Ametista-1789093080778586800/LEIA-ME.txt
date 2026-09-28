@@ -1,0 +1,2 @@
+Dados da Ametista em JSON. Inclui somente os dados indicados na tela de exportação.
+Não é um backup completo do banco. Arquivos anexos e credenciais não estão incluídos.

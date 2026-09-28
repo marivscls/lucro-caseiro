@@ -1,147 +1,63 @@
-# Play Store Listing — Lucro Caseiro
+# Google Play — Lucro Caseiro
 
-Textos prontos pra colar em **Play Console → Main store listing** (Português Brasil).
+Atualizado em 28/09/2026 a partir da Play Console autenticada.
 
-## Nome do app (max 30 caracteres)
+## Estado da configuração
 
-```
-Lucro Caseiro: Gestao
-```
+- Nome: Lucro Caseiro: Gestão e Vendas (30 caracteres).
+- Idioma padrão: Português (Brasil), pt-BR.
+- Categoria: Empresa.
+- Tag: Empresa — aplicada em 28/09/2026.
+- Site: https://lucrocaseiro.com.br/ — alteração publicada em 28/09/2026.
+- E-mail: contato@orionseven.com.br.
+- País de produção: Brasil; distribuição ativa, versão 30 (1.2.1) com lançamento de 100%.
+- Marketing externo: habilitado.
+- Descrições abaixo: revisão reiniciada em 28/09/2026 para incluir os diferenciais avançados e a distinção entre os planos. A Console confirmou “Alterações em análise”, com verificações automáticas em andamento. Publicação depende da aprovação do Google.
 
-(21 caracteres — atualizar o titulo cadastrado na proxima revisao da ficha)
+## Descrição curta (72 de 80 caracteres)
 
-## Descricao curta (max 80 caracteres)
+Catálogo online, agenda, orçamentos e relatórios para gerir seu negócio.
 
-```
-Precos, vendas, clientes e financeiro para organizar e fazer o negocio crescer.
-```
+## Descrição completa (2786 de 4000 caracteres)
 
-(79 caracteres)
+Apresente seu negócio, acompanhe pedidos e entenda seus resultados em um só lugar.
 
-Alternativas:
+O Lucro Caseiro reúne catálogo online, orçamentos, agenda, vendas, clientes e controle financeiro para quem produz, vende ou presta serviços. Da apresentação dos produtos ao acompanhamento do dinheiro, tenha as informações do negócio organizadas para trabalhar com mais clareza.
 
-```
-Cuide do seu negocio: vendas, clientes, financeiro e precificacao.
-```
+CATÁLOGO ONLINE COM A SUA MARCA
+Monte uma vitrine de produtos e serviços, compartilhe o link e facilite o contato pelo WhatsApp. Nos planos Essencial e Profissional, personalize o catálogo com logo, capa e cores do seu negócio e mostre mais fotos dos produtos.
 
-```
-Vendas, clientes, financeiro e precos. Tudo do seu negocio num so app.
-```
+DO ORÇAMENTO À ENCOMENDA
+Prepare orçamentos com itens, valores e validade e compartilhe pelo WhatsApp. Quando o cliente aprovar, transforme o orçamento em encomenda na agenda, com data de entrega e sinal recebido. O plano Profissional também permite enviar o orçamento em PDF.
 
-## Descricao completa (max 4000 caracteres)
+AGENDA, VENDAS E VALORES A RECEBER
+Organize encomendas e atendimentos por data e status. Acompanhe sinais, pagamentos pendentes e clientes com saldo a receber. Consulte o histórico de compras para dar continuidade ao atendimento.
 
-```
-Lucro Caseiro e o app de gestao para quem produz, vende ou presta servicos. Ele acompanha desde quem trabalha por conta propria ate negocios estruturados e em crescimento — sem complicacao tecnica e em poucos toques. Doces, marmitas, salgados, artesanato, beleza e costura sao alguns exemplos, nao limites.
+RELATÓRIOS PARA ENTENDER O NEGÓCIO
+Veja entradas, despesas e resultados do período. No Profissional, acompanhe a evolução do faturamento, os produtos mais vendidos e os principais clientes, além de exportar relatórios financeiros em PDF e Excel. O Essencial inclui o resumo mensal em PDF.
 
-VENDAS
-- Registre vendas em segundos, mesmo na correria.
-- Filtros por data, cliente, status (pago, pendente, cancelado).
-- Marque como pago ou cancele com um toque.
-- Edite vendas ja registradas se errou alguma coisa.
+APRESENTAÇÃO E CONTROLE AVANÇADO
+No Profissional, crie etiquetas de identificação personalizadas, com opção de QR do catálogo, e organize produtos compostos e kits. Registre compras de fornecedores e despesas recorrentes para acompanhar também os custos da operação.
 
-CLIENTES
-- Cadastro completo: nome, telefone, e-mail, anotacoes e aniversario.
-- Receba lembrete no aniversario de cada cliente.
-- Veja o historico de compras de cada um.
+PRECIFICAÇÃO LIGADA À SUA ROTINA
+Organize produtos, receitas, ingredientes e embalagens. Considere custos e margem desejada ao definir preços e mantenha essas informações junto das vendas e do financeiro. Os recursos de precificação avançada fazem parte do Profissional.
 
-PRODUTOS E RECEITAS
-- Cadastre produtos com foto, preco, custo e estoque.
-- Crie receitas com ingredientes e quantidades — o app calcula o custo automaticamente.
-- Embalagens e etiquetas tambem ficam organizadas.
+COMECE PELO QUE SEU NEGÓCIO PRECISA HOJE
+Cadastre um produto, registre uma venda ou organize uma encomenda. Amplie o uso conforme sua rotina: alimentos, confeitaria, artesanato, costura, beleza, serviços ou comércio.
 
-PRECIFICACAO INTELIGENTE
-- Calcule o preco ideal de cada produto baseado em ingredientes, embalagem, mao de obra e custos fixos.
-- Veja sua margem de lucro em tempo real.
-- Historico de precificacao pra acompanhar como os custos mudaram.
+ESCOLHA O PLANO PARA SUA ROTINA
+• Gratuito: comece com limites de uso.
+• Essencial: vendas, clientes, produtos, receitas e embalagens sem limite de volume, catálogo completo e personalizado e resumo mensal em PDF.
+• Profissional: recursos do Essencial, mais relatórios avançados, exportações, orçamentos em PDF, etiquetas personalizadas, kits, compras e despesas recorrentes.
 
-FINANCEIRO
-- Lance entradas e saidas alem das vendas.
-- Veja o resumo do mes: faturamento, despesas e lucro.
-- Identifique seus produtos e clientes mais lucrativos.
+As assinaturas são opcionais. Consulte os limites, benefícios e valores de cada plano no aplicativo antes de assinar.
 
-ALERTAS E LEMBRETES
-- Estoque baixo aparece destacado.
-- Vendas pendentes nao deixam voce esquecer de cobrar.
-- Aniversarios de clientes pra um toque especial.
+Lucro Caseiro: gestão para apresentar seu trabalho, acompanhar cada pedido e cuidar do dinheiro do negócio.
 
-FUNCIONA OFFLINE
-- Cadastre vendas e clientes mesmo sem internet.
-- Sincronizacao automatica quando voltar a rede.
+## Evidências e acompanhamento
 
-PLANO GRATUITO
-- 30 vendas por mes
-- 20 clientes
-- 5 receitas
-- 3 embalagens
-- Relatorio basico mensal
+- [Registro das mudanças e plano de aquisição/retenção](../analise-aquisicao-2026-09-28/configuracao-google-play.md).
+- [Texto enviado com os diferenciais](../analise-aquisicao-2026-09-28/play-listing-diferenciais.json).
+- [Comprovante de envio](../analise-aquisicao-2026-09-28/play-diferenciais-em-analise.png).
 
-PLANO ESSENCIAL (R$ 29,90/mes ou R$ 299,00/ano)
-- Vendas, clientes, produtos, receitas e embalagens sem limite de volume
-- Agenda, fiado, financeiro e estoque basico
-- Catalogo completo e personalizado
-- Resumo mensal em PDF
-
-PLANO PROFISSIONAL (R$ 69,90/mes ou R$ 699,00/ano)
-- Tudo do Essencial
-- Varias fotos por produto
-- Relatorios e exportacoes avancadas
-- Compras, fornecedores, despesas recorrentes, orcamentos e rotulos
-- Produtos compostos e kits
-- Suporte prioritario
-
-PRA QUEM E
-- Confeitaria caseira
-- Marmitaria
-- Manicure / pedicure
-- Cabeleireira(o) em casa
-- Artesanato e bordado
-- Costura e ateliê
-- Servicos de limpeza
-- Negocios de diferentes segmentos e estagios de crescimento
-
-LINGUAGEM SIMPLES, BOTOES GRANDES
-- Pensado pra todas as idades, inclusive quem nunca usou app de gestao.
-- Maximo 3 toques pra qualquer acao principal.
-- Tudo em portugues claro, sem termos tecnicos.
-
-Comece hoje a profissionalizar seu negocio. Sem precisar de planilha, sem caderno bagunçado, sem perder venda.
-```
-
-(~3.100 caracteres — sobra espaco se quiser adicionar testimonials/social proof depois)
-
-## Categoria
-
-- **Categoria principal**: Business
-- **Tag**: Empreendedorismo, Productivity (escolher 2 que melhor descrevem)
-
-## Email de contato
-
-```
-contato@orionseven.com.br
-```
-
-## Site (opcional mas recomendado)
-
-```
-https://orionseven.com.br/apps/lucro-caseiro
-```
-
-(quando o site Orion estiver deployado — voce pode criar uma landing page futuramente, ou apontar pra `https://orionseven.com.br` direto)
-
-## Privacy Policy URL
-
-```
-https://orionseven.com.br/apps/lucro-caseiro/privacidade
-```
-
-(disponivel apos o site Orion ser deployado e a PR `feat/lucro-caseiro-legal-pages` ser mergeada)
-
-## Idade-alvo
-
-13 anos ou mais (apesar de no app a gente recomendar 18+, 13+ e o minimo do Play e e suficiente).
-
-## Conteudo do app
-
-- **Anuncios**: NAO contem (decisao v1)
-- **Compras no app**: SIM (assinaturas Essencial e Profissional)
-- **App contem conteudo gerado pelo usuario**: NAO (clientes/produtos so sao visiveis pra propria conta)
+Os detalhes comerciais foram conferidos em `packages/contracts/src/schemas/plans.ts`. A ficha informa a existência de limites e recursos por plano, remetendo aos preços exibidos no aplicativo.

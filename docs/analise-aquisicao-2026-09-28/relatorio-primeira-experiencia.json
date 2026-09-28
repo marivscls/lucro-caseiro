@@ -1,0 +1,490 @@
+{
+  "generated_at": "2026-09-28T12:23:57.983Z",
+  "installations_total": 423,
+  "installations_7d": 11,
+  "installations_30d": 45,
+  "linked_installations": 74,
+  "signups_total": 51,
+  "signups_30d": 6,
+  "activated_users_total": 15,
+  "eligible_activation_7d": 49,
+  "activated_within_7d": 11,
+  "activation_rate_7d_percent": "22.45",
+  "active_installations_1d": 0,
+  "active_installations_7d": 18,
+  "active_installations_30d": 59,
+  "active_users_1d": 0,
+  "active_users_7d": 5,
+  "active_users_30d": 16,
+  "eligible_d1": 423,
+  "retained_d1": 33,
+  "retention_d1_percent": "7.80",
+  "eligible_d7": 412,
+  "retained_d7": 6,
+  "retention_d7_percent": "1.46",
+  "eligible_d30": 378,
+  "retained_d30": 3,
+  "retention_d30_percent": "0.79",
+  "screen_usage": [
+    {
+      "people": 12,
+      "screen": "more",
+      "visits": 686,
+      "active_minutes": 405.84,
+      "average_active_seconds": 35.5
+    },
+    {
+      "people": 16,
+      "screen": "home",
+      "visits": 724,
+      "active_minutes": 340.6,
+      "average_active_seconds": 28.23
+    },
+    {
+      "people": 7,
+      "screen": "catalog",
+      "visits": 138,
+      "active_minutes": 291.91,
+      "average_active_seconds": 126.92
+    },
+    {
+      "people": 8,
+      "screen": "purchases",
+      "visits": 24,
+      "active_minutes": 217.2,
+      "average_active_seconds": 542.99
+    },
+    {
+      "people": 10,
+      "screen": "agenda",
+      "visits": 115,
+      "active_minutes": 158.56,
+      "average_active_seconds": 82.73
+    },
+    {
+      "people": 13,
+      "screen": "new_sale",
+      "visits": 179,
+      "active_minutes": 139.6,
+      "average_active_seconds": 46.79
+    },
+    {
+      "people": 6,
+      "screen": "suppliers",
+      "visits": 31,
+      "active_minutes": 119.33,
+      "average_active_seconds": 230.97
+    },
+    {
+      "people": 14,
+      "screen": "sales",
+      "visits": 194,
+      "active_minutes": 101.22,
+      "average_active_seconds": 31.3
+    },
+    {
+      "people": 59,
+      "screen": "login",
+      "visits": 572,
+      "active_minutes": 96.36,
+      "average_active_seconds": 10.11
+    },
+    {
+      "people": 12,
+      "screen": "products",
+      "visits": 135,
+      "active_minutes": 78.79,
+      "average_active_seconds": 35.02
+    },
+    {
+      "people": 11,
+      "screen": "pricing",
+      "visits": 87,
+      "active_minutes": 69.45,
+      "average_active_seconds": 47.89
+    },
+    {
+      "people": 12,
+      "screen": "finance",
+      "visits": 86,
+      "active_minutes": 40.64,
+      "average_active_seconds": 28.35
+    },
+    {
+      "people": 6,
+      "screen": "recurring_expenses",
+      "visits": 48,
+      "active_minutes": 26.65,
+      "average_active_seconds": 33.32
+    },
+    {
+      "people": 9,
+      "screen": "materials",
+      "visits": 46,
+      "active_minutes": 26.48,
+      "average_active_seconds": 34.54
+    },
+    {
+      "people": 6,
+      "screen": "register",
+      "visits": 57,
+      "active_minutes": 24.21,
+      "average_active_seconds": 25.48
+    },
+    {
+      "people": 16,
+      "screen": "settings",
+      "visits": 57,
+      "active_minutes": 21.3,
+      "average_active_seconds": 22.42
+    },
+    {
+      "people": 9,
+      "screen": "fiado",
+      "visits": 67,
+      "active_minutes": 17.77,
+      "average_active_seconds": 15.92
+    },
+    {
+      "people": 10,
+      "screen": "clients",
+      "visits": 56,
+      "active_minutes": 13.3,
+      "average_active_seconds": 14.25
+    },
+    {
+      "people": 8,
+      "screen": "packaging",
+      "visits": 39,
+      "active_minutes": 13.26,
+      "average_active_seconds": 20.4
+    },
+    {
+      "people": 7,
+      "screen": "recipes",
+      "visits": 22,
+      "active_minutes": 11.61,
+      "average_active_seconds": 31.67
+    },
+    {
+      "people": 3,
+      "screen": "onboarding",
+      "visits": 5,
+      "active_minutes": 11.55,
+      "average_active_seconds": 138.59
+    },
+    {
+      "people": 8,
+      "screen": "insights",
+      "visits": 42,
+      "active_minutes": 9.07,
+      "average_active_seconds": 12.96
+    },
+    {
+      "people": 6,
+      "screen": "quotes",
+      "visits": 31,
+      "active_minutes": 8.58,
+      "average_active_seconds": 16.61
+    },
+    {
+      "people": 8,
+      "screen": "labels",
+      "visits": 30,
+      "active_minutes": 5.74,
+      "average_active_seconds": 11.48
+    },
+    {
+      "people": 5,
+      "screen": "support",
+      "visits": 11,
+      "active_minutes": 3.07,
+      "average_active_seconds": 16.74
+    },
+    {
+      "people": 5,
+      "screen": "plans",
+      "visits": 8,
+      "active_minutes": 2.72,
+      "average_active_seconds": 20.4
+    }
+  ],
+  "feature_usage": [
+    {
+      "action": "sale_completed",
+      "events": 62,
+      "people": 8
+    },
+    {
+      "action": "product_created",
+      "events": 24,
+      "people": 6
+    },
+    {
+      "action": "order_created",
+      "events": 13,
+      "people": 3
+    },
+    {
+      "action": "pricing_completed",
+      "events": 8,
+      "people": 2
+    },
+    {
+      "action": "finance_entry_created",
+      "events": 6,
+      "people": 2
+    },
+    {
+      "action": "quote_created",
+      "events": 5,
+      "people": 2
+    },
+    {
+      "action": "catalog_shared",
+      "events": 4,
+      "people": 2
+    },
+    {
+      "action": "subscription_started",
+      "events": 4,
+      "people": 2
+    },
+    {
+      "action": "quote_pdf_exported",
+      "events": 2,
+      "people": 1
+    },
+    {
+      "action": "signup_completed",
+      "events": 2,
+      "people": 2
+    },
+    {
+      "action": "catalog_published",
+      "events": 0,
+      "people": 0
+    },
+    {
+      "action": "paid_feature_requested",
+      "events": 0,
+      "people": 0
+    },
+    {
+      "action": "plan_limit_reached",
+      "events": 0,
+      "people": 0
+    },
+    {
+      "action": "pricing_started",
+      "events": 0,
+      "people": 0
+    },
+    {
+      "action": "product_created_from_pricing",
+      "events": 0,
+      "people": 0
+    },
+    {
+      "action": "subscription_cancelled",
+      "events": 0,
+      "people": 0
+    },
+    {
+      "action": "subscription_completed",
+      "events": 0,
+      "people": 0
+    }
+  ],
+  "funnel": [
+    {
+      "stage": "installation",
+      "installations": 423,
+      "previous_stage_percent": null
+    },
+    {
+      "stage": "signup",
+      "installations": 3,
+      "previous_stage_percent": 0.71
+    },
+    {
+      "stage": "pricing",
+      "installations": 1,
+      "previous_stage_percent": 33.33
+    },
+    {
+      "stage": "product",
+      "installations": 0,
+      "previous_stage_percent": 0
+    },
+    {
+      "stage": "catalog_or_sale",
+      "installations": 0,
+      "previous_stage_percent": null
+    }
+  ],
+  "version_adoption": [
+    {
+      "percent": 50.85,
+      "app_version": "1.2.1",
+      "installations": 30
+    },
+    {
+      "percent": 49.15,
+      "app_version": "1.2.0",
+      "installations": 29
+    }
+  ],
+  "behavior_retention": [
+    {
+      "percent": 12.5,
+      "behavior": "catalog_shared",
+      "eligible": 8,
+      "retained": 1
+    },
+    {
+      "percent": 0,
+      "behavior": "pricing_completed",
+      "eligible": 9,
+      "retained": 0
+    }
+  ],
+  "acquisition": {
+    "since": "2026-06-30T12:23:57.266+00:00",
+    "cohorts": [
+      {
+        "week": "2026-09-21",
+        "accounts": 2,
+        "eligibleD1": 2,
+        "eligibleD7": 0,
+        "retainedD1": 0,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-09-07",
+        "accounts": 3,
+        "eligibleD1": 3,
+        "eligibleD7": 3,
+        "retainedD1": 0,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-08-24",
+        "accounts": 2,
+        "eligibleD1": 2,
+        "eligibleD7": 2,
+        "retainedD1": 1,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-08-17",
+        "accounts": 4,
+        "eligibleD1": 4,
+        "eligibleD7": 4,
+        "retainedD1": 1,
+        "retainedD7": 1
+      },
+      {
+        "week": "2026-08-10",
+        "accounts": 5,
+        "eligibleD1": 5,
+        "eligibleD7": 5,
+        "retainedD1": 2,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-08-03",
+        "accounts": 4,
+        "eligibleD1": 4,
+        "eligibleD7": 4,
+        "retainedD1": 0,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-07-27",
+        "accounts": 5,
+        "eligibleD1": 5,
+        "eligibleD7": 5,
+        "retainedD1": 0,
+        "retainedD7": 1
+      },
+      {
+        "week": "2026-07-20",
+        "accounts": 7,
+        "eligibleD1": 7,
+        "eligibleD7": 7,
+        "retainedD1": 1,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-07-13",
+        "accounts": 2,
+        "eligibleD1": 2,
+        "eligibleD7": 2,
+        "retainedD1": 0,
+        "retainedD7": 0
+      },
+      {
+        "week": "2026-07-06",
+        "accounts": 4,
+        "eligibleD1": 4,
+        "eligibleD7": 4,
+        "retainedD1": 0,
+        "retainedD7": 0
+      }
+    ],
+    "sources": [
+      {
+        "medium": null,
+        "source": null,
+        "campaign": null,
+        "installations": 423
+      }
+    ],
+    "accounts": 38,
+    "retention": {
+      "day1": {
+        "percent": 13.16,
+        "eligible": 38,
+        "retained": 5
+      },
+      "day7": {
+        "percent": 5.56,
+        "eligible": 36,
+        "retained": 2
+      }
+    },
+    "milestones": [
+      {
+        "users": 18,
+        "action": "first_value",
+        "percent": 50,
+        "eligible": 36,
+        "medianMinutes": 3.8
+      },
+      {
+        "users": 4,
+        "action": "pricing",
+        "percent": 11.11,
+        "eligible": 36,
+        "medianMinutes": 29.3
+      },
+      {
+        "users": 17,
+        "action": "product",
+        "percent": 47.22,
+        "eligible": 36,
+        "medianMinutes": 3.8
+      },
+      {
+        "users": 10,
+        "action": "sale",
+        "percent": 27.78,
+        "eligible": 36,
+        "medianMinutes": 7.4
+      }
+    ],
+    "eligible7Days": 36,
+    "excludedAccounts": 4
+  }
+}

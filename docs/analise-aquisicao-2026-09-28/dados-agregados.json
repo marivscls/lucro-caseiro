@@ -1,0 +1,1444 @@
+{
+  "generated_at": "2026-09-28T11:18:06.837Z",
+  "timezone": "America/Sao_Paulo",
+  "excluded_admin_count": 4,
+  "queries": {
+    "auth_new_accounts": [
+      {
+        "month": "2026-03",
+        "accounts": 1,
+        "excluding_admins": 0,
+        "excluding_admins_days_1_27": 0
+      },
+      {
+        "month": "2026-04",
+        "accounts": 3,
+        "excluding_admins": 2,
+        "excluding_admins_days_1_27": 2
+      },
+      {
+        "month": "2026-05",
+        "accounts": 1,
+        "excluding_admins": 1,
+        "excluding_admins_days_1_27": 0
+      },
+      {
+        "month": "2026-06",
+        "accounts": 6,
+        "excluding_admins": 6,
+        "excluding_admins_days_1_27": 1
+      },
+      {
+        "month": "2026-07",
+        "accounts": 17,
+        "excluding_admins": 16,
+        "excluding_admins_days_1_27": 15
+      },
+      {
+        "month": "2026-08",
+        "accounts": 18,
+        "excluding_admins": 17,
+        "excluding_admins_days_1_27": 16
+      },
+      {
+        "month": "2026-09",
+        "accounts": 5,
+        "excluding_admins": 5,
+        "excluding_admins_days_1_27": 5
+      }
+    ],
+    "auth_daily": [
+      {
+        "day": "2026-08-01T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-08-03T00:00:00.000Z",
+        "new_accounts": 1
+      },
+      {
+        "day": "2026-08-08T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-08-09T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-08-10T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-08-13T00:00:00.000Z",
+        "new_accounts": 1
+      },
+      {
+        "day": "2026-08-16T00:00:00.000Z",
+        "new_accounts": 1
+      },
+      {
+        "day": "2026-08-19T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-08-22T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-08-25T00:00:00.000Z",
+        "new_accounts": 1
+      },
+      {
+        "day": "2026-08-29T00:00:00.000Z",
+        "new_accounts": 1
+      },
+      {
+        "day": "2026-09-07T00:00:00.000Z",
+        "new_accounts": 1
+      },
+      {
+        "day": "2026-09-09T00:00:00.000Z",
+        "new_accounts": 2
+      },
+      {
+        "day": "2026-09-26T00:00:00.000Z",
+        "new_accounts": 2
+      }
+    ],
+    "auth_provider": [
+      {
+        "month": "2026-08",
+        "provider": "email",
+        "accounts": 2
+      },
+      {
+        "month": "2026-08",
+        "provider": "google",
+        "accounts": 15
+      },
+      {
+        "month": "2026-09",
+        "provider": "email",
+        "accounts": 1
+      },
+      {
+        "month": "2026-09",
+        "provider": "google",
+        "accounts": 4
+      }
+    ],
+    "auth_signup_platform": [
+      {
+        "month": "2026-08",
+        "first_observed_platform": "android",
+        "users": 16
+      },
+      {
+        "month": "2026-08",
+        "first_observed_platform": "web",
+        "users": 1
+      },
+      {
+        "month": "2026-09",
+        "first_observed_platform": "android",
+        "users": 2
+      },
+      {
+        "month": "2026-09",
+        "first_observed_platform": "unknown",
+        "users": 2
+      },
+      {
+        "month": "2026-09",
+        "first_observed_platform": "web",
+        "users": 1
+      }
+    ],
+    "comparable_installs": [
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "installations": 44,
+        "installations_linked_to_new_account_within_7d": 13
+      },
+      {
+        "month": "2026-08",
+        "platform": "web",
+        "installations": 134,
+        "installations_linked_to_new_account_within_7d": 0
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "installations": 16,
+        "installations_linked_to_new_account_within_7d": 2
+      },
+      {
+        "month": "2026-09",
+        "platform": "web",
+        "installations": 16,
+        "installations_linked_to_new_account_within_7d": 0
+      }
+    ],
+    "auth_august_cohort": [
+      {
+        "users": 17,
+        "with_product": 10,
+        "with_sale": 6,
+        "active_in_september": 3,
+        "active_since_sept21": 0
+      }
+    ],
+    "auth_last_days": [
+      {
+        "day": "2026-09-07T00:00:00.000Z",
+        "provider": "google",
+        "accounts": 1,
+        "confirmed": 1,
+        "signed_in": 1,
+        "linked_to_installation": 1
+      },
+      {
+        "day": "2026-09-09T00:00:00.000Z",
+        "provider": "email",
+        "accounts": 1,
+        "confirmed": 1,
+        "signed_in": 1,
+        "linked_to_installation": 1
+      },
+      {
+        "day": "2026-09-09T00:00:00.000Z",
+        "provider": "google",
+        "accounts": 1,
+        "confirmed": 1,
+        "signed_in": 1,
+        "linked_to_installation": 1
+      },
+      {
+        "day": "2026-09-26T00:00:00.000Z",
+        "provider": "google",
+        "accounts": 2,
+        "confirmed": 2,
+        "signed_in": 2,
+        "linked_to_installation": 0
+      }
+    ],
+    "monthly_users": [
+      {
+        "month": "2026-07",
+        "total": 9,
+        "excluding_admins": 9
+      },
+      {
+        "month": "2026-08",
+        "total": 25,
+        "excluding_admins": 21
+      },
+      {
+        "month": "2026-09",
+        "total": 6,
+        "excluding_admins": 6
+      }
+    ],
+    "daily_users": [
+      {
+        "day": "2026-07-12T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-07-13T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-07-14T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-07-22T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-07-23T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-07-26T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-07-27T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-07-30T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-01T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-03T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-08T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-09T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-10T00:00:00.000Z",
+        "total": 3,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-11T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-12T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 0
+      },
+      {
+        "day": "2026-08-13T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-14T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-15T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-16T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-19T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-22T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-08-25T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-08-29T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-09-07T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-09-08T00:00:00.000Z",
+        "total": 1,
+        "excluding_admins": 1
+      },
+      {
+        "day": "2026-09-09T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      },
+      {
+        "day": "2026-09-26T00:00:00.000Z",
+        "total": 2,
+        "excluding_admins": 2
+      }
+    ],
+    "auth_monthly": [
+      {
+        "month": "2026-03",
+        "auth_accounts": 1,
+        "email_confirmed": 1,
+        "application_profiles": 1,
+        "ever_signed_in": 1
+      },
+      {
+        "month": "2026-04",
+        "auth_accounts": 3,
+        "email_confirmed": 3,
+        "application_profiles": 1,
+        "ever_signed_in": 3
+      },
+      {
+        "month": "2026-05",
+        "auth_accounts": 1,
+        "email_confirmed": 1,
+        "application_profiles": 0,
+        "ever_signed_in": 1
+      },
+      {
+        "month": "2026-06",
+        "auth_accounts": 6,
+        "email_confirmed": 6,
+        "application_profiles": 2,
+        "ever_signed_in": 6
+      },
+      {
+        "month": "2026-07",
+        "auth_accounts": 17,
+        "email_confirmed": 17,
+        "application_profiles": 13,
+        "ever_signed_in": 17
+      },
+      {
+        "month": "2026-08",
+        "auth_accounts": 18,
+        "email_confirmed": 18,
+        "application_profiles": 18,
+        "ever_signed_in": 18
+      },
+      {
+        "month": "2026-09",
+        "auth_accounts": 5,
+        "email_confirmed": 5,
+        "application_profiles": 5,
+        "ever_signed_in": 5
+      }
+    ],
+    "installs_monthly": [
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "installations": 27,
+        "identified_installations": 7,
+        "admin_installations": 0
+      },
+      {
+        "month": "2026-07",
+        "platform": "web",
+        "installations": 162,
+        "identified_installations": 8,
+        "admin_installations": 4
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "installations": 54,
+        "identified_installations": 26,
+        "admin_installations": 10
+      },
+      {
+        "month": "2026-08",
+        "platform": "web",
+        "installations": 136,
+        "identified_installations": 10,
+        "admin_installations": 2
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "installations": 28,
+        "identified_installations": 21,
+        "admin_installations": 12
+      },
+      {
+        "month": "2026-09",
+        "platform": "web",
+        "installations": 16,
+        "identified_installations": 2,
+        "admin_installations": 0
+      }
+    ],
+    "installs_daily": [
+      {
+        "day": "2026-08-01T00:00:00.000Z",
+        "platform": "android",
+        "installations": 3,
+        "identified_installations": 3
+      },
+      {
+        "day": "2026-08-02T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-03T00:00:00.000Z",
+        "platform": "android",
+        "installations": 6,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-04T00:00:00.000Z",
+        "platform": "android",
+        "installations": 10,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-05T00:00:00.000Z",
+        "platform": "android",
+        "installations": 3,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-06T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-06T00:00:00.000Z",
+        "platform": "web",
+        "installations": 4,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-07T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-08T00:00:00.000Z",
+        "platform": "android",
+        "installations": 3,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-08-09T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-08-10T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-08-10T00:00:00.000Z",
+        "platform": "web",
+        "installations": 6,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-12T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-13T00:00:00.000Z",
+        "platform": "android",
+        "installations": 5,
+        "identified_installations": 5
+      },
+      {
+        "day": "2026-08-13T00:00:00.000Z",
+        "platform": "web",
+        "installations": 2,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-14T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-14T00:00:00.000Z",
+        "platform": "web",
+        "installations": 17,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-15T00:00:00.000Z",
+        "platform": "android",
+        "installations": 4,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-08-15T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-16T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-16T00:00:00.000Z",
+        "platform": "web",
+        "installations": 32,
+        "identified_installations": 4
+      },
+      {
+        "day": "2026-08-18T00:00:00.000Z",
+        "platform": "web",
+        "installations": 12,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-19T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-08-19T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-20T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-21T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-22T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-22T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-23T00:00:00.000Z",
+        "platform": "web",
+        "installations": 9,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-24T00:00:00.000Z",
+        "platform": "web",
+        "installations": 30,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-25T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-25T00:00:00.000Z",
+        "platform": "web",
+        "installations": 18,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-26T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-26T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-08-27T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-08-31T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-09-04T00:00:00.000Z",
+        "platform": "android",
+        "installations": 11,
+        "identified_installations": 10
+      },
+      {
+        "day": "2026-09-04T00:00:00.000Z",
+        "platform": "web",
+        "installations": 3,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-09-07T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-09-09T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-09-09T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-11T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-13T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-15T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-09-16T00:00:00.000Z",
+        "platform": "android",
+        "installations": 2,
+        "identified_installations": 2
+      },
+      {
+        "day": "2026-09-16T00:00:00.000Z",
+        "platform": "web",
+        "installations": 5,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-18T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-19T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-09-19T00:00:00.000Z",
+        "platform": "web",
+        "installations": 3,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-20T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-22T00:00:00.000Z",
+        "platform": "android",
+        "installations": 7,
+        "identified_installations": 4
+      },
+      {
+        "day": "2026-09-22T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-23T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 1
+      },
+      {
+        "day": "2026-09-23T00:00:00.000Z",
+        "platform": "web",
+        "installations": 1,
+        "identified_installations": 0
+      },
+      {
+        "day": "2026-09-26T00:00:00.000Z",
+        "platform": "android",
+        "installations": 1,
+        "identified_installations": 0
+      }
+    ],
+    "attribution_coverage": [
+      {
+        "platform": "android",
+        "installations": 109,
+        "with_source": 0,
+        "with_referrer": 0
+      },
+      {
+        "platform": "web",
+        "installations": 314,
+        "with_source": 0,
+        "with_referrer": 0
+      }
+    ],
+    "attribution": [
+      {
+        "month": "2026-07",
+        "platform": "web",
+        "utm_source": null,
+        "utm_medium": null,
+        "utm_campaign": null,
+        "installations": 162
+      },
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "utm_source": null,
+        "utm_medium": null,
+        "utm_campaign": null,
+        "installations": 27
+      },
+      {
+        "month": "2026-08",
+        "platform": "web",
+        "utm_source": null,
+        "utm_medium": null,
+        "utm_campaign": null,
+        "installations": 136
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "utm_source": null,
+        "utm_medium": null,
+        "utm_campaign": null,
+        "installations": 54
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "utm_source": null,
+        "utm_medium": null,
+        "utm_campaign": null,
+        "installations": 28
+      },
+      {
+        "month": "2026-09",
+        "platform": "web",
+        "utm_source": null,
+        "utm_medium": null,
+        "utm_campaign": null,
+        "installations": 16
+      }
+    ],
+    "event_names": [
+      {
+        "event_type": "action",
+        "event_name": "catalog_shared",
+        "events": 26,
+        "first_at": "2026-07-17T02:07:29.289Z",
+        "last_at": "2026-09-15T18:34:23.496Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "finance_entry_created",
+        "events": 15,
+        "first_at": "2026-07-24T00:44:20.227Z",
+        "last_at": "2026-09-03T23:23:32.875Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "order_created",
+        "events": 20,
+        "first_at": "2026-07-29T11:57:27.767Z",
+        "last_at": "2026-09-23T10:42:08.351Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "pricing_completed",
+        "events": 56,
+        "first_at": "2026-07-20T22:36:30.387Z",
+        "last_at": "2026-09-24T11:29:50.911Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "product_created",
+        "events": 74,
+        "first_at": "2026-07-24T00:37:19.524Z",
+        "last_at": "2026-09-23T10:40:18.644Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "quote_created",
+        "events": 12,
+        "first_at": "2026-07-20T20:26:30.275Z",
+        "last_at": "2026-09-24T11:35:58.825Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "quote_pdf_exported",
+        "events": 5,
+        "first_at": "2026-07-20T20:26:43.992Z",
+        "last_at": "2026-09-10T03:16:54.410Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "sale_completed",
+        "events": 199,
+        "first_at": "2026-07-24T00:37:56.886Z",
+        "last_at": "2026-09-22T18:49:50.559Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "signup_completed",
+        "events": 3,
+        "first_at": "2026-08-09T02:06:09.325Z",
+        "last_at": "2026-09-09T10:32:37.656Z"
+      },
+      {
+        "event_type": "action",
+        "event_name": "subscription_started",
+        "events": 8,
+        "first_at": "2026-07-20T02:36:33.417Z",
+        "last_at": "2026-09-23T02:13:30.380Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "admin_metrics",
+        "events": 14,
+        "first_at": "2026-07-14T15:13:56.810Z",
+        "last_at": "2026-08-27T09:37:22.892Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "agenda",
+        "events": 497,
+        "first_at": "2026-07-14T12:59:37.106Z",
+        "last_at": "2026-09-24T11:27:10.108Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "auth_callback",
+        "events": 1,
+        "first_at": "2026-08-26T18:21:33.434Z",
+        "last_at": "2026-08-26T18:21:33.434Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "catalog",
+        "events": 396,
+        "first_at": "2026-07-14T13:04:15.638Z",
+        "last_at": "2026-09-23T10:39:11.386Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "clients",
+        "events": 475,
+        "first_at": "2026-07-17T02:07:05.037Z",
+        "last_at": "2026-09-24T11:28:04.077Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "fiado",
+        "events": 318,
+        "first_at": "2026-07-17T16:05:05.345Z",
+        "last_at": "2026-09-16T15:07:01.002Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "finance",
+        "events": 628,
+        "first_at": "2026-07-14T15:14:30.285Z",
+        "last_at": "2026-09-26T12:31:51.042Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "home",
+        "events": 2477,
+        "first_at": "2026-07-14T12:06:33.408Z",
+        "last_at": "2026-09-26T12:31:52.220Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "insights",
+        "events": 84,
+        "first_at": "2026-07-17T01:55:04.272Z",
+        "last_at": "2026-09-24T11:48:47.004Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "labels",
+        "events": 180,
+        "first_at": "2026-07-17T01:44:51.548Z",
+        "last_at": "2026-09-24T11:32:07.708Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 1790,
+        "first_at": "2026-07-14T12:06:33.085Z",
+        "last_at": "2026-09-26T21:19:34.555Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "materials",
+        "events": 314,
+        "first_at": "2026-07-17T01:44:41.328Z",
+        "last_at": "2026-09-24T11:34:26.183Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "more",
+        "events": 3099,
+        "first_at": "2026-07-14T12:06:35.334Z",
+        "last_at": "2026-09-26T12:31:40.547Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "new_sale",
+        "events": 691,
+        "first_at": "2026-07-14T13:04:34.954Z",
+        "last_at": "2026-09-24T11:26:00.819Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "onboarding",
+        "events": 47,
+        "first_at": "2026-07-22T20:56:46.346Z",
+        "last_at": "2026-09-09T10:33:37.899Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "packaging",
+        "events": 145,
+        "first_at": "2026-07-14T15:15:14.600Z",
+        "last_at": "2026-09-24T11:49:10.663Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "plans",
+        "events": 57,
+        "first_at": "2026-07-20T01:25:14.900Z",
+        "last_at": "2026-09-23T10:44:39.518Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "pricing",
+        "events": 438,
+        "first_at": "2026-07-17T02:08:03.672Z",
+        "last_at": "2026-09-24T11:29:55.726Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "products",
+        "events": 607,
+        "first_at": "2026-07-14T13:03:01.621Z",
+        "last_at": "2026-09-24T11:49:10.732Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "purchases",
+        "events": 145,
+        "first_at": "2026-07-14T13:04:21.741Z",
+        "last_at": "2026-09-24T11:33:56.468Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "quotes",
+        "events": 190,
+        "first_at": "2026-07-14T15:15:35.003Z",
+        "last_at": "2026-09-24T11:36:00.391Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "recipes",
+        "events": 184,
+        "first_at": "2026-07-17T16:10:16.995Z",
+        "last_at": "2026-09-24T11:33:25.773Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "recurring_expenses",
+        "events": 211,
+        "first_at": "2026-07-18T14:57:28.115Z",
+        "last_at": "2026-09-23T10:39:23.220Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "register",
+        "events": 128,
+        "first_at": "2026-07-23T03:48:51.286Z",
+        "last_at": "2026-09-26T21:18:52.228Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "sales",
+        "events": 773,
+        "first_at": "2026-07-14T12:59:20.657Z",
+        "last_at": "2026-09-26T12:31:24.847Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "settings",
+        "events": 354,
+        "first_at": "2026-07-14T13:06:57.947Z",
+        "last_at": "2026-09-25T16:47:00.278Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "suppliers",
+        "events": 160,
+        "first_at": "2026-07-17T16:33:07.349Z",
+        "last_at": "2026-09-24T11:34:28.172Z"
+      },
+      {
+        "event_type": "screen_view",
+        "event_name": "support",
+        "events": 22,
+        "first_at": "2026-07-19T12:26:54.243Z",
+        "last_at": "2026-09-23T10:43:57.635Z"
+      }
+    ],
+    "funnel_monthly": [
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "pricing_completed",
+        "events": 4,
+        "installations": 2,
+        "users": 1
+      },
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "sale_completed",
+        "events": 19,
+        "installations": 3,
+        "users": 3
+      },
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 193,
+        "installations": 27,
+        "users": 7
+      },
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "onboarding",
+        "events": 12,
+        "installations": 6,
+        "users": 5
+      },
+      {
+        "month": "2026-07",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "register",
+        "events": 19,
+        "installations": 1,
+        "users": 0
+      },
+      {
+        "month": "2026-07",
+        "platform": "web",
+        "event_type": "action",
+        "event_name": "pricing_completed",
+        "events": 5,
+        "installations": 2,
+        "users": 0
+      },
+      {
+        "month": "2026-07",
+        "platform": "web",
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 349,
+        "installations": 70,
+        "users": 1
+      },
+      {
+        "month": "2026-07",
+        "platform": "web",
+        "event_type": "screen_view",
+        "event_name": "onboarding",
+        "events": 7,
+        "installations": 3,
+        "users": 1
+      },
+      {
+        "month": "2026-07",
+        "platform": "web",
+        "event_type": "screen_view",
+        "event_name": "register",
+        "events": 5,
+        "installations": 1,
+        "users": 0
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "pricing_completed",
+        "events": 35,
+        "installations": 3,
+        "users": 2
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "sale_completed",
+        "events": 155,
+        "installations": 8,
+        "users": 6
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "signup_completed",
+        "events": 1,
+        "installations": 1,
+        "users": 0
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 337,
+        "installations": 48,
+        "users": 19
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "onboarding",
+        "events": 17,
+        "installations": 14,
+        "users": 14
+      },
+      {
+        "month": "2026-08",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "register",
+        "events": 45,
+        "installations": 7,
+        "users": 0
+      },
+      {
+        "month": "2026-08",
+        "platform": "web",
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 128,
+        "installations": 44,
+        "users": 3
+      },
+      {
+        "month": "2026-08",
+        "platform": "web",
+        "event_type": "screen_view",
+        "event_name": "onboarding",
+        "events": 5,
+        "installations": 2,
+        "users": 1
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "pricing_completed",
+        "events": 2,
+        "installations": 2,
+        "users": 1
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "sale_completed",
+        "events": 15,
+        "installations": 6,
+        "users": 6
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "event_type": "action",
+        "event_name": "signup_completed",
+        "events": 1,
+        "installations": 1,
+        "users": 0
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 164,
+        "installations": 21,
+        "users": 8
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "onboarding",
+        "events": 4,
+        "installations": 2,
+        "users": 2
+      },
+      {
+        "month": "2026-09",
+        "platform": "android",
+        "event_type": "screen_view",
+        "event_name": "register",
+        "events": 56,
+        "installations": 5,
+        "users": 0
+      },
+      {
+        "month": "2026-09",
+        "platform": "web",
+        "event_type": "action",
+        "event_name": "pricing_completed",
+        "events": 3,
+        "installations": 1,
+        "users": 1
+      },
+      {
+        "month": "2026-09",
+        "platform": "web",
+        "event_type": "action",
+        "event_name": "sale_completed",
+        "events": 7,
+        "installations": 1,
+        "users": 1
+      },
+      {
+        "month": "2026-09",
+        "platform": "web",
+        "event_type": "screen_view",
+        "event_name": "login",
+        "events": 49,
+        "installations": 10,
+        "users": 3
+      }
+    ],
+    "signup_platform": [
+      {
+        "month": "2026-07",
+        "first_observed_platform": "android",
+        "users": 8
+      },
+      {
+        "month": "2026-07",
+        "first_observed_platform": "web",
+        "users": 1
+      },
+      {
+        "month": "2026-08",
+        "first_observed_platform": "android",
+        "users": 17
+      },
+      {
+        "month": "2026-08",
+        "first_observed_platform": "web",
+        "users": 4
+      },
+      {
+        "month": "2026-09",
+        "first_observed_platform": "android",
+        "users": 2
+      },
+      {
+        "month": "2026-09",
+        "first_observed_platform": "unknown",
+        "users": 2
+      },
+      {
+        "month": "2026-09",
+        "first_observed_platform": "web",
+        "users": 2
+      }
+    ],
+    "activity_monthly": [
+      {
+        "month": "2026-07",
+        "active_users": 8
+      },
+      {
+        "month": "2026-08",
+        "active_users": 26
+      },
+      {
+        "month": "2026-09",
+        "active_users": 13
+      }
+    ],
+    "august_cohort": [
+      {
+        "users": 21,
+        "with_product": 11,
+        "with_sale": 7,
+        "active_in_september": 6,
+        "active_since_sept21": 2
+      }
+    ],
+    "auth_audit_coverage": [
+      {
+        "first_at": null,
+        "last_at": null,
+        "records": 0
+      }
+    ],
+    "auth_audit_actions": []
+  }
+}

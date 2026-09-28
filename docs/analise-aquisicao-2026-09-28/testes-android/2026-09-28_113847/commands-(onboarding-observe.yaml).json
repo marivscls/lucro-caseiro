@@ -1,0 +1,120 @@
+[
+  {
+    "command": {
+      "defineVariablesCommand": {
+        "env": {
+          "MAESTRO_FILENAME": "onboarding-observe",
+          "MAESTRO_DEVICE_UDID": "emulator-5554",
+          "MAESTRO_SHARD_ID": "1",
+          "MAESTRO_SHARD_INDEX": "0"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606334929,
+      "duration": 10,
+      "sequenceNumber": 0,
+      "evaluatedCommand": {
+        "defineVariablesCommand": {
+          "env": {
+            "MAESTRO_FILENAME": "onboarding-observe",
+            "MAESTRO_DEVICE_UDID": "emulator-5554",
+            "MAESTRO_SHARD_ID": "1",
+            "MAESTRO_SHARD_INDEX": "0"
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "lucrocaseiro://onboarding",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606334946,
+      "duration": 1522,
+      "sequenceNumber": 2,
+      "evaluatedCommand": {
+        "openLinkCommand": {
+          "link": "lucrocaseiro://onboarding",
+          "autoVerify": false,
+          "browser": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "waitForAnimationToEndCommand": {
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606336472,
+      "duration": 871,
+      "sequenceNumber": 3,
+      "evaluatedCommand": {
+        "waitForAnimationToEndCommand": {
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "applyConfigurationCommand": {
+        "config": {
+          "appId": "br.com.orionseven.lucrocaseiro",
+          "name": "Inspecao do primeiro uso na versao release"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606334944,
+      "duration": 2,
+      "sequenceNumber": 1,
+      "evaluatedCommand": {
+        "applyConfigurationCommand": {
+          "config": {
+            "appId": "br.com.orionseven.lucrocaseiro",
+            "name": "Inspecao do primeiro uso na versao release"
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "04-onboarding-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606337343,
+      "duration": 128,
+      "sequenceNumber": 4,
+      "evaluatedCommand": {
+        "takeScreenshotCommand": {
+          "path": "04-onboarding-31",
+          "optional": false
+        }
+      }
+    }
+  }
+]

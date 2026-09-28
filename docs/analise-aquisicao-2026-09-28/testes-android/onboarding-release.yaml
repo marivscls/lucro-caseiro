@@ -1,0 +1,36 @@
+appId: br.com.orionseven.lucrocaseiro
+name: Release - primeiro uso sem perfil obrigatorio
+---
+- openLink: "lucrocaseiro://onboarding"
+- extendedWaitUntil:
+    visible: "O que você quer resolver primeiro.*"
+    timeout: 15000
+- assertVisible: "O que você quer resolver primeiro.*"
+- assertVisible: "Calcular meu primeiro preço"
+- assertVisible: "Registrar minha primeira venda"
+- tapOn: "Quero configurar meu perfil primeiro"
+- waitForAnimationToEnd
+- takeScreenshot: 05-perfil-opcional-31
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 45000
+- openLink: "lucrocaseiro://onboarding"
+- extendedWaitUntil:
+    visible: "Registrar minha primeira venda"
+    timeout: 15000
+- tapOn: "Registrar minha primeira venda"
+- extendedWaitUntil:
+    visible: "Venda avulsa|O que você vendeu.*|Nova venda|O que vamos vender.*"
+    timeout: 20000
+- takeScreenshot: 06-primeira-venda-31
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Início"
+    timeout: 45000
+- assertNotVisible: "O que você quer resolver primeiro.*"
+- takeScreenshot: 07-primeiro-uso-preservado-31

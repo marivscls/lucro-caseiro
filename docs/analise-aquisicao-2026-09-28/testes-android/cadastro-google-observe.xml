@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="lucro_e2e" tests="1" failures="0" time="25.0">
+    <testcase id="Release - tela de cadastro e abertura do Google" name="Release - tela de cadastro e abertura do Google" classname="Release - tela de cadastro e abertura do Google" file="tmp\android-validation\cadastro-google-observe.yaml" time="25.0" status="SUCCESS"/>
+  </testsuite>
+</testsuites>

@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-09-28T14:44:16.719Z",
+  "readOnly": true,
+  "installations": [
+    {
+      "app_version": "1.2.2",
+      "app_build": "31",
+      "installations": 1,
+      "last_open": "2026-09-28T14:43:56.390Z",
+      "with_campaign": 0
+    }
+  ],
+  "events": [
+    {
+      "event_name": "agenda",
+      "events": 1
+    },
+    {
+      "event_name": "home",
+      "events": 7
+    },
+    {
+      "event_name": "login",
+      "events": 7
+    },
+    {
+      "event_name": "more",
+      "events": 1
+    },
+    {
+      "event_name": "pricing",
+      "events": 2
+    }
+  ]
+}

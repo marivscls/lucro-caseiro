@@ -1,0 +1,371 @@
+[
+  {
+    "command": {
+      "inputTextCommand": {
+        "text": "10,00",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606280799,
+      "duration": 1383,
+      "sequenceNumber": 9
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "03-retorno-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606297983,
+      "duration": 132,
+      "sequenceNumber": 19
+    }
+  },
+  {
+    "command": {
+      "launchAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "clearState": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606290443,
+      "duration": 1793,
+      "sequenceNumber": 16
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Continuar",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606284569,
+      "duration": 3073,
+      "sequenceNumber": 11
+    }
+  },
+  {
+    "command": {
+      "applyConfigurationCommand": {
+        "config": {
+          "appId": "br.com.orionseven.lucrocaseiro",
+          "name": "Release - abertura, primeira acao e retorno"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606262739,
+      "duration": 1,
+      "sequenceNumber": 1
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "textRegex": "Ingredientes ou material",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 100,
+        "timeout": "20000",
+        "centerElement": true,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 1.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606276062,
+      "duration": 1706,
+      "sequenceNumber": 7
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "0",
+          "below": {
+            "textRegex": "Ingredientes ou material",
+            "optional": false
+          },
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606277768,
+      "duration": 3031,
+      "sequenceNumber": 8
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "02-primeira-acao-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606287747,
+      "duration": 247,
+      "sequenceNumber": 13
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "notVisible": {
+            "textRegex": "Que bom te ver!",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606296680,
+      "duration": 1303,
+      "sequenceNumber": 18
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Início",
+            "optional": false
+          }
+        },
+        "timeout": "45000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606264557,
+      "duration": 5199,
+      "sequenceNumber": 3
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Despesas.*|Margem.*",
+            "optional": false
+          }
+        },
+        "timeout": "10000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606287642,
+      "duration": 104,
+      "sequenceNumber": 12
+    }
+  },
+  {
+    "command": {
+      "defineVariablesCommand": {
+        "env": {
+          "MAESTRO_FILENAME": "release-smoke",
+          "MAESTRO_DEVICE_UDID": "emulator-5554",
+          "MAESTRO_SHARD_ID": "1",
+          "MAESTRO_SHARD_INDEX": "0"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606262724,
+      "duration": 3,
+      "sequenceNumber": 0
+    }
+  },
+  {
+    "command": {
+      "stopAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606290399,
+      "duration": 44,
+      "sequenceNumber": 15
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Início",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606287995,
+      "duration": 2404,
+      "sequenceNumber": 14
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Início",
+            "optional": false
+          }
+        },
+        "timeout": "45000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606292236,
+      "duration": 4444,
+      "sequenceNumber": 17
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Produto e custos",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606282182,
+      "duration": 2387,
+      "sequenceNumber": 10
+    }
+  },
+  {
+    "command": {
+      "launchAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "clearState": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606262740,
+      "duration": 1817,
+      "sequenceNumber": 2
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Produto e custos",
+            "optional": false
+          }
+        },
+        "timeout": "15000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606275970,
+      "duration": 92,
+      "sequenceNumber": 6
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Calcular preço",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606273633,
+      "duration": 2336,
+      "sequenceNumber": 5
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Início",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606269757,
+      "duration": 3876,
+      "sequenceNumber": 4
+    }
+  }
+]

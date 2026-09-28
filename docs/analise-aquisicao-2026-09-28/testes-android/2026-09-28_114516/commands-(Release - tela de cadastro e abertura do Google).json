@@ -1,0 +1,291 @@
+[
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "lucrocaseiro://login",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606741631,
+      "duration": 1067,
+      "sequenceNumber": 11
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Que bom te ver!",
+            "optional": false
+          }
+        },
+        "timeout": "15000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606742698,
+      "duration": 86,
+      "sequenceNumber": 12
+    }
+  },
+  {
+    "command": {
+      "defineVariablesCommand": {
+        "env": {
+          "MAESTRO_FILENAME": "cadastro-google-observe",
+          "MAESTRO_DEVICE_UDID": "emulator-5554",
+          "MAESTRO_SHARD_ID": "1",
+          "MAESTRO_SHARD_INDEX": "0"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606724743,
+      "duration": 3,
+      "sequenceNumber": 0
+    }
+  },
+  {
+    "command": {
+      "waitForAnimationToEndCommand": {
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606748033,
+      "duration": 984,
+      "sequenceNumber": 14
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Entrar com Google",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606742785,
+      "duration": 5248,
+      "sequenceNumber": 13
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "08-cadastro-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606741342,
+      "duration": 289,
+      "sequenceNumber": 10
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "09-google-aberto-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606749018,
+      "duration": 181,
+      "sequenceNumber": 15
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Crie sua conta",
+            "optional": false
+          }
+        },
+        "timeout": "15000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606741153,
+      "duration": 102,
+      "sequenceNumber": 8
+    }
+  },
+  {
+    "command": {
+      "applyConfigurationCommand": {
+        "config": {
+          "appId": "br.com.orionseven.lucrocaseiro",
+          "name": "Release - tela de cadastro e abertura do Google"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606724758,
+      "duration": 1,
+      "sequenceNumber": 1
+    }
+  },
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "lucrocaseiro://register",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606740028,
+      "duration": 1125,
+      "sequenceNumber": 7
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Criar com Google",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606741255,
+      "duration": 86,
+      "sequenceNumber": 9
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Que bom te ver!",
+            "optional": false
+          }
+        },
+        "timeout": "20000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606739938,
+      "duration": 90,
+      "sequenceNumber": 6
+    }
+  },
+  {
+    "command": {
+      "scrollUntilVisible": {
+        "selector": {
+          "textRegex": "Sair da conta",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "scrollDuration": "40",
+        "visibilityPercentage": 100,
+        "timeout": "20000",
+        "centerElement": false,
+        "originalSpeedValue": "40",
+        "optional": false,
+        "visibilityPercentageNormalized": 1.0
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606727473,
+      "duration": 7228,
+      "sequenceNumber": 3
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Sair da conta",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606734701,
+      "duration": 2596,
+      "sequenceNumber": 4
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "^Sair$",
+          "index": "1",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606737298,
+      "duration": 2640,
+      "sequenceNumber": 5
+    }
+  },
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "lucrocaseiro://settings",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606724759,
+      "duration": 2713,
+      "sequenceNumber": 2
+    }
+  }
+]

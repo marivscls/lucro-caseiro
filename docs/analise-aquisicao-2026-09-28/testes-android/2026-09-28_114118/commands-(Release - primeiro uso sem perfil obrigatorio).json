@@ -1,0 +1,399 @@
+[
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Início",
+            "optional": false
+          }
+        },
+        "timeout": "45000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606504408,
+      "duration": 3454,
+      "sequenceNumber": 20
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "notVisible": {
+            "textRegex": "O que você quer resolver primeiro.*",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606507862,
+      "duration": 1071,
+      "sequenceNumber": 21
+    }
+  },
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "lucrocaseiro://onboarding",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606498160,
+      "duration": 1429,
+      "sequenceNumber": 13
+    }
+  },
+  {
+    "command": {
+      "applyConfigurationCommand": {
+        "config": {
+          "appId": "br.com.orionseven.lucrocaseiro",
+          "name": "Release - primeiro uso sem perfil obrigatorio"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606486637,
+      "duration": 0,
+      "sequenceNumber": 1
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "06-primeira-venda-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606502343,
+      "duration": 250,
+      "sequenceNumber": 17
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Início",
+            "optional": false
+          }
+        },
+        "timeout": "45000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606493474,
+      "duration": 4686,
+      "sequenceNumber": 12
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "O que você quer resolver primeiro.*",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606487911,
+      "duration": 79,
+      "sequenceNumber": 4
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "O que você quer resolver primeiro.*",
+            "optional": false
+          }
+        },
+        "timeout": "15000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606487796,
+      "duration": 115,
+      "sequenceNumber": 3
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Calcular meu primeiro preço",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606487990,
+      "duration": 83,
+      "sequenceNumber": 5
+    }
+  },
+  {
+    "command": {
+      "waitForAnimationToEndCommand": {
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606490628,
+      "duration": 670,
+      "sequenceNumber": 8
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Quero configurar meu perfil primeiro",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606488120,
+      "duration": 2508,
+      "sequenceNumber": 7
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "07-primeiro-uso-preservado-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606508935,
+      "duration": 683,
+      "sequenceNumber": 22
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Registrar minha primeira venda",
+            "optional": false
+          }
+        },
+        "timeout": "15000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606499589,
+      "duration": 73,
+      "sequenceNumber": 14
+    }
+  },
+  {
+    "command": {
+      "stopAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606502593,
+      "duration": 44,
+      "sequenceNumber": 18
+    }
+  },
+  {
+    "command": {
+      "defineVariablesCommand": {
+        "env": {
+          "MAESTRO_FILENAME": "onboarding-release",
+          "MAESTRO_DEVICE_UDID": "emulator-5554",
+          "MAESTRO_SHARD_ID": "1",
+          "MAESTRO_SHARD_INDEX": "0"
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606486623,
+      "duration": 2,
+      "sequenceNumber": 0
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Registrar minha primeira venda",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606488074,
+      "duration": 45,
+      "sequenceNumber": 6
+    }
+  },
+  {
+    "command": {
+      "launchAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "clearState": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606502637,
+      "duration": 1771,
+      "sequenceNumber": 19
+    }
+  },
+  {
+    "command": {
+      "openLinkCommand": {
+        "link": "lucrocaseiro://onboarding",
+        "autoVerify": false,
+        "browser": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606486637,
+      "duration": 1157,
+      "sequenceNumber": 2
+    }
+  },
+  {
+    "command": {
+      "launchAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "clearState": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606491514,
+      "duration": 1960,
+      "sequenceNumber": 11
+    }
+  },
+  {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "textRegex": "Registrar minha primeira venda",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606499662,
+      "duration": 2522,
+      "sequenceNumber": 15
+    }
+  },
+  {
+    "command": {
+      "stopAppCommand": {
+        "appId": "br.com.orionseven.lucrocaseiro",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606491436,
+      "duration": 78,
+      "sequenceNumber": 10
+    }
+  },
+  {
+    "command": {
+      "takeScreenshotCommand": {
+        "path": "05-perfil-opcional-31",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606491299,
+      "duration": 136,
+      "sequenceNumber": 9
+    }
+  },
+  {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Venda avulsa|O que você vendeu.*|Nova venda|O que vamos vender.*",
+            "optional": false
+          }
+        },
+        "timeout": "20000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1790606502184,
+      "duration": 159,
+      "sequenceNumber": 16
+    }
+  }
+]
