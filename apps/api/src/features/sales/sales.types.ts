@@ -74,6 +74,11 @@ export interface ISaleFinancePoster {
   removeSaleIncome(userId: string, saleId: string): Promise<void>;
 }
 
+/** Avisado depois de cada venda registrada (ex.: indicação premiada na 3ª venda). */
+export interface ISaleCreatedListener {
+  onSaleCreated(userId: string): Promise<unknown>;
+}
+
 export interface ISalesRepo {
   create(
     userId: string,

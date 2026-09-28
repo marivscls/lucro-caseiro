@@ -224,6 +224,11 @@ PATCH /api/v1/sales/sale-1/status
 
 ## Change log / Decisions
 
+- 2026-09-28: `createOpeningFiado` cria venda pendente só com `itemName` (fiado
+  importado do caderno pelo `assistant`; a CHECK de `sale_items` passou a aceitar
+  item só com nome). `ISaleCreatedListener` avisa a indicação premiada depois de
+  cada venda (best-effort).
+
 - 2026-07-28: vendas aceitam itens de serviço sem produto/estoque,
   `sourceOrderId` para idempotência e `paidAmount` cumulativo. Conclusões parciais
   postam apenas o recebido no Caixa e preservam o saldo pendente no Fiado.

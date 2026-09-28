@@ -15,6 +15,7 @@ import type {
   FindAllSalesOpts,
   IMaterialStockAdjuster,
   IRecipeConsumptionProvider,
+  ISaleCreatedListener,
   ISaleFinancePoster,
   ISalesRepo,
   SaleItemData,
@@ -28,7 +29,18 @@ export class SalesUseCases {
     private recipeConsumption?: IRecipeConsumptionProvider,
     private materialStock?: IMaterialStockAdjuster,
     private financePoster?: ISaleFinancePoster,
+    private saleCreatedListener?: ISaleCreatedListener,
   ) {}
+
+  /** Best-effort: quem escuta a venda nunca derruba o registro. */
+  private async notifySaleCreated(userId: string): Promise<void> {
+    if (!this.saleCreatedListener) return;
+    try {
+      await this.saleCreatedListener.onSaleCreated(userId);
+    } catch {
+      // best-effort
+    }
+  }
 
   private saleDescription(sale: Sale): string {
     return sale.clientName ? `Venda — ${sale.clientName}` : "Venda";
@@ -273,6 +285,7 @@ export class SalesUseCases {
     if (sale.paidAmount > 0) {
       await this.postIncome(userId, sale);
     }
+    await this.notifySaleCreated(userId);
     return sale;
   }
 
@@ -445,7 +458,44 @@ export class SalesUseCases {
       { subtotal: data.total, discount: 0, total: data.total },
     );
     await this.postIncome(userId, sale, data.amountReceived);
+    await this.notifySaleCreated(userId);
     return sale;
+  }
+
+  /**
+   * Fiado trazido do caderno: uma venda em aberto só com o valor e a anotação,
+   * sem produto (não mexe em estoque nem no caixa até ser paga).
+   */
+  async createOpeningFiado(
+    userId: string,
+    data: { clientId: string; amount: number; date: string | null; note: string | null },
+  ): Promise<Sale> {
+    if (Number.isNaN(data.amount) || data.amount <= 0) {
+      throw new ValidationError(["Informe um valor maior que zero"]);
+    }
+    const soldAt = data.date
+      ? new Date(`${data.date}T12:00:00-03:00`).toISOString()
+      : undefined;
+    return this.repo.create(
+      userId,
+      {
+        clientId: data.clientId,
+        paymentMethod: "credit",
+        items: [
+          {
+            itemName: data.note ? `Caderno: ${data.note}` : "Fiado anotado no caderno",
+            quantity: 1,
+            unitPrice: data.amount,
+          },
+        ],
+        soldAt,
+        notes: "Importado do caderno de fiado",
+        paidAmount: 0,
+      },
+      data.amount,
+      "pending",
+      { subtotal: data.amount, discount: 0, total: data.amount },
+    );
   }
 
   async updateStatus(userId: string, id: string, status: SaleStatus): Promise<Sale> {
