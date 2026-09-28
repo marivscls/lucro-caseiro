@@ -14,6 +14,8 @@ Data: 28/09/2026. Solicitado: commitar e enviar as alterações, documentações
 
 Base remota integrada: `b9c8628f`. Foram encontrados 11 conflitos de conteúdo, além da sobreposição de contratos de aquisição.
 
+Uma nova atualização remota até `b6ce8ade` trouxe nove commits adicionais de vídeos promocionais e a mesma correção do relógio do teste grátis. Essa atualização foi integrada sem conflitos, preservando também as novas verificações de vencimento.
+
 - `acquisition` continua sendo a lista de origens das instalações; `accountAcquisition` contém contas confirmadas, marcos de primeira utilidade e coortes.
 - Os envelopes de coleta aceitam as UTMs da web (`acquisition`) e as etiquetas do Install Referrer Android (`attribution`). Se ambos forem enviados, a atribuição Android prevalece em bloco. Uma campanha conhecida não é substituída por outra.
 - A coleta Android mantém timeout e nova tentativa; uma falha temporária não é gravada como ausência definitiva de origem.

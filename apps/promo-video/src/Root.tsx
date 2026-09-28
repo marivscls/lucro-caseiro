@@ -1,12 +1,18 @@
 import "./index.css";
 import { AvatarDemoComposition } from "./AvatarDemo";
+import { CadernosReelCompositions } from "./reel-cadernos/CadernosReel";
 import { CampaignCompositions } from "./Campaigns";
 import { FeatureGraphicCompositions } from "./FeatureGraphics";
+import { LajotaCompositions } from "./reel-lajota/LajotaReel";
+import { LaunchComposition } from "./LaunchVideo";
 import { MyComposition } from "./Composition";
+import { PixDepoisReelCompositions } from "./PixDepoisReel";
 import { PlayStoreComposition } from "./PlayStoreVideo";
 import { ReelsCharacterComposition, ReelsComposition } from "./ReelsVideo";
 import { StoreScreenshotCompositions } from "./StoreScreenshots";
 import { TourComposition } from "./TourVideo";
+import { PrecoPecaReelComposition } from "./reel-preco-peca/PrecoPecaReel";
+import { PrecoPecaLongoComposition } from "./reel-preco-peca/PrecoPecaLongo";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -20,6 +26,12 @@ export const RemotionRoot: React.FC = () => {
       <TourComposition />
       <PlayStoreComposition />
       <StoreScreenshotCompositions />
+      <PixDepoisReelCompositions />
+      <CadernosReelCompositions />
+      <PrecoPecaReelComposition />
+      <PrecoPecaLongoComposition />
+      <LajotaCompositions />
+      <LaunchComposition />
     </>
   );
 };
