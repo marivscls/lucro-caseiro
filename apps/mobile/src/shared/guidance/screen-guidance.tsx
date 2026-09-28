@@ -41,9 +41,44 @@ export interface ScreenGuidanceProps {
   suspended?: boolean;
   title?: string;
   description?: string;
+  /**
+   * Celular: cartão enxuto (texto e botões em menos altura), para telas em que
+   * a tarefa precisa de espaço logo abaixo, como Nova venda.
+   */
+  compact?: boolean;
+}
+export interface ScreenGuidanceParts {
+  /** Botão "Ajuda" para o cabeçalho; null quando não há conta ou está suspenso. */
+  help: React.ReactNode;
+  /** Cartão de boas-vindas da tela, quando deve aparecer. */
+  intro: React.ReactNode;
+  /** Modal com o passo a passo, aberto pelo botão "Ajuda". */
+  modal: React.ReactNode;
 }
 const EMPTY_PROGRESS: GuidanceProgress = {};
 export function ScreenGuidance({
+  renderHeader,
+  ...props
+}: Readonly<
+  ScreenGuidanceProps & {
+    renderHeader: (helpButton: React.ReactNode) => React.ReactNode;
+  }
+>) {
+  const { help, intro, modal } = useScreenGuidance(props);
+  return (
+    <>
+      {renderHeader(help)}
+      {intro}
+      {modal}
+    </>
+  );
+}
+
+/**
+ * Mesmas orientações do ScreenGuidance, em partes soltas: a tela decide onde o
+ * cartão entra (por exemplo, dentro da rolagem, para não prender espaço fixo).
+ */
+export function useScreenGuidance({
   area,
   onStart,
   actionLabel,
@@ -53,12 +88,8 @@ export function ScreenGuidance({
   suspended = false,
   title,
   description,
-  renderHeader,
-}: Readonly<
-  ScreenGuidanceProps & {
-    renderHeader: (helpButton: React.ReactNode) => React.ReactNode;
-  }
->) {
+  compact = false,
+}: Readonly<ScreenGuidanceProps>): ScreenGuidanceParts {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
@@ -128,47 +159,10 @@ export function ScreenGuidance({
     if (userId) guidanceEvent(area, "task_started", userId);
     action();
   }
-  if (!userId || suspended) return <>{renderHeader(null)}</>;
-  return (
-    <>
-      {renderHeader(
-        <Pressable
-          ref={trigger}
-          accessibilityRole="button"
-          accessibilityLabel={content.helpTitle}
-          accessibilityHint="Abre as orientações desta tela"
-          accessibilityState={{ expanded: helpOpen }}
-          onPress={() => {
-            setHelpFor(identity);
-            guidanceEvent(area, "help_opened", userId);
-          }}
-          style={({ pressed }) => ({
-            minHeight: 48,
-            flexShrink: 0,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.xs,
-            paddingHorizontal: spacing.md,
-            borderRadius: 24,
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            backgroundColor: pressed ? theme.colors.surface : "transparent",
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          {/* Texto junto do ícone: "?" sozinho não é entendido por todos. */}
-          <AppIcon
-            name="help-circle-outline"
-            size={20}
-            color={theme.colors.textSecondary}
-          />
-          <Typography variant="captionBold" color={theme.colors.textSecondary}>
-            Ajuda
-          </Typography>
-        </Pressable>,
-      )}
-      {introduce && isDesktop ? (
+  function renderIntro() {
+    if (!introduce) return null;
+    if (isDesktop)
+      return (
         <Animated.View
           testID={`screen-guidance-${area}`}
           style={{ opacity, width: "100%", maxWidth: desktopWidths.page }}
@@ -234,80 +228,118 @@ export function ScreenGuidance({
             </View>
           </View>
         </Animated.View>
-      ) : null}
-      {introduce && !isDesktop ? (
-        <View
+      );
+    if (compact)
+      return (
+        <Animated.View
           testID={`screen-guidance-${area}`}
-          style={{
-            gap: spacing.sm,
-            paddingHorizontal: isDesktop ? 0 : spacing.lg,
-            paddingBottom: spacing.sm,
-            flexShrink: 1,
-            width: "100%",
-            maxWidth: isDesktop ? desktopWidths.data : 720,
-            alignSelf: isDesktop ? "stretch" : "center",
-          }}
+          style={{ opacity }}
+          pointerEvents={dismissing ? "none" : "auto"}
         >
-          <Animated.View style={{ opacity }} pointerEvents={dismissing ? "none" : "auto"}>
-            <ScrollView
-              style={{ maxHeight: 360 }}
-              contentContainerStyle={{
-                padding: isDesktop ? spacing.lg : spacing.md,
-                gap: isDesktop ? spacing.xl : spacing.sm,
-                flexDirection: isDesktop ? "row" : "column",
-                flexWrap: isDesktop ? "wrap" : "nowrap",
-                alignItems: isDesktop ? "center" : "stretch",
-                backgroundColor: theme.colors.surface,
-                borderRadius: 16,
+          {/* Cartão enxuto: fica dentro da rolagem da tela e ocupa pouca altura. */}
+          <View
+            style={{
+              gap: spacing.sm,
+              padding: spacing.md,
+              borderRadius: 16,
+              backgroundColor: theme.colors.surface,
+            }}
+          >
+            <View style={{ gap: spacing.xs }}>
+              <Typography variant="bodyBold" accessibilityRole="header">
+                {title ?? content.title}
+              </Typography>
+              <Typography variant="body">{description ?? content.description}</Typography>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: spacing.sm,
               }}
-              keyboardShouldPersistTaps="handled"
             >
-              <View
-                style={
-                  isDesktop
-                    ? { flex: 1, minWidth: 280, gap: spacing.xs }
-                    : { gap: spacing.sm }
-                }
-              >
-                <Typography variant="h3" accessibilityRole="header">
-                  {title ?? content.title}
-                </Typography>
-                <Typography variant="body">
-                  {description ?? content.description}
-                </Typography>
-              </View>
-              <View
-                style={
-                  isDesktop
-                    ? { width: 260, maxWidth: "100%", gap: spacing.xs }
-                    : { gap: spacing.sm }
-                }
-              >
+              <Button
+                title={actionLabel ?? content.action}
+                onPress={() => start()}
+                disabled={dismissing}
+                style={{ flexGrow: 1 }}
+              />
+              {secondary ? (
                 <Button
-                  title={actionLabel ?? content.action}
-                  onPress={() => start()}
+                  title={secondary.label}
+                  variant="text"
+                  onPress={() => start(secondary.onPress)}
                   disabled={dismissing}
-                  size="lg"
                 />
-                {secondary ? (
-                  <Pressable
-                    onPress={() => start(secondary.onPress)}
-                    accessibilityRole="button"
-                    disabled={dismissing}
-                    style={{
-                      minHeight: 48,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                      {secondary.label}
-                    </Typography>
-                  </Pressable>
-                ) : null}
+              ) : null}
+              <Button
+                title="Agora não"
+                variant="ghost"
+                onPress={() => setDismissFor(identity)}
+                disabled={dismissing}
+                style={{ flexGrow: 1 }}
+              />
+            </View>
+          </View>
+        </Animated.View>
+      );
+    return (
+      <View
+        testID={`screen-guidance-${area}`}
+        style={{
+          gap: spacing.sm,
+          paddingHorizontal: isDesktop ? 0 : spacing.lg,
+          paddingBottom: spacing.sm,
+          flexShrink: 1,
+          width: "100%",
+          maxWidth: isDesktop ? desktopWidths.data : 720,
+          alignSelf: isDesktop ? "stretch" : "center",
+        }}
+      >
+        <Animated.View style={{ opacity }} pointerEvents={dismissing ? "none" : "auto"}>
+          <ScrollView
+            style={{ maxHeight: 360 }}
+            contentContainerStyle={{
+              padding: isDesktop ? spacing.lg : spacing.md,
+              gap: isDesktop ? spacing.xl : spacing.sm,
+              flexDirection: isDesktop ? "row" : "column",
+              flexWrap: isDesktop ? "wrap" : "nowrap",
+              alignItems: isDesktop ? "center" : "stretch",
+              backgroundColor: theme.colors.surface,
+              borderRadius: 16,
+            }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View
+              style={
+                isDesktop
+                  ? { flex: 1, minWidth: 280, gap: spacing.xs }
+                  : { gap: spacing.sm }
+              }
+            >
+              <Typography variant="h3" accessibilityRole="header">
+                {title ?? content.title}
+              </Typography>
+              <Typography variant="body">{description ?? content.description}</Typography>
+            </View>
+            <View
+              style={
+                isDesktop
+                  ? { width: 260, maxWidth: "100%", gap: spacing.xs }
+                  : { gap: spacing.sm }
+              }
+            >
+              <Button
+                title={actionLabel ?? content.action}
+                onPress={() => start()}
+                disabled={dismissing}
+                size="lg"
+              />
+              {secondary ? (
                 <Pressable
+                  onPress={() => start(secondary.onPress)}
                   accessibilityRole="button"
-                  onPress={() => setDismissFor(identity)}
                   disabled={dismissing}
                   style={{
                     minHeight: 48,
@@ -315,13 +347,71 @@ export function ScreenGuidance({
                     alignItems: "center",
                   }}
                 >
-                  <Typography variant="bodyBold">Agora não</Typography>
+                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                    {secondary.label}
+                  </Typography>
                 </Pressable>
-              </View>
-            </ScrollView>
-          </Animated.View>
-        </View>
-      ) : null}
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setDismissFor(identity)}
+                disabled={dismissing}
+                style={{
+                  minHeight: 48,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Typography variant="bodyBold">Agora não</Typography>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </Animated.View>
+      </View>
+    );
+  }
+
+  if (!userId || suspended) return { help: null, intro: null, modal: null };
+  return {
+    help: (
+      <Pressable
+        ref={trigger}
+        accessibilityRole="button"
+        accessibilityLabel={content.helpTitle}
+        accessibilityHint="Abre as orientações desta tela"
+        accessibilityState={{ expanded: helpOpen }}
+        onPress={() => {
+          setHelpFor(identity);
+          guidanceEvent(area, "help_opened", userId);
+        }}
+        style={({ pressed }) => ({
+          minHeight: 48,
+          flexShrink: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.xs,
+          paddingHorizontal: spacing.md,
+          borderRadius: 24,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          backgroundColor: pressed ? theme.colors.surface : "transparent",
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        {/* Texto junto do ícone: "?" sozinho não é entendido por todos. */}
+        <AppIcon
+          name="help-circle-outline"
+          size={20}
+          color={theme.colors.textSecondary}
+        />
+        <Typography variant="captionBold" color={theme.colors.textSecondary}>
+          Ajuda
+        </Typography>
+      </Pressable>
+    ),
+    intro: renderIntro(),
+    modal: (
       <StandardModal
         visible={helpOpen}
         onClose={closeHelp}
@@ -353,6 +443,6 @@ export function ScreenGuidance({
           }}
         />
       </StandardModal>
-    </>
-  );
+    ),
+  };
 }

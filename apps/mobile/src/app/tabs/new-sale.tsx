@@ -3,7 +3,7 @@ import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import { ScreenHeader } from "../../shared/components/screen-header";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { guidanceEvent } from "../../shared/guidance/guidance-events";
-import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
+import { ScreenGuidance, useScreenGuidance } from "../../shared/guidance/screen-guidance";
 import { formatCurrency } from "../../shared/utils/format";
 import type {
   Product,
@@ -1289,6 +1289,27 @@ export default function NewSaleScreen() {
     desktopRowWidth > 0 && desktopRowWidth < 880
       ? spacing["2xl"]
       : desktopLayout.columnGap;
+  // Só no celular: no desktop a própria tela desktop monta o ScreenGuidance.
+  const mobileGuidance = useScreenGuidance({
+    area: "new_sale",
+    compact: true,
+    onStart: () => {
+      if (products.length === 0) setShowCreateProduct(true);
+      else setStep(2);
+    },
+    actionLabel:
+      products.length === 0 ? "Cadastrar produto e continuar" : "Escolher produtos",
+    hasRecords:
+      (salesData?.total ?? 0) > 0 || step !== FIRST_SALE_STEP || cart.length > 0,
+    loading: loadingProducts || productsQuery.isError,
+    suspended:
+      isDesktop ||
+      showCreateProduct ||
+      showScanner ||
+      showBarcodeSearch ||
+      guidedFirstSale,
+  });
+
   const desktopView = isDesktop ? (
     <View
       onLayout={(event) => setDesktopRowWidth(event.nativeEvent.layout.width)}
@@ -1385,81 +1406,53 @@ export default function NewSaleScreen() {
               ...pageZone,
             }}
           >
-            <ScreenGuidance
-              renderHeader={(helpButton) =>
-                isDesktop ? (
-                  <ScreenHeader
-                    help={helpButton}
-                    title="Nova venda"
-                    subtitle="Escolha o cliente, os itens e a forma de pagamento."
-                    hideBack
-                  />
-                ) : (
-                  <View
+            {/* Celular: o cartão de ajuda entra na rolagem dos produtos, não no topo fixo. */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingTop: spacing.sm,
+                justifyContent: "space-between",
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.md,
+                }}
+              >
+                {!isDesktop ? (
+                  <Pressable
+                    onPress={() => {
+                      const previous = previousSaleStep(step);
+                      if (previous) setStep(previous);
+                      else router.push("/tabs/sales");
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Voltar"
                     style={{
-                      flexDirection: "row",
+                      width: 48,
+                      height: 48,
+                      borderRadius: radii.full,
+                      backgroundColor: theme.colors.surface,
                       alignItems: "center",
-                      paddingTop: spacing.sm,
-                      justifyContent: "space-between",
+                      justifyContent: "center",
                     }}
                   >
-                    <View
-                      style={{
-                        flex: 1,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: spacing.md,
-                      }}
-                    >
-                      {!isDesktop ? (
-                        <Pressable
-                          onPress={() => {
-                            const previous = previousSaleStep(step);
-                            if (previous) setStep(previous);
-                            else router.push("/tabs/sales");
-                          }}
-                          accessibilityRole="button"
-                          accessibilityLabel="Voltar"
-                          style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: radii.full,
-                            backgroundColor: theme.colors.surface,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <AppIcon
-                            name="chevron-back"
-                            size={25}
-                            color={theme.colors.textSecondary}
-                          />
-                        </Pressable>
-                      ) : null}
-                      <Typography variant="screenTitle">Nova venda</Typography>
-                    </View>
-                    {helpButton}
-                  </View>
-                )
-              }
-              area="new_sale"
-              onStart={() => {
-                if (products.length === 0) setShowCreateProduct(true);
-                else setStep(2);
-              }}
-              actionLabel={
-                products.length === 0
-                  ? "Cadastrar produto e continuar"
-                  : "Escolher produtos"
-              }
-              hasRecords={
-                (salesData?.total ?? 0) > 0 || step !== FIRST_SALE_STEP || cart.length > 0
-              }
-              loading={loadingProducts || productsQuery.isError}
-              suspended={
-                showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
-              }
-            />
+                    <AppIcon
+                      name="chevron-back"
+                      size={25}
+                      color={theme.colors.textSecondary}
+                    />
+                  </Pressable>
+                ) : null}
+                <Typography variant="screenTitle">Nova venda</Typography>
+              </View>
+              {mobileGuidance.help}
+            </View>
+            {mobileGuidance.modal}
             <View
               style={{
                 maxWidth: isDesktop ? 520 : undefined,
@@ -1477,11 +1470,9 @@ export default function NewSaleScreen() {
               />
             </View>
 
-            <View style={{ paddingBottom: spacing.lg }}>
-              <Typography variant="h3">{STEP_TITLES[step]}</Typography>
-              <Typography variant="body" style={{ marginTop: spacing.sm }}>
-                {STEP_SUBTITLES[step]}
-              </Typography>
+            {/* O título da etapa já aparece no indicador de passos acima. */}
+            <View style={{ paddingBottom: spacing.md }}>
+              <Typography variant="body">{STEP_SUBTITLES[step]}</Typography>
             </View>
 
             <View style={[{ flex: 1, minHeight: 0 }, isDesktop ? split.row : undefined]}>
@@ -1500,6 +1491,11 @@ export default function NewSaleScreen() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                   >
+                    {mobileGuidance.intro ? (
+                      <View style={{ paddingBottom: spacing.lg }}>
+                        {mobileGuidance.intro}
+                      </View>
+                    ) : null}
                     <View
                       style={{
                         gap: spacing.lg,
