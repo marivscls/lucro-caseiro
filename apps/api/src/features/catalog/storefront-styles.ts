@@ -238,7 +238,9 @@ dialog textarea{min-height:84px;resize:vertical}
 .lc-cal-year.is-selected{background:var(--storefront-primary);color:#fff}
 #cal-close{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:10px;background:var(--cream);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
 .dialog-submit{min-height:48px;border:0;border-radius:12px;background:var(--storefront-action);color:var(--storefront-on-action);font-weight:800}
-footer{padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;color:var(--warm);font-size:.76rem;border-top:1px solid color-mix(in srgb,var(--storefront-action) 10%,white)}
+footer{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;color:var(--warm);font-size:.76rem;border-top:1px solid color-mix(in srgb,var(--storefront-action) 10%,white)}
+footer .made-with{color:var(--storefront-primary);font-weight:700;text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
+footer .made-with:hover{text-decoration:underline}
 
 @media(min-width:430px){
   :root{--cover-height:200px;--page-gutter:18px}

@@ -161,6 +161,15 @@ function catalog(storefront = customization()): PublicCatalog {
 }
 
 describe("storefront helpers", () => {
+  it("leva o rodapé com convite e UTM do catálogo, mas não na prévia", () => {
+    const html = renderPublishedStorefrontHtml(catalog());
+    expect(html).toContain("Feito com Lucro Caseiro");
+    expect(html).toContain("utm_source=catalogo&amp;utm_medium=rodape");
+    expect(renderPublishedStorefrontHtml(catalog(), "all", "", true)).not.toContain(
+      "Feito com",
+    );
+  });
+
   it("remove prefixos técnicos do nome público", () => {
     expect(displayCatalogName("[massa] Bolo de pote morango")).toBe(
       "Bolo de pote morango",

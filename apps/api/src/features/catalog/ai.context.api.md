@@ -131,6 +131,9 @@ invariants:
 
 ## Change log / Decisions
 
+- 2026-09-28: rodapé da vitrine publicada leva "Feito com <marca> · crie o seu catálogo grátis"
+  (`shared/helpers/made-with.ts`, UTM `utm_source=catalogo`); a prévia não mostra.
+
 - 2026-08-31: na vitrine pública (Ver como cliente) os destaques ficam
   mais largos no celular e o nome quebra em 2 linhas. Sem foto, o
   cartão vazio deixa de ser um quadrado 1:1 enorme.
