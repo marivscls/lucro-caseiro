@@ -1,15 +1,16 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { ProlaboreGoal } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
+import { Button } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { View } from "react-native";
 
+import { FormField, TextField } from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { showAlert } from "../../../shared/components/alert-store";
-import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
   maskCurrencyInput,
@@ -37,7 +38,6 @@ export function ProlaboreGoalForm({
   onClose,
   onSuccess,
 }: ProlaboreGoalFormProps) {
-  const { theme } = useTheme();
   const [goal, setGoal] = useState(initial(config?.monthlyProlaboreGoal ?? null));
   const [costs, setCosts] = useState(initial(config?.estimatedMonthlyCosts ?? null));
   const [ticket, setTicket] = useState(initial(config?.avgTicketOverride ?? null));
@@ -57,10 +57,6 @@ export function ProlaboreGoalForm({
   async function handleSave() {
     if (!formValidation.validate()) return;
     const g = parseMoney(goal);
-    if (isNaN(g) || g <= 0) {
-      alertValidation("Coloque quanto você quer ganhar por mês (maior que zero).");
-      return;
-    }
     const c = costs.trim() ? parseMoney(costs) : undefined;
     const t = ticket.trim() ? parseMoney(ticket) : undefined;
 
@@ -104,62 +100,76 @@ export function ProlaboreGoalForm({
   return (
     <StandardModal
       title="Meta de pro-labore"
+      subtitle="Diga quanto quer ganhar por mês e o app mostra quanto falta vender."
+      size="form"
       visible={visible}
       onClose={onClose}
       footer={
-        <>
-          {config ? (
-            <Button
-              title="Remover meta"
-              variant="secondary"
-              onPress={handleRemove}
-              loading={remove.isPending}
-              style={{ flex: 1 }}
-            />
-          ) : null}
+        <FormActions>
+          <Button title="Cancelar" variant="outline" onPress={onClose} />
           <Button
             title="Salvar meta"
-            size="lg"
             onPress={() => {
               void handleSave();
             }}
             loading={upsert.isPending}
-            style={{ flex: 1 }}
           />
-        </>
+        </FormActions>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.lg }}>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Defina quanto você quer ganhar por mês e o app mostra quanto falta vender pra
-          chegar la.
-        </Typography>
-
-        <ValidationField {...formValidation.field("goal")}>
-          <Input
-            label="Quanto você quer ganhar por mês? (R$)"
-            placeholder="Ex: 2.000,00"
-            value={goal}
-            onChangeText={(value) => setGoal(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            autoFocus
-          />
-        </ValidationField>
-        <Input
-          label="Custos fixos do mês (opcional)"
-          placeholder="Aluguel, gas, energia..."
-          value={costs}
-          onChangeText={(value) => setCosts(maskCurrencyInput(value))}
-          keyboardType="numeric"
-        />
-        <Input
-          label="Preço médio por venda (opcional)"
-          placeholder="Deixe vazio para calcular automático"
-          value={ticket}
-          onChangeText={(value) => setTicket(maskCurrencyInput(value))}
-          keyboardType="numeric"
-        />
-      </View>
+      <FormBody>
+        <FormGrid>
+          <FormField
+            label="Quanto você quer ganhar por mês?"
+            validation={formValidation.field("goal")}
+            span="full"
+          >
+            <TextField
+              prefix="R$"
+              accessibilityLabel="Quanto você quer ganhar por mês, em reais"
+              placeholder="Ex: 2.000,00"
+              value={goal}
+              onChangeText={(value) => setGoal(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              autoFocus
+            />
+          </FormField>
+          <FormField label="Custos fixos do mês" optional hint="Aluguel, gás, energia…">
+            <TextField
+              prefix="R$"
+              accessibilityLabel="Custos fixos do mês, em reais"
+              placeholder="0,00"
+              value={costs}
+              onChangeText={(value) => setCosts(maskCurrencyInput(value))}
+              keyboardType="numeric"
+            />
+          </FormField>
+          <FormField
+            label="Preço médio por venda"
+            optional
+            hint="Vazio: o app calcula sozinho."
+          >
+            <TextField
+              prefix="R$"
+              accessibilityLabel="Preço médio por venda, em reais"
+              placeholder="0,00"
+              value={ticket}
+              onChangeText={(value) => setTicket(maskCurrencyInput(value))}
+              keyboardType="numeric"
+            />
+          </FormField>
+        </FormGrid>
+        {config ? (
+          <View style={{ alignItems: "flex-start" }}>
+            <Button
+              title="Remover meta"
+              variant="alertOutline"
+              onPress={handleRemove}
+              loading={remove.isPending}
+            />
+          </View>
+        ) : null}
+      </FormBody>
     </StandardModal>
   );
 }

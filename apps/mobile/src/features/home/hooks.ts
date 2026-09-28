@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../shared/hooks/use-auth";
-import { fetchSales } from "../sales/api";
+import { fetchAllSales, fetchSales } from "../sales/api";
 import { fetchAllProducts } from "../products/api";
 
 export async function fetchPendingSales(token: string) {
@@ -18,6 +18,20 @@ export function useHomePendingSales() {
   return useQuery({
     queryKey: ["sales", "home-pending"],
     queryFn: () => fetchPendingSales(token!),
+    enabled: !!token,
+  });
+}
+
+/** Vendas desde `dateFrom` (todas as páginas); falha em qualquer página rejeita. */
+export function fetchSalesHistory(token: string, dateFrom: string) {
+  return fetchAllSales(token, { dateFrom });
+}
+
+export function useHomeSalesHistory(dateFrom: string) {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: ["sales", "home-history", dateFrom],
+    queryFn: () => fetchSalesHistory(token!, dateFrom),
     enabled: !!token,
   });
 }

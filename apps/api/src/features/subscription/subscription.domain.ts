@@ -5,6 +5,7 @@ import {
   resolveActivePlan,
   type LimitResource,
 } from "@lucro-caseiro/contracts";
+import { createHash } from "node:crypto";
 
 import type { ResourceCounts } from "./subscription.types";
 
@@ -75,7 +76,9 @@ const FREE = PLAN_LIMITS.free;
 // Vendas/clientes/produtos/receitas/embalagens já ficam ilimitados no Essencial,
 // então o upsell é para o Essencial. Fornecedores só liberam no Profissional.
 const LIMIT_MESSAGES: Record<ResourceType, string> = {
-  sales: `🚀 Você está vendendo muito! Chegou às ${FREE.maxSalesPerMonth} vendas do mês do plano gratuito. Assine o Essencial e tenha vendas ilimitadas.`,
+  // Vendas são ilimitadas em todos os planos; mensagem mantida só por segurança.
+  sales:
+    "🚀 Você está vendendo muito! Continue registrando suas vendas com o plano Essencial.",
   clients: `🤝 Sua carteira está crescendo! Você usou os ${FREE.maxClients} clientes do plano gratuito. Assine o Essencial para clientes ilimitados.`,
   recipes: `🧁 Suas receitas fazem sucesso! Você atingiu as ${FREE.maxRecipes} receitas do plano gratuito. Assine o Essencial para receitas ilimitadas.`,
   packaging: `📦 Você atingiu as ${FREE.maxPackaging} embalagens do plano gratuito. Assine o Essencial para embalagens ilimitadas.`,
@@ -85,4 +88,9 @@ const LIMIT_MESSAGES: Record<ResourceType, string> = {
 
 export function getLimitMessage(resourceType: ResourceType): string {
   return LIMIT_MESSAGES[resourceType];
+}
+
+/** Hash persistido no lugar do purchase token bruto (que nunca vai para o banco nem log). */
+export function hashPurchaseToken(purchaseToken: string): string {
+  return createHash("sha256").update(purchaseToken).digest("hex");
 }

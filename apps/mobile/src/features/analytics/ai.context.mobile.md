@@ -10,7 +10,9 @@ conta autorizada pelo backend.
 
 ## Non-goals
 
-- Não rastreia toques livres, texto, conteúdo, buscas ou crashes.
+- Não rastreia toques livres, texto, conteúdo ou buscas; de crashes envia só o tipo do erro e a
+  tela; de campanha envia só UTM e host
+  de origem da primeira abertura.
 - Não mostra métricas a contas comuns.
 - Não adiciona SDK ou dependência analítica externa.
 
@@ -28,11 +30,20 @@ conta autorizada pelo backend.
 - `use-screen-metrics.ts`: troca de rota, foreground/background e duração ativa.
 - `screen-tracking.ts`: allowlist de rotas e cálculo puro de duração.
 - `tracker.ts`: envio best effort de telas e ações.
+- `crash-report.ts`: `reportAppCrash` envia `app_crashed` (tipo do erro + tela), no máximo 5 por
+  sessão; nunca mensagem, pilha ou dados digitados.
+- `shared/components/app-error-boundary.tsx`: barreira raiz montada em `app/_layout.tsx`.
+- `event-props.ts`: remove props que a API recusaria (vazio, espaço, chave inválida) e corta texto
+  longo, para não perder o lote inteiro.
 - `hooks.ts`: acesso administrativo e consulta do painel com React Query.
 - `app/admin-metrics.tsx`: painel visual interno.
 - `installation.test.ts`: persistência e formato do UUID.
 - `attribution.ts`, `install-attribution.ts`: leitura Android com expo-application, prazo de 1500 ms, repetição após erro e cache em memória da atribuição válida. Só rótulos UTM são enviados.
 - `account-acquisition.tsx`: seção Aquisição, separando contas confirmadas, instalações, denominadores elegíveis, tempo mediano e retorno por semana de cadastro.
+- `acquisition-parse.ts`: leitura pura de UTM (URL do PWA ou Install Referrer) e host de origem.
+- `acquisition.ts`: captura única por instalação, persistida em `analytics:acquisition`.
+- `acquisition-source.web.ts`: guarda a query e o `document.referrer` ao carregar o bundle.
+- `acquisition-source.ts`: fallback nativo da captura persistente web; a leitura Android real usa `install-attribution.ts`, evitando persistir uma falha temporária como ausência definitiva de campanha.
 
 ## Components
 
@@ -51,7 +62,7 @@ relógio no foreground. Segmentos menores que 250 ms são ignorados e os demais 
 
 - Sem token: `POST /api/v1/analytics/open`.
 - Com token: `POST /api/v1/analytics/identify`.
-- Payload: UUID da instalação, plataforma, versão, build e atribuição UTM opcional e validada.
+- Payload: UUID da instalação, plataforma, versão, build e `acquisition` (web) ou `attribution` (Android) opcionais.
 - Eventos: `POST /events` sem token e `POST /events/identify` com token.
 - `GET /api/v1/analytics/admin/access`: decide se o item aparece em “Mais”.
 - `GET /api/v1/analytics/admin/dashboard`: carrega os dados; o servidor continua sendo a barreira.
@@ -59,7 +70,8 @@ relógio no foreground. Segmentos menores que 250 ms são ignorados e os demais 
 ## Contracts
 
 `AppOpenPayload` limita plataforma a Android, iOS ou web. Telas e ações vêm das allowlists do
-contrato compartilhado; não há metadata nem dados pessoais.
+contrato compartilhado. Ações podem levar `props` curtos (identificadores como recurso, plano e
+tela); nunca texto digitado, nomes, valores ou dados de clientes.
 
 ## Error Handling
 
@@ -102,3 +114,57 @@ Uma instalação anônima abre o app, recebe UUID local e chama `/open`; após l
 Orientações usam allowlist compartilhada (área + evento, sem payload livre). Sucessos de mutations acionam conclusão local após hidratação, isolada por conta, mesmo se a coleta falhar. Cliques e ajuda não completam tarefas; preço percebido é separado de preço salvo.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Funil do painel — 2026-09-23
+
+A etapa `signup` do painel é exibida como "Conta criada ou login": o backend passou a contar a
+primeira identificação da instalação, além do cadastro por e-mail.
+
+## Cadastro — 2026-09-23
+
+O app não envia mais `signup_completed` (antes só a tela de cadastro por e-mail enviava). A API
+registra o evento na primeira identificação de uma conta recém-criada, cobrindo também o Google.
+
+## Origem da instalação — 2026-09-23
+
+Na web, a primeira execução captura e persiste a origem, inclusive quando ausente, para que links posteriores não a substituam. No Android, o leitor nativo tem prazo de 1500 ms e tenta novamente após falha. Toda abertura reenvia o valor disponível; a API preserva a primeira campanha conhecida. O painel mostra a lista `acquisition` em Visão geral e o relatório `accountAcquisition` na seção Aquisição.
+
+## Propriedades de ações — 2026-09-23
+
+`trackAnalyticsAction(name, token, props?)`. `screen-tracking.ts` guarda a tela canônica em foco
+(`currentAnalyticsScreen`), atualizada por `useScreenMetrics`. `useLimitCheck` envia
+`plan_limit_reached` com `resource` e `screen`; `usePaywall.show(resource, plan?, trigger?)` envia
+`paid_feature_requested` com `feature`, `trigger`, `screen` e `plan`.
+
+## Novos marcos — 2026-09-23
+
+| Ação                         | Onde                                                       | Props                                                        |
+| ---------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| `business_profile_completed` | `useBusinessOnboarding.save` com respostas                 | `first`, `segment`, `stage`, `goal`, `channels` (quantidade) |
+| `business_profile_skipped`   | `useBusinessOnboarding.save(null)`                         | `first`                                                      |
+| `plan_chosen`                | Planos → "Continuar para pagamento"                        | `plan`, `period`, `current`, `provider`                      |
+| `purchase_result`            | `useSubscription` (Google Play) e `useStripeCheckout`      | `result`, `provider`, `plan`, `period`                       |
+| `ad_impression`              | `AdBanner` nativo, primeiro `onAdLoaded` do banner montado | `size`, `screen`                                             |
+
+Os eventos só saem depois de sucesso confirmado (perfil salvo, anúncio carregado). No Google Play,
+`purchase_result` só vale para compras iniciadas na sessão: `success` após a verificação no backend,
+`cancel` para `user-cancelled`, `failure` para o resto. Na Stripe, `success` quando o plano pago
+aparece em até cerca de 15 s depois de fechar o checkout, `cancel` quando não aparece e `failure`
+quando o checkout não abre. Nome e nome do negócio nunca entram nas props.
+
+## Erros que derrubam a tela — 2026-09-23
+
+`AppErrorBoundary` envolve `AppContent` no layout raiz (dentro dos providers de tema e de dados).
+Quando uma tela quebra, mostra "Algo deu errado" com o botão "Tentar de novo", que reinicia a
+barreira, e chama `reportAppCrash`. Props de `app_crashed`: `error` (nome do tipo, só `\w`, até 40) e `screen`. Erros fora da árvore React (promessas soltas, crash nativo) não são capturados;
+um serviço dedicado (ex.: Sentry) exigiria conta e DSN do responsável.
+
+## Desktop do painel (web >= 1024px) — 2026-09-23
+
+`app/admin-metrics.tsx`, só no desktop; o celular não muda.
+
+- A página rola inteira, com o cabeçalho "Métricas do produto" e o subtítulo "Instalação, uso, conversão e retorno dos usuários.".
+- Os quatro `MetricCard` (rótulos em caixa alta de 13px) viram um `DesktopStatRow`: instalações, cadastros, ativação em 7 dias e vínculo com conta, cada um com a dica de 14px.
+- As seções usam um controle segmentado com a largura do texto.
+- Na visão geral, atividade, origem, versões e "Como a ativação é calculada" ficam em `DesktopGrid` de 2 colunas. Telas e funções e as duas retenções também ficam em 2 colunas.
+- Carregamento, erro e acesso restrito aparecem na página, abaixo do cabeçalho. O erro usa um cartão tracejado com "Tentar novamente".

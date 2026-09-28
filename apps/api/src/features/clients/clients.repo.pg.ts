@@ -4,6 +4,11 @@ import { and, count, eq, ilike, or, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import type { CreateClientData, FindAllOpts, IClientsRepo } from "./clients.types";
 
+// Ordena a lista por nome ignorando acentos (Álvaro junto com Alice), sem
+// depender da extensão unaccent nem da collation do banco.
+const ACCENTED = "ÁÀÂÃÄáàâãäÉÈÊËéèêëÍÌÎÏíìîïÓÒÔÕÖóòôõöÚÙÛÜúùûüÇçÑñ";
+const UNACCENTED = "AAAAAaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn";
+
 function normalizedPhoneDigits(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
@@ -108,7 +113,11 @@ export class ClientsRepoPg implements IClientsRepo {
         .where(where)
         .limit(opts.limit)
         .offset(offset)
-        .orderBy(sql`${clients.createdAt} DESC`),
+        .orderBy(
+          sql`lower(translate(${clients.name}, ${ACCENTED}, ${UNACCENTED})) ASC`,
+          sql`${clients.createdAt} DESC`,
+          sql`${clients.id} ASC`,
+        ),
       this.db.select({ value: count() }).from(clients).where(where),
     ]);
 
@@ -131,8 +140,7 @@ export class ClientsRepoPg implements IClientsRepo {
     if (data.birthday !== undefined) updateData.birthday = data.birthday;
     if (data.notes !== undefined) updateData.notes = data.notes;
     if (data.tags !== undefined) updateData.tags = data.tags;
-    if (data.nextContactAt !== undefined)
-      updateData.nextContactAt = data.nextContactAt;
+    if (data.nextContactAt !== undefined) updateData.nextContactAt = data.nextContactAt;
     if (data.nextContactReason !== undefined)
       updateData.nextContactReason = data.nextContactReason;
     if (data.nextContactNotes !== undefined)

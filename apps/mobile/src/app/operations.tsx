@@ -1,5 +1,6 @@
-import { FilterChipRow, ValidationField } from "@lucro-caseiro/ui";
+import { FilterChipRow } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
+import { localIsoDate } from "../shared/utils/date";
 import type {
   CreateVerticalDocument,
   PublishedVerticalDomain,
@@ -13,7 +14,6 @@ import {
   Card,
   Chip,
   EmptyState,
-  Input,
   Typography,
   iconSizes,
   radii,
@@ -50,14 +50,31 @@ import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { StandardModal } from "../shared/components/standard-modal";
+import {
+  FormField,
+  TextField,
+  fieldMetrics,
+  OptionChip,
+  ChipRow,
+} from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
+import { FormSection } from "../shared/components/form-section";
 import { showToast } from "../shared/components/toast";
 import {
   desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import {
+  DesktopCard,
+  DesktopGrid,
+  DesktopSplit,
+  DesktopStatRow,
+  desktopActionButton,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { alertError, alertValidation } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 
 type LineDraft = {
@@ -171,7 +188,7 @@ function makePayload(
   if (kind === "daily_log")
     return {
       projectId: values.referenceId,
-      date: now.toISOString().slice(0, 10),
+      date: localIsoDate(now),
       teamCount: one,
       activities: [values.detail],
       occurrences: [],
@@ -265,7 +282,73 @@ function DocumentCard({
   loading: boolean;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const next = nextVerticalStatus(document);
+  if (isDesktop) {
+    return (
+      <DesktopCard style={{ height: "100%" }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="desktopCardTitle">{document.title}</Typography>
+            <Typography variant="desktopMeta">
+              {document.items.length} item(ns) · atualizado{" "}
+              {new Date(document.updatedAt).toLocaleDateString("pt-BR")}
+            </Typography>
+          </View>
+          <Badge
+            label={statusLabel(document.status)}
+            variant={next ? "warning" : "success"}
+          />
+        </View>
+        <View style={{ flexDirection: "row", gap: spacing["3xl"] }}>
+          <View style={{ gap: 2 }}>
+            <Typography variant="desktopMeta">Valor</Typography>
+            <Typography variant="desktopBodyStrong">
+              {formatCurrency(document.amount)}
+            </Typography>
+          </View>
+          <View style={{ gap: 2 }}>
+            <Typography variant="desktopMeta">Margem projetada</Typography>
+            <Typography variant="desktopBodyStrong" color={theme.colors.success}>
+              {formatCurrency(document.amount - document.cost)}
+            </Typography>
+          </View>
+        </View>
+        {document.progress > 0 ? (
+          <View style={{ gap: spacing.xs }}>
+            <Typography variant="desktopMeta">Avanço {document.progress}%</Typography>
+            <View
+              style={{
+                height: 8,
+                borderRadius: radii.full,
+                backgroundColor: theme.colors.border,
+              }}
+            >
+              <View
+                style={{
+                  height: 8,
+                  width: `${document.progress}%`,
+                  borderRadius: radii.full,
+                  backgroundColor: theme.colors.primary,
+                }}
+              />
+            </View>
+          </View>
+        ) : null}
+        {next ? (
+          <View style={{ flex: 1, justifyContent: "flex-end" }}>
+            <Button
+              title={next.label}
+              variant="secondary"
+              loading={loading}
+              style={{ ...desktopActionButton, alignSelf: "flex-start" }}
+              onPress={() => void onTransition(document, next.status)}
+            />
+          </View>
+        ) : null}
+      </DesktopCard>
+    );
+  }
   return (
     <Card variant="elevated">
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
@@ -327,6 +410,34 @@ function DocumentCard({
   );
 }
 
+/** "Desconto (%)" → rótulo "Desconto" com "%" dentro do campo. */
+function splitUnit(label: string): { label: string; suffix?: string } {
+  const open = label.lastIndexOf(" (");
+  if (open <= 0 || !label.endsWith(")")) return { label };
+  return { label: label.slice(0, open), suffix: label.slice(open + 2, -1) };
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+}: Readonly<{ label: string; value: string; onChange: (value: string) => void }>) {
+  const field = splitUnit(label);
+  return (
+    <FormField label={field.label} optional>
+      <TextField
+        accessibilityLabel={label}
+        suffix={field.suffix}
+        placeholder="0"
+        value={value}
+        onChangeText={onChange}
+        keyboardType="decimal-pad"
+        numericMode="decimal"
+      />
+    </FormField>
+  );
+}
+
 function LineItemCard({
   index,
   line,
@@ -336,40 +447,60 @@ function LineItemCard({
   line: LineDraft;
   onChange: (line: LineDraft) => void;
 }>) {
+  const { theme } = useTheme();
   return (
-    <Card variant="elevated">
-      <Input
-        label={`Item ${index + 1}`}
-        value={line.name}
-        onChangeText={(name) => onChange({ ...line, name })}
-      />
-      <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.md }}>
-        <Input
-          label="Qtd."
-          value={line.quantity}
-          keyboardType="decimal-pad"
-          numericMode="decimal"
-          onChangeText={(quantity) => onChange({ ...line, quantity })}
-          containerStyle={{ flex: 0.7 }}
-        />
-        <Input
-          label="Custo un."
-          value={line.unitCost}
-          keyboardType="decimal-pad"
-          numericMode="decimal"
-          onChangeText={(unitCost) => onChange({ ...line, unitCost })}
-          containerStyle={{ flex: 1 }}
-        />
-        <Input
-          label="Preço un."
-          value={line.unitPrice}
-          keyboardType="decimal-pad"
-          numericMode="decimal"
-          onChangeText={(unitPrice) => onChange({ ...line, unitPrice })}
-          containerStyle={{ flex: 1 }}
-        />
+    <View
+      style={{
+        gap: fieldMetrics.fieldGap,
+        paddingTop: index === 0 ? 0 : spacing.lg,
+        borderTopWidth: index === 0 ? 0 : 1,
+        borderTopColor: theme.colors.border,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.lg }}>
+        <FormField label={`Item ${index + 1}`} style={{ flex: 1 }}>
+          <TextField
+            placeholder="Ex.: Troca de óleo"
+            accessibilityLabel={`Item ${index + 1}`}
+            value={line.name}
+            onChangeText={(name) => onChange({ ...line, name })}
+          />
+        </FormField>
+        <FormField label="Quantidade" style={{ width: 112 }}>
+          <TextField
+            accessibilityLabel={`Quantidade do item ${index + 1}`}
+            value={line.quantity}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            onChangeText={(quantity) => onChange({ ...line, quantity })}
+          />
+        </FormField>
       </View>
-    </Card>
+      <FormGrid minColumnWidth={150}>
+        <FormField label="Custo por unidade">
+          <TextField
+            prefix="R$"
+            placeholder="0,00"
+            accessibilityLabel={`Custo por unidade do item ${index + 1}`}
+            value={line.unitCost}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            onChangeText={(unitCost) => onChange({ ...line, unitCost })}
+          />
+        </FormField>
+        <FormField label="Preço por unidade">
+          <TextField
+            prefix="R$"
+            placeholder="0,00"
+            accessibilityLabel={`Preço por unidade do item ${index + 1}`}
+            value={line.unitPrice}
+            keyboardType="decimal-pad"
+            numericMode="decimal"
+            onChangeText={(unitPrice) => onChange({ ...line, unitPrice })}
+          />
+        </FormField>
+      </FormGrid>
+    </View>
   );
 }
 
@@ -483,10 +614,6 @@ export default function OperationsScreen() {
 
   async function submitDocument() {
     if (!formValidation.validate()) return;
-    if (!title.trim() || !detail.trim())
-      return alertValidation("Preencha o título e os detalhes da operação.");
-    if (kindDefinition.reference && !referenceId)
-      return alertValidation("Selecione o vínculo desta operação.");
     const items: VerticalDocumentItemInput[] = lines
       .filter((line) => line.name.trim())
       .map((line) => ({
@@ -541,8 +668,6 @@ export default function OperationsScreen() {
 
   async function submitAsset() {
     if (!assetValidation.validate()) return;
-    if (!assetName.trim())
-      return alertValidation("Informe o nome do equipamento ou veículo.");
     try {
       await createAsset.mutateAsync({
         domain: "oficina",
@@ -569,8 +694,6 @@ export default function OperationsScreen() {
 
   async function submitSerial() {
     if (!serialValidation.validate()) return;
-    if (!serialProductId || serial.trim().length < 3)
-      return alertValidation("Selecione o produto e informe um serial válido.");
     try {
       await createSerial.mutateAsync({
         productId: serialProductId,
@@ -661,6 +784,188 @@ export default function OperationsScreen() {
     );
   }
 
+  const availableSerials =
+    serials.data?.filter((item) => item.status === "available").length ?? 0;
+  let desktopAside: React.ReactNode = null;
+  if (domain === "oficina") {
+    desktopAside = (
+      <DesktopCard>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <View
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon
+              name="car-outline"
+              size={iconSizes.md}
+              color={theme.colors.primaryStrong}
+            />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="desktopCardTitle" accessibilityRole="header">
+              Pátio de equipamentos
+            </Typography>
+            <Typography variant="desktopMeta">
+              {assets.data?.length ?? 0} ativo(s) com histórico próprio
+            </Typography>
+          </View>
+        </View>
+        {(assets.data ?? []).slice(0, 5).map((asset) => (
+          <View
+            key={asset.id}
+            style={{
+              minHeight: 44,
+              justifyContent: "center",
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+            }}
+          >
+            <Typography variant="desktopBody" color={theme.colors.text} numberOfLines={1}>
+              {asset.name}
+            </Typography>
+          </View>
+        ))}
+        <Button
+          title="Cadastrar"
+          variant="secondary"
+          onPress={() => setAssetVisible(true)}
+          style={{ minHeight: 48 }}
+        />
+      </DesktopCard>
+    );
+  } else if (domain === "revenda") {
+    desktopAside = (
+      <DesktopCard>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <View
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon
+              name="barcode-outline"
+              size={iconSizes.md}
+              color={theme.colors.primaryStrong}
+            />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="desktopCardTitle" accessibilityRole="header">
+              Rastreio por serial
+            </Typography>
+            <Typography variant="desktopMeta">
+              {availableSerials} disponível(is)
+            </Typography>
+          </View>
+        </View>
+        {(serials.data ?? []).slice(0, 4).map((item) => (
+          <SerialRow
+            key={item.id}
+            item={item}
+            loading={updateSerial.isPending}
+            onStatusChange={changeSerialStatus}
+          />
+        ))}
+        <Button
+          title="Novo serial"
+          variant="secondary"
+          onPress={() => setSerialVisible(true)}
+          style={{ minHeight: 48 }}
+        />
+      </DesktopCard>
+    );
+  }
+
+  let desktopDocuments: React.ReactNode;
+  if (documents.isLoading) {
+    desktopDocuments = <ActivityIndicator color={theme.colors.primary} />;
+  } else if (documents.data?.length) {
+    desktopDocuments = (
+      <DesktopGrid minColumnWidth={360} maxColumns={2}>
+        {documents.data.map((document) => (
+          <DocumentCard
+            key={document.id}
+            document={document}
+            loading={transitionDocument.isPending}
+            onTransition={submitTransition}
+          />
+        ))}
+      </DesktopGrid>
+    );
+  } else {
+    desktopDocuments = (
+      <DesktopCard style={{ borderStyle: "dashed", alignItems: "flex-start" }}>
+        <Typography variant="desktopCardTitle">
+          Nenhuma {kindDefinition.singular} ainda
+        </Typography>
+        <Typography variant="desktopBody">
+          Crie a primeira {kindDefinition.singular} para iniciar o fluxo.
+        </Typography>
+        <Button
+          title={`Nova ${kindDefinition.singular}`}
+          onPress={() => setCreateVisible(true)}
+          style={desktopActionButton}
+        />
+      </DesktopCard>
+    );
+  }
+
+  const desktopContent = (
+    <>
+      <DesktopStatRow
+        items={[
+          {
+            label: "Operações abertas",
+            value: String(dashboard.data?.openDocuments ?? 0),
+          },
+          {
+            label: "Valor em operação",
+            value: formatCurrency(dashboard.data?.amount ?? 0),
+          },
+          {
+            label: "Resultado projetado",
+            value: formatCurrency(dashboard.data?.projectedProfit ?? 0),
+            color: theme.colors.success,
+          },
+        ]}
+      />
+      <DesktopSplit aside={desktopAside}>
+        <FilterChipRow>
+          {definition.kinds.map((item) => (
+            <Chip
+              key={item.kind}
+              label={item.label}
+              selected={selectedKind === item.kind}
+              onPress={() => {
+                setSelectedKind(item.kind);
+                setReferenceId("");
+              }}
+            />
+          ))}
+        </FilterChipRow>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.md }}>
+          <Typography variant="desktopSection" accessibilityRole="header">
+            {kindDefinition.label}
+          </Typography>
+          <Typography variant="desktopMeta">
+            {documents.data?.length ?? 0} registro(s)
+          </Typography>
+        </View>
+        {desktopDocuments}
+      </DesktopSplit>
+    </>
+  );
+
   return (
     <FeatureRouteGuard feature="operacaoVertical">
       <SafeAreaView
@@ -683,14 +988,19 @@ export default function OperationsScreen() {
         <View style={{ flex: 1 }}>
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{
-              paddingTop: isDesktop ? spacing.md : 0,
-              paddingBottom: spacing.lg,
-              gap: spacing.xl,
-              ...pageGutter(isDesktop),
-              ...desktopStretch(isDesktop, desktopWidths.data),
-            }}
+            contentContainerStyle={
+              isDesktop
+                ? desktopPageContent(true)
+                : {
+                    paddingTop: 0,
+                    paddingBottom: spacing.lg,
+                    gap: spacing.xl,
+                    ...pageGutter(isDesktop),
+                    ...desktopStretch(isDesktop, desktopWidths.data),
+                  }
+            }
           >
+            {isDesktop ? desktopContent : null}
             {!isDesktop ? (
               <View
                 style={{
@@ -717,140 +1027,152 @@ export default function OperationsScreen() {
               </View>
             ) : null}
 
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xl }}>
-              <Metric
-                label="Operações abertas"
-                value={String(dashboard.data?.openDocuments ?? 0)}
-                icon="clipboard-outline"
-                desktop={isDesktop}
-              />
-              <Metric
-                label="Valor em operação"
-                value={formatCurrency(dashboard.data?.amount ?? 0)}
-                icon="wallet-outline"
-                desktop={isDesktop}
-              />
-              <Metric
-                label="Resultado projetado"
-                value={formatCurrency(dashboard.data?.projectedProfit ?? 0)}
-                icon="trending-up-outline"
-                desktop={isDesktop}
-              />
-            </View>
-
-            {domain === "oficina" ? (
-              <Card variant="elevated">
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-                >
-                  {isDesktop ? (
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: radii.md,
-                        backgroundColor: theme.colors.primaryBg,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <AppIcon
-                        name="car-outline"
-                        size={iconSizes.md}
-                        color={theme.colors.primaryStrong}
-                      />
-                    </View>
-                  ) : null}
-                  <View style={{ flex: 1 }}>
-                    <Typography variant="h3">Pátio de equipamentos</Typography>
-                    <Typography variant="caption">
-                      {assets.data?.length ?? 0} ativo(s) com histórico próprio
-                    </Typography>
-                  </View>
-                  <Button
-                    title="Cadastrar"
-                    size="sm"
-                    variant={isDesktop ? "secondary" : "primary"}
-                    onPress={() => setAssetVisible(true)}
+            {!isDesktop ? (
+              <>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xl }}>
+                  <Metric
+                    label="Operações abertas"
+                    value={String(dashboard.data?.openDocuments ?? 0)}
+                    icon="clipboard-outline"
+                    desktop={isDesktop}
+                  />
+                  <Metric
+                    label="Valor em operação"
+                    value={formatCurrency(dashboard.data?.amount ?? 0)}
+                    icon="wallet-outline"
+                    desktop={isDesktop}
+                  />
+                  <Metric
+                    label="Resultado projetado"
+                    value={formatCurrency(dashboard.data?.projectedProfit ?? 0)}
+                    icon="trending-up-outline"
+                    desktop={isDesktop}
                   />
                 </View>
-              </Card>
-            ) : null}
-            {domain === "revenda" ? (
-              <Card variant="elevated">
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-                >
-                  {isDesktop ? (
+
+                {domain === "oficina" ? (
+                  <Card variant="elevated">
                     <View
                       style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: radii.md,
-                        backgroundColor: theme.colors.primaryBg,
+                        flexDirection: "row",
                         alignItems: "center",
-                        justifyContent: "center",
+                        gap: spacing.md,
                       }}
                     >
-                      <AppIcon
-                        name="barcode-outline"
-                        size={iconSizes.md}
-                        color={theme.colors.primaryStrong}
+                      {isDesktop ? (
+                        <View
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: radii.md,
+                            backgroundColor: theme.colors.primaryBg,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AppIcon
+                            name="car-outline"
+                            size={iconSizes.md}
+                            color={theme.colors.primaryStrong}
+                          />
+                        </View>
+                      ) : null}
+                      <View style={{ flex: 1 }}>
+                        <Typography variant="h3">Pátio de equipamentos</Typography>
+                        <Typography variant="caption">
+                          {assets.data?.length ?? 0} ativo(s) com histórico próprio
+                        </Typography>
+                      </View>
+                      <Button
+                        title="Cadastrar"
+                        size="sm"
+                        variant={isDesktop ? "secondary" : "primary"}
+                        onPress={() => setAssetVisible(true)}
                       />
                     </View>
-                  ) : null}
-                  <View style={{ flex: 1 }}>
-                    <Typography variant="h3">Rastreio por serial</Typography>
+                  </Card>
+                ) : null}
+                {domain === "revenda" ? (
+                  <Card variant="elevated">
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                      }}
+                    >
+                      {isDesktop ? (
+                        <View
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: radii.md,
+                            backgroundColor: theme.colors.primaryBg,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AppIcon
+                            name="barcode-outline"
+                            size={iconSizes.md}
+                            color={theme.colors.primaryStrong}
+                          />
+                        </View>
+                      ) : null}
+                      <View style={{ flex: 1 }}>
+                        <Typography variant="h3">Rastreio por serial</Typography>
+                        <Typography variant="caption">
+                          {serials.data?.filter((item) => item.status === "available")
+                            .length ?? 0}{" "}
+                          disponível(is)
+                        </Typography>
+                      </View>
+                      <Button
+                        title="Novo serial"
+                        size="sm"
+                        variant={isDesktop ? "secondary" : "primary"}
+                        onPress={() => setSerialVisible(true)}
+                      />
+                    </View>
+                    {(serials.data ?? []).slice(0, 4).map((item) => (
+                      <SerialRow
+                        key={item.id}
+                        item={item}
+                        loading={updateSerial.isPending}
+                        onStatusChange={changeSerialStatus}
+                      />
+                    ))}
+                  </Card>
+                ) : null}
+
+                <View style={{ gap: spacing.md }}>
+                  <FilterChipRow>
+                    {definition.kinds.map((item) => (
+                      <Chip
+                        key={item.kind}
+                        label={item.label}
+                        selected={selectedKind === item.kind}
+                        onPress={() => {
+                          setSelectedKind(item.kind);
+                          setReferenceId("");
+                        }}
+                      />
+                    ))}
+                  </FilterChipRow>
+                  <View>
+                    <Typography variant="h3">{kindDefinition.label}</Typography>
                     <Typography variant="caption">
-                      {serials.data?.filter((item) => item.status === "available")
-                        .length ?? 0}{" "}
-                      disponível(is)
+                      {documents.data?.length ?? 0} registro(s)
                     </Typography>
                   </View>
-                  <Button
-                    title="Novo serial"
-                    size="sm"
-                    variant={isDesktop ? "secondary" : "primary"}
-                    onPress={() => setSerialVisible(true)}
-                  />
                 </View>
-                {(serials.data ?? []).slice(0, 4).map((item) => (
-                  <SerialRow
-                    key={item.id}
-                    item={item}
-                    loading={updateSerial.isPending}
-                    onStatusChange={changeSerialStatus}
-                  />
-                ))}
-              </Card>
+
+                {documentContent}
+              </>
             ) : null}
-
-            <View style={{ gap: spacing.md }}>
-              <FilterChipRow>
-                {definition.kinds.map((item) => (
-                  <Chip
-                    key={item.kind}
-                    label={item.label}
-                    selected={selectedKind === item.kind}
-                    onPress={() => {
-                      setSelectedKind(item.kind);
-                      setReferenceId("");
-                    }}
-                  />
-                ))}
-              </FilterChipRow>
-              <View>
-                <Typography variant="h3">{kindDefinition.label}</Typography>
-                <Typography variant="caption">
-                  {documents.data?.length ?? 0} registro(s)
-                </Typography>
-              </View>
-            </View>
-
-            {documentContent}
           </ScrollView>
 
-          {(documents.data?.length ?? 0) > 0 ? (
+          {!isDesktop && (documents.data?.length ?? 0) > 0 ? (
             <ScreenCreateBar
               title={`+ Nova ${kindDefinition.singular}`}
               onPress={() => setCreateVisible(true)}
@@ -863,189 +1185,234 @@ export default function OperationsScreen() {
           onClose={() => setCreateVisible(false)}
           title={`Nova ${kindDefinition.singular}`}
           subtitle={kindDefinition.label}
-          wide
+          size="form"
           footer={
-            <>
+            <FormActions stack>
               <Button
                 title="Cancelar"
-                variant="ghost"
-                style={{ flex: 1 }}
+                variant="outline"
+                disabled={createDocument.isPending}
                 onPress={() => setCreateVisible(false)}
               />
               <Button
-                title="Salvar operação"
+                title={`Salvar ${kindDefinition.singular}`}
                 loading={createDocument.isPending}
-                style={{ flex: 1 }}
                 onPress={() => void submitDocument()}
               />
-            </>
+            </FormActions>
           }
         >
-          <ValidationField {...formValidation.field("title")}>
-            <Input
-              label="Título"
-              value={title}
-              onChangeText={setTitle}
-              placeholder="Identifique esta operação"
-            />
-          </ValidationField>
-          <ValidationField {...formValidation.field("detail")}>
-            <Input
-              label={kindDefinition.detailLabel}
-              value={detail}
-              onChangeText={setDetail}
-              multiline
-            />
-          </ValidationField>
-          {kindDefinition.reference ? (
-            <ValidationField {...formValidation.field("referenceId")}>
-              <View style={{ gap: spacing.sm }}>
-                <Typography variant="bodyBold">Vincular a</Typography>
-                <FilterChipRow>
-                  {references.map((item) => (
-                    <Chip
-                      key={item.id}
-                      label={item.label}
-                      selected={referenceId === item.id}
-                      onPress={() => setReferenceId(item.id)}
-                    />
-                  ))}
-                </FilterChipRow>
-                {!references.length ? (
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Cadastre primeiro o registro necessário para este vínculo.
-                  </Typography>
+          <FormBody>
+            <FormGrid>
+              <FormField
+                label="Título"
+                span="full"
+                validation={formValidation.field("title")}
+              >
+                <TextField
+                  placeholder="Identifique esta operação"
+                  accessibilityLabel="Título"
+                  value={title}
+                  onChangeText={setTitle}
+                />
+              </FormField>
+              <FormField
+                label={kindDefinition.detailLabel}
+                span="full"
+                validation={formValidation.field("detail")}
+              >
+                <TextField
+                  accessibilityLabel={kindDefinition.detailLabel}
+                  value={detail}
+                  onChangeText={setDetail}
+                  multiline
+                />
+              </FormField>
+              {kindDefinition.reference ? (
+                <FormField
+                  label="Vincular a"
+                  span="full"
+                  validation={formValidation.field("referenceId")}
+                >
+                  {references.length ? (
+                    <ChipRow accessibilityLabel="Vincular a">
+                      {references.map((item) => (
+                        <OptionChip
+                          key={item.id}
+                          label={item.label}
+                          selected={referenceId === item.id}
+                          onPress={() => setReferenceId(item.id)}
+                        />
+                      ))}
+                    </ChipRow>
+                  ) : (
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Cadastre primeiro o registro necessário para este vínculo.
+                    </Typography>
+                  )}
+                </FormField>
+              ) : null}
+            </FormGrid>
+
+            <FormSection collapsible={false} title="Valores">
+              <FormGrid>
+                {kindDefinition.numberOneLabel ? (
+                  <NumberField
+                    label={kindDefinition.numberOneLabel}
+                    value={numberOne}
+                    onChange={setNumberOne}
+                  />
                 ) : null}
-              </View>
-            </ValidationField>
-          ) : null}
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            {kindDefinition.numberOneLabel ? (
-              <Input
-                label={kindDefinition.numberOneLabel}
-                value={numberOne}
-                onChangeText={setNumberOne}
-                keyboardType="decimal-pad"
-                numericMode="decimal"
-                containerStyle={{ flex: 1 }}
-              />
-            ) : null}
-            {kindDefinition.numberTwoLabel ? (
-              <Input
-                label={kindDefinition.numberTwoLabel}
-                value={numberTwo}
-                onChangeText={setNumberTwo}
-                keyboardType="decimal-pad"
-                numericMode="decimal"
-                containerStyle={{ flex: 1 }}
-              />
-            ) : null}
-          </View>
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <Input
-              label="Valor previsto"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
-              containerStyle={{ flex: 1 }}
-            />
-            <Input
-              label="Custo previsto"
-              value={cost}
-              onChangeText={setCost}
-              keyboardType="decimal-pad"
-              numericMode="decimal"
-              containerStyle={{ flex: 1 }}
-            />
-          </View>
-          <View style={{ gap: spacing.md }}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Typography variant="h3" style={{ flex: 1 }}>
-                Itens e serviços
-              </Typography>
+                {kindDefinition.numberTwoLabel ? (
+                  <NumberField
+                    label={kindDefinition.numberTwoLabel}
+                    value={numberTwo}
+                    onChange={setNumberTwo}
+                  />
+                ) : null}
+                <FormField label="Valor previsto" optional>
+                  <TextField
+                    prefix="R$"
+                    placeholder="0,00"
+                    accessibilityLabel="Valor previsto, em reais"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="decimal-pad"
+                    numericMode="decimal"
+                  />
+                </FormField>
+                <FormField label="Custo previsto" optional>
+                  <TextField
+                    prefix="R$"
+                    placeholder="0,00"
+                    accessibilityLabel="Custo previsto, em reais"
+                    value={cost}
+                    onChangeText={setCost}
+                    keyboardType="decimal-pad"
+                    numericMode="decimal"
+                  />
+                </FormField>
+              </FormGrid>
+            </FormSection>
+
+            <FormSection
+              collapsible={false}
+              title="Itens e serviços"
+              subtitle={`Total dos itens: ${formatCurrency(lineTotal)}`}
+            >
+              {lines.map((line, index) => (
+                <LineItemCard
+                  key={line.key}
+                  index={index}
+                  line={line}
+                  onChange={changeLine}
+                />
+              ))}
               <Button
                 title="Adicionar item"
-                size="sm"
-                variant="secondary"
+                variant="outline"
+                icon={<AppIcon name="add" size={20} color={theme.colors.primary} />}
+                style={{ alignSelf: isDesktop ? "flex-start" : "stretch" }}
                 onPress={() => setLines((current) => [...current, freshLine()])}
               />
-            </View>
-            {lines.map((line, index) => (
-              <LineItemCard
-                key={line.key}
-                index={index}
-                line={line}
-                onChange={changeLine}
-              />
-            ))}
-            <Typography variant="bodyBold">
-              Total dos itens: {formatCurrency(lineTotal)}
-            </Typography>
-          </View>
+            </FormSection>
+          </FormBody>
         </StandardModal>
 
         <StandardModal
           visible={assetVisible}
           onClose={() => setAssetVisible(false)}
           title="Novo equipamento"
+          size="form"
           footer={
-            <Button
-              title="Cadastrar equipamento"
-              loading={createAsset.isPending}
-              style={{ flex: 1 }}
-              onPress={() => void submitAsset()}
-            />
+            <FormActions stack>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                disabled={createAsset.isPending}
+                onPress={() => setAssetVisible(false)}
+              />
+              <Button
+                title="Cadastrar equipamento"
+                loading={createAsset.isPending}
+                onPress={() => void submitAsset()}
+              />
+            </FormActions>
           }
         >
-          <ValidationField {...assetValidation.field("assetName")}>
-            <Input
-              label="Nome"
-              value={assetName}
-              onChangeText={setAssetName}
-              placeholder="Ex.: Honda Civic 2019"
-            />
-          </ValidationField>
-          <Input
-            label="Placa, série ou IMEI"
-            value={assetIdentifier}
-            onChangeText={setAssetIdentifier}
-          />
+          <FormBody>
+            <FormGrid>
+              <FormField label="Nome" validation={assetValidation.field("assetName")}>
+                <TextField
+                  placeholder="Ex.: Honda Civic 2019"
+                  accessibilityLabel="Nome do equipamento"
+                  value={assetName}
+                  onChangeText={setAssetName}
+                />
+              </FormField>
+              <FormField label="Placa, série ou IMEI" optional>
+                <TextField
+                  placeholder="Ex.: ABC1D23"
+                  accessibilityLabel="Placa, série ou IMEI"
+                  value={assetIdentifier}
+                  onChangeText={setAssetIdentifier}
+                />
+              </FormField>
+            </FormGrid>
+          </FormBody>
         </StandardModal>
         <StandardModal
           visible={serialVisible}
           onClose={() => setSerialVisible(false)}
           title="Rastrear produto por serial"
+          size="form"
           footer={
-            <Button
-              title="Salvar serial"
-              loading={createSerial.isPending}
-              style={{ flex: 1 }}
-              onPress={() => void submitSerial()}
-            />
+            <FormActions>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                disabled={createSerial.isPending}
+                onPress={() => setSerialVisible(false)}
+              />
+              <Button
+                title="Salvar serial"
+                loading={createSerial.isPending}
+                onPress={() => void submitSerial()}
+              />
+            </FormActions>
           }
         >
-          <Typography variant="bodyBold">Produto</Typography>
-          <ValidationField {...serialValidation.field("serialProductId")}>
-            <FilterChipRow>
-              {(products.data ?? []).map((product) => (
-                <Chip
-                  key={product.id}
-                  label={product.name}
-                  selected={serialProductId === product.id}
-                  onPress={() => setSerialProductId(product.id)}
+          <FormBody>
+            <FormField
+              label="Produto"
+              validation={serialValidation.field("serialProductId")}
+            >
+              <ChipRow accessibilityLabel="Produto">
+                {(products.data ?? []).map((product) => (
+                  <OptionChip
+                    key={product.id}
+                    label={product.name}
+                    selected={serialProductId === product.id}
+                    onPress={() => setSerialProductId(product.id)}
+                  />
+                ))}
+              </ChipRow>
+            </FormField>
+            <FormGrid>
+              <FormField
+                label="Número de série"
+                validation={serialValidation.field("serial")}
+              >
+                <TextField
+                  placeholder="Ex.: SN123456"
+                  accessibilityLabel="Número de série"
+                  value={serial}
+                  onChangeText={setSerial}
+                  autoCapitalize="characters"
                 />
-              ))}
-            </FilterChipRow>
-          </ValidationField>
-          <ValidationField {...serialValidation.field("serial")}>
-            <Input
-              label="Número de série"
-              value={serial}
-              onChangeText={setSerial}
-              autoCapitalize="characters"
-            />
-          </ValidationField>
+              </FormField>
+            </FormGrid>
+          </FormBody>
         </StandardModal>
       </SafeAreaView>
     </FeatureRouteGuard>

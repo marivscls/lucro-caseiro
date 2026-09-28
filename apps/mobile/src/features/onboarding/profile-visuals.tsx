@@ -7,7 +7,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
   type ImageSourcePropType,
 } from "react-native";
@@ -19,6 +18,7 @@ import servicesImage from "../../assets/onboarding-niche-beleza.png";
 import retailImage from "../../assets/onboarding-niche-presentes.png";
 import otherImage from "../../assets/onboarding-niche-outro.png";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
+import { brandLogoByMode } from "../../shared/brand-logo";
 import { AppIcon } from "../../shared/components/app-icon";
 import {
   profileSegments,
@@ -36,62 +36,69 @@ const illustrations: Record<string, ImageSourcePropType> = {
   other: otherImage,
 };
 
-export function ProfileStepRail({
-  step,
-  onStep,
-}: Readonly<{ step: number; onStep: (index: number) => void }>) {
+/** Largura do avatar do app mais o espaço até o balão: alinha respostas e opções ao balão. */
+export const CHAT_INDENT = 44;
+
+/** Balão do app: a pergunta da vez, com uma explicação curta embaixo. */
+export function AppBubble({
+  title,
+  description,
+}: Readonly<{ title: string; description?: string }>) {
   const colors = useBrandScreenPalette();
   return (
-    <View style={styles.rail}>
-      {profileSteps.map((item, index) => {
-        const done = index < step;
-        const active = index === step;
-        const color = done || active ? colors.wine : colors.muted;
-        return (
-          <View key={item.label} style={styles.railItem}>
-            {index < profileSteps.length - 1 && (
-              <View
-                style={[
-                  styles.connector,
-                  { backgroundColor: done ? colors.wine : colors.border },
-                ]}
-              />
-            )}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Etapa ${index + 1}: ${item.label}${done ? ", concluída" : ""}`}
-              accessibilityState={{ selected: active, disabled: !done }}
-              disabled={!done}
-              onPress={() => onStep(index)}
-              style={styles.stepButton}
-            >
-              <View
-                style={[
-                  styles.stepCircle,
-                  {
-                    borderColor: active ? colors.wine : colors.border,
-                    backgroundColor: done ? colors.wineFill : colors.background,
-                  },
-                ]}
-              >
-                {done ? (
-                  <AppIcon name="checkmark" size={17} color={colors.onWine} />
-                ) : (
-                  <Text style={[styles.stepNumber, { color }]}>{index + 1}</Text>
-                )}
-              </View>
-              <Text
-                style={[
-                  styles.stepText,
-                  { color, fontFamily: active ? fonts.bold : fonts.medium },
-                ]}
-              >
-                {["Você", "Negócio", "Fase", "Clientes", "Foco"][index]}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      })}
+    <View style={styles.appRow}>
+      <Image
+        source={brandLogoByMode.light["lucro-caseiro"]}
+        style={[styles.avatar, { borderColor: colors.border }]}
+        resizeMode="contain"
+        accessibilityIgnoresInvertColors
+      />
+      <View
+        style={[
+          styles.appBubble,
+          { backgroundColor: colors.white, borderColor: colors.border },
+        ]}
+      >
+        <Text accessibilityRole="header" style={[styles.question, { color: colors.ink }]}>
+          {title}
+        </Text>
+        {description ? (
+          <Text style={[styles.bubbleNote, { color: colors.muted }]}>{description}</Text>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+/** Balão da pessoa com a resposta já dada e o atalho para mudar. */
+export function AnswerBubble({
+  answer,
+  question,
+  onEdit,
+  disabled = false,
+}: Readonly<{
+  answer: string;
+  question: string;
+  onEdit: () => void;
+  disabled?: boolean;
+}>) {
+  const colors = useBrandScreenPalette();
+  return (
+    <View style={styles.answerRow}>
+      <View style={[styles.answerBubble, { backgroundColor: colors.wineFill }]}>
+        <Text style={[styles.answer, { color: colors.onWine }]}>{answer}</Text>
+      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Mudar resposta: ${question}`}
+        disabled={disabled}
+        onPress={onEdit}
+        hitSlop={6}
+        style={styles.edit}
+      >
+        <AppIcon name="pencil-outline" size={16} color={colors.wine} />
+        <Text style={[styles.editText, { color: colors.wine }]}>Mudar</Text>
+      </Pressable>
     </View>
   );
 }
@@ -193,20 +200,20 @@ export function BusinessIdentityCard({
   );
 }
 
-function ChoiceTile({
+function ChatChoice({
   choice,
   selected,
   onSelect,
   illustrated,
-  grid,
   multiple,
+  wide,
 }: Readonly<{
   choice: ProfileChoice;
   selected: boolean;
   onSelect: () => void;
   illustrated: boolean;
-  grid: boolean;
   multiple: boolean;
+  wide: boolean;
 }>) {
   const colors = useBrandScreenPalette();
   const { theme } = useTheme();
@@ -222,10 +229,11 @@ function ChoiceTile({
       onHoverOut={() => setHovered(false)}
       style={({ pressed }) => [
         styles.choice,
-        grid && styles.choiceGrid,
+        wide && styles.choiceWide,
         {
           backgroundColor: selected ? colors.softRose : colors.white,
           borderColor: selected || hovered ? theme.colors.primaryStrong : colors.border,
+          borderWidth: selected ? 2 : 1,
           transform: [{ scale: pressed && !reduced ? 0.98 : 1 }],
         },
       ]}
@@ -233,7 +241,7 @@ function ChoiceTile({
       {illustrated ? (
         <Image
           source={illustrations[choice.value]}
-          style={[styles.illustration, !grid && styles.illustrationRow]}
+          style={styles.illustration}
           resizeMode="contain"
         />
       ) : (
@@ -245,53 +253,59 @@ function ChoiceTile({
         >
           <AppIcon
             name={choice.icon}
-            size={21}
+            size={20}
             color={selected ? colors.onWine : colors.wine}
           />
         </View>
       )}
       <View style={styles.choiceCopy}>
-        <Text style={[styles.choiceTitle, { color: colors.wine }]}>{choice.label}</Text>
+        <Text style={[styles.choiceTitle, { color: colors.ink }]}>{choice.label}</Text>
         {!illustrated && (
-          <Text style={[styles.body, { color: colors.muted }]}>{choice.detail}</Text>
+          <Text style={[styles.choiceDetail, { color: colors.muted }]}>
+            {choice.detail}
+          </Text>
         )}
       </View>
       <View
         style={[
-          styles.radio,
-          { borderRadius: multiple ? 6 : 10 },
-          grid && styles.radioGrid,
+          styles.mark,
           {
-            borderColor: selected ? colors.wine : colors.muted,
+            borderRadius: multiple ? 7 : 12,
+            borderColor: selected ? colors.wineFill : colors.muted,
             backgroundColor: selected ? colors.wineFill : colors.white,
           },
         ]}
       >
-        {selected && <AppIcon name="checkmark" size={14} color={colors.onWine} />}
+        {selected && <AppIcon name="checkmark" size={15} color={colors.onWine} />}
       </View>
     </Pressable>
   );
 }
 
-export function ProfileChoices({
+/** Respostas possíveis da pergunta atual, como botões grandes logo abaixo do balão. */
+export function ChatChoices({
   choices,
   value,
   onChange,
   illustrated = false,
   multiple = false,
+  wide = false,
 }: Readonly<{
   choices: ProfileChoice[];
   value: string | string[];
   onChange: (value: string) => void;
   illustrated?: boolean;
   multiple?: boolean;
+  /** Duas colunas quando há espaço (computador). */
+  wide?: boolean;
 }>) {
-  const { width, fontScale } = useWindowDimensions();
-  const grid = illustrated && width >= 360 && fontScale < 1.3;
   return (
-    <View style={[styles.choices, grid && styles.choiceColumns]}>
+    <View
+      accessibilityRole={multiple ? undefined : "radiogroup"}
+      style={[styles.choices, wide && styles.choicesWide]}
+    >
       {choices.map((choice) => (
-        <ChoiceTile
+        <ChatChoice
           key={choice.value}
           choice={choice}
           selected={
@@ -299,8 +313,8 @@ export function ProfileChoices({
           }
           onSelect={() => onChange(choice.value)}
           illustrated={illustrated}
-          grid={grid}
           multiple={multiple}
+          wide={wide}
         />
       ))}
     </View>
@@ -308,20 +322,37 @@ export function ProfileChoices({
 }
 
 const styles = StyleSheet.create({
-  rail: { flexDirection: "row", marginBottom: 18 },
-  railItem: { flex: 1 },
-  connector: { position: "absolute", left: "50%", right: "-50%", height: 1, top: 14 },
-  stepButton: { minHeight: 48, alignItems: "center", gap: 6 },
-  stepCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    justifyContent: "center",
-    alignItems: "center",
+  appRow: { flexDirection: "row", alignItems: "flex-end", gap: 10 },
+  avatar: { width: 34, height: 34, borderRadius: 10, borderWidth: 1 },
+  appBubble: {
+    flexShrink: 1,
+    maxWidth: 560,
+    borderWidth: 1,
+    borderRadius: 20,
+    borderBottomLeftRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 4,
   },
-  stepNumber: { fontFamily: fonts.semiBold, fontSize: 13 },
-  stepText: { fontSize: 12, textAlign: "center" },
+  question: { fontFamily: fonts.bold, fontSize: 18, lineHeight: 25, letterSpacing: -0.2 },
+  bubbleNote: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 23 },
+  answerRow: { alignItems: "flex-end", gap: 2 },
+  answerBubble: {
+    maxWidth: "82%",
+    borderRadius: 20,
+    borderBottomRightRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  answer: { fontFamily: fonts.semiBold, fontSize: 16, lineHeight: 22 },
+  edit: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 4,
+  },
+  editText: { fontFamily: fonts.bold, fontSize: 16 },
   cardStage: { paddingHorizontal: 6, paddingTop: 14, paddingBottom: 14 },
   cardStageCompact: { paddingHorizontal: 0, paddingTop: 8, paddingBottom: 8 },
   cardBack: {
@@ -379,45 +410,35 @@ const styles = StyleSheet.create({
     borderTopColor: "#916b7b",
   },
   cardBody: { fontSize: 16, fontFamily: fonts.regular, flex: 1, lineHeight: 24 },
-  choices: { gap: 10 },
-  choiceColumns: { flexDirection: "row", flexWrap: "wrap" },
+  choices: { gap: 8, paddingLeft: CHAT_INDENT },
+  choicesWide: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   choice: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    minHeight: 72,
-    padding: 12,
-    borderWidth: 1,
-    borderRadius: 16,
+    minHeight: 60,
+    paddingVertical: 8,
+    paddingLeft: 10,
+    paddingRight: 14,
+    borderRadius: 20,
   },
-  choiceGrid: {
-    flexBasis: "47%",
-    flexGrow: 1,
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 4,
-    minHeight: 120,
-    paddingTop: 12,
-  },
-  illustration: { width: 58, height: 58 },
-  illustrationRow: { width: 44, height: 44 },
+  choiceWide: { flexBasis: "45%", flexGrow: 1 },
+  illustration: { width: 40, height: 40 },
   iconWell: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
-  choiceCopy: { flex: 1, minWidth: 0, gap: 3 },
-  choiceTitle: { fontFamily: fonts.semiBold, fontSize: 15, lineHeight: 21 },
-  body: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 19 },
-  radio: {
-    width: 20,
-    height: 20,
-    borderWidth: 1,
-    borderRadius: 10,
+  choiceCopy: { flex: 1, minWidth: 0, gap: 2 },
+  choiceTitle: { fontFamily: fonts.bold, fontSize: 16, lineHeight: 22 },
+  choiceDetail: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+  mark: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
-  radioGrid: { position: "absolute", top: 12, right: 12 },
 });

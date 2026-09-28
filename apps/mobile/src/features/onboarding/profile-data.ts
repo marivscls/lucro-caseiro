@@ -285,3 +285,51 @@ export function profileRecommendation(
     };
   return recommendation;
 }
+
+/** Pergunta de cada etapa na conversa, chamando a pessoa pelo nome quando já sabemos. */
+export function profileQuestion(
+  step: number,
+  profile: BusinessProfileAnswers,
+): { title: string; description: string } | undefined {
+  const current = profileSteps[step];
+  if (!current) return undefined;
+  const firstName = profile.name.trim().split(/\s+/)[0];
+  if (step === 1 && firstName)
+    return { ...current, title: `Prazer, ${firstName}! ${current.title}` };
+  return current;
+}
+
+/** Resposta já dada, como aparece no balão da pessoa. */
+export function profileAnswerSummary(
+  step: number,
+  profile: BusinessProfileAnswers,
+): string {
+  switch (step) {
+    case 0: {
+      const name = profile.name.trim();
+      const business = profile.business.trim();
+      return business ? `${name}, da ${business}` : name;
+    }
+    case 1:
+      return profileSegments.find((item) => item.value === profile.segment)?.label ?? "";
+    case 2:
+      return (
+        stagesForProfile(profile.segment).find((item) => item.value === profile.stage)
+          ?.label ?? ""
+      );
+    case 3:
+      return (
+        profileChannels
+          .filter((channel) => profile.channels.includes(channel.value))
+          .map((channel) => channel.label)
+          .join(", ") || "Ainda não divulgo"
+      );
+    case 4:
+      return (
+        goalsForProfile(profile.segment).find((item) => item.value === profile.goal)
+          ?.label ?? ""
+      );
+    default:
+      return "";
+  }
+}

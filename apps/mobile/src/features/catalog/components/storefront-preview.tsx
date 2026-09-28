@@ -6,6 +6,7 @@ import { Image, Modal, Platform, Pressable, ScrollView, View } from "react-nativ
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   coverFocalNativeTranslate,
   coverFocalObjectPosition,
@@ -38,6 +39,7 @@ function PreviewStatus({
   final = false,
 }: Readonly<{ status: EditorStatus; final?: boolean }>) {
   const colors = useBrandScreenPalette();
+  const isDesktop = useDesktopLayout();
   let label = "Atualizado";
   let background: string = colors.lime;
   let foreground: string = colors.onLime;
@@ -80,8 +82,19 @@ function PreviewStatus({
         paddingVertical: 5,
       }}
     >
-      <AppIcon name={icon} size={12} color={foreground} importantForAccessibility="no" />
-      <Typography style={{ color: foreground, fontFamily: fonts.semiBold, fontSize: 11 }}>
+      <AppIcon
+        name={icon}
+        size={isDesktop ? 16 : 12}
+        color={foreground}
+        importantForAccessibility="no"
+      />
+      <Typography
+        style={{
+          color: foreground,
+          fontFamily: fonts.semiBold,
+          fontSize: isDesktop ? 14 : 11,
+        }}
+      >
         {label}
       </Typography>
     </View>
@@ -1165,6 +1178,8 @@ function PreviewShell({
   Readonly<{ title: string; status: EditorStatus; final?: boolean }>
 >) {
   const colors = useBrandScreenPalette();
+  // Desktop: título do cartão em caixa normal (16 px), sem rótulo em caixa alta.
+  const isDesktop = useDesktopLayout();
   return (
     <Card
       padding="md"
@@ -1188,11 +1203,12 @@ function PreviewShell({
           style={{
             color: colors.wine,
             fontFamily: fonts.extraBold,
-            fontSize: 11,
-            letterSpacing: 0.8,
+            ...(isDesktop
+              ? { fontSize: 16, lineHeight: 24 }
+              : { fontSize: 11, letterSpacing: 0.8 }),
           }}
         >
-          {title}
+          {isDesktop ? title.charAt(0) + title.slice(1).toLowerCase() : title}
         </Typography>
         <PreviewStatus status={status} final={final} />
       </View>

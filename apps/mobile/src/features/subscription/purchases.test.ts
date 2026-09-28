@@ -5,6 +5,7 @@ import {
   ALL_PRODUCT_IDS,
   isSyncablePaidPurchase,
   productIdFor,
+  purchaseErrorResult,
   resolvePaidProductId,
 } from "./purchases";
 
@@ -102,5 +103,20 @@ describe("paid purchases", () => {
     expect(
       isSyncablePaidPurchase(makePurchase({ productId: "some_other_product", ids: [] })),
     ).toBe(false);
+  });
+});
+
+describe("purchaseErrorResult", () => {
+  it("reconhece o cancelamento pela pessoa nas versões nova e antiga da biblioteca", () => {
+    // Act / Assert
+    expect(purchaseErrorResult({ code: "user-cancelled" })).toBe("cancel");
+    expect(purchaseErrorResult({ code: "E_USER_CANCELLED" })).toBe("cancel");
+  });
+
+  it("trata qualquer outro erro ou erro sem código como falha", () => {
+    // Act / Assert
+    expect(purchaseErrorResult({ code: "network-error" })).toBe("failure");
+    expect(purchaseErrorResult(new Error("x"))).toBe("failure");
+    expect(purchaseErrorResult(undefined)).toBe("failure");
   });
 });

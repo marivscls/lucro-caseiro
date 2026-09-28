@@ -9,6 +9,7 @@ import {
 import { useAuth } from "./use-auth";
 import { useNotificationPrefs } from "./notification-prefs";
 import type { NotificationType } from "./notification-types";
+import { isMockMode } from "../mock/mode";
 
 type BrowserPushState = {
   supported: boolean;
@@ -38,6 +39,14 @@ export const useBrowserNotifications = create<BrowserPushState>((set, get) => ({
   refresh: async () => {
     const { token, userId } = useAuth.getState();
     if (!token || !userId || get().busy) return;
+    if (isMockMode) {
+      set({
+        supported: false,
+        enabled: false,
+        message: "Notificações ficam desativadas no modo demonstração.",
+      });
+      return;
+    }
     const supported = browserPushSupported();
     set({ supported });
     if (!supported) {

@@ -11,6 +11,8 @@ const EXIT_DURATION = 280;
 
 interface BrandIntroProps {
   readonly authReady: boolean;
+  /** Quem já tem sessão não espera a animação completa a cada abertura. */
+  readonly skipMinimum?: boolean;
   readonly onFinish: () => void;
 }
 
@@ -20,7 +22,11 @@ interface BrandIntroProps {
  * https://reactbits.dev/text-animations/split-text
  * Transform + opacity only; no DOM, hover dependency or animation package.
  */
-export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
+export function BrandIntro({
+  authReady,
+  skipMinimum = false,
+  onFinish,
+}: BrandIntroProps) {
   const { theme } = useTheme();
   const brand = useBrand();
   const reducedMotion = useReducedMotion();
@@ -104,7 +110,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   }, [reducedMotion]);
 
   useEffect(() => {
-    if ((!minElapsed && !reducedMotion) || !authReady) return;
+    if ((!minElapsed && !reducedMotion && !skipMinimum) || !authReady) return;
     const duration = reducedMotion ? 0 : EXIT_DURATION;
     const exit = Animated.timing(rootOpacity, {
       toValue: 0,
@@ -123,7 +129,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
       clearTimeout(timer);
       exit.stop();
     };
-  }, [minElapsed, authReady, reducedMotion, rootOpacity]);
+  }, [minElapsed, authReady, reducedMotion, skipMinimum, rootOpacity]);
 
   const revealLine = (start: number) => ({
     opacity: textReveal.interpolate({

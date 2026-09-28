@@ -28,23 +28,22 @@ describe("signup analytics from authenticated accounts", () => {
     await pg.exec(`
       SET TIME ZONE 'UTC';
       CREATE ROLE anon; CREATE ROLE authenticated;
-      CREATE TABLE users(id uuid PRIMARY KEY);
+      CREATE TABLE users(id uuid PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now());
       CREATE SCHEMA auth;
       CREATE TABLE auth.users(id uuid PRIMARY KEY, created_at timestamptz NOT NULL);
-      INSERT INTO users VALUES ('${USER}');
+      INSERT INTO users(id) VALUES ('${USER}');
       INSERT INTO auth.users VALUES ('${USER}', '2026-09-28T11:59:00Z');
     `);
     for (const migration of [
       "034_product_analytics.sql",
       "035_analytics_behavior_events.sql",
+      "20260923100100_analytics_installation_acquisition.sql",
+      "20260923100200_analytics_event_props.sql",
     ]) {
       await pg.exec(
         readFileSync(`../../packages/database/src/migrations/${migration}`, "utf8"),
       );
     }
-    await pg.exec(`ALTER TABLE analytics_installations
-      ADD COLUMN utm_source text, ADD COLUMN utm_medium text,
-      ADD COLUMN utm_campaign text, ADD COLUMN utm_content text;`);
     repo = new AnalyticsRepoPg(drizzle(pg) as unknown as AppDatabase);
   }, 30_000);
 

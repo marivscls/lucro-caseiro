@@ -1,11 +1,20 @@
 import type { CreateSale, Sale, SaleStatus } from "@lucro-caseiro/contracts";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { mergePages, nextPageParam } from "../../shared/utils/pagination";
 import { trackAnalyticsAction } from "../analytics/tracker";
 import {
+  type SalesFilter,
   type UpdateSaleData,
   createSale,
+  fetchAllSales,
   fetchSale,
   fetchSales,
   fetchTodaySummary,
@@ -15,13 +24,44 @@ import {
 
 const SALES_KEY = ["sales"];
 
-export function useSales(opts?: { page?: number; status?: string; clientId?: string }) {
+export function useSales(
+  opts?: SalesFilter & { page?: number },
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...SALES_KEY, opts],
     queryFn: () => fetchSales(token!, opts),
+    enabled: !!token && enabled,
+  });
+}
+
+/** Todas as vendas do filtro (todas as páginas). Use onde a tela soma a lista. */
+export function useAllSales(opts?: SalesFilter) {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...SALES_KEY, "all", opts],
+    queryFn: () => fetchAllSales(token!, opts),
     enabled: !!token,
   });
+}
+
+/** Lista que carrega mais vendas conforme a pessoa rola a tela. */
+export function useSalesFeed(
+  opts?: SalesFilter,
+  { enabled = true }: { enabled?: boolean } = {},
+) {
+  const { token } = useAuth();
+  const query = useInfiniteQuery({
+    queryKey: [...SALES_KEY, "feed", opts],
+    queryFn: ({ pageParam }) => fetchSales(token!, { ...opts, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: nextPageParam,
+    enabled: !!token && enabled,
+  });
+  const pages = query.data?.pages;
+  const data = useMemo(() => (pages ? mergePages(pages) : undefined), [pages]);
+  return { ...query, data };
 }
 
 export function useSale(id: string) {

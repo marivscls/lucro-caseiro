@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   pick: vi.fn(),
-  showAlert: vi.fn(),
   upload: vi.fn(),
 }));
 
@@ -12,40 +11,28 @@ vi.mock("@lucro-caseiro/ui", async () => ({
   ValidationField: (
     await import("../../../../../../packages/ui/src/components/validation-field")
   ).ValidationField,
-  Input: ({
-    label,
-    value,
-    onChangeText,
-    error,
-    multiline,
+  Button: ({
+    title,
+    onPress,
+    accessibilityLabel,
+    disabled,
   }: {
-    label: string;
-    value: string;
-    onChangeText: (value: string) => void;
-    error?: string;
-    multiline?: boolean;
+    title: string;
+    onPress?: () => void;
+    accessibilityLabel?: string;
+    disabled?: boolean;
   }) => (
-    <label>
-      {label}
-      {multiline ? (
-        <textarea
-          aria-label={label}
-          value={value}
-          onChange={(event) => onChangeText(event.target.value)}
-        />
-      ) : (
-        <input
-          aria-label={label}
-          value={value}
-          onChange={(event) => onChangeText(event.target.value)}
-        />
-      )}
-      {error ? <span>{error}</span> : null}
-    </label>
+    <button
+      type="button"
+      aria-label={accessibilityLabel ?? title}
+      disabled={disabled}
+      onClick={onPress}
+    >
+      {title}
+    </button>
   ),
   Typography: ({ children }: { children?: React.ReactNode }) => <span>{children}</span>,
-  fonts: { semiBold: "sans", bold: "sans" },
-  radii: { lg: 16, full: 999 },
+  radii: { sm: 8, lg: 16, full: 999 },
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 20 },
   useTheme: () => ({
     theme: {
@@ -63,6 +50,102 @@ vi.mock("@lucro-caseiro/ui", async () => ({
       },
     },
   }),
+}));
+
+vi.mock("../../../shared/components/form-field", async () => {
+  const { ValidationField } =
+    await import("../../../../../../packages/ui/src/components/validation-field");
+  return {
+    fieldMetrics: { height: 48, radius: 12, paddingX: 14, iconSize: 20 },
+    useFieldPalette: () => ({
+      border: "#ddd",
+      fieldBg: "white",
+      fieldBgFocus: "white",
+      icon: "#666",
+    }),
+    FormField: ({
+      label,
+      hint,
+      validation,
+      children,
+    }: {
+      label?: string;
+      hint?: string;
+      validation?: React.ComponentProps<typeof ValidationField>;
+      children: React.ReactNode;
+    }) => (
+      <div>
+        {label ? <span>{label}</span> : null}
+        {hint ? <span>{hint}</span> : null}
+        {validation ? (
+          <ValidationField {...validation}>{children}</ValidationField>
+        ) : (
+          children
+        )}
+      </div>
+    ),
+    TextField: ({
+      accessibilityLabel,
+      value,
+      onChangeText,
+      multiline,
+    }: {
+      accessibilityLabel: string;
+      value: string;
+      onChangeText: (value: string) => void;
+      multiline?: boolean;
+    }) =>
+      multiline ? (
+        <textarea
+          aria-label={accessibilityLabel}
+          value={value}
+          onChange={(event) => onChangeText(event.target.value)}
+        />
+      ) : (
+        <input
+          aria-label={accessibilityLabel}
+          value={value}
+          onChange={(event) => onChangeText(event.target.value)}
+        />
+      ),
+    ChoiceField: ({
+      value,
+      options,
+      onChange,
+      accessibilityLabel,
+    }: {
+      value: string;
+      options: { value: string; label: string }[];
+      onChange: (value: string) => void;
+      accessibilityLabel: string;
+    }) => (
+      <div role="radiogroup" aria-label={accessibilityLabel}>
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={option.value === value}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    ),
+  };
+});
+vi.mock("../../../shared/components/form-layout", () => ({
+  FormBody: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  FormGrid: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+}));
+vi.mock("../../../shared/components/form-section", () => ({
+  FormSection: ({ title, children }: { title: string; children?: React.ReactNode }) => (
+    <section>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  ),
 }));
 
 vi.mock("react-native", () => ({
@@ -120,7 +203,6 @@ vi.mock("react-native", () => ({
 
 vi.mock("../../../shared/components/app-icon", () => ({ AppIcon: () => null }));
 vi.mock("./supplier-illustration", () => ({ SupplierIllustration: () => null }));
-vi.mock("../../../shared/components/alert-store", () => ({ showAlert: mocks.showAlert }));
 vi.mock("../../../shared/hooks/use-image-picker", () => ({
   useImagePicker: () => ({ pickFromGalleryAsset: mocks.pick }),
 }));
@@ -133,7 +215,6 @@ import { SupplierForm, type SupplierFormHandle } from "./supplier-form";
 describe("SupplierForm", () => {
   beforeEach(() => {
     mocks.pick.mockReset();
-    mocks.showAlert.mockReset();
     mocks.upload.mockReset();
   });
   afterEach(cleanup);
@@ -142,7 +223,7 @@ describe("SupplierForm", () => {
     const onSubmit = vi.fn();
     const ref = React.createRef<SupplierFormHandle>();
     render(<SupplierForm ref={ref} onSubmit={onSubmit} />);
-    fireEvent.change(screen.getByLabelText("Email (opcional)"), {
+    fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "invalido" },
     });
 
@@ -172,11 +253,10 @@ describe("SupplierForm", () => {
 
   it("changes category and immediately refreshes preset suggestions", () => {
     render(<SupplierForm onSubmit={vi.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Categoria: Insumos" }));
-    const config = mocks.showAlert.mock.calls[0]?.[0] as {
-      buttons: { text: string; onPress?: () => void }[];
-    };
-    act(() => config.buttons.find((button) => button.text === "Alimentos")?.onPress?.());
+    expect(
+      screen.getByRole("radio", { name: "Insumos" }).getAttribute("aria-checked"),
+    ).toBe("true");
+    fireEvent.click(screen.getByRole("radio", { name: "Alimentos" }));
 
     expect(screen.getByText("Sugestões para Alimentos")).toBeTruthy();
     expect(
@@ -339,7 +419,9 @@ describe("SupplierForm", () => {
     expect(screen.getByLabelText<HTMLInputElement>("Nome do fornecedor").value).toBe(
       "Fornecedor atual",
     );
-    expect(screen.getByRole("button", { name: "Categoria: Embalagens" })).toBeTruthy();
+    expect(
+      screen.getByRole("radio", { name: "Embalagens" }).getAttribute("aria-checked"),
+    ).toBe("true");
 
     fireEvent.change(screen.getByLabelText("Nome do fornecedor"), {
       target: { value: "Fornecedor atualizado" },

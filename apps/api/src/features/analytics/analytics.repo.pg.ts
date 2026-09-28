@@ -11,10 +11,12 @@ import {
   analyticsInstallationUsers,
   analyticsInstallations,
   analyticsUserActivityDays,
+  users,
 } from "@lucro-caseiro/database/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
+import { NO_USER_LINK, type UserLinkOutcome } from "./analytics.domain";
 import { ANALYTICS_DASHBOARD_QUERY } from "./analytics.report-query";
 import { acquisitionQuery } from "./analytics.acquisition-query";
 import type { IAnalyticsRepo, PersistedEvents, PersistedOpen } from "./analytics.types";
@@ -22,7 +24,7 @@ import type { IAnalyticsRepo, PersistedEvents, PersistedOpen } from "./analytics
 type NullableNumber = number | string | null;
 
 interface DashboardRow {
-  acquisition?: ProductAnalyticsDashboard["acquisition"];
+  account_acquisition?: ProductAnalyticsDashboard["accountAcquisition"];
   generated_at: Date | string;
   installations_total: number;
   installations_7d: number;
@@ -54,6 +56,14 @@ interface DashboardRow {
   funnel: unknown;
   version_adoption: unknown;
   behavior_retention: unknown;
+  acquisition_sources: unknown;
+}
+
+interface RawAcquisitionSource {
+  source: string | null;
+  content: string | null;
+  installations: number;
+  linked_to_user: number;
 }
 
 interface RawScreenUsage {
@@ -106,18 +116,29 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
     private excludedUserIds: readonly string[] = [],
   ) {}
 
-  async recordOpen(userId: string | null, input: PersistedOpen): Promise<void> {
+  async recordOpen(
+    userId: string | null,
+    input: PersistedOpen,
+  ): Promise<UserLinkOutcome> {
     const attribution = {
-      utmSource: input.attribution?.source ?? null,
-      utmMedium: input.attribution?.medium ?? null,
-      utmCampaign: input.attribution?.campaign ?? null,
-      utmContent: input.attribution?.content ?? null,
+      utmSource: input.attribution
+        ? (input.attribution.source ?? null)
+        : (input.acquisition?.utmSource ?? null),
+      utmMedium: input.attribution
+        ? (input.attribution.medium ?? null)
+        : (input.acquisition?.utmMedium ?? null),
+      utmCampaign: input.attribution
+        ? (input.attribution.campaign ?? null)
+        : (input.acquisition?.utmCampaign ?? null),
+      utmContent: input.attribution
+        ? (input.attribution.content ?? null)
+        : (input.acquisition?.utmContent ?? null),
     };
     const hasNoAttribution = sql`${analyticsInstallations.utmSource} IS NULL
       AND ${analyticsInstallations.utmMedium} IS NULL
       AND ${analyticsInstallations.utmCampaign} IS NULL
       AND ${analyticsInstallations.utmContent} IS NULL`;
-    await this.db.transaction(async (tx) => {
+    return this.db.transaction(async (tx) => {
       await tx
         .insert(analyticsInstallations)
         .values({
@@ -126,6 +147,7 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
           appVersion: input.appVersion,
           appBuild: input.appBuild ?? null,
           ...attribution,
+          referrer: input.acquisition?.referrer ?? null,
           firstOpenedAt: input.openedAt,
           lastOpenedAt: input.openedAt,
           updatedAt: input.openedAt,
@@ -162,35 +184,38 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
           },
         });
 
-      if (userId) {
-        await tx
-          .insert(analyticsInstallationUsers)
-          .values({
-            installationId: input.installationId,
-            userId,
-            firstIdentifiedAt: input.openedAt,
-            lastIdentifiedAt: input.openedAt,
-          })
-          .onConflictDoUpdate({
-            target: [
-              analyticsInstallationUsers.installationId,
-              analyticsInstallationUsers.userId,
-            ],
-            set: { lastIdentifiedAt: input.openedAt },
-          });
+      if (!userId) return NO_USER_LINK;
 
-        await tx
-          .insert(analyticsUserActivityDays)
-          .values({ userId, activityDate: input.activityDate })
-          .onConflictDoNothing();
+      // xmax = 0 só na linha recém-inserida; a PK serializa aberturas concorrentes.
+      const [link] = await tx
+        .insert(analyticsInstallationUsers)
+        .values({
+          installationId: input.installationId,
+          userId,
+          firstIdentifiedAt: input.openedAt,
+          lastIdentifiedAt: input.openedAt,
+        })
+        .onConflictDoUpdate({
+          target: [
+            analyticsInstallationUsers.installationId,
+            analyticsInstallationUsers.userId,
+          ],
+          set: { lastIdentifiedAt: input.openedAt },
+        })
+        .returning({ inserted: sql<boolean>`(xmax = 0)` });
 
-        // A origem do cadastro é a conta autenticada, inclusive no OAuth Google.
-        // O bloqueio por conta evita duplicação entre dispositivos/requisições.
-        // Ao reconhecer uma conta antiga, preservamos sua data real de criação.
-        await tx.execute(sql`
+      await tx
+        .insert(analyticsUserActivityDays)
+        .values({ userId, activityDate: input.activityDate })
+        .onConflictDoNothing();
+
+      // A origem do cadastro é a conta autenticada, inclusive no OAuth Google.
+      // O bloqueio por conta evita duplicação entre dispositivos/requisições.
+      // Ao reconhecer uma conta antiga, preservamos sua data real de criação.
+      await tx.execute(sql`
           SELECT pg_advisory_xact_lock(hashtextextended(${"analytics-signup:" + userId}, 0))
         `);
-        await tx.execute(sql`
+      await tx.execute(sql`
           INSERT INTO analytics_events
             (installation_id, user_id, event_type, event_name, app_version, app_build, occurred_at)
           SELECT ${input.installationId}::uuid, account.id, 'action', 'signup_completed',
@@ -204,38 +229,77 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
                 AND event.event_name = 'signup_completed'
             )
         `);
-      }
+
+      if (!link?.inserted) return NO_USER_LINK;
+
+      const [otherLink] = await tx
+        .select({ installationId: analyticsInstallationUsers.installationId })
+        .from(analyticsInstallationUsers)
+        .where(
+          and(
+            eq(analyticsInstallationUsers.userId, userId),
+            ne(analyticsInstallationUsers.installationId, input.installationId),
+          ),
+        )
+        .limit(1);
+      const [user] = await tx
+        .select({ createdAt: users.createdAt })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      return { firstUserLink: !otherLink, userCreatedAt: user?.createdAt ?? null };
     });
   }
 
-  async recordEvents(userId: string | null, input: PersistedEvents): Promise<void> {
-    await this.recordOpen(userId, {
+  async recordSignupOnce(userId: string, input: PersistedOpen): Promise<void> {
+    await this.db.execute(sql`
+      INSERT INTO analytics_events
+        (installation_id, user_id, event_type, event_name, app_version, app_build, occurred_at)
+      SELECT ${input.installationId}::uuid, ${userId}::uuid, 'action', 'signup_completed',
+        ${input.appVersion}::text, ${input.appBuild ?? null}::text,
+        ${input.openedAt.toISOString()}::timestamptz
+      WHERE NOT EXISTS (
+        SELECT 1 FROM analytics_events
+        WHERE user_id = ${userId}::uuid
+          AND event_type = 'action'
+          AND event_name = 'signup_completed'
+      )
+    `);
+  }
+
+  async recordEvents(
+    userId: string | null,
+    input: PersistedEvents,
+  ): Promise<UserLinkOutcome> {
+    const link = await this.recordOpen(userId, {
       installationId: input.installationId,
       platform: input.platform,
       appVersion: input.appVersion,
       appBuild: input.appBuild,
       attribution: input.attribution,
+      acquisition: input.acquisition,
       openedAt: input.occurredAt,
       activityDate: input.activityDate,
     });
 
-    // Cadastros são registrados pelo servidor ao identificar a conta. Aceitar a
-    // alegação do cliente duplicava eventos e contava pedidos sem confirmação.
     const events = input.events.filter((event) => event.name !== "signup_completed");
-    if (events.length === 0) return;
-
-    await this.db.insert(analyticsEvents).values(
-      events.map((event) => ({
-        installationId: input.installationId,
-        userId,
-        eventType: event.type,
-        eventName: event.name,
-        durationMs: event.type === "screen_view" ? event.durationMs : null,
-        appVersion: input.appVersion,
-        appBuild: input.appBuild ?? null,
-        occurredAt: input.occurredAt,
-      })),
-    );
+    if (events.length > 0) {
+      await this.db.insert(analyticsEvents).values(
+        events.map((event) => ({
+          installationId: input.installationId,
+          userId,
+          eventType: event.type,
+          eventName: event.name,
+          durationMs: event.type === "screen_view" ? event.durationMs : null,
+          props: event.type === "action" ? (event.props ?? null) : null,
+          appVersion: input.appVersion,
+          appBuild: input.appBuild ?? null,
+          occurredAt: input.occurredAt,
+        })),
+      );
+    }
+    return link;
   }
 
   async recordUserAction(
@@ -275,7 +339,7 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
 
   async getDashboard(): Promise<ProductAnalyticsDashboard> {
     const rows = (await this.db.execute(
-      sql`SELECT dashboard.*, acquisition.report AS acquisition
+      sql`SELECT dashboard.*, acquisition.report AS account_acquisition
         FROM (${sql.raw(ANALYTICS_DASHBOARD_QUERY)}) dashboard
         CROSS JOIN (${acquisitionQuery(this.excludedUserIds)}) acquisition`,
     )) as unknown as DashboardRow[];
@@ -284,7 +348,7 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
     if (!row) throw new Error("Relatório de métricas não retornou dados");
 
     return {
-      acquisition: row.acquisition,
+      accountAcquisition: row.account_acquisition,
       generatedAt: new Date(String(row.generated_at)).toISOString(),
       installations: {
         total: Number(row.installations_total),
@@ -296,6 +360,14 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
         total: Number(row.signups_total),
         last30Days: Number(row.signups_30d),
       },
+      acquisition: parsedArray<RawAcquisitionSource>(row.acquisition_sources).map(
+        (item) => ({
+          source: item.source,
+          content: item.content,
+          installations: Number(item.installations),
+          linkedToUser: Number(item.linked_to_user),
+        }),
+      ),
       activation: {
         activatedUsers: Number(row.activated_users_total),
         eligibleWithin7Days: Number(row.eligible_activation_7d),

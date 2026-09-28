@@ -1,4 +1,5 @@
 import type {
+  AnalyticsAcquisition,
   ProductAnalyticsDashboard,
   InstallAttribution,
   ProductAnalyticsEvent,
@@ -12,6 +13,8 @@ export interface AppOpenPayload {
   appVersion: string;
   appBuild?: string;
   attribution?: InstallAttribution;
+  /** Só nas aberturas; a API grava apenas no primeiro registro da instalação. */
+  acquisition?: AnalyticsAcquisition;
 }
 
 export async function recordAppOpen(

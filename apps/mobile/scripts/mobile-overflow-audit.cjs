@@ -361,7 +361,7 @@ fs.mkdirSync(out, { recursive: true });
 
       const routes = (
         process.env.AUDIT_ROUTES ||
-        "tabs,tabs/finance,tabs/clients,tabs/agenda,tabs/more,tabs/materials,tabs/new-sale,tabs/sales,products,recurring-expenses,packaging,quotes,materials,purchases,recipes,labels,catalog,pricing,pricing-complete,fiado,suppliers,services,settings,support,plans,insights,lucro-apps,buy-materials,retail,operations,admin-metrics,onboarding,reset-password,(auth)/login,(auth)/register"
+        "tabs,tabs/finance,tabs/clients,tabs/agenda,tabs/more,tabs/materials,tabs/new-sale,tabs/sales,products,recurring-expenses,packaging,quotes,materials,purchases,recipes,labels,catalog,pricing,pricing-complete,fiado,suppliers,services,settings,support,plans,insights,buy-materials,retail,operations,admin-metrics,onboarding,reset-password,(auth)/login,(auth)/register"
       ).split(",");
       for (const route of routes) {
         errors.length = 0;

@@ -9,6 +9,7 @@ describe("AnalyticsRepoPg.getDashboard", () => {
       Promise.resolve([
         {
           generated_at: new Date("2026-07-14T12:00:00.000Z"),
+          account_acquisition: { accounts: 8, eligible7Days: 6 },
           installations_total: 10,
           installations_7d: 4,
           installations_30d: 10,
@@ -54,6 +55,15 @@ describe("AnalyticsRepoPg.getDashboard", () => {
           version_adoption: [
             { app_version: "1.2.0", installations: 8, percent: "80.00" },
           ],
+          acquisition_sources: [
+            {
+              source: "site_publico",
+              content: "pwa_header",
+              installations: "3",
+              linked_to_user: 2,
+            },
+            { source: null, content: null, installations: 5, linked_to_user: 1 },
+          ],
           behavior_retention: [
             {
               behavior: "pricing_completed",
@@ -69,6 +79,7 @@ describe("AnalyticsRepoPg.getDashboard", () => {
 
     await expect(repo.getDashboard()).resolves.toMatchObject({
       generatedAt: "2026-07-14T12:00:00.000Z",
+      accountAcquisition: { accounts: 8, eligible7Days: 6 },
       installations: { total: 10, last7Days: 4, linkedToUser: 6 },
       activation: { rateWithin7DaysPercent: 66.67 },
       retention: {
@@ -85,6 +96,15 @@ describe("AnalyticsRepoPg.getDashboard", () => {
         },
       ],
       featureUsage: [{ action: "pricing_completed", events: 7, people: 4 }],
+      acquisition: [
+        {
+          source: "site_publico",
+          content: "pwa_header",
+          installations: 3,
+          linkedToUser: 2,
+        },
+        { source: null, content: null, installations: 5, linkedToUser: 1 },
+      ],
       funnel: [{ stage: "pricing", installations: 4, previousStagePercent: 80 }],
       versionAdoption: [{ appVersion: "1.2.0", installations: 8, percent: 80 }],
       behaviorRetention: [

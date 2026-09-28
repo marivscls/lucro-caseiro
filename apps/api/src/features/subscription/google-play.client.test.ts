@@ -181,4 +181,64 @@ describe("GooglePlayClient", () => {
       }),
     ).rejects.toThrow("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON não configurado");
   });
+  describe("getSubscription", () => {
+    it("returns the inactive snapshot with owner and expiry for an expired token", async () => {
+      // Arrange
+      const expiry = new Date(Date.now() - 86400000).toISOString();
+      request.mockResolvedValue({
+        data: {
+          subscriptionState: "SUBSCRIPTION_STATE_EXPIRED",
+          externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
+          lineItems: [
+            { productId: "lucrocaseiro_essential_monthly", expiryTime: expiry },
+          ],
+        },
+      });
+      const client = new GooglePlayClient(
+        "br.com.orionseven.lucrocaseiro",
+        serviceAccount,
+      );
+
+      // Act
+      const result = await client.getSubscription("token-1");
+
+      // Assert
+      expect(result).toEqual({
+        plan: "essential",
+        active: false,
+        expiresAt: new Date(expiry),
+        purchaseOwnerId: "user-1",
+      });
+    });
+
+    it("returns null when Google says the token does not exist", async () => {
+      // Arrange
+      request.mockRejectedValue({ response: { status: 410 } });
+      const client = new GooglePlayClient(
+        "br.com.orionseven.lucrocaseiro",
+        serviceAccount,
+      );
+
+      // Act
+      const result = await client.getSubscription("token-1");
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it("throws a transient error when Google is unavailable", async () => {
+      // Arrange
+      request.mockRejectedValue({ response: { status: 503 } });
+      const client = new GooglePlayClient(
+        "br.com.orionseven.lucrocaseiro",
+        serviceAccount,
+      );
+
+      // Act
+      const act = client.getSubscription("token-1");
+
+      // Assert
+      await expect(act).rejects.toThrow("Não foi possível verificar assinatura");
+    });
+  });
 });

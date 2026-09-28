@@ -1,4 +1,6 @@
 import { Button, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { FormActions } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
@@ -139,14 +141,12 @@ export function SupplierDetail({
         </View>
       </View>
 
-      {/* Actions */}
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
-        {onEditPress ? (
-          <View style={{ flex: 1 }}>
+      {onEditPress || (supplier.phone && supplier.hasWhatsApp) ? (
+        <FormActions stack style={{ flexGrow: 0, flexBasis: "auto" }}>
+          {onEditPress ? (
             <Button
               title="Editar dados"
               variant="outline"
-              size="md"
               icon={
                 <AppIcon
                   name="create-outline"
@@ -155,29 +155,28 @@ export function SupplierDetail({
                 />
               }
               onPress={onEditPress}
-              style={{ borderRadius: radii.md }}
             />
-          </View>
-        ) : null}
-        {supplier.phone && supplier.hasWhatsApp && (
-          <View style={{ flex: 1 }}>
+          ) : null}
+          {supplier.phone && supplier.hasWhatsApp ? (
             <Button
               title="WhatsApp"
               variant="success"
-              size="md"
+              icon={
+                <AppIcon
+                  name="logo-whatsapp"
+                  size={18}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
               onPress={() => {
                 void openWhatsApp(supplier.phone!);
               }}
-              style={{ borderRadius: radii.md }}
             />
-          </View>
-        )}
-      </View>
+          ) : null}
+        </FormActions>
+      ) : null}
 
-      <View style={{ gap: spacing.sm }}>
-        <Typography variant="bodyBold" color={theme.colors.text}>
-          Contato
-        </Typography>
+      <FormSection collapsible={false} title="Contato">
         <View
           style={{
             borderWidth: 1,
@@ -208,40 +207,20 @@ export function SupplierDetail({
             </Typography>
           ) : null}
         </View>
-      </View>
+      </FormSection>
       {supplier.purchaseDescription ? (
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="bodyBold" color={theme.colors.text}>
-            O que você compra aqui
-          </Typography>
+        <FormSection collapsible={false} title="O que você compra aqui">
           <Typography variant="body" color={theme.colors.text} selectable>
             {supplier.purchaseDescription}
           </Typography>
-        </View>
+        </FormSection>
       ) : null}
       {supplier.notes ? (
-        <View
-          style={{
-            gap: spacing.sm,
-            padding: spacing.lg,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.surface,
-          }}
-        >
-          <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}>
-            <AppIcon
-              name="document-text-outline"
-              size={16}
-              color={theme.colors.textSecondary}
-            />
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Observações
-            </Typography>
-          </View>
+        <FormSection collapsible={false} title="Observações">
           <Typography variant="body" color={theme.colors.text} selectable>
             {supplier.notes}
           </Typography>
-        </View>
+        </FormSection>
       ) : null}
     </View>
   );

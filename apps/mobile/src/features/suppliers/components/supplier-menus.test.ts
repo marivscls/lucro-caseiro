@@ -184,10 +184,10 @@ describe("Supplier menus", () => {
     const dialog = screen.getByRole("dialog", { name: "Ordenar fornecedores" });
     expect(
       within(dialog)
-        .getByRole("button", { name: "Mais recentes" })
+        .getByRole("radio", { name: "Mais recentes" })
         .getAttribute("aria-selected"),
     ).toBe("true");
-    fireEvent.click(within(dialog).getByRole("button", { name: "A–Z" }));
+    fireEvent.click(within(dialog).getByRole("radio", { name: "A–Z" }));
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(
       screen

@@ -81,3 +81,22 @@ export function addDaysToBR(brDate: string, days: number): string | undefined {
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   return `${dd}/${mm}/${date.getFullYear()}`;
 }
+
+/**
+ * Data de hoje (ou da data informada) no fuso do aparelho, em ISO (yyyy-mm-dd).
+ * Não use toISOString().slice(0, 10): no Brasil, depois das 21h ele já
+ * devolve o dia seguinte (UTC).
+ */
+export function localIsoDate(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** Dia local (yyyy-mm-dd) de um timestamp da API. Datas puras voltam como estão. */
+export function localDayOf(value: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value.slice(0, 10) : localIsoDate(parsed);
+}

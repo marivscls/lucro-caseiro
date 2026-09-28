@@ -26,6 +26,7 @@ import {
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopToolbarButton } from "../shared/layout/desktop-page";
 
 type ModalState =
   | { type: "none" }
@@ -57,58 +58,91 @@ function RecipesContent() {
     ...desktopStretch(isDesktop, desktopWidths.data),
   };
 
+  const recipesHeader = (
+    <ScreenHeader
+      guidance={{
+        area: "recipes",
+        onStart: () => setModal({ type: "create" }),
+        hasRecords: (guidanceQuery.data?.length ?? 0) > 0,
+        loading: guidanceQuery.isLoading || guidanceQuery.isError,
+        suspended: modal.type !== "none",
+      }}
+      title={copy.formulaNounPlural.replace(/^./, (letter) => letter.toUpperCase())}
+      subtitle={isDesktop ? "Acompanhe custos e rendimentos em um só lugar." : undefined}
+      hideBack={isDesktop}
+      style={{ paddingHorizontal: 0 }}
+      titleStyle={{ color: pal.wine }}
+      backButtonStyle={{ marginLeft: -spacing.sm }}
+      right={
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: isDesktop ? spacing.md : spacing.xs,
+          }}
+        >
+          {isDesktop ? (
+            <DesktopToolbarButton
+              icon="bar-chart-outline"
+              label="Estatísticas"
+              onPress={() => setModal({ type: "statistics" })}
+            />
+          ) : (
+            <Pressable
+              onPress={() => setModal({ type: "statistics" })}
+              accessibilityRole="button"
+              accessibilityLabel="Estatísticas de receitas"
+              hitSlop={10}
+              style={{
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AppIcon name="bar-chart-outline" size={iconSizes.md} color={pal.wine} />
+            </Pressable>
+          )}
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel={`Criar ${copy.formulaNoun}`}
+            onPress={() => setModal({ type: "create" })}
+            style={{ backgroundColor: pal.rose, ...theme.shadows.sm }}
+          />
+        </View>
+      }
+    />
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={{ flex: 1, width: "100%", ...pageFrame }}>
-        <ScreenHeader
-          guidance={{
-            area: "recipes",
-            onStart: () => setModal({ type: "create" }),
-            hasRecords: (guidanceQuery.data?.length ?? 0) > 0,
-            loading: guidanceQuery.isLoading || guidanceQuery.isError,
-            suspended: modal.type !== "none",
-          }}
-          title={copy.formulaNounPlural.replace(/^./, (letter) => letter.toUpperCase())}
-          hideBack={isDesktop}
-          style={{ paddingHorizontal: 0 }}
-          titleStyle={{ color: pal.wine }}
-          backButtonStyle={{ marginLeft: -spacing.sm }}
-          right={
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-              <Pressable
-                onPress={() => setModal({ type: "statistics" })}
-                accessibilityRole="button"
-                accessibilityLabel="Estatísticas de receitas"
-                hitSlop={10}
-                style={{
-                  width: 44,
-                  height: 44,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon name="bar-chart-outline" size={iconSizes.md} color={pal.wine} />
-              </Pressable>
-              <FAB
-                icon="add"
-                header
-                accessibilityLabel={`Criar ${copy.formulaNoun}`}
-                onPress={() => setModal({ type: "create" })}
-                style={{ backgroundColor: pal.rose, ...theme.shadows.sm }}
-              />
-            </View>
-          }
-        />
+        {isDesktop ? null : recipesHeader}
 
         <View style={{ flex: 1 }}>
-          <LimitBanner
-            resource="recipes"
-            onUpgrade={() => showPaywall("recipes")}
-            containerStyle={{ marginTop: spacing.sm }}
-          />
+          {isDesktop ? null : (
+            <LimitBanner
+              resource="recipes"
+              onUpgrade={() => showPaywall("recipes")}
+              containerStyle={{ marginTop: spacing.sm }}
+            />
+          )}
           <RecipeList
+            pageHeader={
+              isDesktop ? (
+                <>
+                  {recipesHeader}
+                  <LimitBanner
+                    resource="recipes"
+                    onUpgrade={() => showPaywall("recipes")}
+                    containerStyle={{ marginBottom: spacing["2xl"] }}
+                  />
+                </>
+              ) : undefined
+            }
             onRecipePress={(id) => setModal({ type: "detail", recipeId: id })}
             onAddPress={() => setModal({ type: "create" })}
             onEditPress={(id) => setModal({ type: "edit", recipeId: id })}

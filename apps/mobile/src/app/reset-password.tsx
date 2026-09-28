@@ -20,6 +20,19 @@ import {
 import { desktopContained } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
+function passwordProblem(
+  password: string,
+  result: { valid: boolean; errors: string[] },
+): string | undefined {
+  if (!password.trim()) return "Informe a nova senha.";
+  return result.valid ? undefined : result.errors.join(". ");
+}
+
+function confirmProblem(confirm: string, mismatch: boolean): string | undefined {
+  if (!confirm.trim()) return "Confirme a nova senha.";
+  return mismatch ? "As senhas não conferem." : undefined;
+}
+
 export default function ResetPasswordScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -35,23 +48,16 @@ export default function ResetPasswordScreen() {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const passwordResult = validatePassword(password);
+  const mismatch = password !== confirm;
+  // As regras da senha aparecem no próprio campo, não em alerta.
   const formValidation = useFormValidation({
-    password: !password.trim() && "Informe a nova senha.",
-    confirm: !confirm.trim() && "Confirme a nova senha.",
+    password: passwordProblem(password, passwordResult),
+    confirm: confirmProblem(confirm, mismatch),
   });
 
   async function handleSave() {
     if (!formValidation.validate()) return;
-    const passwordResult = validatePassword(password);
-    if (!passwordResult.valid) {
-      alertValidation(passwordResult.errors.join(". "));
-      return;
-    }
-    // eslint-disable-next-line security/detect-possible-timing-attacks -- comparação de dois campos digitados pelo usuário (não é segredo)
-    if (password !== confirm) {
-      alertValidation("As senhas não conferem.");
-      return;
-    }
 
     setLoading(true);
     try {
@@ -126,6 +132,7 @@ export default function ResetPasswordScreen() {
           <ValidationField {...formValidation.field("password")}>
             <Input
               label="Nova senha"
+              hint={CREDENTIAL_RULES}
               value={password}
               onChangeText={setPassword}
               placeholder="Pelo menos 8 caracteres"
@@ -133,9 +140,6 @@ export default function ResetPasswordScreen() {
               autoCapitalize="none"
             />
           </ValidationField>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            {CREDENTIAL_RULES}
-          </Typography>
           <ValidationField {...formValidation.field("confirm")}>
             <Input
               label="Confirmar nova senha"

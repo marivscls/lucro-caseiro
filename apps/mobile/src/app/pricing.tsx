@@ -13,6 +13,7 @@ import { UnifiedPricingCalculator } from "../features/pricing/components/unified
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopToolbarButton } from "../shared/layout/desktop-page";
 
 export default function SimplePricingScreen() {
   const { theme } = useTheme();
@@ -64,12 +65,14 @@ export default function SimplePricingScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <ScreenHeader
-        title="Precificação"
-        hideBack={isDesktop}
-        onBack={leavePricing}
-        right={<PricingHistoryButton onPress={() => setShowHistory(true)} />}
-      />
+      {isDesktop ? null : (
+        <ScreenHeader
+          title="Precificação"
+          hideBack={isDesktop}
+          onBack={leavePricing}
+          right={<PricingHistoryButton onPress={() => setShowHistory(true)} />}
+        />
+      )}
 
       <UnifiedPricingCalculator
         step={step}
@@ -79,6 +82,22 @@ export default function SimplePricingScreen() {
         key={JSON.stringify([recipeCost, name, category])}
         initialIngredientCost={initialIngredientCost}
         initialProduct={{ name, category }}
+        header={
+          isDesktop ? (
+            <ScreenHeader
+              title="Precificação"
+              subtitle="Some os custos, defina seu ganho e descubra quanto cobrar."
+              hideBack
+              right={
+                <DesktopToolbarButton
+                  icon="time-outline"
+                  label="Histórico"
+                  onPress={() => setShowHistory(true)}
+                />
+              }
+            />
+          ) : undefined
+        }
         onCreateProduct={(salePrice, costPrice, product) => {
           router.push({
             pathname: "/products",

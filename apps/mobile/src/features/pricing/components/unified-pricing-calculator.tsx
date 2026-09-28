@@ -1,6 +1,6 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import { Image, View } from "react-native";
 import { hasActiveFeature, type Pricing } from "@lucro-caseiro/contracts";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
@@ -12,6 +12,7 @@ import { useCalculatePricing } from "../hooks";
 import { usePricingSources } from "../use-pricing-sources";
 import {
   draftCalculation,
+  decimalValue,
   firstInvalidPricingStep,
   pricingStepError,
   type PricingStep,
@@ -24,20 +25,17 @@ import { currencyInput } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
-import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import {
-  PricingChoice,
-  PricingField,
-  PricingPicker,
-  PricingSection,
-} from "./pricing-fields";
+import { PricingField, PricingPicker, PricingSection } from "./pricing-fields";
 import { PricingFees, PricingLabor, PricingOverhead } from "./pricing-cost-details";
 import { PricingSummary } from "./pricing-summary";
 import { PricingStepLayout } from "./pricing-step-layout";
 import { displayProductName } from "../../products/display";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
-import { AppIcon } from "../../../shared/components/app-icon";
+import { ChoiceField, FormField } from "../../../shared/components/form-field";
+import { FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
+import { PricingCostPreview, PricingResultPreview } from "./pricing-desktop";
 
 export function UnifiedPricingCalculator({
   step,
@@ -48,7 +46,10 @@ export function UnifiedPricingCalculator({
   initialProduct,
   onSave,
   onCreateProduct,
+  header,
 }: Readonly<{
+  /** Desktop: cabeçalho da página, dentro da rolagem. */
+  header?: ReactNode;
   step: PricingStep;
   onStepChange: (step: PricingStep) => void;
   onBusyChange: (busy: boolean) => void;
@@ -65,7 +66,6 @@ export function UnifiedPricingCalculator({
   const { theme } = useTheme();
   const desktop = useDesktopLayout();
   const pricingIllustration = useBrandIllustration("pricingCostsHero");
-  const split = desktopSplitLayout(desktop);
   const sources = usePricingSources();
   const { data: profile } = useProfile();
   const professional =
@@ -312,9 +312,56 @@ export function UnifiedPricingCalculator({
     </Card>
   );
 
+  const production = decimalValue(draft.production);
+  const fixedShare =
+    draft.allocation === "unit" && production > 0
+      ? moneyValue(draft.fixed) / production
+      : 0;
+  let desktopAside: ReactNode = null;
+  if (desktop && step === 3)
+    desktopAside = (
+      <PricingResultPreview
+        input={calculation.input}
+        alternative={draft.alternative}
+        productName={product ? displayProductName(product.name) : undefined}
+        message={calculation.error}
+      />
+    );
+  else if (desktop)
+    desktopAside = (
+      <PricingCostPreview
+        productName={product ? displayProductName(product.name) : undefined}
+        rows={[
+          { label: "Ingredientes ou material", value: moneyValue(draft.ingredient) },
+          { label: "Embalagem", value: moneyValue(draft.packaging) },
+          { label: "Seu trabalho", value: moneyValue(draft.labor) },
+          { label: "Despesas por unidade", value: fixedShare },
+        ]}
+      />
+    );
+
+  const costChangedButton =
+    importedCost == null ? null : (
+      <Button
+        title={`Custo mudou. Usar ${formatCurrency(importedCost)}`}
+        variant="secondary"
+        style={desktop ? { alignSelf: "flex-start" } : undefined}
+        onPress={() => update({ ingredient: currencyInput(importedCost) })}
+      />
+    );
+
   const currentStepError = pricingStepError(step, draft, packaging, sourceError);
+  // O aviso solto só aparece para regras sem campo próprio (origem, percentuais);
+  // quando um campo da etapa já mostra o erro, ele não se repete aqui.
+  const fieldShowsError =
+    !sourceError &&
+    [
+      formValidation.field("ingredient"),
+      formValidation.field("overhead"),
+      formValidation.field("profit"),
+    ].some((binding) => !!binding.error);
   const notice =
-    attempted && currentStepError ? (
+    attempted && currentStepError && !fieldShowsError ? (
       <View accessibilityRole="alert" style={{ gap: spacing.xs }}>
         <Typography variant="body" color={theme.colors.alert}>
           {currentStepError}
@@ -327,6 +374,8 @@ export function UnifiedPricingCalculator({
       step={step}
       onStepChange={changeStep}
       saving={blocked}
+      header={header}
+      aside={desktopAside}
       onNext={() => {
         if (step === 3) {
           void saveSuggested();
@@ -339,144 +388,159 @@ export function UnifiedPricingCalculator({
     >
       {[
         <React.Fragment key="costs">
-          <View style={{ gap: spacing.sm }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
-                Produto e custos
-              </Typography>
+          {desktop ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+              <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                <Typography variant="desktopSection" accessibilityRole="header">
+                  Produto e custos
+                </Typography>
+                <Typography variant="desktopBody">
+                  Escolha um produto ou informe o custo de uma unidade e sua embalagem.
+                </Typography>
+              </View>
               <Image
                 source={pricingIllustration}
                 resizeMode="contain"
                 accessible={false}
-                style={{ width: desktop ? 104 : 88, height: desktop ? 96 : 80 }}
+                style={{ width: 80, height: 72 }}
               />
             </View>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              Escolha um produto ou informe o custo de uma unidade e sua embalagem.
-            </Typography>
-          </View>
-          {step === 1 ? notice : null}
-          <Card style={{ gap: spacing.xl }}>
-            <View style={{ gap: spacing.xs }}>
-              <Typography variant="bodyBold">Produto</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Selecione um cadastro para preencher os custos automaticamente.
-              </Typography>
-            </View>
-            <PricingPicker
-              title={product ? "Escolher outro produto" : "Produtos cadastrados"}
-              action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
-              selectedLabel={product ? displayProductName(product.name) : undefined}
-              items={productPickerItems}
-              onSelect={(id) => selectProduct(id)}
-            />
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon
-                name={product ? "checkmark-circle" : "create-outline"}
-                size={18}
-                color={theme.colors.textSecondary}
-              />
-              <Typography
-                variant="caption"
-                color={theme.colors.textSecondary}
-                style={{ flex: 1 }}
+          ) : (
+            <View style={{ gap: spacing.sm }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
               >
-                {product
-                  ? productSelectionDetail
-                  : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."}
+                <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
+                  Produto e custos
+                </Typography>
+                <Image
+                  source={pricingIllustration}
+                  resizeMode="contain"
+                  accessible={false}
+                  style={{ width: 88, height: 80 }}
+                />
+              </View>
+              <Typography variant="body" color={theme.colors.textSecondary}>
+                Escolha um produto ou informe o custo de uma unidade e sua embalagem.
               </Typography>
             </View>
-            {product ? (
-              <Button
-                title="Calcular sem produto"
-                variant="ghost"
-                size="sm"
-                compact
-                style={{ alignSelf: "flex-start" }}
-                onPress={reset}
-              />
-            ) : null}
-            <View style={{ gap: spacing.xs }}>
-              <Typography variant="bodyBold">Custos de uma unidade</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Revise os valores que entram no preço de cada unidade vendida.
-              </Typography>
-            </View>
-            <ValidationField {...formValidation.field("ingredient")}>
-              <PricingField
-                label="Ingredientes ou material"
-                value={draft.ingredient}
-                onChange={(ingredient) =>
-                  update({ ingredient, source: "manual", recipeId: undefined })
+          )}
+          {step === 1 ? notice : null}
+          <FormBody>
+            <FormSection
+              collapsible={false}
+              title="Produto"
+              subtitle="Selecione um cadastro para preencher os custos automaticamente."
+            >
+              <FormField
+                label="Produto cadastrado"
+                optional
+                hint={
+                  product
+                    ? productSelectionDetail
+                    : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."
                 }
-                hint={ingredientHint}
-              />
-            </ValidationField>
-            {costChanged && importedCost != null ? (
-              <Button
-                title={`Custo mudou. Usar ${formatCurrency(importedCost)}`}
-                variant="secondary"
-                onPress={() => update({ ingredient: currencyInput(importedCost) })}
-              />
-            ) : null}
-            <PricingField
-              label="Embalagem"
-              value={draft.packaging}
-              onChange={(value) => update({ packaging: value, packagingIds: [] })}
-              hint={
-                draft.packagingIds.length
-                  ? "Uma unidade de cada embalagem selecionada."
-                  : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
-              }
-            />
-            {packagingChanged ? (
-              <Button
-                title={`Atualizar embalagens: ${formatCurrency(currentPackaging)}`}
-                variant="secondary"
-                onPress={() => update({ packaging: currencyInput(currentPackaging) })}
-              />
-            ) : null}
-            <PricingPicker
-              title="Embalagens cadastradas"
-              action="Usar embalagem cadastrada"
-              items={packaging
-                .filter((item) => !draft.packagingIds.includes(item.id))
-                .map((item) => ({
-                  id: item.id,
-                  label: displayProductName(item.name),
-                  detail: formatCurrency(item.unitCost),
-                }))}
-              onSelect={(id) => {
-                const ids = [...draft.packagingIds, id];
-                update({
-                  packagingIds: ids,
-                  packaging: currencyInput(
-                    packaging
-                      .filter((item) => ids.includes(item.id))
-                      .reduce((sum, item) => sum + item.unitCost, 0),
-                  ),
-                });
-              }}
-            />
-            {draft.packagingIds.map((id) => (
-              <Button
-                key={id}
-                variant="text"
-                title={`Remover ${displayProductName(packaging.find((item) => item.id === id)?.name ?? "embalagem excluída")}`}
-                onPress={() => {
-                  const ids = draft.packagingIds.filter((item) => item !== id);
-                  update({
-                    packagingIds: ids,
-                    packaging: currencyInput(
-                      packaging
-                        .filter((item) => ids.includes(item.id))
-                        .reduce((sum, item) => sum + item.unitCost, 0),
-                    ),
-                  });
-                }}
-              />
-            ))}
-          </Card>
+              >
+                <PricingPicker
+                  title={product ? "Escolher outro produto" : "Produtos cadastrados"}
+                  action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
+                  selectedLabel={product ? displayProductName(product.name) : undefined}
+                  items={productPickerItems}
+                  onSelect={(id) => selectProduct(id)}
+                />
+              </FormField>
+              {product ? (
+                <Button
+                  title="Calcular sem produto"
+                  variant="outline"
+                  style={{ alignSelf: "flex-start" }}
+                  onPress={reset}
+                />
+              ) : null}
+            </FormSection>
+            <FormSection
+              collapsible={false}
+              title="Custos de uma unidade"
+              subtitle="Revise os valores que entram no preço de cada unidade vendida."
+            >
+              <FormGrid>
+                <PricingField
+                  label="Ingredientes ou material"
+                  value={draft.ingredient}
+                  onChange={(ingredient) =>
+                    update({ ingredient, source: "manual", recipeId: undefined })
+                  }
+                  hint={ingredientHint}
+                  validation={formValidation.field("ingredient")}
+                />
+                {costChanged && importedCost != null && !desktop
+                  ? costChangedButton
+                  : null}
+                <PricingField
+                  label="Embalagem"
+                  value={draft.packaging}
+                  onChange={(value) => update({ packaging: value, packagingIds: [] })}
+                  hint={
+                    draft.packagingIds.length
+                      ? "Uma unidade de cada embalagem selecionada."
+                      : "Informe o custo de uma unidade. Deixe R$ 0 se não usar embalagem."
+                  }
+                />
+              </FormGrid>
+              {costChanged && importedCost != null && desktop ? costChangedButton : null}
+              {packagingChanged ? (
+                <Button
+                  title={`Atualizar embalagens: ${formatCurrency(currentPackaging)}`}
+                  variant="secondary"
+                  style={desktop ? { alignSelf: "flex-start" } : undefined}
+                  onPress={() => update({ packaging: currencyInput(currentPackaging) })}
+                />
+              ) : null}
+              <FormField label="Embalagens cadastradas" optional>
+                <PricingPicker
+                  title="Embalagens cadastradas"
+                  action="Usar embalagem cadastrada"
+                  items={packaging
+                    .filter((item) => !draft.packagingIds.includes(item.id))
+                    .map((item) => ({
+                      id: item.id,
+                      label: displayProductName(item.name),
+                      detail: formatCurrency(item.unitCost),
+                    }))}
+                  onSelect={(id) => {
+                    const ids = [...draft.packagingIds, id];
+                    update({
+                      packagingIds: ids,
+                      packaging: currencyInput(
+                        packaging
+                          .filter((item) => ids.includes(item.id))
+                          .reduce((sum, item) => sum + item.unitCost, 0),
+                      ),
+                    });
+                  }}
+                />
+              </FormField>
+              {draft.packagingIds.map((id) => (
+                <Button
+                  key={id}
+                  variant="text"
+                  title={`Remover ${displayProductName(packaging.find((item) => item.id === id)?.name ?? "embalagem excluída")}`}
+                  style={{ alignSelf: "flex-start" }}
+                  onPress={() => {
+                    const ids = draft.packagingIds.filter((item) => item !== id);
+                    update({
+                      packagingIds: ids,
+                      packaging: currencyInput(
+                        packaging
+                          .filter((item) => ids.includes(item.id))
+                          .reduce((sum, item) => sum + item.unitCost, 0),
+                      ),
+                    });
+                  }}
+                />
+              ))}
+            </FormSection>
+          </FormBody>
           {sources.isLoading ? (
             <Typography variant="caption">
               Carregando produtos e custos cadastrados… Você também pode preencher
@@ -532,8 +596,13 @@ export function UnifiedPricingCalculator({
         </React.Fragment>,
         <React.Fragment key="expenses">
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3">Trabalho e despesas</Typography>
-            <Typography variant="body">
+            <Typography
+              variant={desktop ? "desktopSection" : "h3"}
+              accessibilityRole={desktop ? "header" : undefined}
+            >
+              Trabalho e despesas
+            </Typography>
+            <Typography variant={desktop ? "desktopBody" : "body"}>
               Abra cada detalhe para incluir os custos que se aplicam ao seu negócio.
             </Typography>
           </View>
@@ -550,49 +619,48 @@ export function UnifiedPricingCalculator({
         </React.Fragment>,
         <React.Fragment key="result">
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3">Preço e resultado</Typography>
-            <Typography variant="body">
+            <Typography
+              variant={desktop ? "desktopSection" : "h3"}
+              accessibilityRole={desktop ? "header" : undefined}
+            >
+              Preço e resultado
+            </Typography>
+            <Typography variant={desktop ? "desktopBody" : "body"}>
               Defina seu ganho, confira a estimativa e salve o cálculo.
             </Typography>
           </View>
           {step === 3 ? notice : null}
-          <View style={[split.row, { gap: spacing.lg }]}>
-            <View style={split.main}>
-              <Card style={{ gap: spacing.lg }}>
-                <Typography variant="bodyBold">Quanto você quer ganhar?</Typography>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  <PricingChoice
-                    label="Valor em reais"
-                    selected={draft.profitMode === "money"}
-                    onPress={() => update({ profitMode: "money", profit: "" })}
-                  />
-                  <PricingChoice
-                    label="Acréscimo sobre o custo"
-                    selected={draft.profitMode === "markup"}
-                    onPress={() => update({ profitMode: "markup", profit: "" })}
-                  />
-                </View>
-                <ValidationField {...formValidation.field("profit")}>
-                  <PricingField
-                    label={
-                      draft.profitMode === "money"
-                        ? "Ganho desejado por unidade"
-                        : "Acréscimo sobre o custo (%)"
-                    }
-                    money={draft.profitMode === "money"}
-                    value={draft.profit}
-                    onChange={(profit) => update({ profit })}
-                    hint={
-                      draft.profitMode === "markup"
-                        ? "50% de acréscimo sobre R$ 10 dá R$ 15 antes das taxas. Isso é diferente de 50% de margem sobre a venda."
-                        : "Este ganho depende de incluir todos os custos do negócio."
-                    }
-                  />
-                </ValidationField>
-              </Card>
-            </View>
-            <View style={split.aside}>{result}</View>
-          </View>
+          <FormSection collapsible={false} title="Quanto você quer ganhar?">
+            <FormField label="Como informar o ganho">
+              <ChoiceField
+                accessibilityLabel="Como informar o ganho"
+                value={draft.profitMode}
+                options={[
+                  { value: "money", label: "Valor em reais" },
+                  { value: "markup", label: "Acréscimo sobre o custo" },
+                ]}
+                onChange={(profitMode) => update({ profitMode, profit: "" })}
+              />
+            </FormField>
+            <PricingField
+              label={
+                draft.profitMode === "money"
+                  ? "Ganho desejado por unidade"
+                  : "Acréscimo sobre o custo"
+              }
+              money={draft.profitMode === "money"}
+              suffix={draft.profitMode === "markup" ? "%" : undefined}
+              value={draft.profit}
+              onChange={(profit) => update({ profit })}
+              validation={formValidation.field("profit")}
+              hint={
+                draft.profitMode === "markup"
+                  ? "50% de acréscimo sobre R$ 10 dá R$ 15 antes das taxas. Isso é diferente de 50% de margem sobre a venda."
+                  : "Este ganho depende de incluir todos os custos do negócio."
+              }
+            />
+          </FormSection>
+          {result}
         </React.Fragment>,
       ]}
     </PricingStepLayout>

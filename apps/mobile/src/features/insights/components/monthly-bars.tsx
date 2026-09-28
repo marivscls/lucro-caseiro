@@ -4,11 +4,13 @@ import { Typography, useTheme, spacing, radii, type Theme } from "@lucro-caseiro
 import React, { useState } from "react";
 import { Platform, Pressable, View } from "react-native";
 
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { formatMoney, formatMoneyShort, maxRevenue, monthLabel } from "../domain";
 import type { MonthlyRevenue } from "../types";
 
 const WINDOWS = [3, 6, 12] as const;
-const CHART_HEIGHT = 180;
+const MOBILE_CHART_HEIGHT = 180;
+const DESKTOP_CHART_HEIGHT = 240;
 const STEPS = 4;
 const MONTH_FULL = [
   "Janeiro",
@@ -52,6 +54,7 @@ function WindowSelector({
   onChange?: (months: number) => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   return (
     <View
       style={{
@@ -60,6 +63,7 @@ function WindowSelector({
         gap: 4,
         borderRadius: radii.md + 4,
         backgroundColor: theme.colors.surface,
+        ...(isDesktop ? { alignSelf: "flex-start" as const } : null),
       }}
     >
       {WINDOWS.map((value) => {
@@ -74,7 +78,8 @@ function WindowSelector({
             accessibilityState={{ selected, disabled: !onChange }}
             {...(Platform.OS === "web" ? { "aria-pressed": selected } : {})}
             style={({ pressed }) => ({
-              flex: 1,
+              flex: isDesktop ? undefined : 1,
+              paddingHorizontal: isDesktop ? spacing.lg : undefined,
               minHeight: 44,
               alignItems: "center",
               justifyContent: "center",
@@ -86,7 +91,7 @@ function WindowSelector({
             })}
           >
             <Typography
-              variant="captionBold"
+              variant={isDesktop ? "desktopBodyStrong" : "captionBold"}
               color={selected ? theme.colors.primaryStrong : theme.colors.textSecondary}
             >
               {value} meses
@@ -178,6 +183,12 @@ export function MonthlyBars({
   onWindowChange?: (months: number) => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const CHART_HEIGHT = isDesktop ? DESKTOP_CHART_HEIGHT : MOBILE_CHART_HEIGHT;
+  // Desktop: nada abaixo de 14px (eixo, meses e legendas).
+  const small = isDesktop
+    ? { fontSize: 14, lineHeight: 20 }
+    : { fontSize: 10, lineHeight: 16 };
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const axisMax = niceCeil(maxRevenue(series));
   const total = series.reduce((acc, m) => acc + m.revenue, 0);
@@ -197,40 +208,71 @@ export function MonthlyBars({
     <View
       style={{
         gap: spacing.lg,
-        padding: spacing.lg,
+        padding: isDesktop ? spacing["2xl"] : spacing.lg,
         borderWidth: 1,
         borderColor: theme.colors.border,
-        borderRadius: radii["2xl"],
+        borderRadius: isDesktop ? radii.lg : radii["2xl"],
         backgroundColor: theme.colors.surfaceElevated,
       }}
     >
-      <View style={{ gap: spacing.xs }}>
-        <Typography variant="bodyBold" color={theme.colors.textSecondary}>
-          Faturamento no período
-        </Typography>
-        <Typography
-          variant="moneyHero"
-          color={theme.colors.text}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.65}
+      <View
+        style={
+          isDesktop
+            ? {
+                flexDirection: "row",
+                flexWrap: "wrap",
+                alignItems: "flex-start",
+                gap: spacing.lg,
+              }
+            : undefined
+        }
+      >
+        <View
           style={{
-            fontSize: 32,
-            lineHeight: 42,
-            letterSpacing: -1,
-            fontVariant: ["tabular-nums"],
+            gap: spacing.xs,
+            flex: isDesktop ? 1 : undefined,
+            flexBasis: isDesktop ? 280 : undefined,
+            minWidth: 0,
           }}
         >
-          {formatMoney(total)}
-        </Typography>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          {sales} venda{sales !== 1 ? "s" : ""} registrada{sales !== 1 ? "s" : ""}
-          {first && last
-            ? ` · ${monthLabel(first.month)}/${first.month.slice(0, 4)} – ${monthLabel(last.month)}/${last.month.slice(0, 4)}`
-            : ""}
-        </Typography>
+          <Typography
+            variant={isDesktop ? "desktopBodyStrong" : "bodyBold"}
+            color={theme.colors.textSecondary}
+          >
+            Faturamento no período
+          </Typography>
+          <Typography
+            variant="moneyHero"
+            color={theme.colors.text}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.65}
+            style={{
+              fontSize: 32,
+              lineHeight: 42,
+              letterSpacing: -1,
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {formatMoney(total)}
+          </Typography>
+          <Typography
+            variant={isDesktop ? "desktopMeta" : "caption"}
+            color={theme.colors.textSecondary}
+          >
+            {sales} venda{sales !== 1 ? "s" : ""} registrada{sales !== 1 ? "s" : ""}
+            {first && last
+              ? ` · ${monthLabel(first.month)}/${first.month.slice(0, 4)} – ${monthLabel(last.month)}/${last.month.slice(0, 4)}`
+              : ""}
+          </Typography>
+        </View>
+        {isDesktop ? (
+          <WindowSelector months={windowMonths} onChange={onWindowChange} />
+        ) : null}
       </View>
-      <WindowSelector months={windowMonths} onChange={onWindowChange} />
+      {isDesktop ? null : (
+        <WindowSelector months={windowMonths} onChange={onWindowChange} />
+      )}
       <View style={{ gap: spacing.md }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
           <View
@@ -241,12 +283,14 @@ export function MonthlyBars({
               backgroundColor: theme.colors.primary,
             }}
           />
-          <Typography variant="captionBold">Faturamento mensal</Typography>
+          <Typography variant={isDesktop ? "desktopMeta" : "captionBold"}>
+            Faturamento mensal
+          </Typography>
         </View>
         <View style={{ flexDirection: "row", gap: spacing.sm, paddingTop: 8 }}>
           {total > 0 ? (
             <>
-              <View style={{ width: 58, height: CHART_HEIGHT }}>
+              <View style={{ width: isDesktop ? 76 : 58, height: CHART_HEIGHT }}>
                 {gridValues.map((value, index) => (
                   <Typography
                     key={index}
@@ -255,9 +299,8 @@ export function MonthlyBars({
                     numberOfLines={1}
                     style={{
                       position: "absolute",
-                      top: (CHART_HEIGHT * index) / STEPS - 8,
-                      fontSize: 10,
-                      lineHeight: 16,
+                      top: (CHART_HEIGHT * index) / STEPS - (isDesktop ? 10 : 8),
+                      ...small,
                       fontVariant: ["tabular-nums"],
                     }}
                   >
@@ -333,6 +376,7 @@ export function MonthlyBars({
                   {series.map((month, index) => {
                     const selected = month.month === focused?.month;
                     const showLabel =
+                      isDesktop ||
                       series.length < 12 ||
                       selected ||
                       (index % 2 === 1 && Math.abs(index - focusedIndex) > 1);
@@ -347,11 +391,10 @@ export function MonthlyBars({
                               : theme.colors.textSecondary
                           }
                           style={{
-                            width: 32,
-                            maxWidth: 32,
+                            width: isDesktop ? 44 : 32,
+                            maxWidth: isDesktop ? 44 : 32,
                             textAlign: "center",
-                            fontSize: 10,
-                            lineHeight: 16,
+                            ...small,
                             fontFamily: selected ? "Manrope_700Bold" : undefined,
                           }}
                         >
@@ -386,10 +429,16 @@ export function MonthlyBars({
             }}
           >
             <View style={{ gap: 2 }}>
-              <Typography variant="captionBold" numberOfLines={1}>
+              <Typography
+                variant={isDesktop ? "desktopBodyStrong" : "captionBold"}
+                numberOfLines={1}
+              >
                 {monthWithYear(focused.month)}
               </Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
+              <Typography
+                variant={isDesktop ? "desktopMeta" : "caption"}
+                color={theme.colors.textSecondary}
+              >
                 {focused.salesCount} venda{focused.salesCount !== 1 ? "s" : ""}
               </Typography>
             </View>
@@ -410,11 +459,13 @@ export function MonthlyBars({
             </Typography>
           </View>
           <Typography
-            variant="caption"
+            variant={isDesktop ? "desktopMeta" : "caption"}
             color={theme.colors.textSecondary}
-            style={{ fontSize: 11 }}
+            style={isDesktop ? undefined : { fontSize: 11 }}
           >
-            Toque no gráfico para explorar cada mês
+            {isDesktop
+              ? "Clique numa barra para ver cada mês"
+              : "Toque no gráfico para explorar cada mês"}
           </Typography>
         </View>
       ) : (

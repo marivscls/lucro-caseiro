@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+import { isMockMode } from "../mock/mode";
+
 interface NetworkState {
   isOnline: boolean;
 }
@@ -13,21 +15,28 @@ export const useNetwork = create<NetworkState>(() => ({
   isOnline: true,
 }));
 
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy native load keeps stale dev builds from crashing on startup.
-  const mod = require("@react-native-community/netinfo") as {
-    default?: NetInfoModule;
-    addEventListener?: unknown;
-  };
-  const NetInfo =
-    mod.default ??
-    (typeof mod.addEventListener === "function" ? (mod as NetInfoModule) : null);
+// Modo demonstração: sempre online (não há servidor para alcançar).
+if (!isMockMode) {
+  subscribeToNetInfo();
+}
 
-  NetInfo?.addEventListener((state) => {
-    useNetwork.setState({
-      isOnline: state.isConnected !== false,
+function subscribeToNetInfo() {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy native load keeps stale dev builds from crashing on startup.
+    const mod = require("@react-native-community/netinfo") as {
+      default?: NetInfoModule;
+      addEventListener?: unknown;
+    };
+    const NetInfo =
+      mod.default ??
+      (typeof mod.addEventListener === "function" ? (mod as NetInfoModule) : null);
+
+    NetInfo?.addEventListener((state) => {
+      useNetwork.setState({
+        isOnline: state.isConnected !== false,
+      });
     });
-  });
-} catch {
-  useNetwork.setState({ isOnline: true });
+  } catch {
+    useNetwork.setState({ isOnline: true });
+  }
 }

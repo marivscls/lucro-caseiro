@@ -1,4 +1,9 @@
-import { ANALYTICS_ACTION_NAMES, ANALYTICS_SCREEN_NAMES } from "@lucro-caseiro/contracts";
+import {
+  ANALYTICS_ACQUISITION_MAX_LENGTH,
+  ANALYTICS_ACTION_NAMES,
+  ANALYTICS_EVENT_PROPS_LIMITS as PROPS,
+  ANALYTICS_SCREEN_NAMES,
+} from "@lucro-caseiro/contracts";
 import { z } from "zod";
 
 const CampaignIdentifier = z
@@ -15,6 +20,40 @@ const InstallAttributionDto = z
   })
   .strict();
 
+const NO_CONTROL_CHARS = /^[^\p{Cc}\p{Cf}]+$/u;
+
+function acquisitionValue(max: number) {
+  return z.string().trim().min(1).max(max).regex(NO_CONTROL_CHARS).optional();
+}
+
+const AcquisitionDto = z
+  .object({
+    utmSource: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmSource),
+    utmMedium: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmMedium),
+    utmCampaign: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmCampaign),
+    utmContent: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.utmContent),
+    referrer: acquisitionValue(ANALYTICS_ACQUISITION_MAX_LENGTH.referrer),
+  })
+  .strict();
+
+const PROP_KEY = /^[a-z][a-z0-9_]*$/;
+// Sem espaços: identificadores (recurso, plano, tela, nome de erro), nunca texto livre.
+const PROP_TEXT = /^[\w.:/()[\]-]+$/;
+
+const EventPropsDto = z
+  .record(
+    z.string().max(PROPS.maxKeyLength).regex(PROP_KEY),
+    z.union([
+      z.string().min(1).max(PROPS.maxStringLength).regex(PROP_TEXT),
+      z.number().finite().min(-PROPS.maxAbsNumber).max(PROPS.maxAbsNumber),
+      z.boolean(),
+    ]),
+  )
+  .refine((props) => {
+    const keys = Object.keys(props).length;
+    return keys >= 1 && keys <= PROPS.maxKeys;
+  }, `Use de 1 a ${PROPS.maxKeys} propriedades`);
+
 const RecordOpenDto = z
   .object({
     installationId: z.string().uuid(),
@@ -22,6 +61,7 @@ const RecordOpenDto = z
     appVersion: z.string().trim().min(1).max(32),
     appBuild: z.string().trim().min(1).max(32).optional(),
     attribution: InstallAttributionDto.optional(),
+    acquisition: AcquisitionDto.optional(),
   })
   .strict();
 
@@ -37,6 +77,7 @@ const AnalyticsEventDto = z.discriminatedUnion("type", [
     .object({
       type: z.literal("action"),
       name: z.enum(ANALYTICS_ACTION_NAMES),
+      props: EventPropsDto.optional(),
     })
     .strict(),
 ]);

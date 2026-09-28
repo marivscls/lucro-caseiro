@@ -31,6 +31,7 @@ export function BusinessProfileFlow({
   const router = useRouter();
   const colors = useBrandScreenPalette();
   const [configureProfile, setConfigureProfile] = useState(!firstAccess);
+  const firstTaskVisible = firstAccess && !configureProfile && !state.record;
   useEffect(() => {
     if (closeRequest)
       closeRequest.current = () => {
@@ -40,10 +41,13 @@ export function BusinessProfileFlow({
       if (closeRequest) closeRequest.current = null;
     };
   });
+  // Enquanto carrega, o Voltar do Android não fecha o primeiro acesso. Com o
+  // questionário aberto, o próprio formulário volta uma etapa por vez.
+  const blockBack = firstAccess && (state.loading || !!state.loadError);
   useEffect(() => {
-    if (!firstAccess) return;
+    if (!blockBack && !firstTaskVisible) return;
     const listener = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (!state.loading && !state.loadError) void close();
+      if (!blockBack) void close();
       return true;
     });
     return () => listener.remove();
@@ -78,15 +82,12 @@ export function BusinessProfileFlow({
             >
               <Text style={{ color: colors.wine }}>Tentar novamente</Text>
             </Pressable>
-            {!firstAccess && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={onClose}
-                style={styles.action}
-              >
-                <Text style={{ color: colors.wine }}>Fechar</Text>
-              </Pressable>
-            )}
+            {/* No primeiro acesso, "Pular por agora" evita prender a pessoa aqui. */}
+            <Pressable accessibilityRole="button" onPress={onClose} style={styles.action}>
+              <Text style={{ color: colors.wine }}>
+                {firstAccess ? "Pular por agora" : "Fechar"}
+              </Text>
+            </Pressable>
             {state.error && (
               <Text
                 accessibilityRole="alert"
@@ -101,7 +102,7 @@ export function BusinessProfileFlow({
         )}
       </View>
     );
-  if (firstAccess && !configureProfile && !state.record) {
+  if (firstTaskVisible) {
     return (
       <FirstTask
         onConfigure={() => setConfigureProfile(true)}
@@ -123,6 +124,8 @@ export function BusinessProfileFlow({
       onClose={() => void close()}
       onComplete={(profile) => void finish(profile)}
       onStart={(profile) => void finish(profile, true)}
+      skipKnownName={firstAccess}
+      handleHardwareBack={firstAccess}
     />
   );
 }

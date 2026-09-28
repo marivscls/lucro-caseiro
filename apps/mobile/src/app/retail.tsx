@@ -10,7 +10,6 @@ import type {
 import {
   Button,
   Card,
-  Chip,
   Input,
   Typography,
   radii,
@@ -48,6 +47,16 @@ import {
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { StandardModal } from "../shared/components/standard-modal";
+import {
+  ChoiceField,
+  FormField,
+  TextField,
+  fieldMetrics,
+  type ChoiceOption,
+  OptionChip,
+} from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
+import { FormSection } from "../shared/components/form-section";
 import { showAlert } from "../shared/components/alert-store";
 import { showToast } from "../shared/components/toast";
 import { alertError, alertValidation } from "../shared/utils/alerts";
@@ -58,6 +67,12 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import { AppIcon, type AppIconName } from "../shared/components/app-icon";
+import {
+  DesktopGrid,
+  DesktopSplit,
+  desktopPageContent,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 type OperationMode =
@@ -89,6 +104,43 @@ const MODE_TITLE: Record<OperationMode, string> = {
   labels: "Etiquetas em lote",
   business_account: "Novo convênio",
 };
+
+/** Ícone de cada atalho na grade do desktop (sempre ao lado do texto). */
+const MODE_ICON: Record<OperationMode, AppIconName> = {
+  checkout: "cart-outline",
+  school_list: "reader-outline",
+  inventory_count: "clipboard-outline",
+  service_order: "create-outline",
+  promotion: "gift-outline",
+  prices: "trending-up-outline",
+  labels: "pricetags-outline",
+  business_account: "business-outline",
+};
+
+/** Ação principal do rodapé de cada operação (verbo + objeto). */
+const MODE_SUBMIT: Record<OperationMode, string> = {
+  checkout: "Registrar venda",
+  school_list: "Criar lista",
+  inventory_count: "Salvar contagem",
+  service_order: "Criar ordem",
+  promotion: "Ativar promoção",
+  prices: "Reajustar preços",
+  labels: "Gerar etiquetas",
+  business_account: "Criar convênio",
+};
+
+const MODES_WITH_PRODUCTS: readonly OperationMode[] = [
+  "checkout",
+  "school_list",
+  "inventory_count",
+  "prices",
+  "labels",
+];
+
+const LABEL_TEMPLATE_OPTIONS: readonly ChoiceOption<"product" | "shelf">[] = [
+  { value: "product", label: "Produto", icon: "pricetag-outline" },
+  { value: "shelf", label: "Gôndola", icon: "albums-outline" },
+];
 
 const PAYMENT_METHODS: Array<{ id: PaymentMethod; label: string }> = [
   { id: "pix", label: "Pix" },
@@ -173,6 +225,14 @@ export default function RetailScreen() {
   const batchLabels = useBatchLabels();
   const createBusinessAccount = useCreateBusinessAccount();
 
+  const submitting =
+    createDocument.isPending ||
+    checkout.isPending ||
+    checkoutQuote.isPending ||
+    createPromotion.isPending ||
+    bulkPrices.isPending ||
+    batchLabels.isPending ||
+    createBusinessAccount.isPending;
   const products = productsQuery.data ?? [];
   const clients = clientsQuery.data?.items ?? [];
   const stockItems = products.flatMap<{
@@ -308,10 +368,9 @@ export default function RetailScreen() {
     }
   }
 
+  // A lista de produtos mostra o erro no campo (ver `formValidation`).
   function requireProducts(): boolean {
-    if (selectedStockItems.length) return true;
-    alertValidation("Selecione ao menos um produto.");
-    return false;
+    return selectedStockItems.length > 0;
   }
 
   async function submitCheckout() {
@@ -526,6 +585,11 @@ export default function RetailScreen() {
           mode === "business_account") &&
         !amount.trim() &&
         "Informe o valor antes de continuar.",
+      products:
+        !!mode &&
+        MODES_WITH_PRODUCTS.includes(mode) &&
+        !selectedStockItems.length &&
+        "Selecione ao menos um produto.",
     },
     mode,
   );
@@ -622,42 +686,64 @@ export default function RetailScreen() {
 
   function renderProductPicker() {
     return (
-      <View style={{ gap: spacing.sm }}>
-        <Typography variant="label">PRODUTOS</Typography>
-        <Input
-          label="Buscar por nome ou código"
-          value={productSearch}
-          onChangeText={setProductSearch}
-        />
-        <Button
-          title="Escanear código de barras"
-          variant="outline"
-          onPress={() => setScannerVisible(true)}
-        />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          {visibleStockItems.map(({ product, variation }) => {
-            const key = stockItemKey(product.id, variation?.id);
-            return (
-              <Chip
-                key={key}
-                label={variation ? `${product.name} — ${variation.name}` : product.name}
-                selected={selectedItemKeys.includes(key)}
-                onPress={() => toggleStockItem(key)}
-              />
-            );
-          })}
-        </View>
-      </View>
+      <FormSection collapsible={false} title="Produtos">
+        <FormField label="Buscar por nome ou código">
+          <TextField
+            icon="search-outline"
+            placeholder="Ex: Caderno 10 matérias"
+            accessibilityLabel="Buscar produto por nome ou código"
+            value={productSearch}
+            onChangeText={setProductSearch}
+            right={
+              <Pressable
+                onPress={() => setScannerVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Escanear código de barras"
+                hitSlop={6}
+                style={({ pressed }) => ({
+                  width: 40,
+                  height: 40,
+                  marginRight: -spacing.sm,
+                  borderRadius: radii.sm,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: pressed ? theme.colors.primaryBg : "transparent",
+                })}
+              >
+                <AppIcon
+                  name="scan-outline"
+                  size={fieldMetrics.iconSize}
+                  color={theme.colors.primaryStrong}
+                />
+              </Pressable>
+            }
+          />
+        </FormField>
+        <ValidationField {...formValidation.field("products")}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {visibleStockItems.map(({ product, variation }) => {
+              const key = stockItemKey(product.id, variation?.id);
+              return (
+                <OptionChip
+                  key={key}
+                  label={variation ? `${product.name} — ${variation.name}` : product.name}
+                  selected={selectedItemKeys.includes(key)}
+                  onPress={() => toggleStockItem(key)}
+                />
+              );
+            })}
+          </View>
+        </ValidationField>
+      </FormSection>
     );
   }
 
-  function renderClientPicker() {
+  function renderClientPicker(extra?: React.ReactNode) {
     return (
-      <View style={{ gap: spacing.sm }}>
-        <Typography variant="label">CLIENTE</Typography>
+      <FormSection collapsible={false} title="Cliente">
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
           {clients.map((client) => (
-            <Chip
+            <OptionChip
               key={client.id}
               label={client.name}
               selected={selectedClientId === client.id}
@@ -668,25 +754,34 @@ export default function RetailScreen() {
             />
           ))}
         </View>
-      </View>
+        {extra}
+      </FormSection>
     );
   }
 
   function renderQuantityInputs() {
-    return selectedStockItems.map(({ product, variation }) => {
-      const key = stockItemKey(product.id, variation?.id);
-      const name = variation ? `${product.name} — ${variation.name}` : product.name;
-      return (
-        <Input
-          key={key}
-          label={`Quantidade — ${name}`}
-          value={quantities[key] ?? "1"}
-          onChangeText={(value) => setQuantities({ ...quantities, [key]: value })}
-          keyboardType="number-pad"
-          numericMode="integer"
-        />
-      );
-    });
+    if (!selectedStockItems.length) return null;
+    return (
+      <FormSection collapsible={false} title="Quantidades">
+        <FormGrid>
+          {selectedStockItems.map(({ product, variation }) => {
+            const key = stockItemKey(product.id, variation?.id);
+            const name = variation ? `${product.name} — ${variation.name}` : product.name;
+            return (
+              <FormField key={key} label={name}>
+                <TextField
+                  accessibilityLabel={`Quantidade — ${name}`}
+                  value={quantities[key] ?? "1"}
+                  onChangeText={(value) => setQuantities({ ...quantities, [key]: value })}
+                  keyboardType="number-pad"
+                  numericMode="integer"
+                />
+              </FormField>
+            );
+          })}
+        </FormGrid>
+      </FormSection>
+    );
   }
 
   function renderBusinessAccountPicker() {
@@ -695,11 +790,10 @@ export default function RetailScreen() {
     );
     if (!accounts.length) return null;
     return (
-      <View style={{ gap: spacing.sm }}>
-        <Typography variant="label">CONVÊNIO</Typography>
+      <FormField label="Convênio" optional>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
           {accounts.map((account) => (
-            <Chip
+            <OptionChip
               key={account.id}
               label={`${account.legalName} · ${account.discountPercent}%`}
               selected={selectedBusinessAccountId === account.id}
@@ -711,6 +805,24 @@ export default function RetailScreen() {
             />
           ))}
         </View>
+      </FormField>
+    );
+  }
+
+  function renderPaymentChips(
+    value: PaymentMethod,
+    onChange: (method: PaymentMethod) => void,
+  ) {
+    return (
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        {PAYMENT_METHODS.map((method) => (
+          <OptionChip
+            key={method.id}
+            label={method.label}
+            selected={value === method.id}
+            onPress={() => onChange(method.id)}
+          />
+        ))}
       </View>
     );
   }
@@ -719,190 +831,520 @@ export default function RetailScreen() {
     if (!mode) return null;
     if (mode === "checkout") {
       return (
-        <View style={{ gap: spacing.lg }}>
+        <FormBody>
           {renderProductPicker()}
           {renderQuantityInputs()}
-          {renderClientPicker()}
-          {renderBusinessAccountPicker()}
-          <Typography variant="h3">
-            Subtotal: R$ {selectedTotal.toFixed(2).replace(".", ",")}
-          </Typography>
-          <Typography variant="caption">
-            Promoções e desconto do convênio são calculados antes de registrar o
-            pagamento.
-          </Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PAYMENT_METHODS.map((method) => (
-              <Chip
-                key={method.id}
-                label={method.label}
-                selected={primaryPayment === method.id}
-                onPress={() => setPrimaryPayment(method.id)}
-              />
-            ))}
-          </View>
-          <Input
-            label="Valor na segunda forma (opcional)"
-            value={secondaryAmount}
-            onChangeText={setSecondaryAmount}
-            keyboardType="numeric"
-            numericMode="decimal"
-          />
-          {secondaryAmount ? (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {PAYMENT_METHODS.map((method) => (
-                <Chip
-                  key={method.id}
-                  label={method.label}
-                  selected={secondaryPayment === method.id}
-                  onPress={() => setSecondaryPayment(method.id)}
+          {renderClientPicker(renderBusinessAccountPicker())}
+          <FormSection
+            collapsible={false}
+            title="Pagamento"
+            subtitle="Promoções e desconto do convênio são calculados antes de registrar o pagamento."
+          >
+            <Typography variant="h3">
+              Subtotal: R$ {selectedTotal.toFixed(2).replace(".", ",")}
+            </Typography>
+            <FormField label="Forma de pagamento">
+              {renderPaymentChips(primaryPayment, setPrimaryPayment)}
+            </FormField>
+            <FormGrid>
+              <FormField label="Valor na segunda forma" optional>
+                <TextField
+                  prefix="R$"
+                  placeholder="0,00"
+                  accessibilityLabel="Valor na segunda forma de pagamento"
+                  value={secondaryAmount}
+                  onChangeText={setSecondaryAmount}
+                  keyboardType="numeric"
+                  numericMode="decimal"
                 />
-              ))}
-            </View>
-          ) : null}
-          <Chip
-            label="Solicitar NFC-e"
-            selected={detail === "fiscal"}
-            onPress={() => setDetail(detail === "fiscal" ? "" : "fiscal")}
-          />
-        </View>
+              </FormField>
+            </FormGrid>
+            {secondaryAmount ? (
+              <FormField label="Segunda forma">
+                {renderPaymentChips(secondaryPayment, setSecondaryPayment)}
+              </FormField>
+            ) : null}
+            <FormField label="Nota fiscal" optional>
+              <View style={{ flexDirection: "row" }}>
+                <OptionChip
+                  label="Solicitar NFC-e"
+                  selected={detail === "fiscal"}
+                  onPress={() => setDetail(detail === "fiscal" ? "" : "fiscal")}
+                />
+              </View>
+            </FormField>
+          </FormSection>
+        </FormBody>
       );
     }
     if (mode === "inventory_count") {
       return (
-        <View style={{ gap: spacing.lg }}>
-          <ValidationField {...formValidation.field("title")}>
-            <Input label="Nome da contagem" value={title} onChangeText={setTitle} />
-          </ValidationField>
-          {renderProductPicker()}
-          {selectedStockItems.map(({ product, variation }) => {
-            const key = stockItemKey(product.id, variation?.id);
-            const name = variation ? `${product.name} — ${variation.name}` : product.name;
-            return (
-              <Input
-                key={key}
-                label={`Contado — ${name}`}
-                value={counted[key] ?? ""}
-                onChangeText={(value) => setCounted({ ...counted, [key]: value })}
-                keyboardType="number-pad"
-                numericMode="integer"
+        <FormBody>
+          <FormGrid>
+            <FormField label="Nome da contagem" optional span="full">
+              <TextField
+                placeholder={`Contagem ${new Date().toLocaleDateString("pt-BR")}`}
+                accessibilityLabel="Nome da contagem"
+                value={title}
+                onChangeText={setTitle}
               />
-            );
-          })}
-        </View>
+            </FormField>
+          </FormGrid>
+          {renderProductPicker()}
+          {selectedStockItems.length ? (
+            <FormSection collapsible={false} title="Quantidade contada">
+              <FormGrid>
+                {selectedStockItems.map(({ product, variation }) => {
+                  const key = stockItemKey(product.id, variation?.id);
+                  const name = variation
+                    ? `${product.name} — ${variation.name}`
+                    : product.name;
+                  return (
+                    <FormField key={key} label={name}>
+                      <TextField
+                        placeholder="Ex: 12"
+                        accessibilityLabel={`Contado — ${name}`}
+                        value={counted[key] ?? ""}
+                        onChangeText={(value) => setCounted({ ...counted, [key]: value })}
+                        keyboardType="number-pad"
+                        numericMode="integer"
+                      />
+                    </FormField>
+                  );
+                })}
+              </FormGrid>
+            </FormSection>
+          ) : null}
+        </FormBody>
       );
     }
     if (mode === "school_list") {
       return (
-        <View style={{ gap: spacing.lg }}>
-          <ValidationField {...formValidation.field("title")}>
-            <Input label="Nome da lista" value={title} onChangeText={setTitle} />
-          </ValidationField>
-          <Input label="Escola / série" value={detail} onChangeText={setDetail} />
+        <FormBody>
+          <FormGrid>
+            <FormField label="Nome da lista" validation={formValidation.field("title")}>
+              <TextField
+                placeholder="Ex: Lista 5º ano"
+                accessibilityLabel="Nome da lista"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </FormField>
+            <FormField label="Escola e série" optional>
+              <TextField
+                placeholder="Ex: Escola Central, 5º ano"
+                accessibilityLabel="Escola e série"
+                value={detail}
+                onChangeText={setDetail}
+              />
+            </FormField>
+          </FormGrid>
           {renderProductPicker()}
           {renderQuantityInputs()}
-        </View>
+        </FormBody>
       );
     }
     if (mode === "service_order") {
       return (
-        <View style={{ gap: spacing.lg }}>
-          <ValidationField {...formValidation.field("title")}>
-            <Input label="Serviço" value={title} onChangeText={setTitle} />
-          </ValidationField>
-          <ValidationField {...formValidation.field("amount")}>
-            <Input
-              label="Valor"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="numeric"
-              numericMode="decimal"
-            />
-          </ValidationField>
-          <Input label="Especificações" value={detail} onChangeText={setDetail} />
+        <FormBody>
+          <FormGrid>
+            <FormField label="Serviço" validation={formValidation.field("title")}>
+              <TextField
+                placeholder="Ex: Impressão de banner"
+                accessibilityLabel="Serviço"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </FormField>
+            <FormField label="Valor" validation={formValidation.field("amount")}>
+              <TextField
+                prefix="R$"
+                placeholder="0,00"
+                accessibilityLabel="Valor, em reais"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                numericMode="decimal"
+              />
+            </FormField>
+            <FormField label="Especificações" optional span="full">
+              <TextField
+                placeholder="Ex: 1 x 0,5 m, lona fosca"
+                accessibilityLabel="Especificações"
+                value={detail}
+                onChangeText={setDetail}
+              />
+            </FormField>
+          </FormGrid>
           {renderClientPicker()}
-        </View>
+        </FormBody>
       );
     }
     if (mode === "promotion") {
       return (
-        <View style={{ gap: spacing.lg }}>
-          <ValidationField {...formValidation.field("title")}>
-            <Input label="Nome da promoção" value={title} onChangeText={setTitle} />
-          </ValidationField>
-          <ValidationField {...formValidation.field("amount")}>
-            <Input
-              label="Desconto (%)"
+        <FormBody>
+          <FormGrid>
+            <FormField
+              label="Nome da promoção"
+              validation={formValidation.field("title")}
+            >
+              <TextField
+                placeholder="Ex: Volta às aulas"
+                accessibilityLabel="Nome da promoção"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </FormField>
+            <FormField label="Desconto" validation={formValidation.field("amount")}>
+              <TextField
+                suffix="%"
+                placeholder="10"
+                accessibilityLabel="Desconto, em porcentagem"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                numericMode="decimal"
+              />
+            </FormField>
+          </FormGrid>
+          {renderProductPicker()}
+        </FormBody>
+      );
+    }
+    if (mode === "prices") {
+      return (
+        <FormBody>
+          <FormGrid>
+            <FormField
+              label="Reajuste"
+              hint="Use um número negativo para baixar os preços."
+              validation={formValidation.field("amount")}
+            >
+              <TextField
+                suffix="%"
+                placeholder="5"
+                accessibilityLabel="Reajuste, em porcentagem"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                numericMode="signed-decimal"
+              />
+            </FormField>
+          </FormGrid>
+          {renderProductPicker()}
+        </FormBody>
+      );
+    }
+    if (mode === "labels") {
+      return (
+        <FormBody>
+          {renderProductPicker()}
+          <FormField label="Tipo de etiqueta">
+            <ChoiceField
+              accessibilityLabel="Tipo de etiqueta"
+              value={detail === "shelf" ? "shelf" : "product"}
+              options={LABEL_TEMPLATE_OPTIONS}
+              onChange={setDetail}
+            />
+          </FormField>
+        </FormBody>
+      );
+    }
+    return (
+      <FormBody>
+        <FormGrid>
+          <FormField
+            label="Razão social"
+            optional
+            span="full"
+            hint="Sem razão social, usa o nome do cliente."
+          >
+            <TextField
+              placeholder="Ex: Escola Central Ltda."
+              accessibilityLabel="Razão social"
+              value={title}
+              onChangeText={setTitle}
+            />
+          </FormField>
+          <FormField
+            label="Limite de crédito"
+            validation={formValidation.field("amount")}
+          >
+            <TextField
+              prefix="R$"
+              placeholder="0,00"
+              accessibilityLabel="Limite de crédito, em reais"
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
               numericMode="decimal"
             />
-          </ValidationField>
-          {renderProductPicker()}
-        </View>
-      );
-    }
-    if (mode === "prices") {
-      return (
-        <View style={{ gap: spacing.lg }}>
-          <ValidationField {...formValidation.field("amount")}>
-            <Input
-              label="Reajuste (%)"
-              value={amount}
-              onChangeText={setAmount}
+          </FormField>
+          <FormField label="Desconto padrão" optional>
+            <TextField
+              suffix="%"
+              placeholder="0"
+              accessibilityLabel="Desconto padrão, em porcentagem"
+              value={detail}
+              onChangeText={setDetail}
               keyboardType="numeric"
-              numericMode="signed-decimal"
+              numericMode="decimal"
             />
-          </ValidationField>
-          {renderProductPicker()}
-        </View>
-      );
-    }
-    if (mode === "labels") {
-      return (
-        <View style={{ gap: spacing.lg }}>
-          {renderProductPicker()}
-          <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <Chip
-              label="Produto"
-              selected={detail !== "shelf"}
-              onPress={() => setDetail("product")}
-            />
-            <Chip
-              label="Gôndola"
-              selected={detail === "shelf"}
-              onPress={() => setDetail("shelf")}
-            />
-          </View>
-        </View>
-      );
-    }
-    return (
-      <View style={{ gap: spacing.lg }}>
-        <ValidationField {...formValidation.field("title")}>
-          <Input label="Razão social" value={title} onChangeText={setTitle} />
-        </ValidationField>
-        <ValidationField {...formValidation.field("amount")}>
+          </FormField>
+        </FormGrid>
+        {renderClientPicker()}
+      </FormBody>
+    );
+  }
+
+  const desktopCardPadding = isDesktop ? { padding: spacing["2xl"] } : null;
+  const moneyPrefix = (
+    <Typography variant="bodyBold" color={theme.colors.textSecondary}>
+      R$
+    </Typography>
+  );
+
+  const cashCard = (
+    <Card variant="elevated" style={{ gap: spacing.md, ...desktopCardPadding }}>
+      <Typography variant={isDesktop ? "desktopCardTitle" : "h3"}>Caixa</Typography>
+      {cash.data ? (
+        <>
+          <Typography>
+            Esperado em dinheiro: R$ {cash.data.expectedCash.toFixed(2).replace(".", ",")}
+          </Typography>
           <Input
-            label="Limite de crédito"
+            label="Valor"
+            placeholder="0,00"
+            icon={moneyPrefix}
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"
             numericMode="decimal"
           />
-        </ValidationField>
-        <Input
-          label="Desconto padrão (%)"
-          value={detail}
-          onChangeText={setDetail}
-          keyboardType="numeric"
-          numericMode="decimal"
-        />
-        {renderClientPicker()}
-      </View>
-    );
-  }
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            <Button
+              title="Suprimento"
+              variant="outline"
+              onPress={() =>
+                void runAction(
+                  () =>
+                    cashMovement.mutateAsync({
+                      type: "supply",
+                      paymentMethod: "cash",
+                      amount: numberValue(amount),
+                    }),
+                  "Suprimento registrado.",
+                )
+              }
+            />
+            <Button
+              title="Sangria"
+              variant="outline"
+              onPress={() =>
+                void runAction(
+                  () =>
+                    cashMovement.mutateAsync({
+                      type: "withdrawal",
+                      paymentMethod: "cash",
+                      amount: numberValue(amount),
+                    }),
+                  "Sangria registrada.",
+                )
+              }
+            />
+            <Button
+              title="Fechar caixa"
+              onPress={() =>
+                void runAction(
+                  () => closeCash.mutateAsync(numberValue(amount)),
+                  "Caixa fechado.",
+                )
+              }
+            />
+          </View>
+        </>
+      ) : (
+        <>
+          <Input
+            label="Fundo inicial"
+            placeholder="0,00"
+            icon={moneyPrefix}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
+            numericMode="decimal"
+          />
+          <Button
+            title="Abrir caixa"
+            style={{ alignSelf: isDesktop ? "flex-start" : "stretch" }}
+            onPress={() =>
+              void runAction(
+                () => openCash.mutateAsync(numberValue(amount)),
+                "Caixa aberto.",
+              )
+            }
+          />
+        </>
+      )}
+    </Card>
+  );
+
+  const modeList: OperationMode[] = [
+    "checkout",
+    "school_list",
+    "inventory_count",
+    "service_order",
+    "promotion",
+    "prices",
+    "labels",
+    "business_account",
+  ];
+  const desktopModeButtons = (
+    <DesktopGrid minColumnWidth={180} maxColumns={3} gap={spacing.md}>
+      {modeList.map((item) => (
+        <Pressable
+          key={item}
+          onPress={() => setMode(item)}
+          accessibilityRole="button"
+          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({
+            minHeight: 64,
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.md,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: hovered ? theme.colors.textSecondary : theme.colors.border,
+            backgroundColor: theme.colors.surfaceElevated,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            opacity: pressed ? 0.8 : 1,
+          })}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon
+              name={MODE_ICON[item]}
+              size={22}
+              color={theme.colors.primaryStrong}
+            />
+          </View>
+          <Typography variant="desktopBodyStrong" style={{ flex: 1, minWidth: 0 }}>
+            {MODE_TITLE[item]}
+          </Typography>
+        </Pressable>
+      ))}
+    </DesktopGrid>
+  );
+
+  const modeButtons = (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      {(
+        [
+          "checkout",
+          "school_list",
+          "inventory_count",
+          "service_order",
+          "promotion",
+          "prices",
+          "labels",
+          "business_account",
+        ] as OperationMode[]
+      ).map((item) => (
+        <Pressable
+          key={item}
+          onPress={() => setMode(item)}
+          style={({ pressed }) => ({
+            minWidth: 150,
+            flexGrow: 1,
+            padding: spacing.md,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surface,
+            opacity: pressed ? 0.75 : 1,
+          })}
+        >
+          <Typography variant="bodyBold">{MODE_TITLE[item]}</Typography>
+        </Pressable>
+      ))}
+    </View>
+  );
+
+  const replenishmentCard = (
+    <Card variant="elevated" style={{ gap: spacing.md, ...desktopCardPadding }}>
+      <Typography variant={isDesktop ? "desktopCardTitle" : "h3"}>
+        Reposição inteligente
+      </Typography>
+      <Typography>
+        {replenishment.data?.length ?? 0} itens precisam de reposição.
+      </Typography>
+      {(replenishment.data ?? []).slice(0, 5).map((item) => (
+        <Typography
+          key={`${item.productId}-${item.variationId ?? "product"}`}
+          variant={isDesktop ? "desktopMeta" : "caption"}
+        >
+          {item.productName}
+          {item.variationName ? ` — ${item.variationName}` : ""}: comprar{" "}
+          {item.suggestedQuantity}
+        </Typography>
+      ))}
+      <Button
+        title="Criar pedido de compra"
+        variant="outline"
+        disabled={!replenishment.data?.length}
+        onPress={() =>
+          void runAction(
+            () => createPurchaseOrder.mutateAsync(undefined),
+            "Pedido de compra criado.",
+          )
+        }
+      />
+    </Card>
+  );
+
+  const panelCard = (
+    <Card variant="elevated" style={{ gap: spacing.md, ...desktopCardPadding }}>
+      <Typography variant={isDesktop ? "desktopCardTitle" : "h3"}>
+        Painel operacional
+      </Typography>
+      <DesktopGrid minColumnWidth={240} maxColumns={3} gap={spacing.xl}>
+        {DOCUMENT_KINDS.map((group, index) => (
+          <View key={group.kind} style={{ gap: spacing.xs }}>
+            <Typography variant={isDesktop ? "desktopBodyStrong" : "bodyBold"}>
+              {group.label} ({documentGroups[index]?.length ?? 0})
+            </Typography>
+            {(documentGroups[index] ?? []).slice(0, 3).map((document) => (
+              <View
+                key={document.id}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                }}
+              >
+                <Typography style={{ flex: 1 }}>
+                  {document.title} · {document.status}
+                </Typography>
+                {renderDocumentAction(document)}
+              </View>
+            ))}
+          </View>
+        ))}
+      </DesktopGrid>
+      <Typography variant={isDesktop ? "desktopMeta" : "caption"}>
+        Promoções: {promotions.data?.length ?? 0} · Convênios:{" "}
+        {businessAccounts.data?.length ?? 0}
+      </Typography>
+    </Card>
+  );
 
   return (
     <FeatureRouteGuard feature="varejoPapelaria">
@@ -910,200 +1352,63 @@ export default function RetailScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <ScreenHeader title="Operação da Papelaria" />
         <ScrollView
-          contentContainerStyle={{
-            ...pageGutter(isDesktop, spacing.lg),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-            paddingVertical: spacing.lg,
-            gap: spacing.lg,
-          }}
+          contentContainerStyle={
+            isDesktop
+              ? desktopPageContent(true)
+              : {
+                  ...pageGutter(isDesktop, spacing.lg),
+                  ...desktopStretch(isDesktop, desktopWidths.data),
+                  paddingVertical: spacing.lg,
+                  gap: spacing.lg,
+                }
+          }
         >
-          <Card variant="elevated" style={{ gap: spacing.md }}>
-            <Typography variant="h3">Caixa</Typography>
-            {cash.data ? (
-              <>
-                <Typography>
-                  Esperado em dinheiro: R${" "}
-                  {cash.data.expectedCash.toFixed(2).replace(".", ",")}
-                </Typography>
-                <ValidationField {...formValidation.field("amount")}>
-                  <Input
-                    label="Valor"
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="numeric"
-                    numericMode="decimal"
-                  />
-                </ValidationField>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  <Button
-                    title="Suprimento"
-                    variant="outline"
-                    onPress={() =>
-                      void runAction(
-                        () =>
-                          cashMovement.mutateAsync({
-                            type: "supply",
-                            paymentMethod: "cash",
-                            amount: numberValue(amount),
-                          }),
-                        "Suprimento registrado.",
-                      )
-                    }
-                  />
-                  <Button
-                    title="Sangria"
-                    variant="outline"
-                    onPress={() =>
-                      void runAction(
-                        () =>
-                          cashMovement.mutateAsync({
-                            type: "withdrawal",
-                            paymentMethod: "cash",
-                            amount: numberValue(amount),
-                          }),
-                        "Sangria registrada.",
-                      )
-                    }
-                  />
-                  <Button
-                    title="Fechar caixa"
-                    onPress={() =>
-                      void runAction(
-                        () => closeCash.mutateAsync(numberValue(amount)),
-                        "Caixa fechado.",
-                      )
-                    }
-                  />
-                </View>
-              </>
-            ) : (
-              <>
-                <ValidationField {...formValidation.field("amount")}>
-                  <Input
-                    label="Fundo inicial"
-                    value={amount}
-                    onChangeText={setAmount}
-                    keyboardType="numeric"
-                    numericMode="decimal"
-                  />
-                </ValidationField>
-                <Button
-                  title="Abrir caixa"
-                  onPress={() =>
-                    void runAction(
-                      () => openCash.mutateAsync(numberValue(amount)),
-                      "Caixa aberto.",
-                    )
-                  }
-                />
-              </>
-            )}
-          </Card>
-
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {(
-              [
-                "checkout",
-                "school_list",
-                "inventory_count",
-                "service_order",
-                "promotion",
-                "prices",
-                "labels",
-                "business_account",
-              ] as OperationMode[]
-            ).map((item) => (
-              <Pressable
-                key={item}
-                onPress={() => setMode(item)}
-                style={({ pressed }) => ({
-                  minWidth: 150,
-                  flexGrow: 1,
-                  padding: spacing.md,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.surface,
-                  opacity: pressed ? 0.75 : 1,
-                })}
-              >
-                <Typography variant="bodyBold">{MODE_TITLE[item]}</Typography>
-              </Pressable>
-            ))}
-          </View>
-
-          <Card variant="elevated" style={{ gap: spacing.md }}>
-            <Typography variant="h3">Reposição inteligente</Typography>
-            <Typography>
-              {replenishment.data?.length ?? 0} itens precisam de reposição.
-            </Typography>
-            {(replenishment.data ?? []).slice(0, 5).map((item) => (
-              <Typography
-                key={`${item.productId}-${item.variationId ?? "product"}`}
-                variant="caption"
-              >
-                {item.productName}
-                {item.variationName ? ` — ${item.variationName}` : ""}: comprar{" "}
-                {item.suggestedQuantity}
-              </Typography>
-            ))}
-            <Button
-              title="Criar pedido de compra"
-              variant="outline"
-              disabled={!replenishment.data?.length}
-              onPress={() =>
-                void runAction(
-                  () => createPurchaseOrder.mutateAsync(undefined),
-                  "Pedido de compra criado.",
-                )
+          {isDesktop ? (
+            <DesktopSplit
+              aside={
+                <>
+                  {cashCard}
+                  {replenishmentCard}
+                </>
               }
-            />
-          </Card>
-
-          <Card variant="elevated" style={{ gap: spacing.md }}>
-            <Typography variant="h3">Painel operacional</Typography>
-            {DOCUMENT_KINDS.map((group, index) => (
-              <View key={group.kind} style={{ gap: spacing.xs }}>
-                <Typography variant="bodyBold">
-                  {group.label} ({documentGroups[index]?.length ?? 0})
+            >
+              <View style={{ gap: spacing.lg }}>
+                <Typography variant="desktopSection" accessibilityRole="header">
+                  O que você quer fazer?
                 </Typography>
-                {(documentGroups[index] ?? []).slice(0, 3).map((document) => (
-                  <View
-                    key={document.id}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    <Typography style={{ flex: 1 }}>
-                      {document.title} · {document.status}
-                    </Typography>
-                    {renderDocumentAction(document)}
-                  </View>
-                ))}
+                {desktopModeButtons}
               </View>
-            ))}
-            <Typography variant="caption">
-              Promoções: {promotions.data?.length ?? 0} · Convênios:{" "}
-              {businessAccounts.data?.length ?? 0}
-            </Typography>
-          </Card>
+              {panelCard}
+            </DesktopSplit>
+          ) : (
+            <>
+              {cashCard}
+              {modeButtons}
+              {replenishmentCard}
+              {panelCard}
+            </>
+          )}
         </ScrollView>
 
         <StandardModal
           visible={mode !== null}
           onClose={resetForm}
           title={mode ? MODE_TITLE[mode] : "Operação"}
+          size="form"
           footer={
-            <Button
-              title="Salvar"
-              onPress={submitMode}
-              loading={
-                createDocument.isPending || checkout.isPending || checkoutQuote.isPending
-              }
-              style={{ flex: 1 }}
-            />
+            <FormActions>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                disabled={submitting}
+                onPress={resetForm}
+              />
+              <Button
+                title={mode ? MODE_SUBMIT[mode] : "Salvar"}
+                onPress={submitMode}
+                loading={submitting}
+              />
+            </FormActions>
           }
         >
           {renderModeForm()}

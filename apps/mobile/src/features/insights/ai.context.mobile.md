@@ -128,3 +128,12 @@ const { data } = useInsights(6);
 Ajuda explica que resultado depende dos registros e custos informados. CTA inicia uma venda, não marca ativação ao apenas abrir gráficos.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+Só apresentação; o celular não mudou. `app/insights.tsx` monta, no desktop, o cabeçalho
+dentro da rolagem, uma `DesktopStatRow` (Variação do mês ou Faturamento, Vendas, Ticket médio)
+e, no plano com gráficos, `MonthlyBars` com 240px de altura, eixos de 14px e o seletor de janela
+à direita; ao lado (a partir de 960px) ou abaixo, o cartão "O que fazer agora". Rankings em grade
+de 2 colunas, "Perguntas rápidas" e, sem plano, o convite em duas colunas
+(`components/insights-desktop.tsx`).

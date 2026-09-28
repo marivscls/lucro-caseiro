@@ -6,7 +6,6 @@ import {
   nextAppointments,
   pendingReceipts,
   queryState,
-  quickActions,
 } from "./domain";
 
 const order = (id: string, changes: Partial<Order> = {}) =>
@@ -63,15 +62,7 @@ describe("home data", () => {
     ] as Sale[];
     expect(pendingReceipts(rows)).toEqual({ total: 150, count: 1 });
   });
-  it("offers service actions and respects scheduling availability", () => {
-    expect(quickActions(true, true).map((a) => a.label)).toContain("Agendar atendimento");
-    expect(quickActions(true, true).map((a) => a.label)).not.toContain("Produtos");
-    expect(
-      quickActions(true, false).some((a) => a.route.startsWith("/tabs/agenda")),
-    ).toBe(false);
-    expect(quickActions(false, true)).toHaveLength(4);
-  });
-  it("only warns about explicitly controlled stock or known negative margins", () => {
+  it("only warns about explicitly controlled stock", () => {
     const rows = [
       {
         id: "low",
@@ -105,7 +96,7 @@ describe("home data", () => {
       },
     ] as Product[];
     const alerts = homeAttention(rows);
-    expect(alerts.map((a) => a.id)).toEqual(["stock-low", "price-loss"]);
+    expect(alerts.map((a) => a.id)).toEqual(["stock-low"]);
     expect(homeAttention([])).toEqual([]);
   });
 });

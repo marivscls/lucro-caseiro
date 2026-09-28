@@ -2,11 +2,18 @@ import React from "react";
 import { Text, type TextProps, type TextStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes, homeTypography, moneyTypography } from "../theme";
+import {
+  desktopTypography,
+  fonts,
+  fontSizes,
+  homeTypography,
+  moneyTypography,
+} from "../theme";
 
 type TypographyVariant =
   | "display"
   | "screenTitle"
+  | "wordmark"
   | "h1"
   | "h2"
   | "h3"
@@ -36,7 +43,18 @@ type TypographyVariant =
   | "homeProgressStrong"
   | "homeShortcut"
   | "homeNavigation"
-  | "homeNavigationActive";
+  | "homeNavigationActive"
+  | "desktopPageTitle"
+  | "desktopPageSubtitle"
+  | "desktopSection"
+  | "desktopCardTitle"
+  | "desktopBody"
+  | "desktopBodyStrong"
+  | "desktopMeta"
+  | "desktopFieldLabel"
+  | "desktopMetricLabel"
+  | "desktopMetric"
+  | "desktopTotal";
 
 interface TypographyProps extends TextProps {
   variant?: TypographyVariant;
@@ -62,6 +80,14 @@ export function Typography({
       lineHeight: 34,
       color: theme.colors.text,
       letterSpacing: -0.5,
+    },
+    // Nome da marca no lockup com o logo: caixa normal e peso alto leem como marca.
+    wordmark: {
+      fontSize: 20,
+      fontFamily: fonts.brand,
+      lineHeight: 24,
+      color: theme.colors.primaryStrong,
+      letterSpacing: -0.4,
     },
     screenTitle: {
       fontSize: 18,
@@ -89,28 +115,29 @@ export function Typography({
       lineHeight: 22,
       color: theme.colors.text,
     },
+    // Público inclui pessoas mais velhas: texto corrido em 16 e legendas em 14.
     body: {
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.md,
       fontFamily: fonts.regular,
-      lineHeight: 20,
+      lineHeight: 24,
       color: theme.colors.textSecondary,
     },
     bodyBold: {
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.md,
       fontFamily: fonts.bold,
-      lineHeight: 20,
+      lineHeight: 24,
       color: theme.colors.text,
     },
     caption: {
-      fontSize: fontSizes.xs,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.regular,
-      lineHeight: 18,
+      lineHeight: 20,
       color: theme.colors.textSecondary,
     },
     captionBold: {
-      fontSize: fontSizes.xs,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.bold,
-      lineHeight: 18,
+      lineHeight: 20,
       color: theme.colors.text,
     },
     label: {
@@ -214,6 +241,32 @@ export function Typography({
     homeNavigationActive: {
       ...homeTypography.navigationActive,
       color: theme.colors.text,
+    },
+    // Escala do desktop (web >= 1024px): use apenas quando useDesktopLayout().
+    desktopPageTitle: { ...desktopTypography.pageTitle, color: theme.colors.text },
+    desktopPageSubtitle: {
+      ...desktopTypography.pageSubtitle,
+      color: theme.colors.textSecondary,
+    },
+    desktopSection: { ...desktopTypography.section, color: theme.colors.text },
+    desktopCardTitle: { ...desktopTypography.cardTitle, color: theme.colors.text },
+    desktopBody: { ...desktopTypography.body, color: theme.colors.textSecondary },
+    desktopBodyStrong: { ...desktopTypography.bodyStrong, color: theme.colors.text },
+    desktopMeta: { ...desktopTypography.meta, color: theme.colors.textSecondary },
+    desktopFieldLabel: { ...desktopTypography.fieldLabel, color: theme.colors.text },
+    desktopMetricLabel: {
+      ...desktopTypography.metricLabel,
+      color: theme.colors.textSecondary,
+    },
+    desktopMetric: {
+      ...desktopTypography.metric,
+      color: theme.colors.text,
+      fontVariant: ["tabular-nums"],
+    },
+    desktopTotal: {
+      ...desktopTypography.total,
+      color: theme.colors.text,
+      fontVariant: ["tabular-nums"],
     },
   };
 

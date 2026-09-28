@@ -6,6 +6,7 @@ import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { MANROPE_HTML_HEAD } from "../../shared/utils/manrope-html";
 import { DOCUMENT_PDF_CSS } from "../../shared/utils/document-pdf";
 import { playStoreUrl } from "../../shared/utils/store-link";
+import { formatCurrency } from "../../shared/utils/format";
 
 export interface QuoteBusiness {
   name: string;
@@ -21,7 +22,7 @@ function escapeHtml(value: string): string {
 }
 
 function money(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
+  return formatCurrency(value);
 }
 
 function qty(value: number): string {

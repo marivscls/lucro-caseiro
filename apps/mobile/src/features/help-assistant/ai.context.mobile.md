@@ -72,3 +72,11 @@ Plan regressions cover the reported question with and without accents, subscript
 - 2026-09-09: Added automatic instruction-based chat and email handoff, as requested by the owner.
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Perguntas sugeridas permitem duas linhas nos botões em telas estreitas. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+`HelpAssistant` aceita `desktop` (passado por `app/support.tsx`; prop em vez de hook para os testes
+não dependerem de `react-native`): cartão branco, perguntas sugeridas na largura do texto em linha
+que quebra, e "Falar por email" / "Perguntar" à direita, ao lado do aviso de 14px. Em
+`support-desktop.tsx`, "Fale com a gente" fica numa lateral fixa e as perguntas frequentes em grade
+de 2 colunas abaixo do assistente. Mesmas respostas, ações e rótulos; o celular não mudou.

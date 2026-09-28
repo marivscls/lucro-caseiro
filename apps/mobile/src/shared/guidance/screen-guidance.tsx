@@ -18,6 +18,8 @@ import {
 import { useRouter } from "expo-router";
 import { AppIcon } from "../components/app-icon";
 import { StandardModal } from "../components/standard-modal";
+import { FormActions } from "../components/form-layout";
+import { FormSection } from "../components/form-section";
 import { useAuth } from "../hooks/use-auth";
 import { guidanceContent } from "./guidance-content";
 import {
@@ -28,7 +30,7 @@ import {
 import { useGuidanceStore } from "./guidance-store";
 import { guidanceEvent } from "./guidance-events";
 import { useDesktopLayout } from "../layout/use-desktop-layout";
-import { desktopWidths } from "../layout/desktop-density";
+import { desktopLayout, desktopWidths } from "../layout/desktop-density";
 export interface ScreenGuidanceProps {
   area: GuidanceArea;
   onStart: () => void;
@@ -141,24 +143,99 @@ export function ScreenGuidance({
             guidanceEvent(area, "help_opened", userId);
           }}
           style={({ pressed }) => ({
-            width: 44,
-            height: 44,
+            minHeight: 48,
             flexShrink: 0,
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            borderRadius: 22,
+            gap: spacing.xs,
+            paddingHorizontal: spacing.md,
+            borderRadius: 24,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
             backgroundColor: pressed ? theme.colors.surface : "transparent",
             opacity: pressed ? 0.7 : 1,
           })}
         >
+          {/* Texto junto do ícone: "?" sozinho não é entendido por todos. */}
           <AppIcon
             name="help-circle-outline"
-            size={22}
+            size={20}
             color={theme.colors.textSecondary}
           />
+          <Typography variant="captionBold" color={theme.colors.textSecondary}>
+            Ajuda
+          </Typography>
         </Pressable>,
       )}
-      {introduce ? (
+      {introduce && isDesktop ? (
+        <Animated.View
+          testID={`screen-guidance-${area}`}
+          style={{ opacity, width: "100%", maxWidth: desktopWidths.page }}
+          pointerEvents={dismissing ? "none" : "auto"}
+        >
+          {/* Desktop: uma faixa discreta; a tarefa da tela continua em primeiro plano. */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: spacing.lg,
+              paddingVertical: spacing.lg,
+              paddingHorizontal: spacing.xl,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surfaceElevated,
+              // Mesmo intervalo entre blocos do cabeçalho até o conteúdo.
+              marginBottom: desktopLayout.blockGap,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.colors.primaryBg,
+              }}
+            >
+              <AppIcon name="bulb-outline" size={20} color={theme.colors.primaryStrong} />
+            </View>
+            <View style={{ flex: 1, minWidth: 280, gap: 2 }}>
+              <Typography variant="desktopBodyStrong" accessibilityRole="header">
+                {title ?? content.title}
+              </Typography>
+              <Typography variant="desktopBody">
+                {description ?? content.description}
+              </Typography>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <Button
+                title="Agora não"
+                variant="ghost"
+                onPress={() => setDismissFor(identity)}
+                disabled={dismissing}
+              />
+              {secondary ? (
+                <Button
+                  title={secondary.label}
+                  variant="text"
+                  onPress={() => start(secondary.onPress)}
+                  disabled={dismissing}
+                />
+              ) : null}
+              <Button
+                title={actionLabel ?? content.action}
+                onPress={() => start()}
+                disabled={dismissing}
+              />
+            </View>
+          </View>
+        </Animated.View>
+      ) : null}
+      {introduce && !isDesktop ? (
         <View
           testID={`screen-guidance-${area}`}
           style={{
@@ -211,8 +288,6 @@ export function ScreenGuidance({
                   onPress={() => start()}
                   disabled={dismissing}
                   size="lg"
-                  fitTitle={false}
-                  titleLines={2}
                 />
                 {secondary ? (
                   <Pressable
@@ -253,20 +328,9 @@ export function ScreenGuidance({
         title={content.helpTitle}
         scrollRef={helpScroll}
         footer={
-          <View
-            style={{
-              flex: 1,
-              alignItems: isDesktop ? "flex-end" : "center",
-            }}
-          >
-            <Button
-              title={actionLabel ?? content.action}
-              onPress={() => start()}
-              size="lg"
-              fitTitle={false}
-              titleLines={2}
-            />
-          </View>
+          <FormActions>
+            <Button title={actionLabel ?? content.action} onPress={() => start()} />
+          </FormActions>
         }
       >
         <Typography variant="h3">{title ?? content.title}</Typography>
@@ -276,20 +340,18 @@ export function ScreenGuidance({
             {index + 1}. {step}
           </Typography>
         ))}
-        <Typography variant="bodyBold">Depois de concluir</Typography>
-        <Typography variant="body">{content.next}</Typography>
-        <Pressable
-          accessibilityRole="button"
+        <FormSection collapsible={false} title="Depois de concluir">
+          <Typography variant="body">{content.next}</Typography>
+        </FormSection>
+        <Button
+          title="Ainda preciso de ajuda"
+          variant="text"
+          style={{ alignSelf: "flex-start" }}
           onPress={() => {
             setHelpFor(null);
             router.push("/support");
           }}
-          style={{ minHeight: 48, justifyContent: "center" }}
-        >
-          <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-            Ainda preciso de ajuda
-          </Typography>
-        </Pressable>
+        />
       </StandardModal>
     </>
   );

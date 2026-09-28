@@ -6,7 +6,7 @@ import {
   sales,
   services,
 } from "@lucro-caseiro/database/schema";
-import { and, between, count, eq, sql, sum } from "drizzle-orm";
+import { and, between, count, eq, gte, lte, sql, sum } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import { ValidationError } from "../../shared/errors";
 import type {
@@ -208,9 +208,10 @@ export class SalesRepoPg implements ISalesRepo {
         between(sales.soldAt, new Date(opts.dateFrom), new Date(opts.dateTo)),
       );
     } else if (opts.dateFrom) {
-      conditions.push(sql`${sales.soldAt} >= ${new Date(opts.dateFrom)}`);
+      // gte/lte passam pelo mapeamento da coluna; Date cru em sql`` quebra no driver postgres-js.
+      conditions.push(gte(sales.soldAt, new Date(opts.dateFrom)));
     } else if (opts.dateTo) {
-      conditions.push(sql`${sales.soldAt} <= ${new Date(opts.dateTo)}`);
+      conditions.push(lte(sales.soldAt, new Date(opts.dateTo)));
     }
 
     const where = and(...conditions);

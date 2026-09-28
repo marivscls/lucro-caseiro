@@ -62,7 +62,8 @@ export function VariationEditor({
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <View style={{ flex: 1 }}>
               <Input
-                label="Cor (opcional)"
+                label="Cor"
+                optional
                 placeholder="Azul"
                 value={variation.color ?? ""}
                 onChangeText={(color) => update(index, { color: color || undefined })}

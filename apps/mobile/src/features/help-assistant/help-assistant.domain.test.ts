@@ -23,7 +23,7 @@ describe("help assistant", () => {
     expect(content).toContain("69,90/mês");
     expect(content).toContain("299,00/ano");
     expect(content).toContain("699,00/ano");
-    expect(content).toContain("30 vendas por mês");
+    expect(content).toContain("vendas ilimitadas");
   });
   it("keeps plan failures and cancellation ahead of the plan comparison", () => {
     expect(answerHelpQuestion("Não consigo assinar o plano", "food").kind).toBe(

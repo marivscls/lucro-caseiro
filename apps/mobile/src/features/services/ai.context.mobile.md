@@ -35,6 +35,8 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 
 ## Components
 
+- `services-desktop.tsx` — `ServiceDesktopCard`, `ServiceFilterPill` e
+  `DesktopTag` (apresentação no desktop).
 - `ServiceForm` — modal canônico de criação e edição. Valida nome, duração,
   duplicidade e campos financeiros antes de chamar as mutations.
 - `app/services.tsx` — lista serviços ativos e inativos, abre o formulário e
@@ -91,7 +93,9 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 
 ## Error Handling
 
-- Validações de campo e nome duplicado usam `alertValidation`.
+- Validações de campo aparecem no próprio campo (`useFormValidation`), por etapa;
+  variações, adicionais e pacotes mostram o primeiro problema no campo dele. Só o
+  nome duplicado (checado na API ao salvar) usa `alertValidation`.
 - Falhas de rede ou da API são normalizadas por `alertError`.
 - Mutations só fecham o modal depois de uma resposta bem-sucedida.
 
@@ -167,3 +171,19 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Cadastro em etapas — 2026-09-09
 
 Criar e editar serviço usa três etapas: serviço e agenda; opções, adicionais e pacotes; custos e preço sugerido. O avanço valida os campos obrigatórios da etapa atual e permite voltar às etapas concluídas sem perder dados.
+
+## Desktop (web ≥ 1024px) — 2026-09-23
+
+Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px idênticas).
+
+- `ScrollView` com `desktopPageContent` no lugar da `FlatList`. O painel vinho fica sem
+  o rótulo em caixa alta e com texto de 16 px.
+- `DesktopStatRow`: preço médio, duração média e "Revisar preço" (substitui a faixa de
+  métricas e a linha de revisão; o filtro "Revisar preço" continua ao lado da busca).
+- Busca e filtros (`ServiceFilterPill`, 48 px, 16 px) na mesma barra.
+- Serviços em `DesktopGrid` (até 3 colunas) com `ServiceDesktopCard`: categoria,
+  nome de 18 px, selos de 14 px, duração e preço, rodapé de custo/sugerido alinhado
+  entre cartões.
+- Vazio, filtro sem resultado e erro: cartão tracejado (`DesktopEmptyCard layout="stack"` de `shared/layout/desktop-kit.tsx`) com o
+  mesmo texto e ação do celular (`emptyCopy`).
+- Sem `ScreenCreateBar` no desktop: "Cadastrar serviço" fica no cabeçalho.

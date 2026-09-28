@@ -33,6 +33,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 | `hooks.ts`                    | React Query hooks for profile/limits/profile edit |
 | `use-stripe.ts`               | Opens Stripe Checkout in browser                  |
 | `use-subscription.ts`         | Google Play Billing subscribe/restore fallback    |
+| `trial.ts`                    | Essencial trial helpers (on trial, end notice)    |
 | `components/paywall.tsx`      | Plan selection and CTA UI                         |
 | `components/limit-banner.tsx` | Freemium usage banner                             |
 | `shared/hooks/use-paywall.ts` | Global paywall visibility state                   |
@@ -166,3 +167,38 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.
 
 - 2026-09-09: Plans combines tier and billing-period selection with the complete charge amount. The primary action skips the intermediate paywall and calls `useSubscription().subscribe` on Android or `useStripeCheckout().checkout` elsewhere. Existing provider verification, errors, profile refresh and Android restore are preserved. Monthly is the initial period; annual prices show the full yearly charge with a monthly equivalent and savings underneath.
+- 2026-09-23: Free plan sales are unlimited (`maxSalesPerMonth: null`), clients 50 and products 30. `LimitBanner`/`useLimitCheck("sales")` stay wired but never trigger for sales because the limit is `null`. Plans header and Essencial benefits no longer sell "vendas ilimitadas" as a paid perk.
+- 2026-09-23: Paywall shows the amount actually charged as the hero price ("R$ 299,00/ano" on annual, "/mês" on monthly); the monthly equivalent moved to the secondary line and the sticky footer caption.
+
+## Métricas de compra — 2026-09-23
+
+Planos emite `plan_chosen` ao continuar para o pagamento. `useSubscription` e `useStripeCheckout`
+emitem `purchase_result` (`success`, `failure` ou `cancel`) com provedor, plano e período;
+`purchaseErrorResult` classifica o erro do Google Play. Detalhes em `features/analytics`.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+`app/plans.tsx` usa `components/plans-desktop.tsx` no desktop: os planos lado a lado como
+cartões selecionáveis (preço de 36px e benefícios), o uso do plano gratuito com barras e uma
+lateral fixa com o plano escolhido, Mensal/Anual, o valor cobrado e "Continuar para pagamento"
+(ou "Plano ativo" e "Cancelar assinatura"). Com um plano só, o cartão ocupa a coluna e os
+benefícios vão em duas colunas. Mesmo estado, fluxo de checkout e rótulos do celular, que não mudou.
+Em 1024 px o botão "Continuar para pagamento" da lateral quebra em duas linhas em vez de cortar o texto (o `Button` nunca corta o rótulo).
+
+## Teste grátis do Essencial — 2026-09-24
+
+Conta nova chega com `plan = essential`, `planExpiresAt` em 7 dias e `planIsTrial = true`
+(API). Gates, limites e anúncios não mudam: o teste vale como Essencial. `trial.ts`
+(`isProfileOnTrial`, `trialEndLabel`, `trialNotice`) cuida só da apresentação:
+
+- Planos: no teste a pessoa conta como Gratuito para compra ("Escolha seu plano", pode
+  assinar Essencial ou Profissional, sem "Plano ativo"/"Cancelar assinatura" nem a seção de
+  uso do Gratuito). O aviso de vencimento vira "Seu teste do Essencial termina hoje / amanhã /
+  em N dias" e, até 30 dias depois do fim, "Seu teste do Essencial terminou".
+- Configurações: "Essencial (teste grátis)", quando termina e o botão "Assinar um plano";
+  excluir conta não pede para cancelar assinatura.
+- Restaurar compra (web) não diz "assinatura restaurada" para quem está no teste.
+- A comemoração de plano pago (`PremiumSuccess`) trata o teste como Gratuito: assinar o
+  Essencial durante o teste também comemora.
+- Cadastro e ajuda (assistente) contam que a conta nova ganha 7 dias do Essencial.
+- `planIsTrial` pode faltar em respostas de API antiga: tratado como `false`.

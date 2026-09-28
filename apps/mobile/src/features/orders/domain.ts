@@ -47,6 +47,85 @@ export function agendaDateLimit(isDesktop: boolean): number {
   return isDesktop ? 7 : 5;
 }
 
+export interface AgendaStripDay {
+  /** YYYY-MM-DD local. */
+  date: string;
+  day: number;
+  /** "Hoje" no primeiro dia; depois o dia da semana curto ("qui"). */
+  label: string;
+  count: number;
+}
+
+function shortWeekday(date: Date): string {
+  return new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
+    .format(date)
+    .replace(".", "");
+}
+
+/** Próximos `limit` dias a partir de hoje, com a contagem de encomendas de cada um. */
+export function agendaStripDays(
+  options: ReadonlyArray<{ date: string; count: number }>,
+  today: Date,
+  limit: number,
+): AgendaStripDay[] {
+  const countByDate = new Map(options.map((option) => [option.date, option.count]));
+  return Array.from({ length: limit }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + index);
+    const iso = ymd(date);
+    return {
+      date: iso,
+      day: date.getDate(),
+      label: index === 0 ? "Hoje" : shortWeekday(date),
+      count: countByDate.get(iso) ?? 0,
+    };
+  });
+}
+
+/** "Livre", "1 encomenda", "3 encomendas" (o substantivo vem do tipo de negócio). */
+export function agendaDayCountLabel(
+  count: number,
+  noun: { singular: string; plural: string },
+): string {
+  if (count === 0) return "Livre";
+  return `${count} ${count === 1 ? noun.singular : noun.plural}`;
+}
+
+export interface AgendaTimelineSlot {
+  /** "08:00", "08:30"… */
+  label: string;
+  /** Serviço ou encomenda que ocupa o horário; null quando livre. */
+  busyWith: string | null;
+}
+
+/**
+ * Horários de 30 min entre 8h e 18h. Um horário fica ocupado por encomendas
+ * ativas com hora marcada, pela duração informada (60 min por padrão).
+ */
+export function agendaTimelineSlots(orders: readonly Order[]): AgendaTimelineSlot[] {
+  return Array.from({ length: 20 }, (_, index) => {
+    const minutes = 8 * 60 + index * 30;
+    const order = orders.find((candidate) => {
+      if (
+        candidate.deliveryTime === null ||
+        candidate.status === "done" ||
+        candidate.status === "cancelled"
+      ) {
+        return false;
+      }
+      const [hours, mins] = candidate.deliveryTime.split(":").map(Number);
+      const start = hours * 60 + mins;
+      const end = start + (candidate.durationMinutes ?? 60);
+      return minutes >= start && minutes < end;
+    });
+    return {
+      label: `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(
+        minutes % 60,
+      ).padStart(2, "0")}`,
+      busyWith: order ? (order.serviceName ?? order.title) : null,
+    };
+  });
+}
+
 export function agendaSummaryLabels(selectedDate: string | null): {
   title: string;
   total: string;

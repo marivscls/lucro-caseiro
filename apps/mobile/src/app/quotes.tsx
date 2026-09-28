@@ -8,6 +8,7 @@ import {
   FilterChipRow,
   Input,
   Typography,
+  ValidationField,
   useTheme,
   fontSizes,
   iconSizes,
@@ -28,6 +29,7 @@ import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ContentTransition } from "../shared/components/motion-feedback";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import { useBrandScreenPalette } from "../shared/brand-palette";
 import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
@@ -52,11 +54,32 @@ import {
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  DesktopTable,
+  desktopPageContent,
+  type DesktopTableColumn,
+} from "../shared/layout/desktop-page";
+import {
+  DesktopEmptyCard,
+  DesktopSearchField,
+  DesktopSegmented,
+  DesktopToolbar,
+} from "../shared/layout/desktop-kit";
+import {
+  DesktopCellText,
+  DesktopListHeader,
+  DesktopStatusPill,
+  DesktopWineHero,
+  type DesktopTone,
+} from "../features/sales/components/desktop-list-kit";
 import { StandardModal } from "../shared/components/standard-modal";
+import { FormField, TextField } from "../shared/components/form-field";
+import { FormActions, FormGrid } from "../shared/components/form-layout";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
-import { alertValidation, alertError } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 
 const STATUS_META: Record<
@@ -416,18 +439,20 @@ function ConvertModal({
   const convert = useConvertQuote();
   const [dateText, setDateText] = useState("");
   const [deposit, setDeposit] = useState("");
+  const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
+  const validation = useFormValidation(
+    {
+      dateText: !brToIso(dateText) && "Informe a data de entrega no formato DD/MM/AAAA.",
+      deposit:
+        parsedDeposit !== undefined && Number.isNaN(parsedDeposit) && "Sinal inválido.",
+    },
+    visible,
+  );
 
   async function handleConvert() {
+    if (!validation.validate()) return;
     const iso = brToIso(dateText);
-    if (!iso) {
-      alertValidation("Informe a data de entrega no formato DD/MM/AAAA.");
-      return;
-    }
-    const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
-    if (parsedDeposit !== undefined && Number.isNaN(parsedDeposit)) {
-      alertValidation("Sinal inválido.");
-      return;
-    }
+    if (!iso) return;
     try {
       await convert.mutateAsync({
         id: quote.id,
@@ -444,39 +469,39 @@ function ConvertModal({
   return (
     <StandardModal
       title="Aprovar e criar encomenda"
+      subtitle={`O orçamento "${quote.title}" (${formatCurrency(quote.total)}) vira uma encomenda na sua agenda.`}
       visible={visible}
       onClose={onClose}
       footer={
-        <>
-          <Button
-            title="Cancelar"
-            variant="ghost"
-            onPress={onClose}
-            style={{ flex: 1 }}
-          />
+        <FormActions>
+          <Button title="Cancelar" variant="outline" onPress={onClose} />
           <Button
             title="Criar encomenda"
             onPress={() => void handleConvert()}
             loading={convert.isPending}
-            style={{ flex: 1 }}
           />
-        </>
+        </FormActions>
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.md }}>
-        <Typography variant="caption">
-          O orçamento "{quote.title}" ({formatCurrency(quote.total)}) vira uma encomenda
-          na sua agenda.
-        </Typography>
-        <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
-        <Input
-          label="Sinal recebido (opcional)"
-          placeholder="Ex.: 60,00"
-          value={deposit}
-          onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
-          keyboardType="numeric"
-        />
-      </View>
+      <FormGrid>
+        <ValidationField {...validation.field("dateText")}>
+          <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
+        </ValidationField>
+        <FormField
+          label="Sinal recebido"
+          optional
+          validation={validation.field("deposit")}
+        >
+          <TextField
+            prefix="R$"
+            placeholder="60,00"
+            accessibilityLabel="Sinal recebido, em reais"
+            value={deposit}
+            onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+            keyboardType="numeric"
+          />
+        </FormField>
+      </FormGrid>
     </StandardModal>
   );
 }
@@ -487,6 +512,7 @@ function QuoteDetail({
   onEdit,
 }: Readonly<{ quote: Quote; onClose: () => void; onEdit: () => void }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { data: profile } = useProfile();
   const { data: client, refetch: refetchClient } = useClient(quote.clientId ?? "");
@@ -592,6 +618,26 @@ function QuoteDetail({
     showAlert({ title: "Mais ações", message: quote.title, buttons: options });
   }
 
+  // Computador: no cabeçalho, ao lado de "Editar". Celular: no rodapé, para o
+  // título caber.
+  const moreButton = (
+    <Button
+      title="Mais"
+      accessibilityLabel="Mais ações do orçamento"
+      variant={isDesktop ? "text" : "ghost"}
+      compact={isDesktop}
+      loading={exporting}
+      icon={
+        <AppIcon
+          name="ellipsis-horizontal"
+          size={isDesktop ? 16 : 20}
+          color={isDesktop ? theme.colors.primaryStrong : theme.colors.textSecondary}
+        />
+      }
+      onPress={openMoreActions}
+    />
+  );
+
   return (
     <>
       <StandardModal
@@ -599,27 +645,50 @@ function QuoteDetail({
         visible={!convertVisible}
         onClose={onClose}
         right={
-          quote.status === "pending" ? (
-            <Button
-              title="Editar"
-              variant="text"
-              onPress={onEdit}
-              icon={
-                <AppIcon
-                  name="create-outline"
-                  size={16}
-                  color={theme.colors.primaryStrong}
-                />
-              }
-            />
-          ) : undefined
+          <>
+            {quote.status === "pending" ? (
+              <Button
+                title="Editar"
+                variant="text"
+                compact
+                onPress={onEdit}
+                icon={
+                  <AppIcon
+                    name="create-outline"
+                    size={16}
+                    color={theme.colors.primaryStrong}
+                  />
+                }
+              />
+            ) : null}
+            {isDesktop ? moreButton : null}
+          </>
         }
         footer={
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            {quote.status === "pending" && (
+          <FormActions stack>
+            {isDesktop ? null : moreButton}
+            <Button
+              title="Enviar no WhatsApp"
+              variant="successOutline"
+              icon={
+                <AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />
+              }
+              onPress={() => {
+                void handleWhatsApp();
+              }}
+            />
+            {quote.orderId ? (
+              <Button
+                title="Ver encomenda na agenda"
+                onPress={() => {
+                  onClose();
+                  router.push("/tabs/agenda");
+                }}
+              />
+            ) : null}
+            {quote.status === "pending" ? (
               <Button
                 title="Aprovar e criar encomenda"
-                size="lg"
                 icon={
                   <AppIcon
                     name="checkmark-circle"
@@ -629,48 +698,8 @@ function QuoteDetail({
                 }
                 onPress={() => setConvertVisible(true)}
               />
-            )}
-            {quote.orderId && (
-              <Button
-                title="Ver encomenda na agenda"
-                size="lg"
-                onPress={() => {
-                  onClose();
-                  router.push("/tabs/agenda");
-                }}
-              />
-            )}
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <Button
-                title="Enviar no WhatsApp"
-                variant="successOutline"
-                size="lg"
-                style={{ flex: 1 }}
-                icon={
-                  <AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />
-                }
-                onPress={() => {
-                  void handleWhatsApp();
-                }}
-              />
-              <Button
-                title="Mais"
-                accessibilityLabel="Mais ações do orçamento"
-                variant="ghost"
-                size="lg"
-                compact
-                loading={exporting}
-                icon={
-                  <AppIcon
-                    name="ellipsis-horizontal"
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
-                }
-                onPress={openMoreActions}
-              />
-            </View>
-          </View>
+            ) : null}
+          </FormActions>
         }
       >
         <QuoteDetailContent
@@ -685,6 +714,229 @@ function QuoteDetail({
         onDone={() => setConvertVisible(false)}
       />
     </>
+  );
+}
+
+function quoteTone(status: string): DesktopTone {
+  if (status === "accepted") return "positive";
+  if (status === "rejected") return "negative";
+  return "attention";
+}
+
+function sentDateCell(createdAt: string): string {
+  const label = formatSentDate(createdAt).replace(/^Enviado /, "");
+  return label.charAt(0).toLocaleUpperCase("pt-BR") + label.slice(1);
+}
+
+/** Orçamentos no desktop: painel vinho, barra de ferramentas e tabela. */
+function DesktopQuotesBody({
+  isLoading,
+  error,
+  onRetry,
+  quotes,
+  filteredQuotes,
+  filter,
+  onFilterChange,
+  filterCounts,
+  search,
+  onSearchChange,
+  quoteNumberById,
+  onQuotePress,
+  onCreate,
+}: Readonly<{
+  isLoading: boolean;
+  error: Error | null;
+  onRetry: () => void;
+  quotes: Quote[];
+  filteredQuotes: Quote[];
+  filter: QuoteStatusType | "all";
+  onFilterChange: (filter: QuoteStatusType | "all") => void;
+  filterCounts: Record<QuoteStatusType | "all", number>;
+  search: string;
+  onSearchChange: (value: string) => void;
+  quoteNumberById: Map<string, number>;
+  onQuotePress: (id: string) => void;
+  onCreate: () => void;
+}>) {
+  const pal = useBrandScreenPalette();
+  const { width: viewportWidth } = useWindowDimensions();
+  const wide = viewportWidth >= 1280;
+  if (isLoading) return <SkeletonList rows={5} variant="quote" />;
+  if (error) {
+    return (
+      <DesktopEmptyCard
+        layout="tall"
+        title="Não foi possível carregar os orçamentos"
+        description="Verifique sua conexão e tente novamente."
+        action={{ label: "Tentar novamente", onPress: onRetry, variant: "outline" }}
+      />
+    );
+  }
+  const pending = quotes.filter((quote) => quote.status === "pending");
+  const accepted = quotes.filter((quote) => quote.status === "accepted");
+  const sum = (items: Quote[]) => items.reduce((total, quote) => total + quote.total, 0);
+  const proposals = (count: number) =>
+    count === 1 ? "1 proposta" : `${count} propostas`;
+
+  // Em 1024px a data de envio vai para a linha de apoio do orçamento.
+  const quoteMeta = (quote: Quote) =>
+    [
+      `Nº ${String(quoteNumberById.get(quote.id) ?? 1).padStart(2, "0")}`,
+      quote.items.length === 1 ? "1 item" : `${quote.items.length} itens`,
+      wide ? null : sentDateCell(quote.createdAt),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+  const columns: DesktopTableColumn<Quote>[] = [
+    {
+      key: "quote",
+      title: "Orçamento",
+      flex: wide ? 2.2 : 1.8,
+      render: (quote) => (
+        <View style={{ gap: 2, width: "100%" }}>
+          <DesktopCellText strong lines={wide ? 1 : 2}>
+            {quote.title}
+          </DesktopCellText>
+          <Typography variant="desktopMeta" numberOfLines={1}>
+            {quoteMeta(quote)}
+          </Typography>
+        </View>
+      ),
+    },
+    {
+      key: "client",
+      title: "Cliente",
+      flex: wide ? 1.4 : 1,
+      render: (quote) => (
+        <DesktopCellText color={quote.clientName ? undefined : pal.muted}>
+          {quote.clientName ?? "Sem cliente"}
+        </DesktopCellText>
+      ),
+    },
+    ...(wide
+      ? [
+          {
+            key: "sent",
+            title: "Enviado",
+            flex: 1,
+            render: (quote: Quote) => (
+              <DesktopCellText>{sentDateCell(quote.createdAt)}</DesktopCellText>
+            ),
+          },
+        ]
+      : []),
+    {
+      key: "status",
+      title: "Situação",
+      width: 132,
+      render: (quote) => (
+        <DesktopStatusPill
+          label={quoteStatusMeta(quote.status).label}
+          tone={quoteTone(quote.status)}
+        />
+      ),
+    },
+    {
+      key: "total",
+      title: "Total",
+      width: wide ? 128 : 116,
+      align: "right",
+      render: (quote) => (
+        <DesktopCellText strong align="right">
+          {formatCurrency(quote.total)}
+        </DesktopCellText>
+      ),
+    },
+    {
+      key: "open",
+      title: "",
+      width: 24,
+      align: "right",
+      render: () => <AppIcon name="chevron-forward" size={20} color={pal.muted} />,
+    },
+  ];
+
+  let list: React.ReactNode;
+  if (quotes.length === 0) {
+    list = (
+      <DesktopEmptyCard
+        layout="tall"
+        title="Nenhum orçamento ainda"
+        description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
+        action={{ label: "Novo orçamento", onPress: onCreate, icon: "add" }}
+      />
+    );
+  } else if (filteredQuotes.length === 0) {
+    list = (
+      <DesktopEmptyCard
+        layout="tall"
+        title="Nenhum orçamento encontrado"
+        description="Tente outro termo ou escolha um filtro diferente."
+        action={{
+          label: "Limpar filtros",
+          onPress: () => {
+            onSearchChange("");
+            onFilterChange("all");
+          },
+          variant: "outline",
+        }}
+      />
+    );
+  } else {
+    list = (
+      <DesktopTable
+        columns={columns}
+        rows={filteredQuotes}
+        keyExtractor={(quote) => quote.id}
+        onRowPress={(quote) => onQuotePress(quote.id)}
+        rowAccessibilityLabel={(quote) =>
+          `Abrir orçamento ${quote.title}, ${formatCurrency(quote.total)}`
+        }
+      />
+    );
+  }
+
+  return (
+    <View style={{ gap: spacing["3xl"] }}>
+      <DesktopWineHero
+        label="Em negociação"
+        value={formatCurrency(sum(pending))}
+        meta={`${proposals(pending.length)} aguardando`}
+        stats={[
+          {
+            label: "Aprovados",
+            value: formatCurrency(sum(accepted)),
+            hint: proposals(accepted.length),
+          },
+          { label: "Recusados", value: String(filterCounts.rejected) },
+        ]}
+        art={quotesDocument3d}
+      />
+      <View style={{ gap: spacing["2xl"] }}>
+        <DesktopListHeader
+          title="Orçamentos recentes"
+          count={proposals(filteredQuotes.length)}
+        />
+        <DesktopToolbar>
+          <DesktopSearchField
+            value={search}
+            onChangeText={onSearchChange}
+            placeholder="Buscar orçamento ou cliente"
+          />
+          <DesktopSegmented
+            options={FILTERS.map((option) => ({
+              ...option,
+              count: filterCounts[option.key],
+            }))}
+            value={filter}
+            onChange={onFilterChange}
+            accessibilityLabel="Situação dos orçamentos"
+          />
+        </DesktopToolbar>
+        {list}
+      </View>
+    </View>
   );
 }
 
@@ -739,6 +991,89 @@ export default function QuotesScreen() {
       return;
     }
     router.back();
+  }
+
+  const modals = (
+    <>
+      {/* Criar */}
+      <QuoteForm
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSuccess={() => setShowCreate(false)}
+      />
+
+      {/* Detalhe */}
+      {selected && !editing ? (
+        <QuoteDetail
+          quote={selected}
+          onClose={() => setSelectedId(null)}
+          onEdit={() => setEditing(true)}
+        />
+      ) : null}
+
+      {/* Editar */}
+      {selected && editing ? (
+        <QuoteForm
+          quote={selected}
+          visible
+          onClose={() => setEditing(false)}
+          onSuccess={() => setEditing(false)}
+        />
+      ) : null}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <ScrollView
+          style={{ flex: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+        >
+          <ScreenGuidance
+            renderHeader={(helpButton) => (
+              <ScreenHeader
+                help={helpButton}
+                title="Orçamentos"
+                subtitle="Propostas organizadas, pedidos mais perto."
+                hideBack
+                right={
+                  <FAB
+                    icon="add"
+                    header
+                    accessibilityLabel="Novo orçamento"
+                    onPress={() => setShowCreate(true)}
+                  />
+                }
+              />
+            )}
+            area="quotes"
+            onStart={() => setShowCreate(true)}
+            hasRecords={(data?.items.length ?? 0) > 0}
+            loading={isLoading || !!error}
+            suspended={showCreate}
+          />
+          <DesktopQuotesBody
+            isLoading={isLoading}
+            error={error}
+            onRetry={() => void refetch()}
+            quotes={quotes}
+            filteredQuotes={filteredQuotes}
+            filter={filter}
+            onFilterChange={setFilter}
+            filterCounts={filterCounts}
+            search={search}
+            onSearchChange={setSearch}
+            quoteNumberById={quoteNumberById}
+            onQuotePress={setSelectedId}
+            onCreate={() => setShowCreate(true)}
+          />
+        </ScrollView>
+        {modals}
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -881,31 +1216,7 @@ export default function QuotesScreen() {
         <ScreenCreateBar title="+ Novo orçamento" onPress={() => setShowCreate(true)} />
       ) : null}
 
-      {/* Criar */}
-      <QuoteForm
-        visible={showCreate}
-        onClose={() => setShowCreate(false)}
-        onSuccess={() => setShowCreate(false)}
-      />
-
-      {/* Detalhe */}
-      {selected && !editing ? (
-        <QuoteDetail
-          quote={selected}
-          onClose={() => setSelectedId(null)}
-          onEdit={() => setEditing(true)}
-        />
-      ) : null}
-
-      {/* Editar */}
-      {selected && editing ? (
-        <QuoteForm
-          quote={selected}
-          visible
-          onClose={() => setEditing(false)}
-          onSuccess={() => setEditing(false)}
-        />
-      ) : null}
+      {modals}
     </SafeAreaView>
   );
 }

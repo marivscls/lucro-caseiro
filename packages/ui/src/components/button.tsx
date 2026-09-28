@@ -25,8 +25,8 @@ type ButtonVariant =
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends Omit<PressableProps, "style"> {
+  /** O texto aparece sempre inteiro: quebra linha em vez de cortar com "…". */
   title: string;
-  titleLines?: 1 | 2;
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -34,33 +34,30 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   compact?: boolean;
   /** Disable press scaling on surfaces where motion would distract. */
   static?: boolean;
-  /** When false, the label keeps the size of `size` instead of shrinking to fit. */
-  fitTitle?: boolean;
   style?: ViewStyle;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-// Alturas distintas por tamanho; minimo de 44px de alvo de toque (publico idoso).
+// Botões principais com 48dp e texto de 16 (público idoso); o pequeno fica
+// com 44dp, o mínimo de alvo de toque.
 const sizeStyles: Record<
   ButtonSize,
   { minHeight: number; fontSize: number; px: number }
 > = {
-  sm: { minHeight: controlSizes.compact, fontSize: fontSizes.xs, px: spacing.md },
-  md: { minHeight: controlSizes.regular, fontSize: fontSizes.sm, px: spacing.lg },
-  lg: { minHeight: controlSizes.large, fontSize: fontSizes.sm, px: spacing.xl },
+  sm: { minHeight: controlSizes.regular, fontSize: fontSizes.sm, px: spacing.md },
+  md: { minHeight: controlSizes.large, fontSize: fontSizes.md, px: spacing.lg },
+  lg: { minHeight: controlSizes.large, fontSize: fontSizes.md, px: spacing.xl },
 };
 
 export function Button({
   title,
-  titleLines = 1,
   variant = "primary",
   size = "md",
   loading = false,
   icon,
   compact = false,
   static: staticMotion = false,
-  fitTitle = true,
   disabled,
   style,
   hitSlop,
@@ -152,9 +149,6 @@ export function Button({
         <>
           {icon}
           <Text
-            adjustsFontSizeToFit={fitTitle}
-            minimumFontScale={fitTitle ? 0.8 : 1}
-            numberOfLines={titleLines}
             style={{
               color: v.text,
               fontSize: s.fontSize,

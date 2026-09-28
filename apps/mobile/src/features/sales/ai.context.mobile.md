@@ -21,16 +21,20 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Code pointers
 
-| Arquivo                                                     | Descricao                                                                             |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/sales/api.ts`                     | Funcoes HTTP (fetchSales, fetchSale, fetchTodaySummary, createSale, updateSaleStatus) |
-| `apps/mobile/src/features/sales/hooks.ts`                   | React Query hooks                                                                     |
-| `apps/mobile/src/features/sales/components/sale-card.tsx`   | Card de venda na listagem                                                             |
-| `apps/mobile/src/features/sales/components/sale-detail.tsx` | Detalhe da venda com acoes de status + enviar recibo                                  |
-| `apps/mobile/src/features/sales/receipt.ts`                 | `buildReceiptMessage(sale)` — texto do recibo p/ WhatsApp                             |
-| `apps/mobile/src/features/sales/fiado.ts`                   | Fiado (vendas pendentes): `groupFiados`, `totalOwed`, `buildChargeMessage`            |
-| `apps/mobile/src/app/fiado.tsx`                             | Tela `/fiado` (quem te deve, por cliente, + cobrar no WhatsApp)                       |
-| `apps/mobile/src/app/tabs/new-sale.tsx`                     | Screen do wizard de nova venda (tab)                                                  |
+| Arquivo                                                          | Descricao                                                                                                                                 |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/mobile/src/features/sales/api.ts`                          | Funcoes HTTP (fetchSales, fetchSale, fetchTodaySummary, createSale, updateSaleStatus)                                                     |
+| `apps/mobile/src/features/sales/hooks.ts`                        | React Query hooks                                                                                                                         |
+| `apps/mobile/src/features/sales/components/sale-card.tsx`        | Card de venda na listagem                                                                                                                 |
+| `apps/mobile/src/features/sales/components/sale-detail.tsx`      | Detalhe da venda com acoes de status + enviar recibo                                                                                      |
+| `apps/mobile/src/features/sales/receipt.ts`                      | `buildReceiptMessage(sale)` — texto do recibo p/ WhatsApp                                                                                 |
+| `apps/mobile/src/features/sales/fiado.ts`                        | Fiado (vendas pendentes): `groupFiados`, `totalOwed`, `buildChargeMessage`                                                                |
+| `apps/mobile/src/app/fiado.tsx`                                  | Tela `/fiado` (quem te deve, por cliente, + cobrar no WhatsApp)                                                                           |
+| `apps/mobile/src/app/tabs/new-sale.tsx`                          | Screen do wizard de nova venda (tab)                                                                                                      |
+| `apps/mobile/src/features/sales/components/new-sale-desktop.tsx` | Apresentação desktop da Nova venda (cartões, resumo lateral, revisão)                                                                     |
+| `apps/mobile/src/features/sales/components/sales-desktop.tsx`    | Página desktop de Vendas (abas Vendas/Encomendas, resumo, busca, filtros, tabela)                                                         |
+| `apps/mobile/src/features/sales/components/fiado-desktop.tsx`    | Página desktop do Fiado (destaque do total, filtros, cartões por cliente)                                                                 |
+| `apps/mobile/src/features/sales/components/desktop-list-kit.tsx` | Kit local de listas desktop (busca, segmentado, abas, pílulas, paginação, vazio, destaque) usado por Vendas, Fiado, Clientes e Orçamentos |
 
 ## Components
 
@@ -63,9 +67,9 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   2. **Selecionar cliente:** opcao "Sem cliente (avulso)", busca de clientes, selecao com borda destacada.
   3. **Forma de pagamento:** opcoes Pix, Dinheiro, Cartao, Fiado, Transferencia com icones.
   4. **Revisar e confirmar:** resumo de itens, cliente, pagamento, total. Botao "Registrar venda".
-- Progresso no topo com quatro segmentos e rótulos: Cliente, Produtos, Pagamento e Revisão.
-- A etapa inicial de cliente usa avatares neutros e linhas compactas. Tocar em um cliente
-  ou em "Venda avulsa" avança para os produtos; no mobile, não há botão "Próximo"
+- Progresso no topo com quatro segmentos e rótulos: Produtos, Cliente, Pagamento e Revisão (ordem em `sale-steps.ts`; os números internos continuam 1 cliente, 2 produtos, 3 pagamento, 4 revisão).
+- A etapa de cliente (segunda) usa avatares neutros e linhas compactas. Tocar em um cliente
+  ou em "Venda avulsa" avança para o pagamento; no mobile, não há botão "Próximo"
   redundante nessa etapa, e a lista reserva espaço acima da navegação inferior.
 - Produtos, pagamento e revisão usam uma barra de total no fluxo do layout mobile,
   com reserva para a navegação, sem sobrepor as listas. Busca e atalhos de produto
@@ -78,6 +82,15 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   cliente e pagamento e mostra subtotal, desconto, total e observações.
 - A confirmação de sucesso conserva as ações de nova venda e recibo, destacando
   somente o acesso ao recibo; o atalho de venda rápida permanece disponível.
+- **Desktop (web >= 1024px)**: página rolável com `ScreenHeader` (título de 36px) e
+  `DesktopSplit`. A coluna principal traz `DesktopStepper` (Produtos, Cliente, Pagamento, Revisão),
+  o título da etapa uma única vez, a barra de busca com "Novo produto" e "Usar código"
+  ao lado e a grade de produtos (`DesktopGrid`, cartões com mínimo de 180px, até 4 colunas). A lateral
+  fixa (`DesktopSaleSummary`, de 280 a 360px) lista os itens, o cliente, o pagamento, o desconto
+  e o total, com a ação da etapa, a venda rápida e o botão Voltar. Os clientes aparecem em grade
+  de cartões, as formas de pagamento em grade e os ajustes em `DesktopFormGrid`.
+  A revisão mostra os itens e, ao lado, os dados e os valores. Estado, regras, rótulos
+  de acessibilidade e ações são os mesmos do celular; o celular não mudou.
 - Checa limite freemium via `useLimitCheck("sales")` antes de submeter.
 - Modal inline para criar produto caso nao exista nenhum.
 
@@ -93,13 +106,13 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## API Integration
 
-| Endpoint                      | Verbo | Funcao              | Parametros                        |
-| ----------------------------- | ----- | ------------------- | --------------------------------- |
-| `/api/v1/sales`               | GET   | `fetchSales`        | `?page=N&status=paid&clientId=ID` |
-| `/api/v1/sales/:id`           | GET   | `fetchSale`         | path param `id`                   |
-| `/api/v1/sales/summary/today` | GET   | `fetchTodaySummary` | -                                 |
-| `/api/v1/sales`               | POST  | `createSale`        | body: `CreateSale`                |
-| `/api/v1/sales/:id/status`    | PATCH | `updateSaleStatus`  | body: `UpdateSaleStatus`          |
+| Endpoint                      | Verbo | Funcao              | Parametros                                                |
+| ----------------------------- | ----- | ------------------- | --------------------------------------------------------- |
+| `/api/v1/sales`               | GET   | `fetchSales`        | `?page=N&status=paid&clientId=ID&dateFrom=ISO&dateTo=ISO` |
+| `/api/v1/sales/:id`           | GET   | `fetchSale`         | path param `id`                                           |
+| `/api/v1/sales/summary/today` | GET   | `fetchTodaySummary` | -                                                         |
+| `/api/v1/sales`               | POST  | `createSale`        | body: `CreateSale`                                        |
+| `/api/v1/sales/:id/status`    | PATCH | `updateSaleStatus`  | body: `UpdateSaleStatus`                                  |
 
 ## Contracts
 
@@ -142,6 +155,11 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Fluxo: step 1 (produtos) -> 2 (cliente) -> 3 (pagamento) -> 4 (revisar) -> registrar.
 
 ## Change log / Decisions
+
+- 2026-09-23: Nova venda redesenhada para o desktop com as primitivas de
+  `shared/layout/desktop-page.tsx`. Os componentes de apresentação ficam em
+  `components/new-sale-desktop.tsx`, e o subtítulo da página segue a ordem real das etapas.
+  O celular continua igual pixel a pixel.
 
 - 2026-09-22: a tab central da navbar passou a `Vender`; o leitor de tela continua ouvindo `Nova venda`.
 
@@ -219,3 +237,39 @@ A nova venda usa o componente compartilhado de etapas para cliente, produtos, pa
 O detalhe destaca total neutro, status e data no topo. Cliente e pagamento usam linhas com ícones; itens compartilham uma superfície com separadores, nomes completos e valores que se acomodam em telas estreitas. Descontos preservam subtotal, desconto e total. Observações ficam abaixo dos itens. WhatsApp é a ação principal para vendas pagas; pendentes priorizam marcar como pago. PDF usa contorno neutro, e editar/cancelar ficam em um grupo separado. Vendas canceladas não exibem ações. Tokens e componentes compartilhados preservam tema escuro e movimento reduzido.
 
 - 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).
+
+## Venda começa pelos produtos — 2026-09-23
+
+A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida no dinheiro". A ordem é Produtos → Cliente → Pagamento → Revisão (`SALE_STEP_ORDER` em `sale-steps.ts`). Tocar em um cliente ou em "Venda avulsa" avança para o pagamento. O Voltar do cabeçalho e o Voltar do Android voltam uma etapa; só saem da tela na primeira etapa. Depois de registrar a venda não há anúncio em tela cheia, o pedido de avaliação acontece a partir da 5ª venda e a permissão de notificação passa a ser pedida.
+
+## Filtro por data na lista — 2026-09-23
+
+`fetchSales`/`fetchAllSales` aceitam `dateFrom` e `dateTo` (ISO), que a API já recebia e compara com `soldAt`. Usado pelo histórico do Início (início do mês anterior até agora).
+
+## Desktop de Vendas e Fiado — 2026-09-24
+
+- Só vale para web >= 1024px (`useDesktopLayout`). Cada rota retorna uma árvore desktop
+  separada; o celular continua igual pixel a pixel.
+- **Vendas (`/tabs/sales`)**: cabeçalho "Vendas" com a ação "Nova venda" (a ilustração
+  decorativa do cabeçalho saiu no desktop). Abas de página Vendas / Encomendas (com a
+  contagem de encomendas abertas). Na aba Vendas: resumo (Vendido no período, Recebido,
+  A receber, Encomendas abertas; 2×2 quando falta largura), busca por produto ou cliente,
+  filtro segmentado Todas/Pendentes/Concluídas/Canceladas e tabela paginada. A partir de
+  1280px a tabela mostra Venda, Cliente, Data, Pagamento, Situação e Total; abaixo disso
+  Cliente, data e pagamento viram uma linha de apoio sob a venda. Venda pendente tem
+  "Marcar pago" na linha, que usa o mesmo fluxo de status do detalhe. Na aba Encomendas:
+  resumo (Em andamento, Entregues, A receber), busca, filtro e tabela; a linha abre a Agenda.
+- **Fiado (`/fiado`)**: destaque vinho com o total a receber, clientes, lançamentos,
+  vencidos e que vencem em breve. Lista "Cobranças" com ordem Mais antigos/Mais recentes,
+  busca, filtro de situação e de contato (WhatsApp), em grade de cartões por cliente
+  (até 3 colunas). Cada cartão traz os lançamentos com prazo, "Recebi"/"Recebi tudo",
+  "Cobrar" (WhatsApp) e "Ligar" quando há telefone. Mesmas regras e confirmações do celular.
+- Rótulos puros movidos para `fiado.ts` com teste: `fiadoTimingLabel`, `fiadoInitials`,
+  `launchCountLabel`.
+- `desktop-list-kit.tsx` fica em `features/sales` porque `shared/layout` está congelado
+  nesta rodada; é candidato a ir para `shared/layout` depois. Clientes e Orçamentos
+  importam o kit pelas rotas em `app/`, não pelas suas features.
+- O espaço entre o cabeçalho (ou a faixa de orientação) e o conteúdo vem do
+  `ScreenHeader`/`ScreenGuidance` compartilhados (32px); as telas não medem o cabeçalho.
+- Detalhe da venda (modal) no desktop: situação em `DesktopTag` de 14 px no lugar do
+  `Badge` de 12 px.

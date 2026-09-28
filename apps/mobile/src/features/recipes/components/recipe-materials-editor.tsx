@@ -3,12 +3,21 @@ import { guidanceEvent } from "../../../shared/guidance/guidance-events";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
-import { Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useRef, useState } from "react";
-import { Pressable, TouchableOpacity, View } from "react-native";
+import { Pressable, View } from "react-native";
 
-import { FormSection } from "../../../shared/components/form-section";
+import {
+  ChoiceField,
+  FormField,
+  SelectField,
+  TextField,
+  fieldMetrics,
+  useFieldPalette,
+} from "../../../shared/components/form-field";
+import { FormGrid } from "../../../shared/components/form-layout";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useMaterials } from "../../materials/hooks";
@@ -77,8 +86,12 @@ export function RecipeMaterialsEditor({
   onTotalCost?: (total: number) => void;
 }>) {
   const { theme } = useTheme();
+  const pal = useFieldPalette();
+  const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
-  const materialTitle = experienceCopy.materialNoun;
+  const materialLabel = experienceCopy.materialNoun.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
   const materialsTitle = experienceCopy.materialNounPlural;
   const guidanceUserId = useAuth((state) => state.userId);
   const [creatingMaterial, setCreatingMaterial] = useState(false);
@@ -166,41 +179,38 @@ export function RecipeMaterialsEditor({
       }}
     />
   ) : null;
-  if (isLoading) return <Typography variant="body">Carregando materiais...</Typography>;
+  if (isLoading)
+    return <Typography variant="body">Carregando {materialsTitle}...</Typography>;
   if (error)
     return (
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => void refetch()}
-        style={{ minHeight: 48 }}
-      >
+      <View style={{ gap: spacing.md }}>
         <Typography variant="body">
-          Não foi possível carregar os materiais. Toque para tentar novamente.
+          Não foi possível carregar os {materialsTitle}.
         </Typography>
-      </Pressable>
+        <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+          <Button
+            title="Tentar novamente"
+            variant="outline"
+            onPress={() => void refetch()}
+          />
+        </View>
+      </View>
     );
   if (materials.length === 0) {
     return (
       <View style={{ gap: spacing.md }}>
         {materialForm}
-        <Typography variant="h3">{materialsTitle}</Typography>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setCreatingMaterial(true)}
-          style={{
-            padding: spacing.lg,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.surface,
-            gap: spacing.xs,
-          }}
-        >
-          <Typography variant="body">
-            Você ainda não cadastrou {experienceCopy.materialNounPlural}.
-          </Typography>
-          <Typography variant="caption" color={theme.colors.primary}>
-            Cadastrar material e continuar →
-          </Typography>
-        </Pressable>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          Você ainda não cadastrou {experienceCopy.materialNounPlural}.
+        </Typography>
+        <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+          <Button
+            title={`Cadastrar ${experienceCopy.materialNoun} e continuar`}
+            variant="outline"
+            icon={<AppIcon name="add" size={20} color={theme.colors.primaryStrong} />}
+            onPress={() => setCreatingMaterial(true)}
+          />
+        </View>
       </View>
     );
   }
@@ -208,28 +218,24 @@ export function RecipeMaterialsEditor({
   return (
     <>
       {materialForm}
-      <FormSection
-        title={materialsTitle}
-        subtitle={`${lines.length} ${
-          lines.length === 1
-            ? experienceCopy.materialNoun
-            : experienceCopy.materialNounPlural
-        } · ${formatMoney(total)}`}
-        icon="basket-outline"
-        initiallyOpen
-      >
+      <View style={{ gap: spacing.lg }}>
         {lines.map((line, index) => {
           const material = byId.get(line.materialId);
           const cost = lineCost(material, line.quantity, line.unit);
           const units = material ? unitOptions(material) : [];
+          const activeUnit =
+            units.find(
+              (u) => u.trim().toLowerCase() === line.unit.trim().toLowerCase(),
+            ) ?? line.unit;
           return (
             <View
               key={index}
               style={{
-                gap: spacing.sm,
-                padding: spacing.md,
+                gap: spacing.lg,
+                padding: spacing.lg,
                 borderRadius: radii.lg,
-                backgroundColor: theme.colors.surface,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
               }}
             >
               <View
@@ -237,189 +243,132 @@ export function RecipeMaterialsEditor({
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  gap: spacing.sm,
                 }}
               >
                 <Typography variant="bodyBold" color={theme.colors.text}>
-                  {materialTitle} {index + 1}
+                  {materialLabel} {index + 1}
                 </Typography>
-                {lines.length > 1 && (
-                  <TouchableOpacity
-                    onPress={() => removeLine(index)}
-                    accessibilityLabel={`Remover ${experienceCopy.materialNoun} ${index + 1}`}
-                    hitSlop={8}
-                  >
-                    <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
-                  </TouchableOpacity>
-                )}
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+                >
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Custo{" "}
+                    <Typography variant="captionBold" color={theme.colors.success}>
+                      {formatMoney(cost)}
+                    </Typography>
+                  </Typography>
+                  {lines.length > 1 ? (
+                    <Pressable
+                      onPress={() => removeLine(index)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remover ${experienceCopy.materialNoun} ${index + 1}`}
+                      hitSlop={4}
+                      style={({ pressed }) => ({
+                        width: 44,
+                        height: 44,
+                        marginRight: -spacing.sm,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: radii.sm,
+                        opacity: pressed ? 0.6 : 1,
+                      })}
+                    >
+                      <AppIcon
+                        name="trash-outline"
+                        size={20}
+                        color={theme.colors.alert}
+                      />
+                    </Pressable>
+                  ) : null}
+                </View>
               </View>
 
-              <Pressable
-                onPress={() => openMaterialPicker(index)}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  material
-                    ? `Trocar ${experienceCopy.materialNoun} ${material.name}`
-                    : `Selecionar ${experienceCopy.materialNoun}`
-                }
-                style={({ pressed }) => ({
-                  minHeight: 58,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.sm,
-                  paddingHorizontal: spacing.md,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  backgroundColor: theme.colors.surfaceElevated,
-                  opacity: pressed ? 0.7 : 1,
-                })}
-              >
-                {material ? (
-                  <IngredientAvatar name={material.name} size={32} />
-                ) : (
-                  <AppIcon name="basket-outline" size={24} color={theme.colors.primary} />
-                )}
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    {materialTitle}
-                  </Typography>
-                  <Typography
-                    variant="bodyBold"
-                    color={material ? theme.colors.text : theme.colors.primary}
-                    numberOfLines={1}
-                  >
-                    {material?.name ?? `Selecionar ${experienceCopy.materialNoun}`}
-                  </Typography>
-                </View>
-                <AppIcon
-                  name="chevron-down"
-                  size={20}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-
-              {units.length > 1 && (
-                <View style={{ gap: spacing.xs }}>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Usar em
-                  </Typography>
-                  <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                    {units.map((u) => {
-                      const active =
-                        u.trim().toLowerCase() === line.unit.trim().toLowerCase();
-                      return (
-                        <Pressable
-                          key={u}
-                          onPress={() => updateLine(index, { unit: u })}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Usar em ${u}`}
-                          style={{
-                            paddingHorizontal: spacing.md,
-                            paddingVertical: spacing.sm,
-                            borderRadius: radii.full,
-                            backgroundColor: active
-                              ? theme.colors.primary
-                              : theme.colors.surfaceElevated,
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            color={
-                              active ? theme.colors.textOnPrimary : theme.colors.text
-                            }
-                          >
-                            {u}
-                          </Typography>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
-
-              <View
-                style={{ flexDirection: "row", gap: spacing.sm, alignItems: "flex-end" }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Input
-                    label={
+              <FormGrid>
+                <FormField label={materialLabel}>
+                  <SelectField
+                    icon="basket-outline"
+                    value={material?.name}
+                    placeholder={`Selecionar ${experienceCopy.materialNoun}`}
+                    onPress={() => openMaterialPicker(index)}
+                    accessibilityLabel={
                       material
-                        ? `Quantidade (${line.unit || material.unit})`
-                        : "Quantidade"
+                        ? `Trocar ${experienceCopy.materialNoun}`
+                        : `Selecionar ${experienceCopy.materialNoun}`
                     }
+                  />
+                </FormField>
+                <FormField label="Quantidade">
+                  <TextField
                     accessibilityLabel="Quantidade"
                     placeholder="Ex: 2"
+                    suffix={material ? line.unit || material.unit : undefined}
                     value={line.quantity}
                     onChangeText={(v) => updateLine(index, { quantity: v })}
                     keyboardType="decimal-pad"
                     numericMode="decimal"
                   />
-                </View>
-                <View style={{ paddingBottom: spacing.md }}>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Custo
-                  </Typography>
-                  <Typography variant="bodyBold" color={theme.colors.success}>
-                    {formatMoney(cost)}
-                  </Typography>
-                </View>
-              </View>
+                </FormField>
+                {units.length > 1 ? (
+                  <FormField label="Usar em" span="full">
+                    <ChoiceField
+                      value={activeUnit}
+                      accessibilityLabel="Usar em"
+                      options={units.map((u) => ({ value: u, label: u }))}
+                      onChange={(u) => updateLine(index, { unit: u })}
+                    />
+                  </FormField>
+                ) : null}
+              </FormGrid>
             </View>
           );
         })}
 
-        <TouchableOpacity
-          onPress={addLine}
-          style={{
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: spacing.xs,
-            paddingVertical: spacing.md,
-            borderRadius: radii.lg,
-            borderWidth: 1,
-            borderColor: theme.colors.primary,
-            borderStyle: "dashed",
-          }}
-        >
-          <AppIcon name="add" size={20} color={theme.colors.primary} />
-          <Typography variant="bodyBold" color={theme.colors.primary}>
-            Adicionar {experienceCopy.materialNoun}
-          </Typography>
-        </TouchableOpacity>
+        <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+          <Button
+            title={`Adicionar ${experienceCopy.materialNoun}`}
+            variant="outline"
+            icon={<AppIcon name="add" size={20} color={theme.colors.primaryStrong} />}
+            onPress={addLine}
+          />
+        </View>
 
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            paddingTop: spacing.xs,
+            gap: spacing.md,
+            paddingTop: spacing.md,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
           }}
         >
-          <Typography variant="body">
+          <Typography variant="body" style={{ flexShrink: 1 }}>
             Custo total — {experienceCopy.materialNounPlural}
           </Typography>
           <Typography variant="bodyBold" color={theme.colors.success}>
             {formatMoney(total)}
           </Typography>
         </View>
-      </FormSection>
+      </View>
 
       <StandardModal
         visible={pickerLineIndex !== null && !creatingMaterial}
         onClose={closeMaterialPicker}
-        title={`Selecionar ${materialTitle}`}
+        title={`Selecionar ${experienceCopy.materialNoun}`}
         subtitle={
-          pickerLineIndex === null ? undefined : `${materialTitle} ${pickerLineIndex + 1}`
+          pickerLineIndex === null ? undefined : `${materialLabel} ${pickerLineIndex + 1}`
         }
       >
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setCreatingMaterial(true)}
-          style={{ minHeight: 48 }}
-        >
-          <Typography variant="bodyBold">Cadastrar material e continuar</Typography>
-        </Pressable>
+        <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+          <Button
+            title={`Cadastrar ${experienceCopy.materialNoun} e continuar`}
+            variant="outline"
+            icon={<AppIcon name="add" size={20} color={theme.colors.primaryStrong} />}
+            onPress={() => setCreatingMaterial(true)}
+          />
+        </View>
         <Input
           label={`Buscar ${experienceCopy.materialNoun}`}
           placeholder={`Digite o nome do ${experienceCopy.materialNoun}`}
@@ -440,36 +389,35 @@ export function RecipeMaterialsEditor({
                 accessibilityLabel={`Selecionar ${materialOption.name}`}
                 accessibilityState={{ selected: active }}
                 style={({ pressed }) => ({
-                  minHeight: 56,
+                  minHeight: fieldMetrics.height,
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: spacing.sm,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: active ? theme.colors.primary : theme.colors.border,
-                  backgroundColor: active
-                    ? theme.colors.primaryBg
-                    : theme.colors.surfaceElevated,
-                  opacity: pressed ? 0.7 : 1,
+                  gap: spacing.md,
+                  paddingHorizontal: spacing.md - (active ? 1 : 0),
+                  borderRadius: fieldMetrics.radius,
+                  borderWidth: active ? 2 : 1,
+                  borderColor: active ? theme.colors.primaryStrong : pal.border,
+                  backgroundColor: active ? theme.colors.primaryBg : pal.fieldBgFocus,
+                  opacity: pressed ? 0.85 : 1,
                 })}
               >
-                <IngredientAvatar name={materialOption.name} size={34} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Typography variant="bodyBold" color={theme.colors.text}>
-                    {materialOption.name}
-                  </Typography>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    {formatMoney(materialOption.costPerUnit ?? 0)} por{" "}
-                    {materialOption.unit}
-                  </Typography>
-                </View>
+                <IngredientAvatar name={materialOption.name} size={28} />
+                <Typography
+                  variant="bodyBold"
+                  color={active ? theme.colors.primaryStrong : theme.colors.text}
+                  numberOfLines={1}
+                  style={{ flex: 1, minWidth: 0 }}
+                >
+                  {materialOption.name}
+                </Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {formatMoney(materialOption.costPerUnit ?? 0)} por {materialOption.unit}
+                </Typography>
                 {active ? (
                   <AppIcon
                     name="checkmark-circle"
-                    size={22}
-                    color={theme.colors.primary}
+                    size={fieldMetrics.iconSize}
+                    color={theme.colors.primaryStrong}
                   />
                 ) : null}
               </Pressable>

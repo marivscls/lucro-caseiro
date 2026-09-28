@@ -12,12 +12,17 @@ const mocks = vi.hoisted(() => ({
   updateProfile: vi.fn(),
   setOnboarding: vi.fn(),
   setAuth: vi.fn(),
+  track: vi.fn(),
 }));
+vi.mock("../analytics/tracker", () => ({ trackAnalyticsAction: mocks.track }));
 vi.mock("../../shared/hooks/use-auth", () => ({
   useAuth: Object.assign(
     (selector: (value: { userId: string }) => unknown) =>
       selector({ userId: mocks.userId }),
-    { getState: () => ({ userId: mocks.userId }), setState: mocks.setAuth },
+    {
+      getState: () => ({ userId: mocks.userId, token: "sessao" }),
+      setState: mocks.setAuth,
+    },
   ),
 }));
 vi.mock("../../shared/hooks/use-onboarding", () => ({
@@ -139,5 +144,49 @@ describe("sincronização do onboarding", () => {
     });
     expect(mocks.updateUser).not.toHaveBeenCalled();
     expect(mocks.setOnboarding).not.toHaveBeenCalled();
+  });
+
+  it("registra perfil respondido só com identificadores das opções", async () => {
+    // Arrange
+    const hook = setup();
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+
+    // Act
+    await act(async () => {
+      await hook.result.current.save({
+        ...answers,
+        business: "Doces da Ana",
+        channels: ["whatsapp"],
+      });
+    });
+
+    // Assert
+    expect(mocks.track).toHaveBeenCalledWith("business_profile_completed", "sessao", {
+      first: true,
+      segment: "food",
+      stage: "starting",
+      goal: "price",
+      channels: 1,
+    });
+  });
+  it("registra perfil pulado e não registra nada quando o salvamento falha", async () => {
+    // Arrange
+    const hook = setup();
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    mocks.updateUser.mockResolvedValueOnce({ error: new Error("offline") });
+
+    // Act
+    await act(async () => {
+      await hook.result.current.save(null);
+    });
+    await act(async () => {
+      await hook.result.current.save(null);
+    });
+
+    // Assert
+    expect(mocks.track).toHaveBeenCalledOnce();
+    expect(mocks.track).toHaveBeenCalledWith("business_profile_skipped", "sessao", {
+      first: true,
+    });
   });
 });

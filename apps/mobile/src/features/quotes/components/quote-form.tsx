@@ -1,35 +1,32 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { CreateQuote, Product, Quote, QuoteItem } from "@lucro-caseiro/contracts";
-import {
-  Button,
-  Chip,
-  Input,
-  Typography,
-  useTheme,
-  radii,
-  spacing,
-} from "@lucro-caseiro/ui";
+import { Button, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
-import { showAlert } from "../../../shared/components/alert-store";
+import { DateField } from "../../../shared/components/date-field";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { FormStepProgress } from "../../../shared/components/form-step-progress";
+import { FormSection } from "../../../shared/components/form-section";
+import {
+  ChoiceField,
+  FieldLinkAction,
+  FormField,
+  TextField,
+  type ChoiceOption,
+} from "../../../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
+import { ValidationField } from "@lucro-caseiro/ui";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
+import { brToIso } from "../../../shared/utils/date";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { ProductPicker } from "../../labels/components/label-product-picker";
 import { computeQuotePricing } from "../calc";
 import { useCreateQuote, useUpdateQuote } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import {
-  desktopAction,
-  desktopCompactField,
-  desktopSplitLayout,
-} from "../../../shared/layout/desktop-density";
 import {
   currencyInput,
   maskCurrencyInput,
@@ -57,6 +54,14 @@ const QUOTE_FORM_STEPS = [
   { label: "Detalhes", title: "Prazo e observações" },
 ] as const;
 
+type DiscountChoice = "none" | "fixed" | "percentage";
+
+const DISCOUNT_OPTIONS: readonly ChoiceOption<DiscountChoice>[] = [
+  { value: "none", label: "Sem desconto" },
+  { value: "fixed", label: "Valor em R$" },
+  { value: "percentage", label: "Porcentagem" },
+];
+
 function toDrafts(items: QuoteItem[]): ItemDraft[] {
   return items.map((item) => ({
     description: item.description,
@@ -72,16 +77,36 @@ function parseNumber(value: string): number {
   return parseFloat(value.replace(",", "."));
 }
 
-function maskDateBR(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+function invalidQuantity(value: string): boolean {
+  const quantity = parseNumber(value);
+  return !Number.isFinite(quantity) || quantity <= 0;
 }
 
-function brToIso(value: string): string | null {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
-  return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
+function invalidPrice(value: string): boolean {
+  return !value.trim() || Number.isNaN(parseCurrencyInput(value));
+}
+
+function invalidCost(value: string): boolean {
+  if (!value) return false;
+  const cost = parseCurrencyInput(value);
+  return !Number.isFinite(cost) || cost < 0;
+}
+
+function SummaryRow({
+  label,
+  value,
+  color,
+}: Readonly<{ label: string; value: string; color?: string }>) {
+  return (
+    <View
+      style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.md }}
+    >
+      <Typography variant="body">{label}</Typography>
+      <Typography variant="bodyBold" color={color}>
+        {value}
+      </Typography>
+    </View>
+  );
 }
 
 export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps) {
@@ -138,8 +163,6 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
         reviewData.discountValue ?? 0,
       )
     : null;
-  const split = desktopSplitLayout(isDesktop);
-  const compactField = desktopCompactField(isDesktop);
 
   useEffect(() => {
     if (visible) setFormStep(1);
@@ -179,79 +202,71 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
     setShowProductPicker(false);
   }
 
-  const formValidation = useFormValidation<string>(
-    {
-      title: !title.trim() && "Dê um título ao orçamento.",
+  // Cada etapa valida só os próprios campos, com o erro no campo.
+  const clientStepValidation = useFormValidation(
+    { title: !title.trim() && "Dê um título ao orçamento." },
+    visible,
+  );
 
-      ...Object.fromEntries(
-        items.flatMap((item, index) => [
-          [
-            `item-${index}-description`,
-            !item.description.trim() && "Descreva este item.",
-          ],
-          [
-            `item-${index}-quantity`,
-            (!Number.isFinite(parseNumber(item.quantity)) ||
-              parseNumber(item.quantity) <= 0) &&
-              "Informe uma quantidade maior que zero.",
-          ],
-          [
-            `item-${index}-price`,
-            !item.unitPrice.trim() && "Informe o preço deste item.",
-          ],
-        ]),
-      ),
+  const itemsStepValidation = useFormValidation<string>(
+    Object.fromEntries(
+      items.flatMap((item, index) => [
+        [`item-${index}-description`, !item.description.trim() && "Descreva este item."],
+        [
+          `item-${index}-quantity`,
+          invalidQuantity(item.quantity) && "Informe uma quantidade maior que zero.",
+        ],
+        [
+          `item-${index}-price`,
+          invalidPrice(item.unitPrice) && "Informe o preço deste item.",
+        ],
+        [
+          `item-${index}-cost`,
+          invalidCost(item.estimatedUnitCost) && "Confira o custo deste item.",
+        ],
+      ]),
+    ),
+    visible,
+  );
+
+  const detailsStepValidation = useFormValidation(
+    {
+      validUntil:
+        !!validUntil.trim() &&
+        !brToIso(validUntil) &&
+        "Validade inválida. Use o formato DD/MM/AAAA.",
     },
     visible,
   );
 
+  const stepValidations = [
+    clientStepValidation,
+    itemsStepValidation,
+    detailsStepValidation,
+  ] as const;
+
+  function goToNextStep() {
+    if (!stepValidations[formStep - 1].validate()) return;
+    setFormStep(formStep + 1);
+  }
+
   function buildQuoteData(): CreateQuote | null {
-    if (!formValidation.validate()) return null;
-    if (!title.trim()) {
-      alertValidation("Dê um título ao orçamento. Ex.: Kit festa Safari");
-      return null;
-    }
     const parsedItems: QuoteItem[] = [];
     for (const item of items) {
       if (!item.description.trim()) continue;
-      const quantity = parseNumber(item.quantity);
-      const unitPrice = parseCurrencyInput(item.unitPrice);
-      if (Number.isNaN(quantity) || quantity <= 0 || Number.isNaN(unitPrice)) {
-        showAlert({
-          title: "Opa!",
-          message: `Confira a quantidade e o preço do item "${item.description}".`,
-        });
-        return null;
-      }
-      const estimatedUnitCost = item.estimatedUnitCost
-        ? parseCurrencyInput(item.estimatedUnitCost)
-        : undefined;
-      if (
-        estimatedUnitCost !== undefined &&
-        (!Number.isFinite(estimatedUnitCost) || estimatedUnitCost < 0)
-      ) {
-        alertValidation(`Confira o custo interno de "${item.description}".`);
-        return null;
-      }
       parsedItems.push({
         productId: item.productId,
         description: item.description.trim(),
-        quantity,
-        unitPrice,
-        estimatedUnitCost,
+        quantity: parseNumber(item.quantity),
+        unitPrice: parseCurrencyInput(item.unitPrice),
+        estimatedUnitCost: item.estimatedUnitCost
+          ? parseCurrencyInput(item.estimatedUnitCost)
+          : undefined,
       });
     }
     if (parsedItems.length === 0) {
       alertValidation("Adicione pelo menos um item com descrição e preço.");
       return null;
-    }
-    let validIso: string | null = null;
-    if (validUntil.trim()) {
-      validIso = brToIso(validUntil);
-      if (!validIso) {
-        alertValidation("Validade inválida. Use o formato DD/MM/AAAA.");
-        return null;
-      }
     }
 
     return {
@@ -261,24 +276,18 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
       items: parsedItems,
       discountType,
       discountValue: discountType ? parseNumber(discountValue) || 0 : 0,
-      validUntil: validIso,
+      validUntil: validUntil.trim() ? (brToIso(validUntil) ?? null) : null,
       notes: notes.trim() || null,
     };
   }
 
   function handleReview() {
-    if (!title.trim()) setFormStep(1);
-    else if (
-      items.some(
-        (item) =>
-          !item.description.trim() ||
-          !Number.isFinite(parseNumber(item.quantity)) ||
-          parseNumber(item.quantity) <= 0 ||
-          !item.unitPrice.trim(),
-      )
-    )
-      setFormStep(2);
-    else if (validUntil.trim() && !brToIso(validUntil)) setFormStep(3);
+    for (const [index, validation] of stepValidations.entries()) {
+      if (!validation.validate()) {
+        setFormStep(index + 1);
+        return;
+      }
+    }
     const data = buildQuoteData();
     if (data) setReviewData(data);
   }
@@ -302,67 +311,43 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
     }
   }
 
+  function stepProps(step: number) {
+    const stepVisible = formStep === step;
+    return {
+      style: { display: stepVisible ? ("flex" as const) : ("none" as const) },
+      accessibilityElementsHidden: !stepVisible,
+      importantForAccessibility: stepVisible
+        ? ("auto" as const)
+        : ("no-hide-descendants" as const),
+    };
+  }
+
+  const filledItems = items.filter((item) => item.description.trim());
+
   return (
     <>
       <StandardModal
         title={quote ? "Editar orçamento" : "Novo orçamento"}
         visible={visible && reviewData === null}
         onClose={onClose}
-        wide={isDesktop}
+        size="form"
         footer={
-          <>
+          <FormActions>
             {formStep > 1 ? (
               <Button
                 title="Voltar"
-                variant="ghost"
+                variant="outline"
                 onPress={() => setFormStep(formStep - 1)}
               />
-            ) : null}
-            {formStep < QUOTE_FORM_STEPS.length ? (
-              <Button
-                title="Continuar"
-                size="lg"
-                onPress={() => {
-                  if (formStep === 1 && !title.trim()) {
-                    alertValidation("Dê um título ao orçamento antes de continuar.");
-                    return;
-                  }
-                  if (
-                    formStep === 2 &&
-                    items.some((item) => {
-                      const quantity = parseNumber(item.quantity);
-                      return (
-                        !item.description.trim() ||
-                        !Number.isFinite(quantity) ||
-                        quantity <= 0 ||
-                        !item.unitPrice.trim()
-                      );
-                    })
-                  ) {
-                    alertValidation(
-                      "Confira descrição, quantidade e preço de cada item.",
-                    );
-                    return;
-                  }
-                  setFormStep(formStep + 1);
-                }}
-                style={{
-                  flex: isDesktop ? undefined : 1,
-                  ...desktopAction(isDesktop, 240),
-                }}
-              />
             ) : (
-              <Button
-                title="Revisar orçamento"
-                size="lg"
-                onPress={handleReview}
-                style={{
-                  flex: isDesktop ? undefined : 1,
-                  ...desktopAction(isDesktop, 240),
-                }}
-              />
+              <Button title="Cancelar" variant="outline" onPress={onClose} />
             )}
-          </>
+            {formStep < QUOTE_FORM_STEPS.length ? (
+              <Button title="Continuar" onPress={goToNextStep} />
+            ) : (
+              <Button title="Revisar orçamento" onPress={handleReview} />
+            )}
+          </FormActions>
         }
       >
         <FormStepProgress
@@ -370,211 +355,225 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
           steps={QUOTE_FORM_STEPS}
           onStepPress={setFormStep}
         />
-        <View style={isDesktop ? split.row : { flexShrink: 1, gap: spacing.xl }}>
-          <View style={isDesktop ? split.main : { flexShrink: 1, gap: spacing.lg }}>
-            <View
-              style={{ display: formStep === 1 ? "flex" : "none", gap: spacing.lg }}
-              accessibilityElementsHidden={formStep !== 1}
-              importantForAccessibility={formStep === 1 ? "auto" : "no-hide-descendants"}
-            >
-              <ValidationField {...formValidation.field("title")}>
-                <Input
-                  label="Título"
-                  accessibilityLabel="Titulo do orcamento"
+
+        <View {...stepProps(1)}>
+          <FormBody>
+            <FormGrid>
+              <FormField label="Título" validation={clientStepValidation.field("title")}>
+                <TextField
+                  icon="document-text-outline"
+                  accessibilityLabel="Título do orçamento"
                   placeholder="Ex.: Kit festa Safari"
                   value={title}
                   onChangeText={setTitle}
                 />
-              </ValidationField>
-              <Input
-                label="Cliente (opcional)"
-                placeholder="Nome de quem pediu o orçamento"
-                value={clientName}
-                onChangeText={(value) => {
-                  setClientId(null);
-                  setClientName(value);
-                }}
-              />
-              <Button
-                title={
-                  clientId ? "Trocar cliente cadastrado" : "Selecionar cliente cadastrado"
-                }
-                variant="outline"
-                icon={
-                  <AppIcon name="person-outline" size={20} color={theme.colors.primary} />
-                }
-                onPress={() => setShowClientPicker(true)}
-              />
-              <ClientPickerModal
-                visible={showClientPicker}
-                onClose={() => setShowClientPicker(false)}
-                onSelect={(client) => {
-                  setClientId(client?.id ?? null);
-                  setClientName(client?.name ?? "");
-                }}
-              />
-            </View>
-
-            <View
-              style={{ display: formStep === 2 ? "flex" : "none", gap: spacing.lg }}
-              accessibilityElementsHidden={formStep !== 2}
-              importantForAccessibility={formStep === 2 ? "auto" : "no-hide-descendants"}
-            >
-              <Typography variant="h3">Itens</Typography>
-              <Button
-                title="Adicionar do catálogo"
-                variant="outline"
-                icon={
-                  <AppIcon
-                    name="pricetag-outline"
-                    size={20}
-                    color={theme.colors.primary}
+              </FormField>
+              <FormField
+                label="Cliente"
+                optional
+                labelAction={
+                  <FieldLinkAction
+                    label={clientId ? "Trocar cadastrado" : "Escolher cadastrado"}
+                    icon="people-outline"
+                    accessibilityLabel={
+                      clientId
+                        ? "Trocar cliente cadastrado"
+                        : "Selecionar cliente cadastrado"
+                    }
+                    onPress={() => setShowClientPicker(true)}
                   />
                 }
-                onPress={() => setShowProductPicker(true)}
-              />
+              >
+                <TextField
+                  icon="person-outline"
+                  accessibilityLabel="Nome do cliente"
+                  placeholder="Nome de quem pediu"
+                  value={clientName}
+                  onChangeText={(value) => {
+                    setClientId(null);
+                    setClientName(value);
+                  }}
+                />
+              </FormField>
+            </FormGrid>
+          </FormBody>
+          <ClientPickerModal
+            visible={showClientPicker}
+            onClose={() => setShowClientPicker(false)}
+            onSelect={(client) => {
+              setClientId(client?.id ?? null);
+              setClientName(client?.name ?? "");
+            }}
+          />
+        </View>
+
+        <View {...stepProps(2)}>
+          <FormBody>
+            <FormSection
+              collapsible={false}
+              title="Itens"
+              subtitle="O custo de cada item só aparece para você."
+            >
               {items.map((item, index) => (
                 <View
                   key={index}
                   style={{
-                    gap: spacing.sm,
-                    borderRadius: radii.xl,
+                    gap: spacing.lg,
+                    borderRadius: radii.lg,
                     borderWidth: 1,
                     borderColor: theme.colors.border,
-                    padding: spacing.md,
+                    padding: spacing.lg,
                   }}
                 >
-                  <ValidationField {...formValidation.field(`item-${index}-description`)}>
-                    <Input
-                      placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
-                      accessibilityLabel={`Item ${index + 1}`}
-                      value={item.description}
-                      onChangeText={(v) => setItem(index, { description: v })}
-                    />
-                  </ValidationField>
                   <View
                     style={{
                       flexDirection: "row",
-                      gap: spacing.sm,
                       alignItems: "center",
+                      justifyContent: "space-between",
+                      minHeight: 24,
                     }}
                   >
-                    <View style={compactField}>
-                      <ValidationField
-                        {...formValidation.field(`item-${index}-quantity`)}
-                      >
-                        <Input
-                          placeholder="Qtd."
-                          value={item.quantity}
-                          onChangeText={(v) => setItem(index, { quantity: v })}
-                          keyboardType="decimal-pad"
-                          numericMode="decimal"
-                        />
-                      </ValidationField>
-                    </View>
-                    <View
-                      style={[
-                        compactField,
-                        isDesktop ? { flex: 1, maxWidth: undefined } : { flex: 1.4 },
-                      ]}
-                    >
-                      <ValidationField {...formValidation.field(`item-${index}-price`)}>
-                        <Input
-                          placeholder="Preço un."
-                          accessibilityLabel="Preco un"
-                          value={item.unitPrice}
-                          onChangeText={(v) =>
-                            setItem(index, { unitPrice: maskCurrencyInput(v) })
-                          }
-                          keyboardType="numeric"
-                        />
-                      </ValidationField>
-                    </View>
-                    <Pressable
-                      onPress={() => removeItem(index)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Remover item ${index + 1}`}
-                      disabled={items.length === 1}
-                      style={{
-                        width: 48,
-                        height: 48,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        opacity: items.length === 1 ? 0.35 : 1,
-                      }}
-                    >
-                      <AppIcon
-                        name="trash-outline"
-                        size={22}
-                        color={theme.colors.alert}
+                    <Typography variant="bodyBold">Item {index + 1}</Typography>
+                    {items.length > 1 ? (
+                      <FieldLinkAction
+                        label="Remover"
+                        icon="trash-outline"
+                        accessibilityLabel={`Remover item ${index + 1}`}
+                        onPress={() => removeItem(index)}
                       />
-                    </Pressable>
+                    ) : null}
                   </View>
-                  <View style={compactField}>
-                    <Input
-                      label="Custo unitário estimado (só você vê)"
-                      placeholder="R$ 0,00"
-                      value={item.estimatedUnitCost}
-                      onChangeText={(value) =>
-                        setItem(index, { estimatedUnitCost: maskCurrencyInput(value) })
-                      }
-                      keyboardType="numeric"
-                    />
-                  </View>
+                  <FormGrid columns={3} minColumnWidth={150}>
+                    <FormField
+                      label="Descrição"
+                      span="full"
+                      validation={itemsStepValidation.field(`item-${index}-description`)}
+                    >
+                      <TextField
+                        accessibilityLabel={`Descrição do item ${index + 1}`}
+                        placeholder="Ex.: Convite personalizado"
+                        value={item.description}
+                        onChangeText={(v) => setItem(index, { description: v })}
+                      />
+                    </FormField>
+                    <FormField
+                      label="Quantidade"
+                      validation={itemsStepValidation.field(`item-${index}-quantity`)}
+                    >
+                      <TextField
+                        accessibilityLabel={`Quantidade do item ${index + 1}`}
+                        placeholder="1"
+                        value={item.quantity}
+                        onChangeText={(v) => setItem(index, { quantity: v })}
+                        keyboardType="decimal-pad"
+                        numericMode="decimal"
+                      />
+                    </FormField>
+                    <FormField
+                      label="Preço unitário"
+                      validation={itemsStepValidation.field(`item-${index}-price`)}
+                    >
+                      <TextField
+                        prefix="R$"
+                        accessibilityLabel={`Preço unitário do item ${index + 1}, em reais`}
+                        placeholder="0,00"
+                        value={item.unitPrice}
+                        onChangeText={(v) =>
+                          setItem(index, { unitPrice: maskCurrencyInput(v) })
+                        }
+                        keyboardType="numeric"
+                      />
+                    </FormField>
+                    <FormField
+                      label="Seu custo"
+                      optional
+                      validation={itemsStepValidation.field(`item-${index}-cost`)}
+                    >
+                      <TextField
+                        prefix="R$"
+                        accessibilityLabel={`Custo unitário do item ${index + 1}, em reais`}
+                        placeholder="0,00"
+                        value={item.estimatedUnitCost}
+                        onChangeText={(value) =>
+                          setItem(index, {
+                            estimatedUnitCost: maskCurrencyInput(value),
+                          })
+                        }
+                        keyboardType="numeric"
+                      />
+                    </FormField>
+                  </FormGrid>
                 </View>
               ))}
 
-              <Button
-                title="Adicionar item"
-                variant="outline"
-                icon={<AppIcon name="add" size={20} color={theme.colors.primary} />}
-                onPress={addItem}
-              />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+                <Button
+                  title="Adicionar item"
+                  variant="outline"
+                  icon={
+                    <AppIcon name="add" size={20} color={theme.colors.primaryStrong} />
+                  }
+                  onPress={addItem}
+                />
+                <Button
+                  title="Adicionar do catálogo"
+                  variant="outline"
+                  icon={
+                    <AppIcon
+                      name="pricetag-outline"
+                      size={20}
+                      color={theme.colors.primaryStrong}
+                    />
+                  }
+                  onPress={() => setShowProductPicker(true)}
+                />
+              </View>
+            </FormSection>
 
-              <View style={{ gap: spacing.sm }}>
-                <Typography variant="bodyBold">Desconto</Typography>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  <Chip
-                    label="Sem desconto"
-                    selected={discountType === null}
-                    onPress={() => {
-                      setDiscountType(null);
-                      setDiscountValue("");
-                    }}
-                  />
-                  <Chip
-                    label="Valor em R$"
-                    selected={discountType === "fixed"}
-                    onPress={() => setDiscountType("fixed")}
-                  />
-                  <Chip
-                    label="Porcentagem"
-                    selected={discountType === "percentage"}
-                    onPress={() => setDiscountType("percentage")}
-                  />
-                </View>
-                {discountType ? (
-                  <View style={compactField}>
-                    <Input
-                      label={
-                        discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"
+            <FormSection collapsible={false} title="Desconto">
+              <ChoiceField
+                value={discountType ?? "none"}
+                options={DISCOUNT_OPTIONS}
+                accessibilityLabel="Tipo de desconto"
+                onChange={(value) => {
+                  if (value === "none") {
+                    setDiscountType(null);
+                    setDiscountValue("");
+                    return;
+                  }
+                  setDiscountType(value);
+                }}
+              />
+              {discountType ? (
+                <FormGrid>
+                  <FormField label="Valor do desconto">
+                    <TextField
+                      prefix={discountType === "fixed" ? "R$" : undefined}
+                      suffix={discountType === "percentage" ? "%" : undefined}
+                      accessibilityLabel={
+                        discountType === "percentage"
+                          ? "Desconto, em porcentagem"
+                          : "Desconto, em reais"
                       }
+                      placeholder={discountType === "percentage" ? "10" : "0,00"}
                       value={discountValue}
                       onChangeText={setDiscountValue}
                       keyboardType="decimal-pad"
                       numericMode="decimal"
                     />
-                  </View>
-                ) : null}
-              </View>
+                  </FormField>
+                </FormGrid>
+              ) : null}
+            </FormSection>
 
+            <View style={{ gap: spacing.lg }}>
               <View
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
                   backgroundColor: theme.colors.successBg,
-                  borderRadius: radii.xl,
+                  borderRadius: radii.lg,
                   padding: spacing.lg,
                 }}
               >
@@ -586,7 +585,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
 
               <View
                 style={{
-                  borderRadius: radii.xl,
+                  borderRadius: radii.lg,
                   borderWidth: 1,
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.surfaceElevated,
@@ -598,76 +597,60 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                 <Typography variant="caption" color={theme.colors.textSecondary}>
                   Estes valores não aparecem no documento do cliente.
                 </Typography>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="body">Subtotal</Typography>
-                  <Typography variant="bodyBold">
-                    {formatCurrency(pricing.subtotal)}
-                  </Typography>
-                </View>
+                <SummaryRow label="Subtotal" value={formatCurrency(pricing.subtotal)} />
                 {pricing.discount > 0 ? (
-                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <Typography variant="body">Desconto</Typography>
-                    <Typography variant="bodyBold" color={theme.colors.success}>
-                      − {formatCurrency(pricing.discount)}
-                    </Typography>
-                  </View>
+                  <SummaryRow
+                    label="Desconto"
+                    value={`− ${formatCurrency(pricing.discount)}`}
+                    color={theme.colors.success}
+                  />
                 ) : null}
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="body">Custo estimado</Typography>
-                  <Typography variant="bodyBold">
-                    {formatCurrency(pricing.estimatedCost)}
-                  </Typography>
-                </View>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="body">Ganho estimado</Typography>
-                  <Typography
-                    variant="bodyBold"
-                    color={
-                      pricing.estimatedGain >= 0
-                        ? theme.colors.success
-                        : theme.colors.alert
-                    }
-                  >
-                    {formatCurrency(pricing.estimatedGain)}
-                  </Typography>
-                </View>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="body">Margem estimada</Typography>
-                  <Typography variant="bodyBold">
-                    {pricing.estimatedMargin.toFixed(1).replace(".", ",")}%
-                  </Typography>
-                </View>
+                <SummaryRow
+                  label="Custo estimado"
+                  value={formatCurrency(pricing.estimatedCost)}
+                />
+                <SummaryRow
+                  label="Ganho estimado"
+                  value={formatCurrency(pricing.estimatedGain)}
+                  color={
+                    pricing.estimatedGain >= 0 ? theme.colors.success : theme.colors.alert
+                  }
+                />
+                <SummaryRow
+                  label="Margem estimada"
+                  value={`${pricing.estimatedMargin.toFixed(1).replace(".", ",")}%`}
+                />
               </View>
             </View>
+          </FormBody>
+        </View>
 
-            <View
-              style={{ display: formStep === 3 ? "flex" : "none", gap: spacing.lg }}
-              accessibilityElementsHidden={formStep !== 3}
-              importantForAccessibility={formStep === 3 ? "auto" : "no-hide-descendants"}
-            >
-              <Input
-                label="Válido até (opcional)"
-                placeholder="DD/MM/AAAA"
-                value={validUntil}
-                onChangeText={(v) => setValidUntil(maskDateBR(v))}
-                keyboardType="number-pad"
-              />
-              <Input
-                label="Observações (opcional)"
-                placeholder="Condições, prazo de produção, retirada..."
-                value={notes}
-                onChangeText={setNotes}
-                multiline
-                numberOfLines={3}
-                style={{ height: 80, textAlignVertical: "center" }}
-              />
-            </View>
-          </View>
-          {isDesktop && formStep === 3 ? (
-            <View style={split.aside}>
+        <View {...stepProps(3)}>
+          <FormBody>
+            <FormGrid>
+              <ValidationField {...detailsStepValidation.field("validUntil")}>
+                <DateField
+                  label="Válido até"
+                  optional
+                  value={validUntil}
+                  onChange={setValidUntil}
+                />
+              </ValidationField>
+              <FormField label="Observações" optional span="full">
+                <TextField
+                  placeholder="Condições, prazo de produção, retirada..."
+                  value={notes}
+                  onChangeText={setNotes}
+                  multiline
+                  numberOfLines={3}
+                />
+              </FormField>
+            </FormGrid>
+
+            {isDesktop ? (
               <View
                 style={{
-                  borderRadius: radii.xl,
+                  borderRadius: radii.lg,
                   borderWidth: 1,
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.surfaceElevated,
@@ -677,7 +660,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               >
                 <View style={{ gap: spacing.xs }}>
                   <Typography variant="caption" color={theme.colors.textSecondary}>
-                    PRÉVIA DO CLIENTE
+                    Prévia do cliente
                   </Typography>
                   <Typography variant="h3">
                     {title.trim() || "Título do orçamento"}
@@ -687,28 +670,16 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   </Typography>
                 </View>
                 <View style={{ gap: spacing.md }}>
-                  {items
-                    .filter((item) => item.description.trim())
-                    .map((item, index) => (
-                      <View
-                        key={`${item.description}-${index}`}
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                          gap: spacing.md,
-                        }}
-                      >
-                        <Typography variant="body" style={{ flex: 1 }}>
-                          {parseNumber(item.quantity) || 0}x {item.description}
-                        </Typography>
-                        <Typography variant="bodyBold">
-                          {formatCurrency(
-                            (parseNumber(item.quantity) || 0) *
-                              parseCurrencyInput(item.unitPrice),
-                          )}
-                        </Typography>
-                      </View>
-                    ))}
+                  {filledItems.map((item, index) => (
+                    <SummaryRow
+                      key={`${item.description}-${index}`}
+                      label={`${parseNumber(item.quantity) || 0}x ${item.description}`}
+                      value={formatCurrency(
+                        (parseNumber(item.quantity) || 0) *
+                          parseCurrencyInput(item.unitPrice),
+                      )}
+                    />
+                  ))}
                 </View>
                 <View
                   style={{
@@ -718,21 +689,13 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                     gap: spacing.sm,
                   }}
                 >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <Typography variant="body">Subtotal</Typography>
-                    <Typography variant="bodyBold">
-                      {formatCurrency(pricing.subtotal)}
-                    </Typography>
-                  </View>
+                  <SummaryRow label="Subtotal" value={formatCurrency(pricing.subtotal)} />
                   {pricing.discount > 0 ? (
-                    <View
-                      style={{ flexDirection: "row", justifyContent: "space-between" }}
-                    >
-                      <Typography variant="body">Desconto</Typography>
-                      <Typography variant="bodyBold" color={theme.colors.success}>
-                        − {formatCurrency(pricing.discount)}
-                      </Typography>
-                    </View>
+                    <SummaryRow
+                      label="Desconto"
+                      value={`− ${formatCurrency(pricing.discount)}`}
+                      color={theme.colors.success}
+                    />
                   ) : null}
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <Typography variant="h3">Total</Typography>
@@ -742,11 +705,11 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   </View>
                 </View>
                 <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Custos, ganho e margem ficam somente na coluna interna do formulário.
+                  Custos, ganho e margem ficam só na visão interna, na etapa de itens.
                 </Typography>
               </View>
-            </View>
-          ) : null}
+            ) : null}
+          </FormBody>
         </View>
       </StandardModal>
       <StandardModal
@@ -755,26 +718,11 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
         visible={reviewData !== null}
         onClose={() => setReviewData(null)}
         footer={
-          <View
-            style={
-              isDesktop
-                ? {
-                    flexDirection: "row",
-                    gap: spacing.md,
-                    justifyContent: "flex-end",
-                    width: "100%",
-                  }
-                : { flexDirection: "row", gap: spacing.md, width: "100%" }
-            }
-          >
+          <FormActions>
             <Button
               title="Voltar e editar"
-              variant="ghost"
+              variant="outline"
               onPress={() => setReviewData(null)}
-              style={{
-                flex: isDesktop ? undefined : 1,
-                ...desktopAction(isDesktop, 220),
-              }}
             />
             <Button
               title={quote ? "Salvar alterações" : "Salvar orçamento"}
@@ -782,12 +730,8 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                 if (reviewData) void handleSave(reviewData);
               }}
               loading={isSaving}
-              style={{
-                flex: isDesktop ? undefined : 1,
-                ...desktopAction(isDesktop, 240),
-              }}
             />
-          </View>
+          </FormActions>
         }
       >
         {reviewData ? (
@@ -805,29 +749,18 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
             <View
               style={{
                 borderColor: theme.colors.border,
-                borderRadius: radii.xl,
+                borderRadius: radii.lg,
                 borderWidth: 1,
                 gap: spacing.md,
                 padding: spacing.lg,
               }}
             >
               {reviewData.items.map((item, index) => (
-                <View
+                <SummaryRow
                   key={`${item.description}-${index}`}
-                  style={{
-                    alignItems: "center",
-                    flexDirection: "row",
-                    gap: spacing.md,
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Typography variant="body" style={{ flex: 1 }}>
-                    {item.quantity}x {item.description}
-                  </Typography>
-                  <Typography variant="bodyBold">
-                    {formatCurrency(item.quantity * item.unitPrice)}
-                  </Typography>
-                </View>
+                  label={`${item.quantity}x ${item.description}`}
+                  value={formatCurrency(item.quantity * item.unitPrice)}
+                />
               ))}
               <View
                 style={{
@@ -835,6 +768,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   borderTopWidth: 1,
                   flexDirection: "row",
                   justifyContent: "space-between",
+                  alignItems: "center",
                   paddingTop: spacing.md,
                 }}
               >
@@ -848,7 +782,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
             {reviewPricing ? (
               <View
                 style={{
-                  borderRadius: radii.xl,
+                  borderRadius: radii.lg,
                   borderWidth: 1,
                   borderColor: theme.colors.border,
                   backgroundColor: theme.colors.surfaceElevated,
@@ -876,6 +810,15 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
         title="Adicionar produto"
         visible={showProductPicker}
         onClose={() => setShowProductPicker(false)}
+        footer={
+          <FormActions>
+            <Button
+              title="Cancelar"
+              variant="outline"
+              onPress={() => setShowProductPicker(false)}
+            />
+          </FormActions>
+        }
       >
         <ProductPicker
           onSelect={addCatalogProduct}

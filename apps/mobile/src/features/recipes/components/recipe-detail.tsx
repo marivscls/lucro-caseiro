@@ -1,6 +1,10 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { ChipChoiceField, FormField } from "../../../shared/components/form-field";
+import { FormActions } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, View } from "react-native";
@@ -36,6 +40,7 @@ export function RecipeDetail({
   onDeleted,
 }: RecipeDetailProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const experienceCopy = useBusinessCopy();
   const formulaLabel = experienceCopy.formulaNoun.replace(/^./, (letter) =>
@@ -124,45 +129,23 @@ export function RecipeDetail({
         </View>
       </Card>
 
-      <View style={{ gap: 8 }}>
-        <Typography variant="h3">Escala da {experienceCopy.formulaNoun}</Typography>
-        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-          {SCALE_OPTIONS.map((scale) => (
-            <View
-              key={scale}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 20,
-                backgroundColor:
-                  multiplier === scale ? theme.colors.primary : theme.colors.surface,
-              }}
-            >
-              <Typography
-                variant="caption"
-                color={
-                  multiplier === scale
-                    ? theme.colors.textOnPrimary
-                    : theme.colors.textSecondary
-                }
-                onPress={() => setMultiplier(scale)}
-              >
-                {scale}x
-              </Typography>
-            </View>
-          ))}
-        </View>
-      </View>
+      <FormField label={`Escala da ${experienceCopy.formulaNoun}`}>
+        <ChipChoiceField
+          accessibilityLabel={`Escala da ${experienceCopy.formulaNoun}`}
+          value={String(multiplier)}
+          options={SCALE_OPTIONS.map((scale) => ({
+            value: String(scale),
+            label: `${String(scale).replace(".", ",")}x`,
+          }))}
+          onChange={(value) => setMultiplier(Number(value))}
+        />
+      </FormField>
 
-      <View style={{ gap: 8 }}>
-        <Typography variant="h3">{materialsLabel}</Typography>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <AppIcon name="time-outline" size={16} color={theme.colors.textSecondary} />
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Rende: {displayRecipe.yieldQuantity} {displayRecipe.yieldUnit}
-          </Typography>
-        </View>
-
+      <FormSection
+        collapsible={false}
+        title={materialsLabel}
+        subtitle={`Rende: ${displayRecipe.yieldQuantity} ${displayRecipe.yieldUnit}`}
+      >
         <Card
           style={{
             gap: 0,
@@ -268,120 +251,125 @@ export function RecipeDetail({
             </Typography>
           </View>
         </Card>
-      </View>
+      </FormSection>
 
-      {onEdit && <Button title="Editar receita" size="lg" onPress={onEdit} />}
-
-      <Button
-        title="Precificar com esta receita"
-        variant="secondary"
-        size="lg"
-        icon={
-          <AppIcon
-            name="calculator-outline"
-            size={20}
-            color={theme.colors.primaryStrong}
-          />
-        }
-        onPress={() => {
-          onClose?.();
-          router.push({
-            pathname: "/pricing",
-            params: {
-              recipeCost: String(costPerUnit),
-              name: displayIngredientName(recipe.name),
-              category: recipe.category,
-            },
-          });
+      <FormActions
+        stack
+        style={{
+          flexGrow: 0,
+          flexBasis: "auto",
+          flexWrap: isDesktop ? "wrap" : "nowrap",
         }}
-      />
-
-      <Button
-        title="Imprimir / Compartilhar"
-        variant="outline"
-        size="lg"
-        onPress={() => {
-          void (async () => {
-            try {
-              await exportRecipePdf(
-                {
-                  ...displayRecipe,
-                  ingredients,
-                  totalCost,
-                  costPerUnit,
-                },
-                {
-                  formulaNoun: experienceCopy.formulaNoun,
-                  materialNoun: experienceCopy.materialNoun,
-                  materialNounPlural: experienceCopy.materialNounPlural,
-                  quantityLabel: experienceCopy.quantityLabel,
-                },
-              );
-            } catch {
-              showAlert({
-                title: "Erro",
-                message: `Não foi possível gerar o PDF da ${experienceCopy.formulaNoun}. Tente novamente.`,
-              });
-            }
-          })();
-        }}
-      />
-
-      <Button
-        title="Duplicar receita"
-        variant="outline"
-        size="lg"
-        onPress={() => {
-          void (async () => {
-            try {
-              await duplicateRecipe.mutateAsync(recipeId);
-              showAlert({
-                title: `${formulaLabel} duplicada`,
-                message: `Criamos uma cópia de "${displayIngredientName(recipe.name)}".`,
-              });
-              onDuplicate?.();
-            } catch {
-              showAlert({
-                title: "Não foi possível duplicar",
-                message: `Você pode ter atingido o limite de ${experienceCopy.formulaNounPlural} do plano gratuito.`,
-              });
-            }
-          })();
-        }}
-        loading={duplicateRecipe.isPending}
-      />
-
-      <Button
-        title="Excluir receita"
-        variant="outline"
-        size="lg"
-        onPress={() => {
-          showAlert({
-            title: "Excluir receita",
-            message: "Tem certeza que deseja excluir esta receita?",
-            buttons: [
-              { text: "Cancelar", style: "cancel" },
-              {
-                text: "Excluir",
-                style: "destructive",
-                onPress: () => {
-                  void (async () => {
-                    try {
-                      await deleteRecipe.mutateAsync(recipeId);
-                      onDeleted?.();
-                    } catch {
-                      alertError(
-                        `Não foi possível excluir a ${experienceCopy.formulaNoun}.`,
-                      );
-                    }
-                  })();
-                },
+      >
+        <Button
+          title="Duplicar receita"
+          variant="outline"
+          onPress={() => {
+            void (async () => {
+              try {
+                await duplicateRecipe.mutateAsync(recipeId);
+                showAlert({
+                  title: `${formulaLabel} duplicada`,
+                  message: `Criamos uma cópia de "${displayIngredientName(recipe.name)}".`,
+                });
+                onDuplicate?.();
+              } catch {
+                showAlert({
+                  title: "Não foi possível duplicar",
+                  message: `Você pode ter atingido o limite de ${experienceCopy.formulaNounPlural} do plano gratuito.`,
+                });
+              }
+            })();
+          }}
+          loading={duplicateRecipe.isPending}
+        />
+        <Button
+          title="Imprimir / Compartilhar"
+          variant="outline"
+          onPress={() => {
+            void (async () => {
+              try {
+                await exportRecipePdf(
+                  {
+                    ...displayRecipe,
+                    ingredients,
+                    totalCost,
+                    costPerUnit,
+                  },
+                  {
+                    formulaNoun: experienceCopy.formulaNoun,
+                    materialNoun: experienceCopy.materialNoun,
+                    materialNounPlural: experienceCopy.materialNounPlural,
+                    quantityLabel: experienceCopy.quantityLabel,
+                  },
+                );
+              } catch {
+                showAlert({
+                  title: "Erro",
+                  message: `Não foi possível gerar o PDF da ${experienceCopy.formulaNoun}. Tente novamente.`,
+                });
+              }
+            })();
+          }}
+        />
+        <Button
+          title="Precificar com esta receita"
+          variant="secondary"
+          icon={
+            <AppIcon
+              name="calculator-outline"
+              size={20}
+              color={theme.colors.primaryStrong}
+            />
+          }
+          onPress={() => {
+            onClose?.();
+            router.push({
+              pathname: "/pricing",
+              params: {
+                recipeCost: String(costPerUnit),
+                name: displayIngredientName(recipe.name),
+                category: recipe.category,
               },
-            ],
-          });
-        }}
-        loading={deleteRecipe.isPending}
-      />
+            });
+          }}
+        />
+        {onEdit ? <Button title="Editar receita" onPress={onEdit} /> : null}
+      </FormActions>
+
+      <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+        <Button
+          title="Excluir receita"
+          variant="alertOutline"
+          icon={<AppIcon name="trash-outline" size={18} color={theme.colors.alert} />}
+          onPress={() => {
+            showAlert({
+              title: "Excluir receita",
+              message: "Tem certeza que deseja excluir esta receita?",
+              buttons: [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Excluir",
+                  style: "destructive",
+                  onPress: () => {
+                    void (async () => {
+                      try {
+                        await deleteRecipe.mutateAsync(recipeId);
+                        onDeleted?.();
+                      } catch {
+                        alertError(
+                          `Não foi possível excluir a ${experienceCopy.formulaNoun}.`,
+                        );
+                      }
+                    })();
+                  },
+                },
+              ],
+            });
+          }}
+          loading={deleteRecipe.isPending}
+        />
+      </View>
     </View>
   );
 }

@@ -104,7 +104,13 @@ export const ANALYTICS_DASHBOARD_QUERY = `
       ('paid_feature_requested'),
       ('subscription_started'),
       ('subscription_completed'),
-      ('subscription_cancelled')
+      ('subscription_cancelled'),
+      ('business_profile_completed'),
+      ('business_profile_skipped'),
+      ('plan_chosen'),
+      ('purchase_result'),
+      ('ad_impression'),
+      ('app_crashed')
   ),
   action_counts AS (
     SELECT
@@ -125,36 +131,65 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     LEFT JOIN action_counts USING (action)
     ORDER BY events DESC, action
   ),
-  raw_milestones AS (
+  -- Cada etapa usa o primeiro marco a partir da etapa anterior. Conta criada vale pelo
+  -- evento de cadastro ou pela primeira identificação da instalação (Google, login),
+  -- e produto vale qualquer que seja a origem do cadastro.
+  signup_candidates AS (
     SELECT
       installation.id,
       installation.first_opened_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'signup_completed') AS signup_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'pricing_completed') AS pricing_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'product_created_from_pricing') AS product_at,
-      MIN(event.occurred_at) FILTER (
-        WHERE event.event_name IN ('catalog_published', 'sale_completed')
-      ) AS outcome_at
+      LEAST(
+        (
+          SELECT MIN(event.occurred_at)
+          FROM analytics_events event
+          WHERE event.installation_id = installation.id
+            AND event.event_type = 'action'
+            AND event.event_name = 'signup_completed'
+        ),
+        (
+          SELECT MIN(linked.first_identified_at)
+          FROM analytics_installation_users linked
+          WHERE linked.installation_id = installation.id
+        )
+      ) AS signup_at
     FROM analytics_installations installation
-    LEFT JOIN analytics_events event
-      ON event.installation_id = installation.id AND event.event_type = 'action'
-    GROUP BY installation.id, installation.first_opened_at
   ),
   signup_milestones AS (
-    SELECT *, CASE WHEN signup_at >= first_opened_at THEN signup_at END AS valid_signup
-    FROM raw_milestones
+    SELECT id, CASE WHEN signup_at >= first_opened_at THEN signup_at END AS valid_signup
+    FROM signup_candidates
   ),
   pricing_milestones AS (
-    SELECT *, CASE WHEN pricing_at >= valid_signup THEN pricing_at END AS valid_pricing
-    FROM signup_milestones
+    SELECT milestone.*, (
+      SELECT MIN(event.occurred_at)
+      FROM analytics_events event
+      WHERE event.installation_id = milestone.id
+        AND event.event_type = 'action'
+        AND event.event_name = 'pricing_completed'
+        AND event.occurred_at >= milestone.valid_signup
+    ) AS valid_pricing
+    FROM signup_milestones milestone
   ),
   product_milestones AS (
-    SELECT *, CASE WHEN product_at >= valid_pricing THEN product_at END AS valid_product
-    FROM pricing_milestones
+    SELECT milestone.*, (
+      SELECT MIN(event.occurred_at)
+      FROM analytics_events event
+      WHERE event.installation_id = milestone.id
+        AND event.event_type = 'action'
+        AND event.event_name IN ('product_created', 'product_created_from_pricing')
+        AND event.occurred_at >= milestone.valid_pricing
+    ) AS valid_product
+    FROM pricing_milestones milestone
   ),
   ordered_milestones AS (
-    SELECT *, CASE WHEN outcome_at >= valid_product THEN outcome_at END AS valid_outcome
-    FROM product_milestones
+    SELECT milestone.*, (
+      SELECT MIN(event.occurred_at)
+      FROM analytics_events event
+      WHERE event.installation_id = milestone.id
+        AND event.event_type = 'action'
+        AND event.event_name IN ('catalog_published', 'sale_completed')
+        AND event.occurred_at >= milestone.valid_product
+    ) AS valid_outcome
+    FROM product_milestones milestone
   ),
   funnel_counts AS (
     SELECT
@@ -196,6 +231,22 @@ export const ANALYTICS_DASHBOARD_QUERY = `
       ROUND(100.0 * installations / NULLIF(SUM(installations) OVER (), 0), 2) AS percent
     FROM version_counts
     ORDER BY installations DESC, app_version DESC
+  ),
+  acquisition_sources AS (
+    SELECT
+      installation.utm_source AS source,
+      installation.utm_content AS content,
+      COUNT(*)::int AS installations,
+      COUNT(*) FILTER (WHERE EXISTS (
+        SELECT 1
+        FROM analytics_installation_users linked
+        WHERE linked.installation_id = installation.id
+      ))::int AS linked_to_user
+    FROM analytics_installations installation
+    WHERE installation.first_opened_at >= NOW() - INTERVAL '30 days'
+    GROUP BY installation.utm_source, installation.utm_content
+    ORDER BY installations DESC, source NULLS LAST, content NULLS LAST
+    LIMIT 20
   ),
   behavior_names(behavior) AS (
     VALUES ('pricing_completed'), ('catalog_shared')
@@ -259,6 +310,11 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     COALESCE((SELECT jsonb_agg(to_jsonb(feature_usage)) FROM feature_usage), '[]'::jsonb) AS feature_usage,
     COALESCE((SELECT jsonb_agg(to_jsonb(funnel_rows) - 'position' ORDER BY position) FROM funnel_rows), '[]'::jsonb) AS funnel,
     COALESCE((SELECT jsonb_agg(to_jsonb(version_adoption)) FROM version_adoption), '[]'::jsonb) AS version_adoption,
-    COALESCE((SELECT jsonb_agg(to_jsonb(behavior_retention_rows)) FROM behavior_retention_rows), '[]'::jsonb) AS behavior_retention
+    COALESCE((SELECT jsonb_agg(to_jsonb(behavior_retention_rows)) FROM behavior_retention_rows), '[]'::jsonb) AS behavior_retention,
+    COALESCE((
+      SELECT jsonb_agg(to_jsonb(acquisition_sources)
+        ORDER BY installations DESC, source NULLS LAST, content NULLS LAST)
+      FROM acquisition_sources
+    ), '[]'::jsonb) AS acquisition_sources
   FROM overview, signups, active, active_users, retained
 `;

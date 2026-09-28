@@ -1,10 +1,8 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import {
   Badge,
   Button,
   Card,
-  Chip,
   Typography,
   useBrand,
   useFeature,
@@ -40,11 +38,13 @@ import {
   businessCopyFor,
 } from "../features/subscription/business-copy";
 import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
+import { isProfileOnTrial, trialEndLabel } from "../features/subscription/trial";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { showAlert } from "../shared/components/alert-store";
 import { AppIcon, type AppIconName } from "../shared/components/app-icon";
-import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
+import { ChipChoiceField, FormField, TextField } from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
@@ -58,20 +58,21 @@ import { isPrefEnabled, useNotificationPrefs } from "../shared/hooks/notificatio
 import { useBrowserNotifications } from "../shared/hooks/use-browser-notifications";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import {
-  desktopAction,
   desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import { DesktopSplit, desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
-import { alertError, alertValidation } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadProfilePhoto } from "../shared/utils/upload-image";
 import {
   openSubscriptionManagement,
   subscriptionManagementTarget,
 } from "../shared/utils/subscription-management";
+import { DesktopTag } from "../shared/layout/desktop-kit";
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
@@ -196,6 +197,7 @@ function SettingsRow({
   disabled = false,
 }: SettingsRowProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
 
   return (
     <Pressable
@@ -227,7 +229,10 @@ function SettingsRow({
           {title}
         </Typography>
         {subtitle ? (
-          <Typography variant="caption" color={theme.colors.textSecondary}>
+          <Typography
+            variant={isDesktop ? "desktopBody" : "caption"}
+            color={theme.colors.textSecondary}
+          >
             {subtitle}
           </Typography>
         ) : null}
@@ -284,7 +289,10 @@ export default function SettingsScreen() {
   const experienceCopy = businessCopyFor(businessType);
   const avatarUrl = profile?.avatarUrl ?? null;
   const currentPlan = activePlan(profile);
-  const hasPaidPlan = currentPlan !== "free";
+  // Teste grátis do Essencial: usa os recursos, mas não há assinatura para
+  // cancelar nem gerenciar.
+  const onTrial = isProfileOnTrial(profile);
+  const hasPaidPlan = currentPlan !== "free" && !onTrial;
   const canUsePremiumNotifications =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
@@ -334,10 +342,6 @@ export default function SettingsScreen() {
 
   async function handleSaveProfile() {
     if (!formValidation.validate()) return;
-    if (!editName.trim()) {
-      alertValidation("O nome é obrigatório");
-      return;
-    }
 
     let newAvatarUrl: string | undefined;
     if (pickedAvatar) {
@@ -474,6 +478,11 @@ export default function SettingsScreen() {
     await Linking.openURL(PRIVACY_POLICY_URL);
   }
 
+  // Desktop: o plano fica na lateral de 360px, onde botões de largura total cabem.
+  const planButtonStyle = isDesktop
+    ? { width: "100%" as const, minHeight: 48 }
+    : undefined;
+
   function renderPlanActions() {
     const actionRowStyle = isDesktop
       ? {
@@ -484,11 +493,11 @@ export default function SettingsScreen() {
         }
       : { gap: spacing.sm };
 
-    if (currentPlan === "free") {
+    if (currentPlan === "free" || onTrial) {
       return (
         <View style={actionRowStyle}>
           <Button
-            title="Conhecer os planos"
+            title={onTrial ? "Assinar um plano" : "Conhecer os planos"}
             variant="premium"
             size="md"
             icon={
@@ -499,7 +508,7 @@ export default function SettingsScreen() {
               />
             }
             onPress={() => router.push("/plans")}
-            style={desktopAction(isDesktop, 240)}
+            style={planButtonStyle}
           />
           <Pressable
             onPress={() => void restore()}
@@ -507,7 +516,7 @@ export default function SettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel="Restaurar compra anterior"
             style={{
-              minHeight: 36,
+              minHeight: isDesktop ? 48 : 36,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: isDesktop ? "flex-start" : "center",
@@ -519,7 +528,10 @@ export default function SettingsScreen() {
               size={17}
               color={theme.colors.primaryStrong}
             />
-            <Typography variant="caption" color={theme.colors.primaryStrong}>
+            <Typography
+              variant={isDesktop ? "desktopBodyStrong" : "caption"}
+              color={theme.colors.primaryStrong}
+            >
               {subscriptionLoading ? "Restaurando..." : "Restaurar compra anterior"}
             </Typography>
           </Pressable>
@@ -542,7 +554,7 @@ export default function SettingsScreen() {
               />
             }
             onPress={() => showPaywall("plans", "professional")}
-            style={desktopAction(isDesktop, 240)}
+            style={planButtonStyle}
           />
           <Button
             title="Gerenciar assinatura"
@@ -556,7 +568,7 @@ export default function SettingsScreen() {
               />
             }
             onPress={() => router.push("/plans")}
-            style={desktopAction(isDesktop, 220)}
+            style={planButtonStyle}
           />
         </View>
       );
@@ -571,7 +583,7 @@ export default function SettingsScreen() {
           <AppIcon name="settings-outline" size={19} color={theme.colors.primaryStrong} />
         }
         onPress={() => router.push("/plans")}
-        style={desktopAction(isDesktop, 220)}
+        style={planButtonStyle}
       />
     );
   }
@@ -602,6 +614,510 @@ export default function SettingsScreen() {
     );
   }
 
+  const profileSection = (
+    <>
+      <Card variant="elevated" padding="xl" style={{ gap: spacing.xl }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+          <View
+            style={{
+              width: 58,
+              height: 58,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.primaryBg,
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+            }}
+          >
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={{ width: 58, height: 58 }} />
+            ) : (
+              <Typography variant="h2" color={theme.colors.primaryStrong}>
+                {userName.charAt(0).toUpperCase()}
+              </Typography>
+            )}
+          </View>
+
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="h3" numberOfLines={1}>
+              {userName}
+            </Typography>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.xs,
+                flexWrap: "wrap",
+              }}
+            >
+              <Typography
+                variant={isDesktop ? "desktopBody" : "caption"}
+                numberOfLines={1}
+              >
+                {businessName}
+              </Typography>
+              {businessType && isDesktop ? (
+                // Desktop: mesmo selo do Badge, com texto de 14px.
+                <DesktopTag
+                  label={businessTypeLabel(businessType)}
+                  variant="primary"
+                  strong
+                />
+              ) : null}
+              {businessType && !isDesktop ? (
+                <Badge label={businessTypeLabel(businessType)} variant="primary" />
+              ) : null}
+            </View>
+          </View>
+
+          <Pressable
+            onPress={openEditProfile}
+            accessibilityRole="button"
+            accessibilityLabel="Editar perfil"
+            style={({ pressed }) => ({
+              minHeight: 44,
+              width: isDesktop ? undefined : 44,
+              paddingHorizontal: isDesktop ? spacing.md : 0,
+              borderRadius: radii.md,
+              backgroundColor: pressed ? theme.colors.primaryBg : theme.colors.surface,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: spacing.sm,
+            })}
+          >
+            <AppIcon name="pencil-outline" size={17} color={theme.colors.primaryStrong} />
+            {isDesktop ? (
+              <Typography variant="body" color={theme.colors.text}>
+                Editar perfil
+              </Typography>
+            ) : null}
+          </Pressable>
+        </View>
+        {brand.id === "lucro-caseiro" ? <BusinessProfileCard settings /> : null}
+      </Card>
+    </>
+  );
+  let planTitle = "Gratuito";
+  let planDescription = "Conheça os recursos para facilitar sua rotina.";
+  if (onTrial) {
+    planTitle = `${PLAN_LABELS[currentPlan]} (teste grátis)`;
+    planDescription = `Seu teste termina ${trialEndLabel(profile?.planExpiresAt ?? null)}. Depois, a conta volta para o Gratuito.`;
+  } else if (hasPaidPlan) {
+    planTitle = PLAN_LABELS[currentPlan];
+    planDescription = `Seus recursos ${brandName} em um só lugar.`;
+  }
+  const planSection = (
+    <>
+      <Card variant="elevated" padding="xl" style={{ gap: spacing.lg }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.lg }}>
+          <IconSurface
+            name="diamond-outline"
+            size={42}
+            iconSize={24}
+            color={theme.colors.premium}
+            backgroundColor={theme.colors.premiumBg}
+          />
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography
+              variant={isDesktop ? "desktopMeta" : "caption"}
+              color={theme.colors.textSecondary}
+            >
+              Seu plano
+            </Typography>
+            <Typography variant="h2">{planTitle}</Typography>
+            <Typography
+              variant={isDesktop ? "desktopBody" : "caption"}
+              color={theme.colors.textSecondary}
+              style={{ maxWidth: 440 }}
+            >
+              {planDescription}
+            </Typography>
+          </View>
+        </View>
+        {renderPlanActions()}
+      </Card>
+    </>
+  );
+  const goalSection = (
+    <>
+      <Card
+        variant="elevated"
+        padding="lg"
+        onPress={() => setShowGoal(true)}
+        style={{ paddingVertical: spacing.md }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <IconSurface
+            name="trophy-outline"
+            color={theme.colors.success}
+            backgroundColor={theme.colors.successBg}
+          />
+          <View style={{ flex: 1 }}>
+            <Typography variant="bodyBold">Meta de pró-labore</Typography>
+            <Typography variant={isDesktop ? "desktopBody" : "caption"}>
+              {prolabore?.config
+                ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mês`
+                : "Defina quanto quer receber por mês"}
+            </Typography>
+          </View>
+          <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+        </View>
+      </Card>
+    </>
+  );
+  const prefsSection = (
+    <>
+      <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
+        <Typography
+          variant={isDesktop ? "desktopCardTitle" : "label"}
+          style={isDesktop ? undefined : { marginLeft: spacing.xs }}
+        >
+          Preferências
+        </Typography>
+        <Card
+          variant="elevated"
+          padding="lg"
+          style={{
+            overflow: "hidden",
+            paddingVertical: spacing.xs,
+          }}
+        >
+          <View
+            style={{
+              minHeight: 70,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.md,
+              paddingHorizontal: spacing.xs,
+            }}
+          >
+            <IconSurface
+              name="sunny-outline"
+              color={theme.colors.textSecondary}
+              backgroundColor={theme.colors.surface}
+              size={38}
+              iconSize={19}
+            />
+            <Typography variant="bodyBold" style={{ flex: 1 }}>
+              Tema
+            </Typography>
+            <View
+              style={{
+                width: isDesktop ? 184 : 132,
+                height: isDesktop ? 48 : 44,
+                padding: 3,
+                flexDirection: "row",
+                borderRadius: radii.sm,
+                backgroundColor: theme.colors.surface,
+              }}
+            >
+              {(["light", "dark"] as const).map((option) => {
+                const selected = option === mode;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => {
+                      if (!selected) toggleTheme();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    aria-pressed={selected}
+                    accessibilityLabel={option === "light" ? "Tema claro" : "Tema escuro"}
+                    style={{
+                      flex: 1,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: radii.sm,
+                      borderWidth: selected ? 1 : 0,
+                      borderColor: theme.colors.border,
+                      backgroundColor: selected
+                        ? theme.colors.surfaceElevated
+                        : "transparent",
+                    }}
+                  >
+                    <Typography
+                      variant={isDesktop ? "desktopBodyStrong" : "caption"}
+                      color={
+                        selected ? theme.colors.primaryStrong : theme.colors.textSecondary
+                      }
+                    >
+                      {option === "light" ? "Claro" : "Escuro"}
+                    </Typography>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {Platform.OS === "web" ? (
+            <View
+              style={{
+                minHeight: 82,
+                paddingVertical: spacing.md,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.md,
+                paddingHorizontal: spacing.xs,
+                borderTopWidth: 1,
+                borderTopColor: theme.colors.border,
+              }}
+            >
+              <IconSurface
+                name="notifications-outline"
+                color={theme.colors.textSecondary}
+                backgroundColor={theme.colors.surface}
+                size={38}
+                iconSize={19}
+              />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="bodyBold">Notificações no navegador</Typography>
+                <Typography
+                  variant={isDesktop ? "desktopBody" : "caption"}
+                  accessibilityLiveRegion="polite"
+                >
+                  {browserNotifications.message}
+                </Typography>
+                {browserNotifications.supported ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: spacing.sm,
+                      marginTop: spacing.sm,
+                    }}
+                  >
+                    <Button
+                      title={
+                        browserNotifications.enabled ? "Desativar" : "Ativar notificações"
+                      }
+                      loading={browserNotifications.busy}
+                      size="sm"
+                      variant={browserNotifications.enabled ? "outline" : "primary"}
+                      disabled={
+                        browserNotifications.busy || !browserNotifications.publicKey
+                      }
+                      onPress={() => void browserNotifications.toggle()}
+                    />
+                    {browserNotifications.enabled ? (
+                      <Button
+                        title="Enviar teste"
+                        size="sm"
+                        variant="outline"
+                        disabled={browserNotifications.busy}
+                        onPress={() => void browserNotifications.test()}
+                      />
+                    ) : (
+                      <Button
+                        title="Verificar novamente"
+                        size="sm"
+                        variant="outline"
+                        disabled={browserNotifications.busy}
+                        onPress={() => void browserNotifications.refresh()}
+                      />
+                    )}
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+          {Platform.OS !== "web" || browserNotifications.enabled
+            ? NOTIFICATIONS.filter((item) => {
+                if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
+                if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
+                return true;
+              }).map((item) => {
+                const locked = !!item.premium && !canUsePremiumNotifications;
+                return (
+                  <View
+                    key={item.type}
+                    style={{
+                      minHeight: 58,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.md,
+                      paddingHorizontal: spacing.xs,
+                      borderTopWidth: 1,
+                      borderTopColor: theme.colors.border,
+                    }}
+                  >
+                    <IconSurface
+                      name={item.icon}
+                      color={theme.colors.textSecondary}
+                      backgroundColor={theme.colors.surface}
+                      size={38}
+                      iconSize={18}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Typography variant="bodyBold">{item.label}</Typography>
+                      {item.premium ? (
+                        <Typography variant="caption" color={theme.colors.premium}>
+                          Profissional
+                        </Typography>
+                      ) : null}
+                    </View>
+                    {locked ? (
+                      <Pressable
+                        onPress={() => showPaywall("notifications")}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${item.label}, recurso Profissional`}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AppIcon
+                          name="lock-closed"
+                          size={18}
+                          color={theme.colors.premium}
+                        />
+                      </Pressable>
+                    ) : (
+                      <Switch
+                        disabled={Platform.OS === "web" && browserNotifications.busy}
+                        accessibilityLabel={item.label}
+                        trackColor={{
+                          false: theme.colors.surface,
+                          true: theme.colors.primaryInteractive,
+                        }}
+                        thumbColor={theme.colors.textOnPrimary}
+                        value={isPrefEnabled(notifPrefs, item.type)}
+                        onValueChange={(value) => {
+                          if (Platform.OS === "web")
+                            void browserNotifications.setPreference(item.type, value);
+                          else setNotifPref(item.type, value);
+                        }}
+                      />
+                    )}
+                  </View>
+                );
+              })
+            : null}
+        </Card>
+      </View>
+    </>
+  );
+  const supportSection = (
+    <>
+      <Card variant="elevated" padding="lg">
+        <SettingsRow
+          icon="chatbubble-ellipses-outline"
+          iconColor={theme.colors.textSecondary}
+          iconBackground={theme.colors.surface}
+          title="Suporte"
+          subtitle="Tire suas dúvidas e fale com a gente"
+          onPress={() => router.push("/support")}
+          showChevron
+        />
+      </Card>
+    </>
+  );
+  const desktopAccessSection = (
+    <>
+      {Platform.OS !== "web" && webAppUrl ? (
+        <Card variant="elevated" padding="lg">
+          <SettingsRow
+            icon="globe-outline"
+            iconColor={theme.colors.primary}
+            iconBackground={theme.colors.primaryBg}
+            title="Usar no computador"
+            subtitle="Acesse seus dados em qualquer computador"
+            onPress={() => setShowDesktopAccess(true)}
+            showChevron
+          />
+        </Card>
+      ) : null}
+    </>
+  );
+  const privacySection = (
+    <>
+      <View
+        style={{
+          gap: spacing.xl,
+        }}
+      >
+        <View style={{ gap: spacing.sm }}>
+          <Typography
+            variant={isDesktop ? "desktopCardTitle" : "label"}
+            style={isDesktop ? undefined : { marginLeft: spacing.xs }}
+          >
+            Privacidade
+          </Typography>
+          <Card variant="elevated" padding="lg" style={{ paddingVertical: spacing.xs }}>
+            <SettingsRow
+              icon="shield-checkmark-outline"
+              iconColor={theme.colors.textSecondary}
+              iconBackground={theme.colors.surface}
+              title="Política de privacidade"
+              onPress={() => void openPrivacyPolicy()}
+              showChevron
+            />
+            <SettingsRow
+              icon="document-text-outline"
+              iconColor={theme.colors.textSecondary}
+              iconBackground={theme.colors.surface}
+              title="Termos de uso"
+              onPress={() =>
+                showAlert({
+                  title: "Termos de uso",
+                  message: "Consulte os termos de uso no site oficial do Lucro Caseiro.",
+                })
+              }
+              showChevron
+            />
+          </Card>
+        </View>
+
+        <View style={{ gap: spacing.sm }}>
+          <Typography
+            variant={isDesktop ? "desktopCardTitle" : "label"}
+            style={isDesktop ? undefined : { marginLeft: spacing.xs }}
+          >
+            Conta
+          </Typography>
+          <Card variant="elevated" padding="lg" style={{ paddingVertical: spacing.xs }}>
+            <SettingsRow
+              icon="log-out-outline"
+              iconColor={theme.colors.textSecondary}
+              iconBackground={theme.colors.surface}
+              title="Sair da conta"
+              onPress={handleLogout}
+              showChevron
+            />
+            <SettingsRow
+              icon="trash-outline"
+              iconColor={theme.colors.alert}
+              iconBackground={theme.colors.alertBg}
+              title={deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
+              titleColor={theme.colors.alert}
+              onPress={handleDeleteAccount}
+              disabled={deleteAccount.isPending}
+              trailing={
+                deleteAccount.isPending ? (
+                  <ActivityIndicator size="small" color={theme.colors.alert} />
+                ) : null
+              }
+              showChevron={!deleteAccount.isPending}
+            />
+          </Card>
+        </View>
+      </View>
+    </>
+  );
+  const versionSection = (
+    <>
+      <Typography
+        variant="caption"
+        color={theme.colors.textSecondary}
+        style={{ textAlign: "center" }}
+      >
+        {appVersion}
+      </Typography>
+    </>
+  );
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -626,483 +1142,47 @@ export default function SettingsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          {
-            ...pageGutter(isDesktop, 18),
-            gap: spacing.lg,
-            paddingTop: spacing.sm,
-            paddingBottom: isDesktop ? spacing.xl : 112,
-          },
-          desktopStretch(isDesktop, desktopWidths.wide),
-        ]}
+        contentContainerStyle={
+          isDesktop
+            ? desktopPageContent(true)
+            : [
+                {
+                  ...pageGutter(isDesktop, 18),
+                  gap: spacing.lg,
+                  paddingTop: spacing.sm,
+                  paddingBottom: isDesktop ? spacing.xl : 112,
+                },
+                desktopStretch(isDesktop, desktopWidths.wide),
+              ]
+        }
       >
-        <Card variant="elevated" padding="xl" style={{ gap: spacing.xl }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
-            <View
-              style={{
-                width: 58,
-                height: 58,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.primaryBg,
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-              }}
-            >
-              {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={{ width: 58, height: 58 }} />
-              ) : (
-                <Typography variant="h2" color={theme.colors.primaryStrong}>
-                  {userName.charAt(0).toUpperCase()}
-                </Typography>
-              )}
-            </View>
-
-            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-              <Typography variant="h3" numberOfLines={1}>
-                {userName}
-              </Typography>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.xs,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Typography variant="caption" numberOfLines={1}>
-                  {businessName}
-                </Typography>
-                {businessType ? (
-                  <Badge label={businessTypeLabel(businessType)} variant="primary" />
-                ) : null}
-              </View>
-            </View>
-
-            <Pressable
-              onPress={openEditProfile}
-              accessibilityRole="button"
-              accessibilityLabel="Editar perfil"
-              style={({ pressed }) => ({
-                minHeight: 44,
-                width: isDesktop ? undefined : 44,
-                paddingHorizontal: isDesktop ? spacing.md : 0,
-                borderRadius: radii.md,
-                backgroundColor: pressed ? theme.colors.primaryBg : theme.colors.surface,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: spacing.sm,
-              })}
-            >
-              <AppIcon
-                name="pencil-outline"
-                size={17}
-                color={theme.colors.primaryStrong}
-              />
-              {isDesktop ? (
-                <Typography variant="body" color={theme.colors.text}>
-                  Editar perfil
-                </Typography>
-              ) : null}
-            </Pressable>
-          </View>
-          {brand.id === "lucro-caseiro" ? <BusinessProfileCard settings /> : null}
-        </Card>
-
-        <Card variant="elevated" padding="xl" style={{ gap: spacing.lg }}>
-          <View
-            style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.lg }}
+        {isDesktop ? (
+          <DesktopSplit
+            aside={
+              <>
+                {planSection}
+                {goalSection}
+                {supportSection}
+                {privacySection}
+                {versionSection}
+              </>
+            }
           >
-            <IconSurface
-              name="diamond-outline"
-              size={42}
-              iconSize={24}
-              color={theme.colors.premium}
-              backgroundColor={theme.colors.premiumBg}
-            />
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Seu plano
-              </Typography>
-              <Typography variant="h2">
-                {hasPaidPlan ? PLAN_LABELS[currentPlan] : "Gratuito"}
-              </Typography>
-              <Typography
-                variant="caption"
-                color={theme.colors.textSecondary}
-                style={{ maxWidth: 440 }}
-              >
-                {hasPaidPlan
-                  ? `Seus recursos ${brandName} em um só lugar.`
-                  : "Conheça os recursos para facilitar sua rotina."}
-              </Typography>
-            </View>
-          </View>
-          {renderPlanActions()}
-        </Card>
-
-        <Card
-          variant="elevated"
-          padding="lg"
-          onPress={() => setShowGoal(true)}
-          style={{ paddingVertical: spacing.md }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <IconSurface
-              name="trophy-outline"
-              color={theme.colors.success}
-              backgroundColor={theme.colors.successBg}
-            />
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">Meta de pró-labore</Typography>
-              <Typography variant="caption">
-                {prolabore?.config
-                  ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mês`
-                  : "Defina quanto quer receber por mês"}
-              </Typography>
-            </View>
-            <AppIcon
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </View>
-        </Card>
-
-        <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-          <Typography variant="label" style={{ marginLeft: spacing.xs }}>
-            Preferências
-          </Typography>
-          <Card
-            variant="elevated"
-            padding="lg"
-            style={{
-              overflow: "hidden",
-              paddingVertical: spacing.xs,
-            }}
-          >
-            <View
-              style={{
-                minHeight: 70,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.md,
-                paddingHorizontal: spacing.xs,
-              }}
-            >
-              <IconSurface
-                name="sunny-outline"
-                color={theme.colors.textSecondary}
-                backgroundColor={theme.colors.surface}
-                size={38}
-                iconSize={19}
-              />
-              <Typography variant="bodyBold" style={{ flex: 1 }}>
-                Tema
-              </Typography>
-              <View
-                style={{
-                  width: 132,
-                  height: 44,
-                  padding: 3,
-                  flexDirection: "row",
-                  borderRadius: radii.sm,
-                  backgroundColor: theme.colors.surface,
-                }}
-              >
-                {(["light", "dark"] as const).map((option) => {
-                  const selected = option === mode;
-                  return (
-                    <Pressable
-                      key={option}
-                      onPress={() => {
-                        if (!selected) toggleTheme();
-                      }}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      aria-pressed={selected}
-                      accessibilityLabel={
-                        option === "light" ? "Tema claro" : "Tema escuro"
-                      }
-                      style={{
-                        flex: 1,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: radii.sm,
-                        borderWidth: selected ? 1 : 0,
-                        borderColor: theme.colors.border,
-                        backgroundColor: selected
-                          ? theme.colors.surfaceElevated
-                          : "transparent",
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        color={
-                          selected
-                            ? theme.colors.primaryStrong
-                            : theme.colors.textSecondary
-                        }
-                      >
-                        {option === "light" ? "Claro" : "Escuro"}
-                      </Typography>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-
-            {Platform.OS === "web" ? (
-              <View
-                style={{
-                  minHeight: 82,
-                  paddingVertical: spacing.md,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.md,
-                  paddingHorizontal: spacing.xs,
-                  borderTopWidth: 1,
-                  borderTopColor: theme.colors.border,
-                }}
-              >
-                <IconSurface
-                  name="notifications-outline"
-                  color={theme.colors.textSecondary}
-                  backgroundColor={theme.colors.surface}
-                  size={38}
-                  iconSize={19}
-                />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="bodyBold">Notificações no navegador</Typography>
-                  <Typography variant="caption" accessibilityLiveRegion="polite">
-                    {browserNotifications.message}
-                  </Typography>
-                  {browserNotifications.supported ? (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: spacing.sm,
-                        marginTop: spacing.sm,
-                      }}
-                    >
-                      <Button
-                        title={
-                          browserNotifications.enabled
-                            ? "Desativar"
-                            : "Ativar notificações"
-                        }
-                        loading={browserNotifications.busy}
-                        size="sm"
-                        variant={browserNotifications.enabled ? "outline" : "primary"}
-                        disabled={
-                          browserNotifications.busy || !browserNotifications.publicKey
-                        }
-                        onPress={() => void browserNotifications.toggle()}
-                      />
-                      {browserNotifications.enabled ? (
-                        <Button
-                          title="Enviar teste"
-                          size="sm"
-                          variant="outline"
-                          disabled={browserNotifications.busy}
-                          onPress={() => void browserNotifications.test()}
-                        />
-                      ) : (
-                        <Button
-                          title="Verificar novamente"
-                          size="sm"
-                          variant="outline"
-                          disabled={browserNotifications.busy}
-                          onPress={() => void browserNotifications.refresh()}
-                        />
-                      )}
-                    </View>
-                  ) : null}
-                </View>
-              </View>
-            ) : null}
-            {Platform.OS !== "web" || browserNotifications.enabled
-              ? NOTIFICATIONS.filter((item) => {
-                  if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
-                  if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
-                  return true;
-                }).map((item) => {
-                  const locked = !!item.premium && !canUsePremiumNotifications;
-                  return (
-                    <View
-                      key={item.type}
-                      style={{
-                        minHeight: 58,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: spacing.md,
-                        paddingHorizontal: spacing.xs,
-                        borderTopWidth: 1,
-                        borderTopColor: theme.colors.border,
-                      }}
-                    >
-                      <IconSurface
-                        name={item.icon}
-                        color={theme.colors.textSecondary}
-                        backgroundColor={theme.colors.surface}
-                        size={38}
-                        iconSize={18}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Typography variant="bodyBold">{item.label}</Typography>
-                        {item.premium ? (
-                          <Typography variant="caption" color={theme.colors.premium}>
-                            Profissional
-                          </Typography>
-                        ) : null}
-                      </View>
-                      {locked ? (
-                        <Pressable
-                          onPress={() => showPaywall("notifications")}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${item.label}, recurso Profissional`}
-                          style={{
-                            width: 44,
-                            height: 44,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <AppIcon
-                            name="lock-closed"
-                            size={18}
-                            color={theme.colors.premium}
-                          />
-                        </Pressable>
-                      ) : (
-                        <Switch
-                          disabled={Platform.OS === "web" && browserNotifications.busy}
-                          accessibilityLabel={item.label}
-                          trackColor={{
-                            false: theme.colors.surface,
-                            true: theme.colors.primaryInteractive,
-                          }}
-                          thumbColor={theme.colors.textOnPrimary}
-                          value={isPrefEnabled(notifPrefs, item.type)}
-                          onValueChange={(value) => {
-                            if (Platform.OS === "web")
-                              void browserNotifications.setPreference(item.type, value);
-                            else setNotifPref(item.type, value);
-                          }}
-                        />
-                      )}
-                    </View>
-                  );
-                })
-              : null}
-          </Card>
-        </View>
-
-        <Card variant="elevated" padding="lg">
-          <SettingsRow
-            icon="chatbubble-ellipses-outline"
-            iconColor={theme.colors.textSecondary}
-            iconBackground={theme.colors.surface}
-            title="Suporte"
-            subtitle="Tire suas dúvidas e fale com a gente"
-            onPress={() => router.push("/support")}
-            showChevron
-          />
-        </Card>
-
-        {Platform.OS !== "web" && webAppUrl ? (
-          <Card variant="elevated" padding="lg">
-            <SettingsRow
-              icon="globe-outline"
-              iconColor={theme.colors.primary}
-              iconBackground={theme.colors.primaryBg}
-              title="Usar no computador"
-              subtitle="Acesse seus dados em qualquer computador"
-              onPress={() => setShowDesktopAccess(true)}
-              showChevron
-            />
-          </Card>
-        ) : null}
-
-        <View
-          style={{
-            gap: spacing.xl,
-            ...(isDesktop
-              ? { flexDirection: "row" as const, alignItems: "stretch" as const }
-              : undefined),
-          }}
-        >
-          <View style={{ gap: spacing.sm, ...(isDesktop ? { flex: 1 } : {}) }}>
-            <Typography variant="label" style={{ marginLeft: spacing.xs }}>
-              Privacidade
-            </Typography>
-            <Card variant="elevated" padding="lg" style={{ paddingVertical: spacing.xs }}>
-              <SettingsRow
-                icon="shield-checkmark-outline"
-                iconColor={theme.colors.textSecondary}
-                iconBackground={theme.colors.surface}
-                title="Política de privacidade"
-                onPress={() => void openPrivacyPolicy()}
-                showChevron
-              />
-              <SettingsRow
-                icon="document-text-outline"
-                iconColor={theme.colors.textSecondary}
-                iconBackground={theme.colors.surface}
-                title="Termos de uso"
-                onPress={() =>
-                  showAlert({
-                    title: "Termos de uso",
-                    message:
-                      "Consulte os termos de uso no site oficial do Lucro Caseiro.",
-                  })
-                }
-                showChevron
-              />
-            </Card>
-          </View>
-
-          <View style={{ gap: spacing.sm, ...(isDesktop ? { flex: 1 } : {}) }}>
-            <Typography variant="label" style={{ marginLeft: spacing.xs }}>
-              Conta
-            </Typography>
-            <Card variant="elevated" padding="lg" style={{ paddingVertical: spacing.xs }}>
-              <SettingsRow
-                icon="log-out-outline"
-                iconColor={theme.colors.textSecondary}
-                iconBackground={theme.colors.surface}
-                title="Sair da conta"
-                onPress={handleLogout}
-                showChevron
-              />
-              <SettingsRow
-                icon="trash-outline"
-                iconColor={theme.colors.alert}
-                iconBackground={theme.colors.alertBg}
-                title={deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
-                titleColor={theme.colors.alert}
-                onPress={handleDeleteAccount}
-                disabled={deleteAccount.isPending}
-                trailing={
-                  deleteAccount.isPending ? (
-                    <ActivityIndicator size="small" color={theme.colors.alert} />
-                  ) : null
-                }
-                showChevron={!deleteAccount.isPending}
-              />
-            </Card>
-          </View>
-        </View>
-
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          style={{ textAlign: "center" }}
-        >
-          {appVersion}
-        </Typography>
+            {profileSection}
+            {prefsSection}
+          </DesktopSplit>
+        ) : (
+          <>
+            {profileSection}
+            {planSection}
+            {goalSection}
+            {prefsSection}
+            {supportSection}
+            {desktopAccessSection}
+            {privacySection}
+            {versionSection}
+          </>
+        )}
       </ScrollView>
 
       <ProlaboreGoalForm
@@ -1173,20 +1253,28 @@ export default function SettingsScreen() {
 
       <StandardModal
         title="Editar perfil"
+        size="form"
         visible={showEditProfile}
         onClose={() => setShowEditProfile(false)}
+        dismissDisabled={updateProfile.isPending || savingAvatar}
         footer={
-          <Button
-            title={savingAvatar ? "Enviando foto..." : "Salvar"}
-            size="lg"
-            onPress={() => void handleSaveProfile()}
-            loading={updateProfile.isPending || savingAvatar}
-            style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 220) }}
-          />
+          <FormActions>
+            <Button
+              title="Cancelar"
+              variant="outline"
+              disabled={updateProfile.isPending || savingAvatar}
+              onPress={() => setShowEditProfile(false)}
+            />
+            <Button
+              title={savingAvatar ? "Enviando foto…" : "Salvar perfil"}
+              onPress={() => void handleSaveProfile()}
+              loading={updateProfile.isPending || savingAvatar}
+            />
+          </FormActions>
         }
       >
-        <View style={{ flexShrink: 1, gap: spacing.lg }}>
-          <View style={{ alignItems: "center", gap: spacing.sm }}>
+        <FormBody>
+          <View style={{ alignItems: "center" }}>
             <Pressable
               onPress={pickAvatar}
               accessibilityRole="button"
@@ -1198,7 +1286,7 @@ export default function SettingsScreen() {
                   width: 96,
                   height: 96,
                   borderRadius: radii.full,
-                  backgroundColor: theme.colors.surfaceElevated,
+                  backgroundColor: theme.colors.primaryBg,
                   alignItems: "center",
                   justifyContent: "center",
                   overflow: "hidden",
@@ -1234,7 +1322,7 @@ export default function SettingsScreen() {
               </View>
               <Typography
                 variant="bodyBold"
-                color={theme.colors.primary}
+                color={theme.colors.primaryStrong}
                 style={{ marginTop: spacing.sm }}
               >
                 {pickedAvatar || avatarUrl ? "Alterar foto" : "Adicionar foto"}
@@ -1242,56 +1330,45 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
 
-          <View>
-            <FieldLabel label="Nome" required />
-            <ValidationField {...formValidation.field("editName")}>
-              <TextFieldCard
+          <FormGrid>
+            <FormField label="Seu nome" validation={formValidation.field("editName")}>
+              <TextField
                 icon="person-outline"
                 placeholder="Seu nome"
+                accessibilityLabel="Seu nome"
                 value={editName}
                 onChangeText={setEditName}
               />
-            </ValidationField>
-          </View>
-          <View>
-            <FieldLabel label="Nome do negócio" />
-            <TextFieldCard
-              icon="storefront-outline"
-              placeholder={`Ex: ${experienceCopy.businessNameExample}`}
-              accessibilityLabel="Nome do negocio"
-              value={editBusinessName}
-              onChangeText={setEditBusinessName}
-            />
-          </View>
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Tipo de negócio
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Toque para selecionar
-            </Typography>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {BUSINESS_TYPES.map((type) => (
-                <Chip
-                  key={type.value}
-                  label={type.label}
-                  selected={editBusinessType === type.value}
-                  onPress={() => setEditBusinessType(type.value)}
-                />
-              ))}
-            </View>
-          </View>
-          <View>
-            <FieldLabel label="Telefone" />
-            <TextFieldCard
-              icon="call-outline"
-              placeholder="Ex: (11) 99999-9999"
-              value={editPhone}
-              onChangeText={(value: string) => setEditPhone(maskPhoneBR(value))}
-              keyboardType="phone-pad"
-            />
-          </View>
-        </View>
+            </FormField>
+            <FormField label="Telefone" optional>
+              <TextField
+                icon="call-outline"
+                placeholder="Ex: (11) 99999-9999"
+                accessibilityLabel="Telefone"
+                value={editPhone}
+                onChangeText={(value: string) => setEditPhone(maskPhoneBR(value))}
+                keyboardType="phone-pad"
+              />
+            </FormField>
+            <FormField label="Nome do negócio" optional span="full">
+              <TextField
+                icon="storefront-outline"
+                placeholder={`Ex: ${experienceCopy.businessNameExample}`}
+                accessibilityLabel="Nome do negocio"
+                value={editBusinessName}
+                onChangeText={setEditBusinessName}
+              />
+            </FormField>
+            <FormField label="Tipo de negócio" optional span="full">
+              <ChipChoiceField
+                value={editBusinessType}
+                options={BUSINESS_TYPES}
+                onChange={setEditBusinessType}
+                accessibilityLabel="Tipo de negócio"
+              />
+            </FormField>
+          </FormGrid>
+        </FormBody>
       </StandardModal>
     </SafeAreaView>
   );

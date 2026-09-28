@@ -86,4 +86,34 @@ describe("apiClient", () => {
       Authorization: "Bearer token-renovado",
     });
   });
+  it("desiste da chamada quando o servidor não responde a tempo", async () => {
+    // Arrange
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () =>
+              reject(new DOMException("Aborted", "AbortError")),
+            );
+          }),
+      ),
+    );
+
+    // Act
+    const request = apiClient("/purchases", { timeoutMs: 10 });
+
+    // Assert
+    await expect(request).rejects.toMatchObject({ code: "TIMEOUT", status: 0 });
+  });
+
+  it("marca falha de transporte como NETWORK_ERROR", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new TypeError("Network request failed")),
+    );
+    await expect(apiClient("/purchases")).rejects.toMatchObject({
+      code: "NETWORK_ERROR",
+    });
+  });
 });

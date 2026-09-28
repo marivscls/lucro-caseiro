@@ -5,6 +5,8 @@ import {
   brToIso,
   isoToBR,
   isValidTimeBR,
+  localDayOf,
+  localIsoDate,
   maskDateBR,
   maskTimeBR,
 } from "./date";
@@ -86,5 +88,22 @@ describe("addDaysToBR", () => {
   it("returns undefined for incomplete dates", () => {
     expect(addDaysToBR("30/05", 7)).toBeUndefined();
     expect(addDaysToBR("", 7)).toBeUndefined();
+  });
+});
+
+describe("localIsoDate", () => {
+  it("usa o dia do aparelho, mesmo à noite", () => {
+    expect(localIsoDate(new Date(2026, 8, 23, 22, 30))).toBe("2026-09-23");
+  });
+});
+
+describe("localDayOf", () => {
+  it("converte timestamp da API para o dia local", () => {
+    const lateSale = new Date(2026, 8, 23, 22, 30).toISOString();
+    expect(localDayOf(lateSale)).toBe("2026-09-23");
+  });
+
+  it("mantém datas puras", () => {
+    expect(localDayOf("2026-09-23")).toBe("2026-09-23");
   });
 });

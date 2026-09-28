@@ -23,6 +23,19 @@ A pessoa nunca deve perder acesso aos dados antigos ao bater limite. Ela pode co
 | Essencial    |     R$ 29,90 | Uso real para quem trabalha sozinha ou esta comecando. |
 | Profissional |     R$ 69,90 | Operacao mais completa para negocio em crescimento.    |
 
+## Teste gratis do Essencial (contas novas)
+
+Decisao de 2026-09-24: toda conta nova comeca com **7 dias do Essencial**, sem cartao e
+sem cobranca. Quando os 7 dias acabam, a conta volta sozinha para o Gratis, com todos os
+dados salvos (quem passou dos limites do Gratis so consulta; novos cadastros pedem plano).
+
+- Contas que ja existiam nao ganham o teste.
+- Durante o teste a pessoa pode assinar Essencial ou Profissional; a compra encerra o teste
+  e conta como primeira assinatura.
+- No banco: `plan = 'essential'`, `plan_expires_at = cadastro + 7 dias` e
+  `plan_is_trial = true` (migration `20260924100000_essential_trial_signup.sql`). A duracao
+  fica em `ESSENTIAL_TRIAL_DAYS` (`@lucro-caseiro/contracts`).
+
 ## Plano Gratis
 
 Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limite quando comecar a usar todos os dias.
@@ -30,9 +43,9 @@ Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limi
 | Recurso                |                      Limite |
 | ---------------------- | --------------------------: |
 | Usuarios               |                           1 |
-| Vendas                 |                  30 por mes |
-| Clientes               |                          20 |
-| Produtos               |                          15 |
+| Vendas                 |                  Ilimitadas |
+| Clientes               |                          50 |
+| Produtos               |                          30 |
 | Fotos por produto      |                           1 |
 | Receitas               |                           5 |
 | Embalagens             |                           3 |
@@ -111,9 +124,9 @@ Usar a logica de 2 meses gratis:
 
 | Recurso                 | Gratis         | Essencial                | Profissional                |
 | ----------------------- | -------------- | ------------------------ | --------------------------- |
-| Vendas                  | 30/mes         | Ilimitadas               | Ilimitadas                  |
-| Clientes                | 20             | Ilimitados               | Ilimitados                  |
-| Produtos                | 15             | Ilimitados               | Ilimitados                  |
+| Vendas                  | Ilimitadas     | Ilimitadas               | Ilimitadas                  |
+| Clientes                | 50             | Ilimitados               | Ilimitados                  |
+| Produtos                | 30             | Ilimitados               | Ilimitados                  |
 | Receitas                | 5              | Ilimitadas               | Ilimitadas                  |
 | Embalagens              | 3              | Ilimitadas               | Ilimitadas                  |
 | Fornecedores            | 3              | Limitado ou nao incluso  | Ilimitados                  |
@@ -150,7 +163,7 @@ Hoje o app ainda tem partes modeladas como `free` e `premium`, com Premium antig
 1. Trocar o modelo de plano para `free`, `essential` e `professional`.
 2. Atualizar Stripe/Google Play com os novos produtos mensais e anuais.
 3. Atualizar a tela de planos e paywalls.
-4. Atualizar limites do backend, especialmente vendas gratis de 50 para 30 por mes.
+4. Atualizar limites do backend (2026-09-23: vendas ilimitadas no gratis, 50 clientes e 30 produtos).
 5. Separar gates de recurso entre Essencial e Profissional.
 6. Garantir que dados antigos continuam visiveis quando a usuaria faz downgrade ou bate limite.
 7. Criar testes para limites e permissoes por plano.

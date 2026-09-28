@@ -235,7 +235,8 @@ export function ProductList({
           ) : null
         }
       />
-      {!stockOnly && resolvedData.total > 0 && onAddPress ? (
+      {/* No desktop a ação de criar fica só no cabeçalho. */}
+      {!isDesktop && !stockOnly && resolvedData.total > 0 && onAddPress ? (
         <ScreenCreateBar title={`+ ${addButtonTitle}`} onPress={onAddPress} />
       ) : null}
     </View>

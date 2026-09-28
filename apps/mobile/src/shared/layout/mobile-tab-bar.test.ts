@@ -47,7 +47,7 @@ describe("shouldShowMobileTabBar", () => {
   });
 
   it("mostra nas telas autenticadas do app, inclusive fora das tabs", () => {
-    for (const rootSegment of ["tabs", "products", "catalog", "lucro-apps", "settings"]) {
+    for (const rootSegment of ["tabs", "products", "catalog", "settings"]) {
       expect(
         shouldShowMobileTabBar({
           isDesktop: false,
@@ -108,6 +108,6 @@ describe("resolveActiveMobileTab", () => {
   it("marca Mais em qualquer tela empilhada do app", () => {
     expect(resolveActiveMobileTab("/products", true)).toBe("more");
     expect(resolveActiveMobileTab("/catalog", false)).toBe("more");
-    expect(resolveActiveMobileTab("/lucro-apps", true)).toBe("more");
+    expect(resolveActiveMobileTab("/settings", true)).toBe("more");
   });
 });

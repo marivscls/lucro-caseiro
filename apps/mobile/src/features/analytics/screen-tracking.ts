@@ -60,3 +60,14 @@ export function activeDurationMs(
   const duration = Math.min(Math.max(endedAt - startedAt, 0), 6 * 60 * 60 * 1000);
   return duration >= 250 ? duration : null;
 }
+
+let currentScreen: AnalyticsScreenName | null = null;
+
+/** Tela canônica em foco, para dar contexto a ações (origem do paywall, crash). */
+export function setCurrentAnalyticsScreen(screen: AnalyticsScreenName | null): void {
+  currentScreen = screen;
+}
+
+export function currentAnalyticsScreen(): AnalyticsScreenName | null {
+  return currentScreen;
+}

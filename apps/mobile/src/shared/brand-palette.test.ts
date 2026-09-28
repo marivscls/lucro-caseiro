@@ -28,6 +28,8 @@ describe("brandScreenPalette", () => {
       [palette.onRose, palette.rose],
       [palette.onLime, palette.lime],
       [palette.onWine, palette.wineFill],
+      [palette.onWineMuted, palette.wineFill],
+      [palette.lime, palette.wineFill],
     ]) {
       expect(contrast(text, background)).toBeGreaterThanOrEqual(4.5);
     }

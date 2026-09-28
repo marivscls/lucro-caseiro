@@ -119,7 +119,7 @@ try {
           >(
             `
           UPDATE public.users
-          SET plan = 'professional', plan_expires_at = $1
+          SET plan = 'professional', plan_expires_at = $1, plan_is_trial = false
           WHERE lower(email) = lower($2)
             AND is_active = true
             AND plan = 'free'

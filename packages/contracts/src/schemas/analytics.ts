@@ -62,6 +62,12 @@ export const ANALYTICS_ACTION_NAMES = [
   "subscription_started",
   "subscription_completed",
   "subscription_cancelled",
+  "business_profile_completed",
+  "business_profile_skipped",
+  "plan_chosen",
+  "purchase_result",
+  "ad_impression",
+  "app_crashed",
   ...GUIDANCE_ACTION_NAMES,
   ...GUIDANCE_VALIDATION_ACTIONS,
 ] as const;
@@ -76,12 +82,47 @@ export interface InstallAttribution {
   content?: string;
 }
 
+/** Origem da instalação, lida na primeira abertura (UTM na web; Install Referrer no Android). */
+export const ANALYTICS_ACQUISITION_FIELDS = [
+  "utmSource",
+  "utmMedium",
+  "utmCampaign",
+  "utmContent",
+  "referrer",
+] as const;
+export type AnalyticsAcquisitionField = (typeof ANALYTICS_ACQUISITION_FIELDS)[number];
+export type AnalyticsAcquisition = Partial<Record<AnalyticsAcquisitionField, string>>;
+/** `referrer` guarda só o host de origem; os UTM, o valor da campanha. */
+export const ANALYTICS_ACQUISITION_MAX_LENGTH: Record<AnalyticsAcquisitionField, number> =
+  {
+    utmSource: 100,
+    utmMedium: 100,
+    utmCampaign: 100,
+    utmContent: 100,
+    referrer: 200,
+  };
+
+/**
+ * Contexto pequeno e fechado de uma ação (qual limite, de onde veio o paywall, qual plano).
+ * Valores são identificadores, nunca texto digitado ou dado pessoal.
+ */
+export type AnalyticsEventPropValue = string | number | boolean;
+export type AnalyticsEventProps = Record<string, AnalyticsEventPropValue>;
+export const ANALYTICS_EVENT_PROPS_LIMITS = {
+  maxKeys: 5,
+  /** Chave: `^[a-z][a-z0-9_]*$`. */
+  maxKeyLength: 32,
+  /** Texto: letras, números e `_ . : / ( ) [ ] -`, sem espaços. */
+  maxStringLength: 64,
+  maxAbsNumber: 1_000_000_000,
+} as const;
+
 export type ProductAnalyticsEvent =
   | { type: "screen_view"; name: AnalyticsScreenName; durationMs: number }
-  | { type: "action"; name: AnalyticsActionName };
+  | { type: "action"; name: AnalyticsActionName; props?: AnalyticsEventProps };
 
 export interface ProductAnalyticsDashboard {
-  acquisition?: AccountAcquisitionReport;
+  accountAcquisition?: AccountAcquisitionReport;
   generatedAt: string;
   installations: {
     total: number;
@@ -93,6 +134,8 @@ export interface ProductAnalyticsDashboard {
     total: number;
     last30Days: number;
   };
+  /** Instalações dos últimos 30 dias por `utm_source` + `utm_content`; null = sem origem. */
+  acquisition: AcquisitionSourceMetric[];
   activation: {
     activatedUsers: number;
     eligibleWithin7Days: number;
@@ -142,6 +185,13 @@ export interface AccountAcquisitionReport {
     campaign: string | null;
     installations: number;
   }[];
+}
+
+export interface AcquisitionSourceMetric {
+  source: string | null;
+  content: string | null;
+  installations: number;
+  linkedToUser: number;
 }
 
 export interface RetentionMetric {

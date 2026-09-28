@@ -2,6 +2,7 @@ import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { AppIcon } from "./app-icon";
+import { useDesktopLayout } from "../layout/use-desktop-layout";
 
 export type FormStep = Readonly<{
   label: string;
@@ -23,6 +24,9 @@ export function FormStepProgress({
   const safeCurrent = Math.min(Math.max(current, 1), steps.length);
   const activeStep = steps[safeCurrent - 1];
   const activeColor = theme.colors.primaryStrong;
+  // Desktop (modais de cadastro): número de 14 px num círculo de 28 px.
+  const isDesktop = useDesktopLayout();
+  const circle = isDesktop ? 28 : 22;
 
   return (
     <View style={{ gap: spacing.md }}>
@@ -97,10 +101,10 @@ export function FormStepProgress({
               ) : (
                 <View
                   style={{
-                    width: 22,
-                    height: 22,
+                    width: circle,
+                    height: circle,
                     flexShrink: 0,
-                    borderRadius: 11,
+                    borderRadius: circle / 2,
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundColor:
@@ -121,7 +125,9 @@ export function FormStepProgress({
                       color={
                         selected ? theme.colors.textOnPrimary : theme.colors.textSecondary
                       }
-                      style={{ fontSize: 12 }}
+                      style={
+                        isDesktop ? { fontSize: 14, lineHeight: 20 } : { fontSize: 12 }
+                      }
                     >
                       {number}
                     </Typography>

@@ -7,6 +7,8 @@ const state = vi.hoisted(() => ({ enabled: false, create: vi.fn(), update: vi.fn
 vi.mock("@lucro-caseiro/ui", async (original) => ({
   ...(await original<object>()),
   useFeature: () => state.enabled,
+  fontSizes: { sm: 14, md: 16 },
+  fonts: { regular: "Nunito", bold: "Nunito-Bold" },
   Typography: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
   Button: ({
     title,
@@ -36,10 +38,21 @@ vi.mock("@lucro-caseiro/ui", async (original) => ({
       onChange={(e) => onChangeText(e.target.value)}
     />
   ),
-  Chip: ({ label, onPress }: { label: string; onPress: () => void }) => (
-    <button onClick={onPress}>{label}</button>
+  CenteredTextInput: ({
+    accessibilityLabel,
+    value,
+    onChangeText,
+  }: {
+    accessibilityLabel?: string;
+    value: string;
+    onChangeText: (v: string) => void;
+  }) => (
+    <input
+      aria-label={accessibilityLabel}
+      value={value}
+      onChange={(e) => onChangeText(e.target.value)}
+    />
   ),
-  FilterChipRow: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 vi.mock("../../../shared/components/standard-modal", () => ({
   StandardModal: ({
@@ -129,7 +142,7 @@ describe("compras sem suporte a entrada de estoque", () => {
       target: { value: "Farinha" },
     });
     fireEvent.click(screen.getByText("Continuar"));
-    fireEvent.change(screen.getByLabelText("Valor (R$)"), {
+    fireEvent.change(screen.getByLabelText("Valor, em reais"), {
       target: { value: "0,00" },
     });
     fireEvent.click(screen.getByText("Continuar"));
@@ -139,8 +152,8 @@ describe("compras sem suporte a entrada de estoque", () => {
 
   it("revisa a recompra como despesa sem enviar itens indisponíveis", async () => {
     render(<CreatePurchaseForm visible onClose={() => {}} prefill={purchase} />);
-    expect(screen.queryByText("PRODUTOS RECEBIDOS")).toBeNull();
-    expect(screen.getByLabelText("Valor (R$)")).toHaveProperty("value", "30,00");
+    expect(screen.queryByText("Produtos recebidos")).toBeNull();
+    expect(screen.getByLabelText("Valor, em reais")).toHaveProperty("value", "30,00");
     expect(screen.getByText(/registrada somente como despesa/i)).toBeTruthy();
     fireEvent.click(screen.getByText("Continuar"));
     fireEvent.click(screen.getByText("Continuar"));
@@ -163,8 +176,8 @@ describe("compras sem suporte a entrada de estoque", () => {
   it("mantém estoque e itens quando a marca permite", () => {
     state.enabled = true;
     render(<CreatePurchaseForm visible onClose={() => {}} prefill={purchase} />);
-    expect(screen.getByText("PRODUTOS RECEBIDOS")).toBeTruthy();
+    expect(screen.getByText("Produtos recebidos")).toBeTruthy();
     expect(screen.getByText("Caderno")).toBeTruthy();
-    expect(screen.queryByLabelText("Valor (R$)")).toBeNull();
+    expect(screen.queryByLabelText("Valor, em reais")).toBeNull();
   });
 });

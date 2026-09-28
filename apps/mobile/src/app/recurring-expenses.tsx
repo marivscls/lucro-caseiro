@@ -1,4 +1,3 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { ScreenGuidance } from "../shared/guidance/screen-guidance";
@@ -8,7 +7,6 @@ import {
   Button,
   EmptyState,
   iconSizes,
-  Input,
   radii,
   spacing,
   Typography,
@@ -50,13 +48,29 @@ import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
+import { ChipChoiceField, FormField, TextField } from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { desktopStretch, pageGutter } from "../shared/layout/desktop-density";
 import { brandScreenPalette } from "../shared/brand-palette";
+import {
+  desktopPageContent,
+  DesktopPageHeader,
+  DesktopSection,
+  DesktopSplit,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  RecurringAsideDesktop,
+  RecurringCommitmentsDesktop,
+  RecurringEmptyDesktop,
+  RecurringGateDesktop,
+  RecurringTableDesktop,
+  type RecurringDesktopRow,
+} from "../features/finance/components/recurring-expenses-desktop";
 import { ApiError } from "../shared/utils/api-client";
-import { alertError, alertValidation } from "../shared/utils/alerts";
+import { alertError } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 import { formatCurrency } from "../shared/utils/format";
 
@@ -82,6 +96,12 @@ const CATEGORY_SURFACES: Record<ExpenseCategory, keyof Theme["colors"]> = {
   fee: "surface",
   other: "lavenderBg",
 };
+
+const GATE_BENEFITS = [
+  "Aluguel, internet, gás e outros custos caem sozinhos no caixa todo mês.",
+  "Você não esquece nenhuma conta — o app lança na data certa.",
+  "Enxergue o lucro real, já com os custos fixos descontados.",
+];
 
 function useRecurringTheme() {
   const { theme } = useTheme();
@@ -140,6 +160,24 @@ export default function RecurringExpensesScreen() {
     [items],
   );
 
+  function desktopRow(item: RecurringExpense): RecurringDesktopRow {
+    return {
+      id: item.id,
+      name: displayRecurringExpenseName(item.description),
+      category: categoryLabel(
+        item.category,
+        experienceCopy.materialNoun,
+        experienceCopy.packagingNoun,
+      ),
+      icon: categoryIcon(item.category),
+      iconSurface: theme.colors[CATEGORY_SURFACES[item.category]],
+      day: item.dayOfMonth,
+      amount: item.amount,
+      active: item.active,
+      isNext: item.id === nextExpense?.id,
+    };
+  }
+
   function handleBack() {
     if (router.canGoBack()) {
       router.back();
@@ -173,7 +211,9 @@ export default function RecurringExpensesScreen() {
           text: "Remover",
           style: "destructive",
           onPress: () => {
-            remove.mutate(id);
+            remove.mutate(id, {
+              onError: () => alertError("Não foi possível remover o gasto fixo."),
+            });
             setSelectedExpense(null);
             setEditingExpense(null);
           },
@@ -182,114 +222,198 @@ export default function RecurringExpensesScreen() {
     });
   }
 
+  const guidance = (
+    <ScreenGuidance
+      renderHeader={(helpButton) => (
+        <RecurringHeader
+          help={helpButton}
+          title="Gastos fixos"
+          subtitle="Organize o que se repete todo mês."
+          onBack={handleBack}
+          onAdd={isDesktop ? handleAddPress : undefined}
+          isDesktop={isDesktop}
+        />
+      )}
+      area="recurring_expenses"
+      onStart={handleAddPress}
+      hasRecords={recurringItems.length > 0}
+      loading={isLoading || !items}
+      suspended={showForm || !!selectedExpense}
+    />
+  );
+
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
 
       <View style={styles.screen}>
-        <ScreenGuidance
-          renderHeader={(helpButton) => (
-            <RecurringHeader
-              help={helpButton}
-              title="Gastos fixos"
-              subtitle="Organize o que se repete todo mês."
-              onBack={handleBack}
-              onAdd={isDesktop ? handleAddPress : undefined}
-              isDesktop={isDesktop}
-            />
-          )}
-          area="recurring_expenses"
-          onStart={handleAddPress}
-          hasRecords={recurringItems.length > 0}
-          loading={isLoading || !items}
-          suspended={showForm || !!selectedExpense}
-        />
+        {isDesktop ? null : guidance}
         <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            pageGutter(isDesktop, spacing.lg),
-            desktopStretch(isDesktop),
-            { paddingBottom: spacing.lg },
-          ]}
+          contentContainerStyle={
+            isDesktop
+              ? desktopPageContent(true)
+              : [
+                  styles.content,
+                  pageGutter(isDesktop, spacing.lg),
+                  desktopStretch(isDesktop),
+                  { paddingBottom: spacing.lg },
+                ]
+          }
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <MonthlyCommitmentsCard
-            compact={viewportWidth <= 360}
-            count={recurringItems.length}
-            imageSize={Math.min(
-              160,
-              Math.max(
-                96,
-                (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
-                  (viewportWidth <= 360 ? 0.4 : 0.44) *
-                  0.92,
-              ),
-            )}
-            nextDay={nextExpense?.dayOfMonth ?? null}
-            timelineDays={timelineDays}
-            total={total}
-          />
-
-          {!canUseRecurringExpenses ? (
-            <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
-          ) : (
+          {isDesktop ? (
             <>
-              <View style={styles.listHeadingCopy}>
-                <Typography variant="h3" color={palette.wine}>
-                  Seus gastos fixos
-                </Typography>
-                <Typography variant="caption">Próximos vencimentos primeiro</Typography>
-              </View>
-
-              {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
-
-              {!isLoading && recurringItems.length === 0 ? (
-                <EmptyRecurringState isDesktop={isDesktop} />
-              ) : null}
-
-              {!isLoading && orderedItems.length > 0 ? (
-                <View style={styles.expenseList}>
-                  {orderedItems.map((item, index) => (
-                    <ExpenseRow
-                      key={item.id}
-                      item={item}
-                      isLast={index === orderedItems.length - 1}
-                      isNext={item.id === nextExpense?.id}
-                      isSelected={selectedExpense?.id === item.id}
-                      materialNoun={experienceCopy.materialNoun}
-                      packagingNoun={experienceCopy.packagingNoun}
-                      onPress={() => {
-                        setSelectedExpense(item);
-                        setEditingExpense(null);
-                      }}
-                    />
-                  ))}
-                </View>
-              ) : null}
-
-              {selectedExpense && !isLoading ? (
-                <RecurringDetails
-                  item={selectedExpense}
-                  onClose={() => setSelectedExpense(null)}
-                  onDelete={() =>
-                    confirmDelete(
-                      selectedExpense.id,
-                      displayRecurringExpenseName(selectedExpense.description),
+              <DesktopPageHeader>{guidance}</DesktopPageHeader>
+              <RecurringCommitmentsDesktop
+                total={total}
+                count={recurringItems.length}
+                nextDay={nextExpense?.dayOfMonth ?? null}
+                timelineDays={timelineDays}
+              />
+              {canUseRecurringExpenses ? (
+                <DesktopSplit
+                  aside={
+                    recurringItems.length === 0 ? null : (
+                      <RecurringAsideDesktop
+                        selected={
+                          selectedExpense
+                            ? {
+                                ...desktopRow(selectedExpense),
+                                categoryLabel: categoryLabel(
+                                  selectedExpense.category,
+                                  experienceCopy.materialNoun,
+                                  experienceCopy.packagingNoun,
+                                ),
+                              }
+                            : null
+                        }
+                        onClose={() => setSelectedExpense(null)}
+                        onDelete={() => {
+                          if (!selectedExpense) return;
+                          confirmDelete(
+                            selectedExpense.id,
+                            displayRecurringExpenseName(selectedExpense.description),
+                          );
+                        }}
+                        onEdit={() => {
+                          setEditingExpense(selectedExpense);
+                          setShowForm(true);
+                        }}
+                      />
                     )
                   }
-                  onEdit={() => {
-                    setEditingExpense(selectedExpense);
-                    setShowForm(true);
-                  }}
+                >
+                  <DesktopSection
+                    title="Seus gastos fixos"
+                    description="Próximos vencimentos primeiro"
+                  >
+                    {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
+                    {!isLoading && recurringItems.length === 0 ? (
+                      <RecurringEmptyDesktop onAdd={handleAddPress} />
+                    ) : null}
+                    {!isLoading && orderedItems.length > 0 ? (
+                      <RecurringTableDesktop
+                        rows={orderedItems.map(desktopRow)}
+                        onRowPress={(id) => {
+                          setSelectedExpense(
+                            orderedItems.find((item) => item.id === id) ?? null,
+                          );
+                          setEditingExpense(null);
+                        }}
+                      />
+                    ) : null}
+                  </DesktopSection>
+                </DesktopSplit>
+              ) : (
+                <RecurringGateDesktop
+                  benefits={GATE_BENEFITS}
+                  onUnlock={() => showPaywall("recurring")}
                 />
-              ) : null}
+              )}
+            </>
+          ) : (
+            <>
+              <MonthlyCommitmentsCard
+                compact={viewportWidth <= 360}
+                count={recurringItems.length}
+                imageSize={Math.min(
+                  160,
+                  Math.max(
+                    96,
+                    (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
+                      (viewportWidth <= 360 ? 0.4 : 0.44) *
+                      0.92,
+                  ),
+                )}
+                nextDay={nextExpense?.dayOfMonth ?? null}
+                timelineDays={timelineDays}
+                total={total}
+              />
+
+              {!canUseRecurringExpenses ? (
+                <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
+              ) : (
+                <>
+                  <View style={styles.listHeadingCopy}>
+                    <Typography variant="h3" color={palette.wine}>
+                      Seus gastos fixos
+                    </Typography>
+                    <Typography variant="caption">
+                      Próximos vencimentos primeiro
+                    </Typography>
+                  </View>
+
+                  {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
+
+                  {!isLoading && recurringItems.length === 0 ? (
+                    <EmptyRecurringState isDesktop={isDesktop} />
+                  ) : null}
+
+                  {!isLoading && orderedItems.length > 0 ? (
+                    <View style={styles.expenseList}>
+                      {orderedItems.map((item, index) => (
+                        <ExpenseRow
+                          key={item.id}
+                          item={item}
+                          isLast={index === orderedItems.length - 1}
+                          isNext={item.id === nextExpense?.id}
+                          isSelected={selectedExpense?.id === item.id}
+                          materialNoun={experienceCopy.materialNoun}
+                          packagingNoun={experienceCopy.packagingNoun}
+                          onPress={() => {
+                            setSelectedExpense(item);
+                            setEditingExpense(null);
+                          }}
+                        />
+                      ))}
+                    </View>
+                  ) : null}
+
+                  {selectedExpense && !isLoading ? (
+                    <RecurringDetails
+                      item={selectedExpense}
+                      onClose={() => setSelectedExpense(null)}
+                      onDelete={() =>
+                        confirmDelete(
+                          selectedExpense.id,
+                          displayRecurringExpenseName(selectedExpense.description),
+                        )
+                      }
+                      onEdit={() => {
+                        setEditingExpense(selectedExpense);
+                        setShowForm(true);
+                      }}
+                    />
+                  ) : null}
+                </>
+              )}
             </>
           )}
         </ScrollView>
 
-        {canUseRecurringExpenses ? (
+        {canUseRecurringExpenses && !isDesktop ? (
           <ScreenCreateBar title="+ Novo gasto fixo" onPress={handleAddPress} />
         ) : null}
       </View>
@@ -554,7 +678,7 @@ function RecurringFormModal({
 }>) {
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
-  const { theme, styles, palette } = useRecurringTheme();
+  const { styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
@@ -589,19 +713,6 @@ function RecurringFormModal({
     if (isSaving) return;
 
     const parsedAmount = parseCurrencyInput(amount);
-
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      alertValidation("Informe um valor maior que zero.");
-      return;
-    }
-    if (!description.trim()) {
-      alertValidation("Adicione uma descrição (ex.: Aluguel).");
-      return;
-    }
-    if (!validDay) {
-      alertValidation("O dia deve estar entre 1 e 28.");
-      return;
-    }
 
     try {
       const payload = {
@@ -642,6 +753,7 @@ function RecurringFormModal({
       visible
       onClose={onClose}
       dismissDisabled={isSaving}
+      size="form"
       title={isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
       subtitle={
         isEditing
@@ -649,99 +761,71 @@ function RecurringFormModal({
           : "Cadastre uma vez. O caixa lança todo mês."
       }
       footer={
-        <Button
-          disabled={isSaving}
-          loading={isSaving}
-          onPress={() => void handleSave()}
-          size="lg"
-          style={styles.saveAction}
-          title={isEditing ? "Salvar alterações" : "Salvar gasto"}
-          icon={<AppIcon name="checkmark" size={20} color={theme.colors.textOnPrimary} />}
-        />
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            disabled={isSaving}
+            onPress={onClose}
+          />
+          <Button
+            loading={isSaving}
+            onPress={() => void handleSave()}
+            title={isEditing ? "Salvar alterações" : "Salvar gasto fixo"}
+          />
+        </FormActions>
       }
     >
-      <View style={{ gap: spacing.lg }}>
-        <ValidationField {...formValidation.field("description")}>
-          <Input
-            accessibilityLabel="Descrição"
-            autoCapitalize="sentences"
+      <FormBody>
+        <FormGrid>
+          <FormField
             label="Descrição"
-            maxLength={120}
-            onChangeText={setDescription}
-            placeholder="Ex.: Aluguel da cozinha"
-            returnKeyType="next"
-            style={styles.formInput}
-            value={description}
-          />
-        </ValidationField>
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.md }}>
-          <ValidationField {...formValidation.field("amount")} style={{ flex: 1.3 }}>
-            <Input
+            validation={formValidation.field("description")}
+            span="full"
+          >
+            <TextField
+              accessibilityLabel="Descrição"
+              autoCapitalize="sentences"
+              maxLength={120}
+              onChangeText={setDescription}
+              placeholder="Ex.: Aluguel da cozinha"
+              returnKeyType="next"
+              value={description}
+            />
+          </FormField>
+          <FormField label="Valor mensal" validation={formValidation.field("amount")}>
+            <TextField
+              prefix="R$"
               accessibilityLabel="Valor em reais"
               keyboardType="decimal-pad"
-              label="Valor mensal (R$)"
               onChangeText={(value) => setAmount(maskCurrencyInput(value))}
               placeholder="0,00"
-              style={styles.formInput}
               value={amount}
             />
-          </ValidationField>
-          <ValidationField {...formValidation.field("day")} style={{ flex: 1 }}>
-            <Input
+          </FormField>
+          <FormField label="Dia do mês" validation={formValidation.field("day")}>
+            <TextField
+              icon="calendar-outline"
               accessibilityLabel="Dia do mês, de 1 a 28"
-              label="Dia do mês"
               keyboardType="number-pad"
               maxLength={2}
               onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
               placeholder="De 1 a 28"
-              style={styles.formInput}
               value={day}
             />
-          </ValidationField>
-        </View>
-        <View style={styles.fieldBlock}>
-          <Typography variant="captionBold" color={palette.ink}>
-            Categoria
-          </Typography>
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel="Categoria do gasto"
-            style={styles.categoryGrid}
-          >
-            {categories.map((categoryOption) => {
-              const selected = categoryOption.key === category;
-              return (
-                <Pressable
-                  key={categoryOption.key}
-                  accessibilityLabel={categoryOption.label}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: selected }}
-                  aria-checked={selected}
-                  onPress={() => setCategory(categoryOption.key)}
-                  style={({ pressed }) => [
-                    styles.categoryOption,
-                    selected && styles.categoryOptionSelected,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppIcon
-                    name={selected ? "checkmark-circle" : categoryOption.icon}
-                    size={20}
-                    color={selected ? palette.wine : palette.warmGray}
-                    strokeWidth={selected ? 2 : 1.5}
-                  />
-                  <Typography
-                    variant={selected ? "captionBold" : "caption"}
-                    color={selected ? palette.wine : palette.ink}
-                    style={{ flex: 1 }}
-                  >
-                    {categoryOption.label}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+          </FormField>
+          <FormField label="Categoria" span="full">
+            <ChipChoiceField
+              accessibilityLabel="Categoria do gasto"
+              value={category}
+              options={categories.map((option) => ({
+                value: option.key,
+                label: option.label,
+              }))}
+              onChange={setCategory}
+            />
+          </FormField>
+        </FormGrid>
         <View style={styles.recurrenceNotice}>
           <AppIcon name="repeat-outline" size={20} color={palette.wine} />
           <View style={{ flex: 1, gap: spacing.xs }}>
@@ -755,7 +839,7 @@ function RecurringFormModal({
             </Typography>
           </View>
         </View>
-      </View>
+      </FormBody>
     </StandardModal>
   );
 }
@@ -876,11 +960,7 @@ function DetailItem({
 
 function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme, styles } = useRecurringTheme();
-  const benefits = [
-    "Aluguel, internet, gás e outros custos caem sozinhos no caixa todo mês.",
-    "Você não esquece nenhuma conta — o app lança na data certa.",
-    "Enxergue o lucro real, já com os custos fixos descontados.",
-  ];
+  const benefits = GATE_BENEFITS;
 
   return (
     <View style={styles.gateCard}>
@@ -948,31 +1028,6 @@ function createStyles(theme: Theme) {
   const palette = brandScreenPalette(theme);
 
   return StyleSheet.create({
-    categoryGrid: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.sm,
-    },
-    categoryOption: {
-      alignItems: "center",
-      backgroundColor: palette.white,
-      borderColor: palette.border,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      flexBasis: "46%",
-      flexGrow: 1,
-      flexDirection: "row",
-      gap: spacing.sm,
-      justifyContent: "flex-start",
-      minHeight: 48,
-      minWidth: 0,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-    },
-    categoryOptionSelected: {
-      backgroundColor: palette.softRose,
-      borderColor: palette.wine,
-    },
     commitmentBlob: {
       backgroundColor: theme.colors.primaryBg,
       borderRadius: radii.full,
@@ -1127,13 +1182,6 @@ function createStyles(theme: Theme) {
     },
     expenseRowSelected: {
       backgroundColor: palette.neutral,
-    },
-    fieldBlock: {
-      gap: spacing.sm,
-    },
-    formInput: {
-      height: 48,
-      minWidth: 0,
     },
     gateBadge: {
       alignItems: "center",

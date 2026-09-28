@@ -69,7 +69,8 @@ const createCsp = (html) =>
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    `connect-src 'self' ${apiOrigin} ${supabaseOrigin}`,
+    // blob:/data: — o upload lê a foto escolhida (URL blob do seletor) com fetch.
+    `connect-src 'self' blob: data: ${apiOrigin} ${supabaseOrigin}`,
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

@@ -76,6 +76,10 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 
 ## Change log / Decisions
 
+- 2026-09-24: formulário no padrão de formulários (`form-standard.md`): `StandardModal
+size="form"`, seções fixas, categoria em `ChoiceField` (4 opções), telefone e email lado a
+  lado, erros só no campo (`useFormValidation`) e rodapé Cancelar + ação. O cadastro rápido do
+  `SupplierSelector` abre o mesmo modal de `CreateSupplierForm` (sem folha própria).
 - 2026-09-09: detalhes usam identificação compacta, contatos com divisórias e observações
   separadas. O formulário agrupa identificação, contato e compras; os seis presets ficam
   em grade de três colunas, com upload visível abaixo e estados adaptados ao tema escuro.
@@ -110,3 +114,18 @@ Orientação usa dados do overview para suprimir convite em conta com registros,
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Seletor de fornecedor permite nome e indicação de campo opcional em múltiplas linhas. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+- Correção: a demo (`shared/mock/api.ts`) não respondia `GET /api/v1/suppliers/overview`
+  (o fallback devolvia uma coleção sem `month`) e a tela caía em "Algo deu errado". O mock
+  agora responde no formato de `SuppliersOverviewDto` (mês zerado, `items: []`), e
+  `SupplierList` lê `query.data?.month?.…` para não quebrar se `month` faltar.
+- Tudo atrás de `useDesktopLayout()`; no celular a lista continua em `FlatList`, como antes.
+- No desktop, `SupplierList` usa `ScrollView` + `desktopPageContent`: painel vinho com o
+  valor em `desktopTotal`, busca que ocupa a linha, `DesktopToolbarButton` "Filtrar"
+  ("Filtros (n)") e "Ordenar" nos mesmos modais, chips de categoria, "Seus fornecedores" em
+  `desktopSection` com contagem e ordenação, e cartões em `DesktopGrid` (300 px ou mais,
+  até 3). `SupplierCard`, no desktop, tem a mesma altura na linha, com o rodapé embaixo.
+- Sem fornecedores: busca e filtros ficam escondidos, e um cartão tracejado mostra
+  "Adicionar fornecedor". `ScreenCreateBar` não aparece; a criação fica no cabeçalho.

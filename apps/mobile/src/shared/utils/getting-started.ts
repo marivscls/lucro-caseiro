@@ -12,7 +12,7 @@ export const GETTING_STARTED_MESSAGES_PT_BR = {
   "onboarding.progress": "Etapa {{step}} de {{total}}",
   "onboarding.product.title": "Cadastre o que você vende",
   "onboarding.product.description":
-    "Comece pelo essencial: dê um nome e defina o preço do seu primeiro produto.",
+    "Comece pelo primeiro produto: dê um nome e defina o preço do seu primeiro produto.",
   "onboarding.product.info":
     "Você poderá adicionar fotos, custos e outros detalhes depois.",
   "onboarding.product.cta": "Cadastrar primeiro produto",

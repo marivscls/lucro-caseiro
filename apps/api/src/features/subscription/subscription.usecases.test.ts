@@ -33,6 +33,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     avatarUrl: null,
     plan: "free",
     planExpiresAt: null,
+    planIsTrial: false,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -61,6 +62,7 @@ function makeRepo(overrides: Partial<ISubscriptionRepo> = {}): ISubscriptionRepo
       ),
     getResourceCounts: () => Promise.resolve(makeCounts()),
     claimPurchaseToken: () => Promise.resolve(true),
+    hasPurchaseClaim: () => Promise.resolve(true),
     claimProfessionalTrialCampaignEmail: () => Promise.resolve(null),
     completeProfessionalTrialCampaignEmail: () => Promise.resolve(),
     releaseProfessionalTrialCampaignEmail: () => Promise.resolve(),
@@ -136,6 +138,7 @@ describe("SubscriptionUseCases", () => {
 
       await sut.getProfile(USER_ID);
 
+      await vi.waitFor(() => expect(complete).toHaveBeenCalled());
       expect(notify).toHaveBeenCalledWith({
         userId: USER_ID,
         email: "maria@email.com",
@@ -165,7 +168,54 @@ describe("SubscriptionUseCases", () => {
       );
 
       await expect(sut.getProfile(USER_ID)).resolves.toMatchObject({ id: USER_ID });
-      expect(release).toHaveBeenCalledWith(USER_ID, "Resend indisponivel");
+      await vi.waitFor(() =>
+        expect(release).toHaveBeenCalledWith(USER_ID, "Resend indisponivel"),
+      );
+    });
+
+    it("returns the profile even when claiming the campaign email fails", async () => {
+      // Arrange
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      const notify = vi.fn(() => Promise.resolve({ id: "email-campaign-1" }));
+      const { sut } = makeSut(
+        {
+          claimProfessionalTrialCampaignEmail: () =>
+            Promise.reject(new Error("connection terminated")),
+        },
+        undefined,
+        undefined,
+        undefined,
+        notify,
+      );
+
+      // Act
+      const result = sut.getProfile(USER_ID);
+
+      // Assert
+      await expect(result).resolves.toMatchObject({ id: USER_ID });
+      expect(notify).not.toHaveBeenCalled();
+    });
+
+    it("does not wait for the campaign email before returning the profile", async () => {
+      // Arrange
+      const notify = vi.fn(() => new Promise<{ id: string }>(() => {}));
+      const { sut } = makeSut(
+        {
+          claimProfessionalTrialCampaignEmail: () =>
+            Promise.resolve({
+              userId: USER_ID,
+              email: "maria@email.com",
+              expiresAt: "2026-09-10T12:00:00.000Z",
+            }),
+        },
+        undefined,
+        undefined,
+        undefined,
+        notify,
+      );
+
+      // Act / Assert
+      await expect(sut.getProfile(USER_ID)).resolves.toMatchObject({ id: USER_ID });
     });
   });
 
@@ -188,7 +238,7 @@ describe("SubscriptionUseCases", () => {
     it("returns limits with current counts for free user", async () => {
       const { sut } = makeSut();
       const result = await sut.getLimits(USER_ID);
-      expect(result.maxSalesPerMonth).toBe(30);
+      expect(result.maxSalesPerMonth).toBeNull();
       expect(result.currentSalesThisMonth).toBe(10);
       expect(result.currentClients).toBe(5);
     });
@@ -247,6 +297,32 @@ describe("SubscriptionUseCases", () => {
           Promise.resolve(makeProfile({ plan: "premium" as unknown as PlanType })),
       });
       expect(await sut.getActivePlan(USER_ID)).toBe("professional");
+    });
+
+    it("returns essential during the trial and free once it ends", async () => {
+      const active = makeSut({
+        getProfile: () =>
+          Promise.resolve(
+            makeProfile({
+              plan: "essential",
+              planExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+              planIsTrial: true,
+            }),
+          ),
+      });
+      expect(await active.sut.getActivePlan(USER_ID)).toBe("essential");
+
+      const ended = makeSut({
+        getProfile: () =>
+          Promise.resolve(
+            makeProfile({
+              plan: "essential",
+              planExpiresAt: new Date(Date.now() - 60_000).toISOString(),
+              planIsTrial: true,
+            }),
+          ),
+      });
+      expect(await ended.sut.getActivePlan(USER_ID)).toBe("free");
     });
 
     it("falls back to free for an expired paid plan", async () => {
@@ -332,6 +408,57 @@ describe("SubscriptionUseCases", () => {
       );
     });
 
+    it("treats buying a plan during the Essential trial as free→paid", async () => {
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const trial = makeProfile({
+        plan: "essential",
+        planExpiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        planIsTrial: true,
+      });
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(trial) },
+        undefined,
+        recordLifecycleEvent,
+        notifyLifecycle,
+      );
+
+      const result = await sut.activatePlan(USER_ID, "essential", expiresAt);
+
+      expect(result.planIsTrial).toBe(false);
+      expect(recordLifecycleEvent).toHaveBeenCalledWith(
+        USER_ID,
+        "subscription_completed",
+      );
+      expect(notifyLifecycle).toHaveBeenCalledTimes(1);
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "activated", plan: "essential" }),
+      );
+    });
+
+    it("keeps paid→paid renewal when the previous plan was paid, not a trial", async () => {
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const paid = makeProfile({
+        plan: "essential",
+        planExpiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        planIsTrial: false,
+      });
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(paid) },
+        undefined,
+        recordLifecycleEvent,
+      );
+
+      await sut.activatePlan(
+        USER_ID,
+        "essential",
+        new Date(Date.now() + 35 * 24 * 60 * 60 * 1000),
+      );
+
+      expect(recordLifecycleEvent).not.toHaveBeenCalled();
+    });
+
     it("throws NotFoundError when profile not found", async () => {
       const { sut } = makeSut({ updatePlan: () => Promise.resolve(null) });
       await expect(sut.activatePlan(USER_ID, "professional", null)).rejects.toThrow(
@@ -359,6 +486,30 @@ describe("SubscriptionUseCases", () => {
       expect(notifyLifecycle).toHaveBeenCalledWith(
         expect.objectContaining({ kind: "cancelled", plan: "essential" }),
       );
+    });
+
+    it("never ends an active Essential trial", async () => {
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const updatePlan = vi.fn(() => Promise.resolve(makeProfile()));
+      const trial = makeProfile({
+        plan: "essential",
+        planExpiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        planIsTrial: true,
+      });
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(trial), updatePlan },
+        undefined,
+        recordLifecycleEvent,
+        notifyLifecycle,
+      );
+
+      const result = await sut.deactivatePlan(USER_ID);
+
+      expect(result).toEqual(trial);
+      expect(updatePlan).not.toHaveBeenCalled();
+      expect(recordLifecycleEvent).not.toHaveBeenCalled();
+      expect(notifyLifecycle).not.toHaveBeenCalled();
     });
 
     it("throws NotFoundError when profile not found", async () => {

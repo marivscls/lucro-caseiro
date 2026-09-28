@@ -3,10 +3,12 @@ import { useGuidanceStore } from "../../shared/guidance/guidance-store";
 import { completedAreas } from "../../shared/guidance/completion";
 import type {
   AnalyticsActionName,
+  AnalyticsEventProps,
   ProductAnalyticsEvent,
 } from "@lucro-caseiro/contracts";
 
 import { recordProductAnalyticsEvents } from "./api";
+import { sanitizeEventProps } from "./event-props";
 import { getOrCreateInstallationId } from "./installation";
 import { appMetadata } from "./metadata";
 
@@ -25,9 +27,14 @@ export async function trackAnalyticsEvent(
   }
 }
 
+/**
+ * `props` é contexto pequeno e fechado (recurso, plano, tela de origem): nunca texto
+ * digitado, nome, e-mail, valores financeiros ou qualquer dado do cliente.
+ */
 export function trackAnalyticsAction(
   name: AnalyticsActionName,
   token: string | null,
+  props?: AnalyticsEventProps,
 ): Promise<void> {
   const session = useAuth.getState();
   if (token && token === session.token && session.userId) {
@@ -49,5 +56,9 @@ export function trackAnalyticsAction(
       })
       .catch(() => undefined);
   }
-  return trackAnalyticsEvent({ type: "action", name }, token);
+  const clean = sanitizeEventProps(props);
+  return trackAnalyticsEvent(
+    clean ? { type: "action", name, props: clean } : { type: "action", name },
+    token,
+  );
 }

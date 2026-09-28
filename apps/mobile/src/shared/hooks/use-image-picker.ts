@@ -17,8 +17,8 @@ export function useImagePicker() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (String(status) !== "granted") {
       showAlert({
-        title: "Permissao necessária",
-        message: "Precisamos de acesso a sua galeria para selecionar uma foto.",
+        title: "Permissão necessária",
+        message: "Precisamos de acesso à sua galeria para selecionar uma foto.",
       });
       return null;
     }
@@ -48,8 +48,8 @@ export function useImagePicker() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (String(status) !== "granted") {
       showAlert({
-        title: "Permissao necessária",
-        message: "Precisamos de acesso a camera para tirar uma foto.",
+        title: "Permissão necessária",
+        message: "Precisamos de acesso à câmera para tirar uma foto.",
       });
       return null;
     }

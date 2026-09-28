@@ -204,3 +204,14 @@ Criar e editar receita usa três etapas: informações da receita; rendimento; i
 - 2026-09-10: PDFs usam `shared/utils/document-pdf.ts` para tipografia Manrope, contraste, tabelas, resumo e rodapé consistentes. Orçamento e recibo em A5; ficha em A4. Prévia responsiva de 320px em diante, cabeçalhos de tabela repetidos e resumo preservado na paginação. Verificação local: `scripts/pdf-ui-smoke.cjs` (fixtures, fontes locais, cenários extensos e fallback offline).
 
 - 2026-09-10: Revisão de cortes no PWA/mobile. Categorias da lista quebram em linhas; rótulos longos podem crescer em altura. Validação visual em 320, 390, 500 e 1440px com dados locais simulados.
+
+## Desktop (web >= 1024px) — 2026-09-23
+
+Só no desktop; o celular não muda. Peças em `components/recipes-desktop.tsx`.
+
+- `RecipeList` recebe `pageHeader`. No desktop a página rola inteira, com o cabeçalho e o aviso de limite no topo. O subtítulo "Acompanhe custos e rendimentos em um só lugar." vai para o `ScreenHeader`, "Estatísticas" vira `DesktopToolbarButton` e o `ScreenCreateBar` não aparece.
+- `DesktopStatRow`: receitas ativas e custo médio por receita (`recipeListSummary`), no lugar da faixa fina de 14px.
+- `DesktopRecipeToolbar`: busca de largura total e categorias em linha, com quebra.
+- `DesktopRecipeTable` mostra receita (miniatura, nome e tipo do prefixo), categoria, rendimento, custo por unidade e custo total, com o menu "⋮" (Editar ou Excluir, com a mesma confirmação). A linha abre o detalhe. Abaixo de 800px de largura, a categoria sai da tabela, porque já está nos filtros.
+- `recipeAvatarFallback(category)`, exportado por `recipe-card.tsx`, é compartilhado entre o cartão e a tabela.
+- Os estados vazio, sem resultado e erro usam um cartão tracejado com a ação.

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
-import { AppState } from "react-native";
+import { AppState, Platform } from "react-native";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { getInstallationAcquisition } from "./acquisition";
 import { recordAppOpen } from "./api";
 import { getOrCreateInstallationId } from "./installation";
 import { appMetadata } from "./metadata";
@@ -15,10 +16,18 @@ export function useAppMetrics(): void {
 
   const sendOpen = useCallback(async () => {
     try {
-      const installationId = await getOrCreateInstallationId();
-      const attribution = await getInstallAttribution();
+      const [installationId, acquisition, attribution] = await Promise.all([
+        getOrCreateInstallationId(),
+        Platform.OS === "web" ? getInstallationAcquisition() : undefined,
+        getInstallAttribution(),
+      ]);
       await recordAppOpen(
-        { installationId, ...appMetadata(), attribution },
+        {
+          installationId,
+          ...appMetadata(),
+          ...(acquisition ? { acquisition } : {}),
+          ...(attribution ? { attribution } : {}),
+        },
         latestToken.current,
       );
     } catch (error) {

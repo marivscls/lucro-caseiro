@@ -8,6 +8,12 @@ import { ResponsiveModal } from "./responsive-modal-surface";
 import { ValidationScrollContext } from "@lucro-caseiro/ui";
 import { useDesktopLayout } from "../layout/use-desktop-layout";
 
+const MODAL_WIDTHS = { default: 560, form: 680, wide: 1040 } as const;
+
+function modalWidth(size: keyof typeof MODAL_WIDTHS) {
+  return MODAL_WIDTHS[size];
+}
+
 interface StandardModalProps {
   readonly visible: boolean;
   readonly onClose: () => void;
@@ -18,6 +24,8 @@ interface StandardModalProps {
   readonly right?: React.ReactNode;
   readonly footer?: React.ReactNode;
   readonly wide?: boolean;
+  /** "form": 680 px no computador, espaço para campos em 2 colunas. */
+  readonly size?: "default" | "form" | "wide";
   readonly scrollRef?: React.RefObject<ScrollView | null>;
   readonly children: React.ReactNode;
 }
@@ -37,6 +45,7 @@ export function StandardModal({
   right,
   footer,
   wide = false,
+  size = "default",
   scrollRef,
   children,
 }: Readonly<StandardModalProps>) {
@@ -95,7 +104,7 @@ export function StandardModal({
   return (
     <ResponsiveModal
       size="hug"
-      desktopMaxWidth={wide ? 1040 : 560}
+      desktopMaxWidth={modalWidth(wide ? "wide" : size)}
       visible={visible}
       animationType={reducedMotion ? "none" : "slide"}
       presentationStyle="pageSheet"
@@ -115,18 +124,25 @@ export function StandardModal({
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.sm,
-            paddingHorizontal: isDesktop ? spacing.xl : spacing.lg,
-            paddingVertical: spacing.md,
+            paddingHorizontal: isDesktop ? spacing["2xl"] : spacing.lg,
+            paddingVertical: isDesktop ? spacing.lg : spacing.md,
             borderBottomWidth: 1,
             borderBottomColor: theme.colors.border,
           }}
         >
           <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-            <Typography variant="h3" color={theme.colors.text}>
+            <Typography
+              variant={isDesktop ? "desktopSection" : "h2"}
+              color={theme.colors.text}
+              accessibilityRole="header"
+            >
               {title}
             </Typography>
             {subtitle ? (
-              <Typography variant="caption" color={theme.colors.textSecondary}>
+              <Typography
+                variant={isDesktop ? "desktopMeta" : "caption"}
+                color={theme.colors.textSecondary}
+              >
                 {subtitle}
               </Typography>
             ) : null}
@@ -166,9 +182,9 @@ export function StandardModal({
           }}
           style={{ flexGrow: 0, flexShrink: 1, minHeight: 0, maxHeight: scrollMaxHeight }}
           contentContainerStyle={{
-            padding: isDesktop ? spacing.xl : spacing.lg,
-            paddingBottom: spacing.xl,
-            gap: spacing.xl,
+            padding: isDesktop ? spacing["2xl"] : spacing.lg,
+            paddingBottom: isDesktop ? spacing["3xl"] : spacing["2xl"],
+            gap: spacing["2xl"],
           }}
           showsVerticalScrollIndicator
           keyboardShouldPersistTaps="handled"
@@ -196,8 +212,8 @@ export function StandardModal({
               minHeight: 72,
               gap: spacing.md,
               justifyContent: isDesktop ? "flex-end" : undefined,
-              paddingHorizontal: isDesktop ? spacing.xl : spacing.lg,
-              paddingTop: spacing.md,
+              paddingHorizontal: isDesktop ? spacing["2xl"] : spacing.lg,
+              paddingTop: isDesktop ? spacing.lg : spacing.md,
               paddingBottom: spacing.lg,
               backgroundColor: theme.colors.surfaceElevated,
               borderTopWidth: 1,

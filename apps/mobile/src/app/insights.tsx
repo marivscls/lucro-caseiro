@@ -47,7 +47,22 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
+import { desktopLayout } from "../shared/layout/desktop-density";
+import {
+  DesktopGrid,
+  desktopPageContent,
+  DesktopPageHeader,
+  DesktopSplit,
+  DesktopStatRow,
+} from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  InsightsActionsDesktop,
+  InsightsCardDesktop,
+  InsightsEmptyDesktop,
+  InsightsQuestionsDesktop,
+  InsightsTeaserDesktop,
+} from "../features/insights/components/insights-desktop";
 
 function MiniStatCard({
   label,
@@ -151,7 +166,7 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <AppIcon name="bar-chart" size={22} color={theme.colors.premium} />
         <Typography variant="h3" color={theme.colors.premium}>
-          Insights completos
+          Resultados completos
         </Typography>
       </View>
       <Typography variant="body" color={theme.colors.textSecondary}>
@@ -185,6 +200,7 @@ function InsightsContent({
 }>) {
   const { theme } = useTheme();
   const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const { width } = useWindowDimensions();
   const averageTicket = data.totalSales > 0 ? data.totalRevenue / data.totalSales : 0;
   const momDelta = isPremium ? monthOverMonthDelta(data.monthlyRevenue) : null;
@@ -219,6 +235,9 @@ function InsightsContent({
   const [selectedQuestion, setSelectedQuestion] = useState<InsightQuestionId | null>(
     null,
   );
+  // Desktop: abaixo de ~960px de área útil (1024px), sem lateral.
+  const [pageWidth, setPageWidth] = useState(0);
+  const wide = pageWidth === 0 || pageWidth >= 960;
 
   // Stats do gráfico
   const nonEmpty = data.monthlyRevenue.filter((m) => m.revenue > 0);
@@ -238,6 +257,98 @@ function InsightsContent({
 
   // Rankings: empilhados no mobile (< 700px), lado a lado no desktop
   const rankingsRow = width >= 700;
+
+  if (isDesktop) {
+    const quickQuestions = [
+      { id: "restock" as const, label: "O que devo repor?" },
+      { id: "margin" as const, label: "Onde estou perdendo margem?" },
+    ];
+    const rankings = [
+      productRows.length > 0 ? (
+        <InsightsCardDesktop key="products" title="Mais vendidos" icon="flame-outline">
+          <RankBars rows={productRows} color={theme.colors.primary} />
+        </InsightsCardDesktop>
+      ) : null,
+      clientRows.length > 0 ? (
+        <InsightsCardDesktop
+          key="clients"
+          title="Melhores clientes"
+          icon="trophy-outline"
+        >
+          <RankBars rows={clientRows} color={theme.colors.success} />
+        </InsightsCardDesktop>
+      ) : null,
+    ].filter(Boolean);
+    const actionsCard =
+      actionable.length > 0 ? (
+        <InsightsActionsDesktop
+          actions={actionable}
+          onOpen={(action) => openAction(action.target)}
+        />
+      ) : null;
+    return (
+      <View
+        style={{ gap: desktopLayout.blockGap }}
+        onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}
+      >
+        <DesktopStatRow
+          items={[
+            {
+              label: momDelta !== null ? "Variação do mês" : "Faturamento",
+              value: variationValue,
+              color: variationColor,
+              hint: momDelta !== null ? "Comparado ao mês anterior" : undefined,
+            },
+            { label: "Vendas", value: String(data.totalSales) },
+            { label: "Ticket médio", value: formatMoney(averageTicket) },
+          ]}
+        />
+        {isPremium ? (
+          <>
+            <DesktopSplit aside={wide ? actionsCard : null}>
+              <MonthlyBars
+                series={data.monthlyRevenue}
+                windowMonths={months}
+                onWindowChange={onMonthsChange}
+              />
+              <DesktopStatRow
+                items={[
+                  {
+                    label: "Maior faturamento",
+                    value: formatMoneyShort(best.revenue),
+                    hint: best.month ? monthWithYear(best.month) : "Sem vendas",
+                  },
+                  {
+                    label: "Média mensal",
+                    value: formatMoneyShort(average),
+                    hint: "Por mês com vendas",
+                  },
+                ]}
+              />
+            </DesktopSplit>
+            {wide ? null : actionsCard}
+            {rankings.length > 0 ? (
+              <DesktopGrid minColumnWidth={320} maxColumns={2} gap={spacing["2xl"]}>
+                {rankings}
+              </DesktopGrid>
+            ) : null}
+            <InsightsQuestionsDesktop
+              questions={quickQuestions}
+              selected={selectedQuestion}
+              answer={
+                selectedQuestion
+                  ? answerInsightQuestion(selectedQuestion, data, products)
+                  : null
+              }
+              onSelect={(id) => setSelectedQuestion(selectedQuestion === id ? null : id)}
+            />
+          </>
+        ) : (
+          <InsightsTeaserDesktop onUpgrade={onUpgrade} />
+        )}
+      </View>
+    );
+  }
 
   return (
     <>
@@ -503,6 +614,45 @@ export default function InsightsScreen() {
   const insightsQuery = useInsights(isPremium ? months : 1, !!profile);
   const { data, isLoading, error } = insightsQuery;
   const { data: products = [] } = useAllProducts();
+  const header = (
+    <ScreenHeader
+      guidance={{
+        area: "insights",
+        onStart: () => router.push("/tabs/new-sale"),
+        hasRecords: (data?.totalSales ?? 0) > 0,
+        loading: loadingProfile || isLoading || !!error,
+      }}
+      title="Resultados"
+      subtitle={isDesktop ? "Como suas vendas andaram no período" : undefined}
+      fallbackRoute="/tabs"
+      hideBack={isDesktop}
+    />
+  );
+  // Desktop: o cabeçalho (e a faixa de introdução) rola com a página.
+  const headerInScroll = isDesktop && !loadingProfile && !isLoading && !error;
+
+  const emptyView = isDesktop ? (
+    <InsightsEmptyDesktop onAdd={() => router.push("/tabs/new-sale")} />
+  ) : (
+    <EmptyState
+      title="Ainda sem dados pra mostrar"
+      description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
+      action={
+        <Button
+          title="Adicionar venda"
+          icon={
+            <AppIcon
+              name="add-circle-outline"
+              size={20}
+              color={theme.colors.textOnPrimary}
+            />
+          }
+          onPress={() => router.push("/tabs/new-sale")}
+        />
+      }
+      style={{ transform: [{ translateY: spacing["3xl"] }] }}
+    />
+  );
 
   return (
     <SafeAreaView
@@ -511,17 +661,7 @@ export default function InsightsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScreenHeader
-        guidance={{
-          area: "insights",
-          onStart: () => router.push("/tabs/new-sale"),
-          hasRecords: (data?.totalSales ?? 0) > 0,
-          loading: loadingProfile || isLoading || !!error,
-        }}
-        title="Resultados"
-        fallbackRoute="/tabs"
-        hideBack={isDesktop}
-      />
+      {headerInScroll ? null : header}
 
       {loadingProfile || isLoading ? (
         <View
@@ -541,7 +681,7 @@ export default function InsightsScreen() {
       ) : null}
       {!loadingProfile && !isLoading && error ? (
         <EmptyState
-          title="Não foi possível carregar os Insights"
+          title="Não foi possível carregar os resultados"
           description="Verifique sua conexão e tente novamente."
           action={
             <Button
@@ -553,17 +693,22 @@ export default function InsightsScreen() {
       ) : null}
       {!loadingProfile && !isLoading && !error ? (
         <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: "flex-start",
-            ...pageGutter(isDesktop),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-            paddingTop: spacing.xl,
-            paddingBottom: spacing.xl,
-            gap: spacing.lg,
-          }}
+          contentContainerStyle={
+            isDesktop
+              ? desktopPageContent(true)
+              : {
+                  flexGrow: 1,
+                  justifyContent: "flex-start",
+                  ...pageGutter(isDesktop),
+                  ...desktopStretch(isDesktop, desktopWidths.data),
+                  paddingTop: spacing.xl,
+                  paddingBottom: spacing.xl,
+                  gap: spacing.lg,
+                }
+          }
           showsVerticalScrollIndicator={false}
         >
+          {headerInScroll ? <DesktopPageHeader>{header}</DesktopPageHeader> : null}
           {data && data.totalSales > 0 ? (
             <InsightsContent
               data={data}
@@ -573,26 +718,8 @@ export default function InsightsScreen() {
               months={months}
               onMonthsChange={setMonths}
             />
-          ) : (
-            <EmptyState
-              title="Ainda sem dados pra mostrar"
-              description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
-              action={
-                <Button
-                  title="Adicionar venda"
-                  icon={
-                    <AppIcon
-                      name="add-circle-outline"
-                      size={20}
-                      color={theme.colors.textOnPrimary}
-                    />
-                  }
-                  onPress={() => router.push("/tabs/new-sale")}
-                />
-              }
-              style={{ transform: [{ translateY: spacing["3xl"] }] }}
-            />
-          )}
+          ) : null}
+          {data && data.totalSales > 0 ? null : emptyView}
         </ScrollView>
       ) : null}
     </SafeAreaView>

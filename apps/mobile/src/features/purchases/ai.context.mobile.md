@@ -130,3 +130,18 @@ Compras usam três etapas: dados da compra; produtos e valores; categoria e paga
 - 2026-09-16: o bloqueio de avanço sem valor na etapa de valores compara com `!(parseCurrencyInput(valor) > 0)`: campo vazio gera `NaN` e `NaN <= 0` é falso, o que antes deixava avançar para a etapa final sem valor.
 - 2026-09-19: a comparação passou a `isPositiveCurrency` (finito e > 0), cobrindo vazio, `0,00` e texto inválido no Continuar e no submit. O mesmo helper vale para produto, embalagem e edição de preço.
 - 2026-09-19: no Android o bottom sheet não soma o teclado de novo (`resize` já encolhe a janela). Isso evitava o formulário de Nova compra subir e sumir ao digitar.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+Segue `shared/layout/desktop-screen-checklist.md`. Tudo atrás de `useDesktopLayout()`;
+no celular a tela é a mesma de antes.
+
+- `/purchases` usa `desktopPageContent`. O painel vinho mantém a arte (até 156 px) e o total
+  a pagar em `desktopTotal`.
+- As compras ficam em `DesktopGrid` (colunas de 320 px ou mais, até 3). Em `PurchaseCard`, no
+  desktop, os cartões de uma linha têm a mesma altura e as ações ficam no rodapé.
+- "Compras recentes" em `desktopSection`. Vazio e filtro sem resultado: cartão tracejado.
+  `ScreenCreateBar` não aparece; a criação fica no cabeçalho ("Nova compra").
+- Sem o plano Profissional: o cartão "Recurso Profissional" vira duas colunas (texto e
+  benefícios de 16 px à esquerda, arte à direita), e "Desbloquear no Profissional" tem a
+  largura do texto em vez de ocupar a linha inteira.

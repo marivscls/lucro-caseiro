@@ -123,7 +123,7 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
   busca/Filtros -> chips Todas/Caixas/Potes/Sacolas/Filmes -> "Suas embalagens"
   com contagem filtrada -> cards -> `ScreenCreateBar` `+ Nova embalagem`.
 - Fluxo detalhe: card -> modal detalhe (Fechar/Editar) -> "Editar" abre o form de edicao
-  (voltar + "Editar embalagem" + Excluir no topo).
+  ("Editar embalagem"; "Excluir embalagem" no fim do formulario, com confirmacao).
 
 ## Change log / Decisions
 
@@ -165,3 +165,13 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 Orientação inicia o cadastro de embalagem/acabamento existente e considera carregamento/erro. packaging_created é emitido após sucesso.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Desktop (web >= 1024px) — 2026-09-23
+
+Só no desktop; o celular não muda. Peças em `components/packaging-desktop.tsx`.
+
+- A página rola inteira: cabeçalho com subtítulo e "Nova embalagem" (sem `ScreenCreateBar` no desktop), aviso de limite, painel, barra de ferramentas e tabela.
+- `DesktopPackagingBand`: "Estoque de embalagens" em 22px, com três indicadores de 28px (cadastradas, investidos e para repor; o valor de "para repor" fica em lima quando > 0). A arte oficial entra a partir de 680px de largura. O rótulo em caixa alta de 11px e os textos de 13px do painel do celular saem.
+- `DesktopPackagingToolbar`: busca de largura total e os filtros de tipo da fileira principal e os extras (Rótulo e Outro) na mesma linha, sem o botão "Filtros".
+- `DesktopPackagingTable` mostra embalagem (avatar e nome), tipo (ponto na cor da faixa), fornecedor ("Não informado" quando vazio) e custo unitário, com o menu "⋮" (Editar ou Excluir embalagem, igual ao cartão). A linha abre o detalhe.
+- Os estados vazio, sem resultado e erro usam um cartão tracejado com a ação.

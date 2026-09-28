@@ -66,7 +66,8 @@ describe("required field feedback in the rendered form", () => {
     expect(
       document.getElementById(name.getAttribute("aria-describedby")!)?.textContent,
     ).toBe("Informe o nome.");
-    expect(screen.getByRole("alert").textContent).toContain("antes de continuar");
+    // O primeiro erro é anunciado na hora, sem caixa de resumo separada.
+    expect(screen.getByRole("alert").textContent).toBe("Informe o nome.");
     expect(save).not.toHaveBeenCalled();
 
     fireEvent.change(name, { target: { value: "Bolo" } });

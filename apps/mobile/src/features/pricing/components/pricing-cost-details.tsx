@@ -1,8 +1,9 @@
-import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Button, Input, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, Typography, spacing } from "@lucro-caseiro/ui";
+import { ChoiceField, FormField, TextField } from "../../../shared/components/form-field";
+import { FormGrid } from "../../../shared/components/form-layout";
 import { useRecurringExpenses } from "../../finance/hooks";
 import { useProlaboreStatus } from "../../goals/hooks";
 import {
@@ -69,25 +70,29 @@ export function PricingLabor({ draft, update }: Omit<DetailsProps, "professional
         title="Calcular pelo tempo"
         summary="Tempo do lote, rendimento e valor da sua hora"
       >
-        <ValidationField {...formValidation.field("minutes")}>
+        <FormGrid>
           <PricingField
-            label="Tempo do lote (minutos)"
+            label="Tempo do lote"
             money={false}
+            suffix="min"
             value={minutes}
             onChange={setMinutes}
+            validation={formValidation.field("minutes")}
           />
-        </ValidationField>
-        <ValidationField {...formValidation.field("units")}>
           <PricingField
             label="Unidades por lote"
             money={false}
             value={units}
             onChange={setUnits}
+            validation={formValidation.field("units")}
           />
-        </ValidationField>
-        <ValidationField {...formValidation.field("hourly")}>
-          <PricingField label="Valor da sua hora" value={hourly} onChange={setHourly} />
-        </ValidationField>
+          <PricingField
+            label="Valor da sua hora"
+            value={hourly}
+            onChange={setHourly}
+            validation={formValidation.field("hourly")}
+          />
+        </FormGrid>
         <Button
           title={`Usar ${formatCurrency(Number.isFinite(cost) ? cost : 0)} por unidade`}
           variant="secondary"
@@ -127,22 +132,23 @@ export function PricingOverhead({ draft, update, professional }: DetailsProps) {
           : "Não incluídas · aluguel, energia e outras despesas"
       }
     >
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-        <PricingChoice
-          label="Dividir pela produção"
-          selected={draft.allocation === "unit"}
-          onPress={() => update({ allocation: "unit" })}
+      <FormField label="Como dividir as despesas">
+        <ChoiceField
+          accessibilityLabel="Como dividir as despesas"
+          value={draft.allocation}
+          options={[
+            { value: "unit", label: "Pela produção" },
+            { value: "revenue", label: "Por faturamento", locked: !professional },
+          ]}
+          onChange={(allocation) => {
+            if (allocation === "revenue" && !professional) {
+              showPaywall("advancedPricing");
+              return;
+            }
+            update({ allocation });
+          }}
         />
-        <PricingChoice
-          label="Por faturamento · Pro"
-          selected={draft.allocation === "revenue"}
-          onPress={() =>
-            professional
-              ? update({ allocation: "revenue" })
-              : showPaywall("advancedPricing")
-          }
-        />
-      </View>
+      </FormField>
       <PricingField
         label="Despesas mensais"
         value={draft.fixed}
@@ -170,16 +176,20 @@ export function PricingOverhead({ draft, update, professional }: DetailsProps) {
             onPress={() => void expenses.refetch()}
           />
         ) : null}
-        {(expenses.data ?? [])
-          .filter((item) => item.active)
-          .map((item) => (
-            <PricingChoice
-              key={item.id}
-              label={`${item.description} · ${formatCurrency(item.amount)}`}
-              selected={fromExpenses && selected.includes(item.id)}
-              onPress={() => toggleExpense(item.id)}
-            />
-          ))}
+        {(expenses.data ?? []).some((item) => item.active) ? (
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {(expenses.data ?? [])
+              .filter((item) => item.active)
+              .map((item) => (
+                <PricingChoice
+                  key={item.id}
+                  label={`${item.description} · ${formatCurrency(item.amount)}`}
+                  selected={fromExpenses && selected.includes(item.id)}
+                  onPress={() => toggleExpense(item.id)}
+                />
+              ))}
+          </View>
+        ) : null}
         {!expenses.isLoading &&
         !expenses.isError &&
         !(expenses.data ?? []).some((item) => item.active) ? (
@@ -190,8 +200,9 @@ export function PricingOverhead({ draft, update, professional }: DetailsProps) {
       </PricingSection>
       {draft.allocation === "unit" ? (
         <PricingField
-          label="Produção mensal estimada (unidades)"
+          label="Produção mensal estimada"
           money={false}
+          suffix="unidades"
           value={draft.production}
           onChange={(production) => update({ production })}
           hint="Use uma estimativa realista. Vender menos pode deixar despesas descobertas."
@@ -230,7 +241,6 @@ export function PricingOverhead({ draft, update, professional }: DetailsProps) {
 }
 
 export function PricingFees({ draft, update, professional }: DetailsProps) {
-  const { theme } = useTheme();
   const profiles = usePricingPreferences(professional);
   const save = useUpdatePricingPreferences();
   const showPaywall = usePaywall((state) => state.show);
@@ -279,8 +289,9 @@ export function PricingFees({ draft, update, professional }: DetailsProps) {
       }
     >
       <PricingField
-        label="Taxas sobre a venda (%)"
+        label="Taxas sobre a venda"
         money={false}
+        suffix="%"
         value={draft.fees}
         onChange={(fees) => update({ fees })}
         hint="Some cartão, comissão e impostos que incidam sobre esta mesma venda. Não some canais que são alternativas."
@@ -292,15 +303,17 @@ export function PricingFees({ draft, update, professional }: DetailsProps) {
       />
       {professional ? (
         <>
-          <Input
-            accessibilityLabel="Nome do canal"
-            placeholder="Nome do canal (ex.: Cartão)"
-            value={draft.channelName}
-            onChangeText={(channelName) => update({ channelName })}
-          />
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Perfis salvos na sua conta. Confira as taxas do seu contrato antes de usar.
-          </Typography>
+          <FormField
+            label="Nome do canal"
+            hint="Perfis salvos na sua conta. Confira as taxas do seu contrato antes de usar."
+          >
+            <TextField
+              accessibilityLabel="Nome do canal"
+              placeholder="Ex: Cartão"
+              value={draft.channelName}
+              onChangeText={(channelName) => update({ channelName })}
+            />
+          </FormField>
           {profiles.isError ? (
             <Button
               title="Tentar carregar canais novamente"
@@ -308,22 +321,26 @@ export function PricingFees({ draft, update, professional }: DetailsProps) {
               onPress={() => void profiles.refetch()}
             />
           ) : null}
-          {(profiles.data?.channelFees ?? []).map((item) => (
-            <PricingChoice
-              key={item.id}
-              selected={
-                draft.channelName === item.name &&
-                decimalValue(draft.fees) === item.percent
-              }
-              label={`${item.name} · ${item.percent}%${profiles.data?.updatedAt.startsWith("1970") ? " (configure sua taxa)" : ""}`}
-              onPress={() =>
-                update({
-                  channelName: item.name,
-                  fees: String(item.percent).replace(".", ","),
-                })
-              }
-            />
-          ))}
+          {profiles.data?.channelFees.length ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {profiles.data.channelFees.map((item) => (
+                <PricingChoice
+                  key={item.id}
+                  selected={
+                    draft.channelName === item.name &&
+                    decimalValue(draft.fees) === item.percent
+                  }
+                  label={`${item.name} · ${item.percent}%${profiles.data?.updatedAt.startsWith("1970") ? " (configure sua taxa)" : ""}`}
+                  onPress={() =>
+                    update({
+                      channelName: item.name,
+                      fees: String(item.percent).replace(".", ","),
+                    })
+                  }
+                />
+              ))}
+            </View>
+          ) : null}
           <Button
             title="Salvar este canal"
             variant="secondary"

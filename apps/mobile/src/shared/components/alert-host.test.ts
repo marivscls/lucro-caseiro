@@ -12,6 +12,12 @@ describe("shouldStackAlertButtons", () => {
     ).toBe(true);
   });
 
+  it("empilha quando um rótulo não cabe inteiro lado a lado", () => {
+    expect(
+      shouldStackAlertButtons([{ text: "Cancelar" }, { text: "Marcar como paga" }]),
+    ).toBe(true);
+  });
+
   it("mantém duas ações curtas lado a lado", () => {
     expect(shouldStackAlertButtons([{ text: "Cancelar" }, { text: "Excluir" }])).toBe(
       false,

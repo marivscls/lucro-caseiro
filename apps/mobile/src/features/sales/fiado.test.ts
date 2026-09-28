@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildChargeMessage,
+  fiadoInitials,
   fiadoTiming,
+  fiadoTimingLabel,
   groupFiados,
+  launchCountLabel,
   oldFiadoSummary,
   openFiados,
   totalOwed,
@@ -97,6 +100,27 @@ describe("fiadoTiming", () => {
       kind: "open",
       days: 6,
     });
+  });
+});
+
+describe("fiadoTimingLabel", () => {
+  it("describes open, upcoming and overdue charges", () => {
+    expect(fiadoTimingLabel({ kind: "open", days: 5 })).toBe("Em aberto");
+    expect(fiadoTimingLabel({ kind: "upcoming", days: 1 })).toBe("Vence amanhã");
+    expect(fiadoTimingLabel({ kind: "upcoming", days: 2 })).toBe("Vence em 2 dias");
+    expect(fiadoTimingLabel({ kind: "overdue", days: 0 })).toBe("Venceu hoje");
+    expect(fiadoTimingLabel({ kind: "overdue", days: 1 })).toBe("Vencido há 1 dia");
+    expect(fiadoTimingLabel({ kind: "overdue", days: 4 })).toBe("Vencido há 4 dias");
+  });
+});
+
+describe("fiadoInitials and launchCountLabel", () => {
+  it("uses up to two initials and pluralizes launches", () => {
+    expect(fiadoInitials("juliana pereira souza")).toBe("JP");
+    expect(fiadoInitials("Rafael")).toBe("R");
+    expect(fiadoInitials("   ")).toBe("?");
+    expect(launchCountLabel(1)).toBe("1 lançamento");
+    expect(launchCountLabel(3)).toBe("3 lançamentos");
   });
 });
 

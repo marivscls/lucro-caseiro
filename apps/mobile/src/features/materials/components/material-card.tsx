@@ -35,7 +35,7 @@ interface MaterialCardProps {
   readonly showDivider?: boolean;
 }
 
-function statusPresentation(
+export function statusPresentation(
   status: StockStatus,
   palette: BrandScreenPalette,
   theme: Theme,
@@ -111,7 +111,7 @@ function QuantityControl({
   );
 }
 
-function StockStatusBlock({
+export function StockStatusBlock({
   material,
   dense = false,
 }: Readonly<{ material: Material; dense?: boolean }>) {
@@ -243,17 +243,8 @@ function QuantityBlock({ material }: Readonly<{ material: Material }>) {
   );
 }
 
-export function MaterialCard({
-  material,
-  onPress,
-  showDivider = true,
-}: MaterialCardProps) {
-  const { theme } = useTheme();
-  const palette = brandScreenPalette(theme);
-  const { width } = useWindowDimensions();
-  const compact = width < 640;
-  const ultraCompact = width < 360;
-  const displayName = displayIngredientName(material.name);
+/** Botões −/+ que ajustam o estoque em 1 (otimista). Usado no card e na tabela do desktop. */
+export function MaterialStockControls({ material }: Readonly<{ material: Material }>) {
   const adjust = useAdjustMaterial();
   const pending = adjust.isPending;
 
@@ -262,7 +253,7 @@ export function MaterialCard({
     adjust.mutate({ id: material.id, delta });
   }
 
-  const controls = (
+  return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
       <QuantityControl
         material={material}
@@ -278,6 +269,20 @@ export function MaterialCard({
       />
     </View>
   );
+}
+
+export function MaterialCard({
+  material,
+  onPress,
+  showDivider = true,
+}: MaterialCardProps) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  const { width } = useWindowDimensions();
+  const compact = width < 640;
+  const ultraCompact = width < 360;
+  const displayName = displayIngredientName(material.name);
+  const controls = <MaterialStockControls material={material} />;
 
   let compactDetails: React.ReactNode = null;
   if (compact && ultraCompact) {

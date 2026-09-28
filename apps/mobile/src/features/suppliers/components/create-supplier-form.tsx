@@ -1,19 +1,13 @@
 import type { CreateSupplier, Supplier } from "@lucro-caseiro/contracts";
-import { Button, spacing } from "@lucro-caseiro/ui";
+import { Button } from "@lucro-caseiro/ui";
 import React from "react";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { FormActions } from "../../../shared/components/form-layout";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { showToast } from "../../../shared/components/toast";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
-import {
-  desktopStretch,
-  desktopWidths,
-  pageGutter,
-} from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ApiError } from "../../../shared/utils/api-client";
 import { alertError } from "../../../shared/utils/alerts";
 import { digitsOnly, duplicateKey } from "../../../shared/utils/duplicates";
@@ -22,14 +16,13 @@ import { SupplierForm, type SupplierFormHandle } from "./supplier-form";
 
 interface CreateSupplierFormProps {
   onSuccess?: (supplier?: Supplier) => void;
-  modal?: { visible: boolean; onClose: () => void };
+  modal: { visible: boolean; onClose: () => void };
 }
 
 export function CreateSupplierForm({
   onSuccess,
   modal,
 }: Readonly<CreateSupplierFormProps>) {
-  const isDesktop = useDesktopLayout();
   const formRef = React.useRef<SupplierFormHandle>(null);
   const [formSubmitting, setFormSubmitting] = React.useState(false);
   const createSupplier = useCreateSupplier();
@@ -71,56 +64,39 @@ export function CreateSupplierForm({
   }
 
   const isSubmitting = createSupplier.isPending || formSubmitting;
-  const form = (
-    <SupplierForm
-      ref={formRef}
-      onSubmit={submit}
-      disabled={isSubmitting}
-      onSubmittingChange={setFormSubmitting}
-    />
-  );
-  const button = (
-    <Button
-      title="Cadastrar fornecedor"
-      size="lg"
-      loading={isSubmitting}
-      disabled={isSubmitting}
-      onPress={() => {
-        void formRef.current?.submit();
-      }}
-      style={modal ? { flex: 1 } : { width: "100%" }}
-    />
-  );
-
-  if (modal) {
-    return (
-      <StandardModal
-        visible={modal.visible}
-        onClose={modal.onClose}
-        title="Novo fornecedor"
-        closeAccessibilityLabel="Fechar formulário"
-        dismissDisabled={isSubmitting}
-        footer={button}
-      >
-        {form}
-      </StandardModal>
-    );
-  }
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        {
-          paddingVertical: spacing.xl,
-          paddingBottom: 80,
-          gap: spacing.lg,
-          ...pageGutter(isDesktop, spacing.xl),
-        },
-        desktopStretch(isDesktop, desktopWidths.form),
-      ]}
+    <StandardModal
+      visible={modal.visible}
+      onClose={modal.onClose}
+      title="Novo fornecedor"
+      size="form"
+      closeAccessibilityLabel="Fechar formulário"
+      dismissDisabled={isSubmitting}
+      footer={
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            disabled={isSubmitting}
+            onPress={modal.onClose}
+          />
+          <Button
+            title="Cadastrar fornecedor"
+            loading={isSubmitting}
+            onPress={() => {
+              void formRef.current?.submit();
+            }}
+          />
+        </FormActions>
+      }
     >
-      {form}
-      {button}
-    </KeyboardAwareScrollView>
+      <SupplierForm
+        ref={formRef}
+        onSubmit={submit}
+        disabled={isSubmitting}
+        onSubmittingChange={setFormSubmitting}
+      />
+    </StandardModal>
   );
 }

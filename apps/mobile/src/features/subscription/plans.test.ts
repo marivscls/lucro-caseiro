@@ -8,6 +8,7 @@ const state = vi.hoisted(() => ({
   profileLoading: true,
   limitsLoading: false,
   plan: "free",
+  trialExpiresAt: null as string | null,
   showPaywall: vi.fn(),
   platform: "web",
   checkout: vi.fn(),
@@ -49,7 +50,13 @@ vi.mock("./use-subscription", () => ({
 }));
 vi.mock("./hooks", () => ({
   useProfile: () => ({
-    data: state.profileLoading ? undefined : { plan: state.plan },
+    data: state.profileLoading
+      ? undefined
+      : {
+          plan: state.plan,
+          planExpiresAt: state.trialExpiresAt,
+          planIsTrial: state.trialExpiresAt !== null,
+        },
     isLoading: state.profileLoading,
   }),
   useLimits: () => ({ data: undefined, isLoading: state.limitsLoading }),
@@ -75,6 +82,7 @@ beforeEach(() => {
   state.profileLoading = true;
   state.limitsLoading = false;
   state.plan = "free";
+  state.trialExpiresAt = null;
   vi.clearAllMocks();
   state.platform = "web";
   state.stripeLoading = false;
@@ -180,6 +188,23 @@ describe("single-page checkout", () => {
     fireEvent.click(screen.getByRole("button", { name: "Anual" }));
     fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
     expect(state.checkout).toHaveBeenCalledWith("professional", "annual");
+  });
+
+  it("lets a trial account buy Essencial or Profissional and says when the trial ends", () => {
+    state.profileLoading = false;
+    state.plan = "essential";
+    state.trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    render(React.createElement(PlansScreen));
+    expect(screen.getByText("Escolha seu plano")).toBeTruthy();
+    expect(screen.getByText(/^Seu teste do Essencial termina/)).toBeTruthy();
+    expect(screen.queryByText(/Sua assinatura vence/)).toBeNull();
+    expect(screen.queryByText("Plano ativo")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Cancelar assinatura" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
+    expect(state.checkout).toHaveBeenLastCalledWith("essential", "monthly");
+    fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
+    expect(state.checkout).toHaveBeenLastCalledWith("professional", "monthly");
   });
 
   it.each(["web", "android"])(

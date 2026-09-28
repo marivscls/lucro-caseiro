@@ -31,6 +31,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 | `apps/mobile/src/features/clients/components/edit-client-form.tsx`   | Formulario de edicao                                                                                          |
 | `apps/mobile/src/features/clients/components/tag-input.tsx`          | Input de tags reutilizavel                                                                                    |
 | `apps/mobile/src/app/tabs/clients.tsx`                               | Screen principal (tab)                                                                                        |
+| `apps/mobile/src/features/clients/client-list.ts`                    | Filtros, contagens e rótulos puros da lista (`daysAgoLabel`, `clientSecondaryLabel`)                          |
 
 ## Components
 
@@ -132,6 +133,11 @@ Importados de `@lucro-caseiro/contracts`.
 
 ## Change log / Decisions
 
+- 2026-09-24: cadastro e edição no padrão de formulários (`form-standard.md`):
+  `StandardModal size="form"`, telefone e aniversário lado a lado (`FormGrid`),
+  aniversário e próximo contato escolhidos no calendário (`SelectField` com "Limpar"),
+  telefone inválido marcado no próprio campo e rodapé Cancelar + ação. O próximo
+  contato virou `FormSection` recolhível.
 - 2026-09-10: cadastro e edição compartilham `components/client-form-fields.tsx`:
   rótulos acima dos campos, telefone com máscara, calendário de aniversário e
   contador de observações. Somente o nome é obrigatório; ações ficam no rodapé
@@ -166,3 +172,30 @@ Importados de `@lucro-caseiro/contracts`.
 Orientação da lista inicia cadastro existente e distingue lista carregada de falha. client_created registra sucesso real do cadastro.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Desktop da lista — 2026-09-24
+
+- Só vale para web >= 1024px (`useDesktopLayout`); o celular continua igual pixel a pixel.
+- Página com cabeçalho "Clientes" e ação "Novo cliente", resumo (Clientes, Compraram no mês,
+  Com fiado; "—" enquanto carrega), aviso de limite do plano, seção "Seus clientes" com
+  "Ordenar" (mesmo modal do celular), busca, filtro segmentado com contagens e tabela
+  paginada: Cliente (avatar, nome e última compra ou "Sem compras"), Telefone, Aniversário
+  (a partir de 1280px), Situação (Fiado, Cliente frequente) e Total comprado. A linha abre
+  o detalhe. No desktop o `ScreenCreateBar` não aparece; a ação fica no cabeçalho.
+- Vazio com ilustração e "Novo cliente"; busca sem resultado oferece limpar filtros.
+- `daysAgoLabel` e `clientSecondaryLabel` saíram da rota para `client-list.ts`, com teste.
+- O detalhe do cliente não mudou nesta rodada.
+
+## Desktop do detalhe — 2026-09-24
+
+- `components/client-detail-desktop.tsx`, só em web >= 1024px; o celular segue igual.
+- Cabeçalho da página com o nome, "Cliente desde" e as ações "Clientes" (volta para a
+  lista, `onBack`), "Editar cliente" e "WhatsApp" (só com telefone). Abaixo de 1200px as
+  ações ficam numa linha própria para o nome não quebrar.
+- Indicadores: Total em compras, Compras (total do filtro `clientId`) e A receber (soma das
+  vendas pendentes entre as 10 mais recentes exibidas).
+- Histórico em `DesktopTable` (Venda, Data, Situação, Total) com as mesmas 10 vendas do
+  celular; "Dados do cliente" (telefone, endereço, aniversário, observações e tags) na
+  lateral, ou acima da tabela abaixo de 1200px. No mês do aniversário, um cartão oferece
+  "Enviar parabéns" pelo WhatsApp.
+- Sem regra nova: os dados e ações são os mesmos do detalhe do celular.

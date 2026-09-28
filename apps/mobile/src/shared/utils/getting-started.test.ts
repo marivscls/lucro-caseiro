@@ -192,7 +192,7 @@ describe("catálogo localizado de Primeiros Passos", () => {
 
   it("usa os textos oficiais das etapas 1 e 3", () => {
     expect(getGettingStartedGuideCopy("product").description).toBe(
-      "Comece pelo essencial: dê um nome e defina o preço do seu primeiro produto.",
+      "Comece pelo primeiro produto: dê um nome e defina o preço do seu primeiro produto.",
     );
     expect(getGettingStartedGuideCopy("product").info).toBe(
       "Você poderá adicionar fotos, custos e outros detalhes depois.",

@@ -9,7 +9,9 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Non-goals
 
-- Não rastreia toques livres, crashes, texto digitado ou conteúdo criado.
+- Não rastreia toques livres, texto digitado ou conteúdo criado; de crashes guarda só
+  `app_crashed` com tipo do erro e tela; de campanha guarda só os
+  UTM e o host de origem da primeira abertura.
 - Não substitui métricas de download e aquisição da Google Play.
 - Não oferece endpoint público de relatório; o painel exige autenticação e allowlist.
 
@@ -24,28 +26,41 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 - `analytics.routes.ts`: abertura anônima, identificação autenticada e painel administrativo.
 - `analytics.admin.ts`: regra pura de autorização por UUID configurado.
-- `analytics.usecases.ts`: relógio e chave de dia UTC.
+- `analytics.usecases.ts`: relógio, chave de dia UTC e cadastro registrado pelo servidor.
+- `analytics.domain.ts`: regra pura do cadastro recente e dos eventos que só o servidor emite.
 - `analytics.repo.pg.ts`: upserts idempotentes e vínculo retroativo.
 - `analytics.report-query.ts`: métricas históricas por instalação.
 - `analytics.acquisition-query.ts`: contas confirmadas em 90 dias, primeira utilidade em 7 dias, coortes e campanhas; compartilhada pelo endpoint e pelo comando.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
 - `packages/database/src/migrations/034_product_analytics.sql`: instalações e atividade.
 - `packages/database/src/migrations/035_analytics_behavior_events.sql`: eventos e segurança.
+- `packages/database/src/migrations/20260923100200_analytics_event_props.sql`: coluna `props`.
+- `packages/database/src/migrations/20260923100100_analytics_installation_acquisition.sql`:
+  colunas de origem da instalação.
+- `packages/database/src/migrations/20260923100000_analytics_event_name_format.sql`: troca a
+  lista fechada de nomes no banco por uma checagem de formato.
+- As três migrations 202609231000xx rodam no start da API (`security-migrations.ts`),
+  antes de `main`, e são idempotentes (constraints criadas só se ainda não existem).
+- `analytics.pglite.test.ts`: persistência e relatório contra as migrations reais em PGlite.
 
 ## Data Model
 
 - `analytics_installations`: uma linha por UUID local; primeira/última abertura, plataforma,
-  versão e build.
+  versão, build e origem (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `referrer`,
+  cada uma anuláveis e gravadas só no primeiro insert).
 - `analytics_installation_users`: vínculos muitos-para-muitos entre instalações e contas.
 - `analytics_activity_days`: chave composta instalação + data UTC; no máximo um dia ativo.
 - `analytics_user_activity_days`: chave composta usuário + data UTC para usuários ativos.
-- `analytics_events`: tela ou ação canônica, instalação/conta, versão e timestamp do servidor.
+- `analytics_events`: tela ou ação canônica, instalação/conta, versão, timestamp do servidor e
+  `props` JSONB opcional (só em ações).
 
 ## Invariants
 
-- A primeira abertura nunca é sobrescrita.
+- A primeira abertura nunca é sobrescrita, nem a origem da instalação.
 - Trocar de conta na mesma instalação não reatribui o histórico da conta anterior.
 - A atividade diária é idempotente pela chave composta.
+- A allowlist de nomes vive no contrato e no zod da API; o banco só garante o formato
+  `^[a-z][a-z0-9_]{0,79}$`, para que um nome novo do contrato não seja descartado em silêncio.
 
 ## Operations
 
@@ -66,9 +81,13 @@ uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Contracts (Zod/DTO)
 
-O envelope usa `{ installationId, platform, appVersion, appBuild? }`. Eventos são uma união
+O envelope usa `{ installationId, platform, appVersion, appBuild?, acquisition? }`.
+`acquisition` é estrito: `utmSource`, `utmMedium`, `utmCampaign`, `utmContent` (1–100) e
+`referrer` (host, 1–200), sem caracteres de controle nem chaves extras. Eventos são uma união
 discriminada: `screen_view` exige nome permitido e duração de 250 ms a 6 h; `action` aceita apenas
-as dez ações do contrato. Metadata arbitrária é rejeitada.
+as ações do contrato e um `props` opcional: de 1 a 5 chaves `^[a-z][a-z0-9_]*$` (até 32),
+valores texto sem espaços `[\w.:/()[\]-]` (até 64), número finito até 1e9 ou booleano. Objetos
+aninhados, arrays, texto livre e props em `screen_view` são rejeitados.
 
 `attribution?` aceita somente source, medium, campaign e content: identificadores de 1 a 100 caracteres ASCII alfanuméricos, ponto, hífen ou sublinhado. A primeira campanha conhecida é preservada em bloco; o referrer bruto nunca é persistido.
 
@@ -93,7 +112,8 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
 ## Security
 
 - Não persiste IP, e-mail, telefone, Advertising ID ou modelo do aparelho.
-- Os endpoints anônimos não aceitam propriedades arbitrárias nem nomes livres.
+- Os endpoints anônimos não aceitam nomes livres; `props` só aceita identificadores curtos (sem
+  espaços), nunca texto digitado ou dado de cliente.
 - Lista administrativa vazia nega o painel a todas as contas.
 - O rate limit global da API também cobre estas rotas.
 
@@ -127,3 +147,56 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
 ## Orientação contextual — 2026-09-07
 
 O contrato compartilhado aceita áreas e ações de orientação em allowlist (apresentação, dispensa, ajuda, início, conclusão e retomada), erros de produto/financeiro por identificadores fixos, cadastros de apoio, resultado de preço e conteúdo de catálogo publicado. `catalog_published` continua registrando apenas ativação de link; `catalog_content_published` exige salvamento confirmado no editor e itens públicos. Nenhum texto de formulário é aceito como metadata adicional. Coleta e permissões mantêm o comportamento anterior. Os novos marcos são definidos em `docs/orientacao-contextual-primeiro-valor.md`; o relatório histórico não ganha inferências causais automaticamente.
+
+## Nomes de eventos no banco — 2026-09-23
+
+A checagem `analytics_events_event_name_check` (037) listava só 17 ações e 29 telas; ações de
+cadastros de apoio, orientação, validação e a tela `services` falhavam no insert e, como a coleta é
+best effort, se perdiam sem erro visível. A migration `20260923100000_analytics_event_name_format.sql`
+substitui a lista por `analytics_events_event_name_format_check` (formato apenas).
+
+## Funil do painel — 2026-09-23
+
+- Etapa `signup`: primeiro `signup_completed` da instalação ou a primeira identificação de uma conta
+  nela (`analytics_installation_users.first_identified_at`), o que vier antes. Contas Google entram
+  no funil mesmo sem o evento do cadastro por e-mail.
+- Etapa `product`: `product_created` ou `product_created_from_pricing`.
+- Cada etapa usa o primeiro marco a partir da etapa anterior (antes era o primeiro marco absoluto,
+  o que descartava quem criou um produto antes de precificar e depois criou outro).
+
+## Cadastro registrado pelo servidor — 2026-09-23
+
+- `signup_completed` passou a ser emitido pela API, seja o cadastro por e-mail ou Google:
+  na primeira vez que a conta é vinculada a uma instalação (`/identify` ou `/events/identify`),
+  a transação de `recordOpen` usa `auth.users.created_at` e um bloqueio por conta.
+- "Primeiro vínculo": o insert em `analytics_installation_users` criou a linha (`xmax = 0`) e não
+  existe vínculo da conta com outra instalação. Contas antigas recebem o evento ausente com sua data original, sem inflar o dia atual.
+- O resultado de primeiro vínculo e o fallback `recordSignupOnce` continuam compatíveis com o use case; o cadastro canônico já foi persistido na transação, e o fallback não o duplica.
+- O app não envia mais o evento; versões antigas ainda enviam e a API o descarta
+  (`withoutServerOwnedEvents`) antes de persistir, sem rejeitar o lote.
+- `signups.total`/`last30Days` vêm de `auth.users`; o evento alimenta uso de funções e funil.
+
+## Origem da instalação — 2026-09-23
+
+- `/open`, `/identify` e os lotes de eventos aceitam `acquisition` e `attribution` opcionais. Ambos alimentam as mesmas colunas UTM; quando os dois estão presentes, `attribution` prevalece em bloco. A primeira campanha conhecida é preservada; uma leitura inicialmente vazia pode ser completada depois. O host `referrer` continua restrito ao primeiro insert.
+- Painel: `acquisition` agrega as instalações dos últimos 30 dias por `utm_source` + `utm_content`
+  (até 20 linhas, `null` = sem origem) com quantas já têm conta vinculada.
+- A web envia os UTM da URL do PWA. O Android usa Play Install Referrer via `expo-application`, com timeout e repetição após falha.
+- Após integrar as duas entregas, `acquisition` mantém a lista de origens por instalação. O novo relatório de contas confirmadas, marcos e coortes fica em `accountAcquisition`, sem sobrepor o contrato anterior.
+
+## Propriedades de ações — 2026-09-23
+
+- Coluna `analytics_events.props` (JSONB, anulável). O banco exige objeto, `event_type = 'action'`
+  e no máximo 1 KB (`analytics_events_props_check`); o zod aplica os limites finos de
+  `ANALYTICS_EVENT_PROPS_LIMITS`.
+- Uso atual: `plan_limit_reached` → `resource`, `screen`; `paid_feature_requested` → `feature`,
+  `trigger` (`limit` ou `feature`), `screen`, `plan` recomendado.
+- O relatório ainda não agrega por `props`; a consulta ad hoc lê `props->>'chave'`.
+
+## Novos marcos — 2026-09-23
+
+Ações novas no contrato e em "Funcionalidades mais usadas": `business_profile_completed`,
+`business_profile_skipped`, `plan_chosen`, `purchase_result` (props `result` = `success`,
+`failure` ou `cancel`, `provider`, `plan`, `period`), `ad_impression` e `app_crashed` (props
+`error` = tipo do erro e `screen`). São emitidas pelo app; a
+API só valida e persiste.

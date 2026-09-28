@@ -41,6 +41,10 @@ vi.mock("react-native", () => ({
   ),
 }));
 
+vi.mock("../layout/use-desktop-layout", () => ({
+  useDesktopLayout: () => false,
+}));
+
 vi.mock("@lucro-caseiro/ui", () => ({
   Typography: ({ children }: React.PropsWithChildren) => <span>{children}</span>,
   radii: { full: 999 },

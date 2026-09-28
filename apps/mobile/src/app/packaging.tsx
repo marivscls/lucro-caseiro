@@ -21,8 +21,14 @@ import { PackagingCard } from "../features/packaging/components/packaging-card";
 import { PackagingDetail } from "../features/packaging/components/packaging-detail";
 import { PackagingForm } from "../features/packaging/components/packaging-form";
 import {
+  DesktopPackagingBand,
+  DesktopPackagingTable,
+  DesktopPackagingToolbar,
+} from "../features/packaging/components/packaging-desktop";
+import {
   PACKAGING_EXTRA_FILTERS,
   PACKAGING_LIST_FILTERS,
+  displayPackagingName,
   packagingHeroIllustrationWidth,
   packagingHeroPanelHeight,
   restockCount,
@@ -37,7 +43,6 @@ import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
-import { Skeleton } from "../shared/components/skeleton";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
@@ -47,7 +52,10 @@ import {
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopPageContent } from "../shared/layout/desktop-page";
+import { Skeleton, SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 function PackagingSummary({
   totalCount,
@@ -343,6 +351,152 @@ function PackagingScreenContent() {
       .catch(() => alertError("Não foi possível excluir a embalagem."));
   }
 
+  const desktopHero = useBrandIllustration("embalagensHero");
+
+  function openMenu(id: string, name: string) {
+    showAlert({
+      title: name,
+      message: "O que você quer fazer?",
+      buttons: [
+        { text: "Editar", onPress: () => startEdit(id) },
+        {
+          text: "Excluir embalagem",
+          style: "destructive",
+          onPress: () => deleteById(id),
+        },
+        { text: "Cancelar", style: "cancel" },
+      ],
+    });
+  }
+
+  function renderHeader() {
+    return (
+      <ScreenHeader
+        guidance={{
+          area: "packaging",
+          onStart: () => setShowCreate(true),
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
+        title="Embalagens"
+        subtitle={
+          isDesktop
+            ? "O que acompanha cada venda e entra no custo do produto."
+            : undefined
+        }
+        hideBack={isDesktop}
+        style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}
+        titleStyle={{ color: palette.ink }}
+        right={
+          <FAB
+            icon="add"
+            header
+            onPress={() => setShowCreate(true)}
+            accessibilityLabel="Nova embalagem"
+            style={{
+              backgroundColor: palette.rose,
+              shadowOpacity: 0,
+              shadowRadius: 0,
+              elevation: 0,
+            }}
+          />
+        }
+      />
+    );
+  }
+
+  function renderDesktop() {
+    let body: React.ReactNode;
+    if (isLoading) body = <SkeletonList rows={5} variant="product" />;
+    else if (error)
+      body = (
+        <DesktopEmptyCard
+          icon="cloud-offline-outline"
+          title="Algo deu errado"
+          description="Não foi possível carregar suas embalagens. Tente novamente."
+        />
+      );
+    else if (items.length === 0)
+      body = (
+        <DesktopEmptyCard
+          icon="cube-outline"
+          title="Nenhuma embalagem ainda"
+          description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos."
+          action={{ label: "Cadastrar embalagem", onPress: () => setShowCreate(true) }}
+        />
+      );
+    else if (visible.length === 0)
+      body = (
+        <DesktopEmptyCard
+          icon="search-outline"
+          title="Nenhuma embalagem encontrada"
+          description="Ajuste a busca ou o filtro."
+          action={{
+            label: "Limpar busca e filtro",
+            onPress: () => {
+              setSearch("");
+              setTypeFilter(null);
+            },
+            variant: "secondary",
+          }}
+        />
+      );
+    else
+      body = (
+        <DesktopPackagingTable
+          items={visible}
+          onOpen={(item) => openCard(item.id)}
+          onMenu={(item) => openMenu(item.id, displayPackagingName(item.name))}
+        />
+      );
+
+    return (
+      <ScrollView
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+      >
+        {renderHeader()}
+        <View style={{ gap: spacing["2xl"] }}>
+          <LimitBanner resource="packaging" onUpgrade={() => showPaywall("packaging")} />
+          {!isLoading && !error && items.length > 0 ? (
+            <DesktopPackagingBand
+              totalCount={data?.total ?? items.length}
+              invested={totalStockCost(items)}
+              toRestock={restockCount(items)}
+              illustration={desktopHero}
+            />
+          ) : null}
+          {items.length > 0 ? (
+            <DesktopPackagingToolbar
+              search={search}
+              onSearch={setSearch}
+              filters={[...PACKAGING_LIST_FILTERS, ...PACKAGING_EXTRA_FILTERS]}
+              selected={typeFilter}
+              onSelect={(value) => setTypeFilter(value as PackagingTypeValue | null)}
+            />
+          ) : null}
+          <View style={{ gap: spacing.lg }}>
+            {items.length > 0 ? (
+              <View
+                style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.sm }}
+              >
+                <Typography variant="desktopCardTitle" accessibilityRole="header">
+                  Suas embalagens
+                </Typography>
+                <Typography variant="desktopMeta">
+                  {visible.length} {visible.length === 1 ? "item" : "itens"}
+                </Typography>
+              </View>
+            ) : null}
+            {body}
+          </View>
+        </View>
+      </ScrollView>
+    );
+  }
+
   function openCard(id: string) {
     setSelectedId(id);
     setEditing(false);
@@ -588,47 +742,27 @@ function PackagingScreenContent() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScreenHeader
-        guidance={{
-          area: "packaging",
-          onStart: () => setShowCreate(true),
-          hasRecords: (data?.items.length ?? 0) > 0,
-          loading: isLoading || !!error,
-          suspended: showCreate,
-        }}
-        title="Embalagens"
-        hideBack={isDesktop}
-        style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}
-        titleStyle={{ color: palette.ink }}
-        right={
-          <FAB
-            icon="add"
-            header
-            onPress={() => setShowCreate(true)}
-            accessibilityLabel="Nova embalagem"
-            style={{
-              backgroundColor: palette.rose,
-              shadowOpacity: 0,
-              shadowRadius: 0,
-              elevation: 0,
-            }}
-          />
-        }
-      />
+      {isDesktop ? (
+        renderDesktop()
+      ) : (
+        <>
+          {renderHeader()}
 
-      <View style={{ flex: 1 }}>
-        <LimitBanner
-          resource="packaging"
-          onUpgrade={() => showPaywall("packaging")}
-          containerStyle={{
-            marginHorizontal: isDesktop ? 0 : spacing.lg,
-            marginTop: spacing.sm,
-          }}
-        />
-        {renderList()}
-      </View>
+          <View style={{ flex: 1 }}>
+            <LimitBanner
+              resource="packaging"
+              onUpgrade={() => showPaywall("packaging")}
+              containerStyle={{
+                marginHorizontal: isDesktop ? 0 : spacing.lg,
+                marginTop: spacing.sm,
+              }}
+            />
+            {renderList()}
+          </View>
+        </>
+      )}
 
-      {!isLoading && !error && items.length > 0 ? (
+      {!isDesktop && !isLoading && !error && items.length > 0 ? (
         <ScreenCreateBar title="+ Nova embalagem" onPress={() => setShowCreate(true)} />
       ) : null}
 
@@ -683,36 +817,20 @@ function PackagingScreenContent() {
           existingPackaging={items}
           onSuccess={() => setEditing(false)}
           onCancel={() => setEditing(false)}
-          headerRight={
-            <Pressable
-              onPress={() => {
-                showAlert({
-                  title: "Excluir embalagem",
-                  message: "Tem certeza que deseja excluir esta embalagem?",
-                  buttons: [
-                    { text: "Cancelar", style: "cancel" },
-                    {
-                      text: "Excluir",
-                      style: "destructive",
-                      onPress: () => deleteById(selected.id),
-                    },
-                  ],
-                });
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Excluir embalagem"
-              hitSlop={8}
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed ? 0.6 : 1,
-              })}
-            >
-              <AppIcon name="trash-outline" size={22} color={theme.colors.alert} />
-            </Pressable>
-          }
+          onDelete={() => {
+            showAlert({
+              title: "Excluir embalagem",
+              message: "Tem certeza que deseja excluir esta embalagem?",
+              buttons: [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Excluir",
+                  style: "destructive",
+                  onPress: () => deleteById(selected.id),
+                },
+              ],
+            });
+          }}
         />
       ) : null}
     </SafeAreaView>

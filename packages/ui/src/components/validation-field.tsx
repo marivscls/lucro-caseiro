@@ -1,4 +1,12 @@
-import React, { useCallback, useContext, useEffect, useId, useMemo, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   AccessibilityInfo,
   findNodeHandle,
@@ -52,9 +60,11 @@ export function ValidationField({
     },
     [],
   );
+  const [ownOutline, setOwnOutline] = useState(false);
+  const claimOutline = useCallback(() => setOwnOutline(true), []);
   const context = useMemo(
-    () => ({ register, error, errorId }),
-    [register, error, errorId],
+    () => ({ register, error, errorId, claimOutline }),
+    [register, error, errorId, claimOutline],
   );
   const focus = useCallback(() => {
     if (frame.current !== null) cancelAnimationFrame(frame.current);
@@ -110,47 +120,13 @@ export function ValidationField({
           : {})}
         style={[{ minWidth: 0, flexShrink: 1 }, style]}
       >
-        {summary ? (
-          <View
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-            style={{
-              borderRadius: radii.md,
-              backgroundColor: theme.colors.surfaceElevated,
-              borderColor: theme.colors.alert,
-              borderWidth: 1,
-              padding: spacing.md,
-              marginBottom: spacing.sm,
-            }}
-          >
-            <Text
-              style={{
-                color: theme.colors.alert,
-                fontFamily: fonts.semiBold,
-                fontSize: fontSizes.sm,
-              }}
-            >
-              Atenção ao preenchimento
-            </Text>
-            <Text
-              style={{
-                color: theme.colors.text,
-                fontFamily: fonts.regular,
-                fontSize: fontSizes.sm,
-                marginTop: spacing.xs,
-              }}
-            >
-              {summary}
-            </Text>
-          </View>
-        ) : null}
         <View
           style={
-            error
+            error && !ownOutline
               ? {
                   borderWidth: 1,
                   borderColor: theme.colors.alert,
-                  borderRadius: radii.lg,
+                  borderRadius: radii.md,
                   padding: 2,
                 }
               : undefined
@@ -161,7 +137,9 @@ export function ValidationField({
         {error ? (
           <Text
             nativeID={errorId}
-            accessibilityLiveRegion="polite"
+            // O primeiro erro do formulário é anunciado na hora; os outros, com calma.
+            accessibilityRole={summary ? "alert" : undefined}
+            accessibilityLiveRegion={summary ? "assertive" : "polite"}
             style={{
               color: theme.colors.alert,
               fontFamily: fonts.regular,

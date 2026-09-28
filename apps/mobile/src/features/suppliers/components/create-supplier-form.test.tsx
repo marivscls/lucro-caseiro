@@ -8,7 +8,6 @@ vi.mock("@lucro-caseiro/ui", () => ({
       {title}
     </button>
   ),
-  spacing: { lg: 16, xl: 20 },
 }));
 vi.mock("../../../shared/components/standard-modal", () => ({
   StandardModal: ({
@@ -41,18 +40,8 @@ vi.mock("../../../shared/components/standard-modal", () => ({
       </div>
     ) : null,
 }));
-vi.mock("../../../shared/components/keyboard-aware-scroll-view", () => ({
-  KeyboardAwareScrollView: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-}));
-vi.mock("../../../shared/layout/use-desktop-layout", () => ({
-  useDesktopLayout: () => false,
-}));
-vi.mock("../../../shared/layout/desktop-density", () => ({
-  desktopStretch: () => ({}),
-  desktopWidths: { form: 560 },
-  pageGutter: () => ({}),
+vi.mock("../../../shared/components/form-layout", () => ({
+  FormActions: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 vi.mock("../../../shared/hooks/use-limit-check", () => ({
   useLimitCheck: () => ({ checkAndBlock: () => false }),
@@ -83,5 +72,7 @@ describe("CreateSupplierForm modal", () => {
     expect(screen.getByText("Cadastrar fornecedor")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Fechar formulário" }));
     expect(onClose).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 });

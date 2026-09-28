@@ -40,6 +40,28 @@ export function fiadoTiming(soldAt: string, now = new Date()): FiadoTiming {
   return { kind: "open", days: daysUntilDue };
 }
 
+/** Rótulo curto da situação de um fiado (selo da lista de cobranças). */
+export function fiadoTimingLabel(timing: FiadoTiming): string {
+  if (timing.kind === "open") return "Em aberto";
+  if (timing.kind === "upcoming") {
+    return timing.days === 1 ? "Vence amanhã" : `Vence em ${timing.days} dias`;
+  }
+  if (timing.days === 0) return "Venceu hoje";
+  return timing.days === 1 ? "Vencido há 1 dia" : `Vencido há ${timing.days} dias`;
+}
+
+/** Iniciais do cliente para o avatar (até duas letras). */
+export function fiadoInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 1).toLocaleUpperCase("pt-BR");
+  return `${parts[0][0]}${parts[1][0]}`.toLocaleUpperCase("pt-BR");
+}
+
+export function launchCountLabel(count: number): string {
+  return count === 1 ? "1 lançamento" : `${count} lançamentos`;
+}
+
 function dateBR(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });

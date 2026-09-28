@@ -7,10 +7,14 @@ interface MobileAdsModule {
   default?: () => { initialize: () => Promise<unknown> };
 }
 
+import { isMockMode } from "./mock/mode";
+
 let initialized = false;
 let initPromise: Promise<boolean> | null = null;
 
 export function ensureAdsInitialized(): Promise<boolean> {
+  // Modo demonstração: nunca carrega o SDK de anúncios.
+  if (isMockMode) return Promise.resolve(false);
   if (initialized) return Promise.resolve(true);
   if (initPromise) return initPromise;
   initPromise = (async () => {

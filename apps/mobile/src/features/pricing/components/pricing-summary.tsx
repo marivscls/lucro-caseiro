@@ -11,6 +11,7 @@ import { evaluateSalePrice, pricingQuote } from "../calc";
 import { PricingField, PricingSection } from "./pricing-fields";
 import { moneyValue, type PricingDraft } from "../use-pricing-draft";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 export function PricingSummary({
   input,
@@ -30,6 +31,7 @@ export function PricingSummary({
   onAlternativeChange: (value: string) => void;
 }>) {
   const { theme } = useTheme();
+  const desktop = useDesktopLayout();
   const resultIllustration = useBrandIllustration("pricingResultHero");
   const alternative = draft.alternative;
   const setAlternative = onAlternativeChange;
@@ -65,11 +67,11 @@ export function PricingSummary({
       <View style={{ gap: spacing.sm }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
           <Typography
-            variant="captionBold"
-            color={theme.colors.primaryStrong}
+            variant={desktop ? "desktopCardTitle" : "captionBold"}
+            color={desktop ? undefined : theme.colors.primaryStrong}
             style={{ flex: 1, minWidth: 0 }}
           >
-            PREÇO SUGERIDO POR UNIDADE
+            {desktop ? "Preço sugerido por unidade" : "PREÇO SUGERIDO POR UNIDADE"}
           </Typography>
           <Image
             source={resultIllustration}

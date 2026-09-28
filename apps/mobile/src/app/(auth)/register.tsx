@@ -1,4 +1,5 @@
 import { ValidationField } from "@lucro-caseiro/ui";
+import { ESSENTIAL_TRIAL_DAYS } from "@lucro-caseiro/contracts";
 import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import {
   Button,
@@ -11,15 +12,14 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { Image, Pressable, type TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { EmailTypoHint } from "../../shared/components/email-typo-hint";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
-  getPasswordStrength,
   validateEmail,
   validateName,
   validatePassword,
@@ -31,56 +31,13 @@ import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { brandLogoByMode } from "../../shared/brand-logo";
 
-function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
-  const { theme } = useTheme();
-  const strength = getPasswordStrength(password);
-
-  if (!password) return null;
-
-  const config = {
-    weak: { color: theme.colors.alert, label: "Fraca", width: "33%" },
-    medium: { color: theme.colors.yellow, label: "Média", width: "66%" },
-    strong: { color: theme.colors.success, label: "Forte", width: "100%" },
-  } as const;
-
-  const c = config[strength];
-
-  return (
-    <View style={{ gap: spacing.xs }}>
-      <View
-        style={{
-          height: 8,
-          backgroundColor: theme.colors.surface,
-          borderRadius: radii.full,
-        }}
-      >
-        <View
-          style={{
-            height: 8,
-            width: c.width,
-            backgroundColor: c.color,
-            borderRadius: radii.full,
-          }}
-        />
-      </View>
-      <Typography variant="bodyBold" color={c.color} style={{ fontSize: 14 }}>
-        Senha {c.label.toLowerCase()}
-      </Typography>
-    </View>
-  );
-}
-
 function PasswordRules({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
 
   if (!password) return null;
 
-  const rules = [
-    { label: "Mínimo 8 caracteres", met: password.length >= 8 },
-    { label: "1 letra maiúscula", met: /[A-Z]/.test(password) },
-    { label: "1 letra minúscula", met: /[a-z]/.test(password) },
-    { label: "1 número", met: /\d/.test(password) },
-  ];
+  // Só o tamanho mínimo: regras de maiúscula/número travavam o cadastro.
+  const rules = [{ label: "Mínimo 8 caracteres", met: password.length >= 8 }];
 
   return (
     <View style={{ gap: spacing.xs }}>
@@ -118,6 +75,17 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
   );
 }
 
+/** Erro de um campo: vazio ou fora da regra (nome curto, e-mail inválido, senha curta). */
+function fieldProblem(
+  value: string,
+  emptyMessage: string,
+  validate: (value: string) => { valid: boolean; errors: string[] },
+): string | undefined {
+  if (!value.trim()) return emptyMessage;
+  const result = validate(value);
+  return result.valid ? undefined : result.errors.join(". ");
+}
+
 export default function RegisterScreen() {
   const { theme } = useTheme();
   const brand = useBrand();
@@ -129,63 +97,27 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const [nameError, setNameError] = useState<string>();
-  const [emailError, setEmailError] = useState<string>();
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
-  const [passwordError, setPasswordError] = useState<string>();
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
 
-  function validateForm(): boolean {
-    let valid = true;
-
-    const nameResult = validateName(name);
-    if (!nameResult.valid) {
-      setNameError(nameResult.errors[0]);
-      valid = false;
-    } else {
-      setNameError(undefined);
-    }
-
-    const emailResult = validateEmail(email);
-    if (!emailResult.valid) {
-      setEmailError(emailResult.errors[0]);
-      valid = false;
-    } else {
-      setEmailError(undefined);
-    }
-
-    const passwordResult = validatePassword(password);
-    if (!passwordResult.valid) {
-      setPasswordError(passwordResult.errors.join(". "));
-      valid = false;
-    } else {
-      setPasswordError(undefined);
-    }
-
-    return valid;
-  }
-
+  // Um só sistema de erro: a mensagem aparece no campo, e o foco vai para ele.
   const formValidation = useFormValidation({
-    name: !name.trim() && "Informe seu nome.",
-    email: !email.trim() && "Informe seu e-mail.",
-    password: !password.trim() && "Crie uma senha.",
+    name: fieldProblem(name, "Informe seu nome.", validateName),
+    email: fieldProblem(email, "Informe seu e-mail.", validateEmail),
+    password: fieldProblem(password, "Crie uma senha.", validatePassword),
   });
 
   async function handleRegister() {
     if (!formValidation.validate()) return;
-    if (!validateForm()) return;
 
     setRegisterLoading(true);
-    const result = await signUpWithEmail(
-      email,
-      password,
-      name,
-      businessName || undefined,
-    );
+    // O nome do negócio é perguntado no primeiro acesso, não aqui.
+    const result = await signUpWithEmail(email, password, name);
     setRegisterLoading(false);
 
     if (result.error) {
@@ -193,6 +125,8 @@ export default function RegisterScreen() {
       return;
     }
 
+    // signup_completed é registrado pela API na primeira identificação da conta nova,
+    // o que cobre também o cadastro com Google.
     if (result.needsConfirmation) {
       showAlert({
         title: "Conta criada!",
@@ -246,13 +180,7 @@ export default function RegisterScreen() {
             resizeMode="contain"
             style={{ width: 104, height: 104 }}
           />
-          <Typography
-            variant="caption"
-            color={theme.colors.primaryLight}
-            style={{ letterSpacing: 3, textTransform: "uppercase" }}
-          >
-            {brandName}
-          </Typography>
+          <Typography variant="wordmark">{brandName}</Typography>
           <Typography variant="screenTitle" style={{ textAlign: "center" }}>
             Crie sua conta
           </Typography>
@@ -261,7 +189,8 @@ export default function RegisterScreen() {
             color={theme.colors.textSecondary}
             style={{ textAlign: "center" }}
           >
-            Leva menos de um minuto, e é grátis.
+            Leva menos de um minuto, e é grátis. Você ganha {ESSENTIAL_TRIAL_DAYS} dias do
+            plano Essencial para testar, sem cartão.
           </Typography>
         </View>
 
@@ -299,30 +228,31 @@ export default function RegisterScreen() {
               label="Seu nome"
               placeholder="Como podemos te chamar?"
               autoComplete="name"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => emailRef.current?.focus()}
               value={name}
-              onChangeText={(text) => {
-                setName(text);
-                if (nameError) setNameError(undefined);
-              }}
-              error={nameError}
+              onChangeText={setName}
             />
           </ValidationField>
 
           <ValidationField {...formValidation.field("email")}>
             <Input
+              ref={emailRef}
               label="E-mail"
               placeholder="seu@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => passwordRef.current?.focus()}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
-                if (emailError) setEmailError(undefined);
                 if (emailSuggestion) setEmailSuggestion(undefined);
               }}
               onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-              error={emailError}
             />
           </ValidationField>
           <EmailTypoHint
@@ -331,23 +261,23 @@ export default function RegisterScreen() {
               if (!emailSuggestion) return;
               setEmail(emailSuggestion);
               setEmailSuggestion(undefined);
-              setEmailError(undefined);
             }}
           />
 
           <View style={{ gap: spacing.sm }}>
             <ValidationField {...formValidation.field("password")}>
               <Input
+                ref={passwordRef}
                 label="Senha"
-                placeholder="Crie uma senha forte"
+                placeholder="Crie uma senha"
                 secureTextEntry={!showPassword}
                 autoComplete="new-password"
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (passwordError) setPasswordError(undefined);
+                returnKeyType="go"
+                onSubmitEditing={() => {
+                  void handleRegister();
                 }}
-                error={passwordError}
+                value={password}
+                onChangeText={setPassword}
                 rightIcon={
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
@@ -378,16 +308,8 @@ export default function RegisterScreen() {
                 }
               />
             </ValidationField>
-            <PasswordStrengthBar password={password} />
             <PasswordRules password={password} />
           </View>
-
-          <Input
-            label="Nome do negócio (opcional)"
-            placeholder="Ex: Meu negócio"
-            value={businessName}
-            onChangeText={setBusinessName}
-          />
 
           <Button
             title="Criar minha conta"
@@ -403,13 +325,8 @@ export default function RegisterScreen() {
               void handleRegister();
             }}
             loading={registerLoading}
-            disabled={
-              registerLoading ||
-              googleLoading ||
-              !name.trim() ||
-              !email.trim() ||
-              !password.trim()
-            }
+            // Fica ativo com campos vazios: ao tocar, mostra o que falta.
+            disabled={registerLoading || googleLoading}
           />
         </View>
 

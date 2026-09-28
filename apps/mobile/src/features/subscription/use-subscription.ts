@@ -9,16 +9,20 @@ import type {
 
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
+import { isMockMode } from "../../shared/mock/mode";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
 import { fetchProfile, syncPlan } from "./api";
 import { isProfilePremiumActive } from "./hooks";
+import { isProfileOnTrial } from "./trial";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import {
   ALL_PRODUCT_IDS,
   isSyncablePaidPurchase,
   productIdFor,
+  purchaseErrorResult,
+  type PurchaseResult,
   resolvePaidProductId,
 } from "./purchases";
 
@@ -27,7 +31,7 @@ const SUBSCRIPTION_LIMITS_KEY = ["subscription", "limits"] as const;
 
 type IapHookArgs = {
   onPurchaseSuccess: (purchase: Purchase) => void;
-  onPurchaseError: () => void;
+  onPurchaseError: (error?: unknown) => void;
 };
 
 type IapHookResult = {
@@ -74,6 +78,8 @@ function unavailableIap(): IapHookResult {
 }
 
 function loadIapModule(): IapModule | null {
+  // Modo demonstração: compras na loja desativadas.
+  if (isMockMode) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy native load keeps stale dev builds from crashing on startup.
     return require("react-native-iap") as IapModule;
@@ -111,6 +117,22 @@ export function useSubscription() {
   const { token, userId } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  // Compra iniciada nesta sessão; compras pendentes antigas não geram purchase_result.
+  const pendingPurchase = useRef<{ plan: PaidPlan; period: BillingPeriod } | null>(null);
+  const reportPurchase = useCallback(
+    (result: PurchaseResult) => {
+      const pending = pendingPurchase.current;
+      if (!pending) return;
+      pendingPurchase.current = null;
+      void trackAnalyticsAction("purchase_result", token, {
+        result,
+        provider: "google_play",
+        plan: pending.plan,
+        period: pending.period,
+      });
+    },
+    [token],
+  );
   const finishTransactionRef = useRef<
     ((args: { purchase: Purchase; isConsumable?: boolean }) => Promise<void>) | null
   >(null);
@@ -168,9 +190,15 @@ export function useSubscription() {
     getAvailablePurchases,
   } = useSafeIAP({
     onPurchaseSuccess: (purchase) => {
-      void verifyPurchase(purchase).finally(() => setLoading(false));
+      void verifyPurchase(purchase)
+        .then(
+          (verified) => reportPurchase(verified ? "success" : "failure"),
+          () => reportPurchase("failure"),
+        )
+        .finally(() => setLoading(false));
     },
-    onPurchaseError: () => {
+    onPurchaseError: (error) => {
+      reportPurchase(purchaseErrorResult(error));
       setLoading(false);
     },
   });
@@ -231,6 +259,7 @@ export function useSubscription() {
       }
 
       setLoading(true);
+      pendingPurchase.current = { plan: tier, period };
       try {
         await requestPurchase({
           type: "subs",
@@ -244,11 +273,12 @@ export function useSubscription() {
         });
         void trackAnalyticsAction("subscription_started", token);
       } catch {
+        reportPurchase("failure");
         setLoading(false);
         alertError("Não foi possível iniciar a compra. Tente novamente.");
       }
     },
-    [connected, requestPurchase, subscriptions, token, userId],
+    [connected, reportPurchase, requestPurchase, subscriptions, token, userId],
   );
 
   const restore = useCallback(async () => {
@@ -266,7 +296,8 @@ export function useSubscription() {
         queryClient.setQueryData([...SUBSCRIPTION_PROFILE_KEY, profile.id], profile);
         await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
 
-        if (isProfilePremiumActive(profile)) {
+        // Teste grátis não é assinatura: não há compra para restaurar.
+        if (isProfilePremiumActive(profile) && !isProfileOnTrial(profile)) {
           showAlert({
             title: "Restaurado!",
             message: "Sua assinatura foi restaurada.",

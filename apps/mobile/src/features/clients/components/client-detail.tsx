@@ -23,6 +23,7 @@ import { useSales } from "../../sales/hooks";
 import { displayProductName } from "../../products/display";
 import { useClient } from "../hooks";
 import { avatarPastel } from "./avatar-colors";
+import { ClientDetailDesktop } from "./client-detail-desktop";
 import {
   desktopStretch,
   desktopWidths,
@@ -34,6 +35,8 @@ import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 interface ClientDetailProps {
   clientId: string;
   onEditPress?: () => void;
+  /** Desktop: volta para a lista (o botão fica no cabeçalho da página). */
+  onBack?: () => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -86,7 +89,11 @@ function InfoRow({
   );
 }
 
-export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailProps>) {
+export function ClientDetail({
+  clientId,
+  onEditPress,
+  onBack,
+}: Readonly<ClientDetailProps>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const { data: client, isLoading, error } = useClient(clientId);
@@ -118,6 +125,32 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
 
   const initial = client.name.charAt(0).toUpperCase();
   const pastel = avatarPastel(client.name, theme.mode);
+  const birthdayThisMonth =
+    !!client.birthday &&
+    client.birthday.slice(5, 7) === String(new Date().getMonth() + 1).padStart(2, "0");
+
+  if (isDesktop) {
+    const phone = client.phone;
+    return (
+      <ClientDetailDesktop
+        client={client}
+        sales={salesData?.items.slice(0, 10) ?? []}
+        salesTotal={salesData?.total ?? 0}
+        salesLoading={salesLoading}
+        salesError={!!salesError}
+        birthdayThisMonth={birthdayThisMonth}
+        onBack={onBack}
+        onEditPress={onEditPress}
+        onWhatsApp={phone ? () => void openWhatsApp(phone) : undefined}
+        onBirthday={
+          phone
+            ? () => void openWhatsApp(phone, waMessages.birthday(client.name))
+            : undefined
+        }
+        formatDate={formatDate}
+      />
+    );
+  }
 
   return (
     <ScrollView

@@ -8,7 +8,6 @@ import {
   Badge,
   Button,
   Card,
-  Chip,
   Typography,
   radii,
   spacing,
@@ -18,6 +17,14 @@ import React, { useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
+import {
+  ChipChoiceField,
+  ChipRow,
+  FormField,
+  OptionChip,
+} from "../../../shared/components/form-field";
+import { FormActions } from "../../../shared/components/form-layout";
+import { FormSection } from "../../../shared/components/form-section";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError } from "../../../shared/utils/alerts";
@@ -41,6 +48,23 @@ interface ServiceDashboardModalProps {
   readonly onEdit: () => void;
   readonly onNewAppointment: () => void;
 }
+
+const PAYMENT_OPTIONS: ReadonlyArray<{ value: PaymentMethod; label: string }> = [
+  { value: "pix", label: "Pix" },
+  { value: "cash", label: "Dinheiro" },
+  { value: "card", label: "Cartão" },
+  { value: "transfer", label: "Transferência" },
+  { value: "credit", label: "Fiado" },
+];
+
+const BOOKING_ACTIONS: ReadonlyArray<{
+  status: ServiceBookingRequestStatus;
+  label: string;
+}> = [
+  { status: "contacted", label: "Contato feito" },
+  { status: "confirmed", label: "Confirmar" },
+  { status: "declined", label: "Recusar" },
+];
 
 const BOOKING_STATUS: Record<
   ServiceBookingRequestStatus,
@@ -106,24 +130,22 @@ export function ServiceDashboardModal({
         title={service.name}
         wide
         footer={
-          <View style={[styles.footer, isDesktop && { maxWidth: 440 }]}>
-            <Button
-              title="Editar serviço"
-              variant="outline"
-              style={styles.editButton}
-              onPress={onEdit}
-            />
+          <FormActions>
+            <Button title="Editar serviço" variant="outline" onPress={onEdit} />
             <Button
               title="Novo atendimento"
-              icon={<AppIcon name="add" size={18} color={theme.colors.textOnPrimary} />}
-              style={styles.createButton}
+              icon={
+                // No celular o ícone não cabe junto do texto inteiro.
+                isDesktop ? (
+                  <AppIcon name="add" size={18} color={theme.colors.textOnPrimary} />
+                ) : undefined
+              }
               onPress={onNewAppointment}
             />
-          </View>
+          </FormActions>
         }
       >
-        <View style={styles.section}>
-          <Typography variant="bodyBold">Resumo do serviço</Typography>
+        <FormSection title="Resumo do serviço" collapsible={false}>
           <View style={styles.metrics}>
             {[
               {
@@ -167,17 +189,17 @@ export function ServiceDashboardModal({
               </View>
             ))}
           </View>
-        </View>
+        </FormSection>
 
-        <View style={{ gap: spacing.sm }}>
-          <View style={styles.sectionHeading}>
-            <Typography variant="bodyBold" style={styles.headingText}>
-              Solicitações de horário
-            </Typography>
-            {bookings.data?.length ? (
+        <FormSection
+          title="Solicitações de horário"
+          collapsible={false}
+          titleAccessory={
+            bookings.data?.length ? (
               <Badge label={String(bookings.data.length)} variant="neutral" />
-            ) : null}
-          </View>
+            ) : null
+          }
+        >
           {(bookings.data ?? []).length === 0 ? (
             <Typography variant="body" color={theme.colors.textSecondary}>
               Nenhuma solicitação recebida para este serviço.
@@ -242,11 +264,31 @@ export function ServiceDashboardModal({
                     <Typography variant="caption">{booking.notes}</Typography>
                   </View>
                 ) : null}
-                <View style={{ gap: spacing.sm }}>
+                <View
+                  style={[
+                    styles.bookingActions,
+                    isDesktop ? styles.bookingActionsDesktop : null,
+                  ]}
+                >
+                  <ChipRow
+                    accessibilityLabel={`Situação da solicitação de ${booking.clientName}`}
+                  >
+                    {BOOKING_ACTIONS.map((action) => (
+                      <OptionChip
+                        key={action.status}
+                        label={action.label}
+                        selected={booking.status === action.status}
+                        disabled={updateBooking.isPending}
+                        onPress={() =>
+                          void changeBookingStatus(booking.id, action.status)
+                        }
+                      />
+                    ))}
+                  </ChipRow>
                   <Button
-                    title="WhatsApp"
+                    title="Chamar no WhatsApp"
                     variant="successOutline"
-                    style={{ borderRadius: radii.sm, minHeight: 44 }}
+                    style={isDesktop ? styles.inlineAction : undefined}
                     icon={
                       <AppIcon
                         name="logo-whatsapp"
@@ -262,100 +304,58 @@ export function ServiceDashboardModal({
                       void changeBookingStatus(booking.id, "contacted");
                     }}
                   />
-                  <View style={{ gap: spacing.xs }}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        alignItems: "stretch",
-                        gap: spacing.sm,
-                      }}
-                    >
-                      <Chip
-                        label="Contato feito"
-                        variant="info"
-                        selected={booking.status === "contacted"}
-                        disabled={updateBooking.isPending}
-                        style={styles.bookingStatusChip}
-                        onPress={() => void changeBookingStatus(booking.id, "contacted")}
-                      />
-                      <Chip
-                        label="Confirmar"
-                        variant="success"
-                        selected={booking.status === "confirmed"}
-                        disabled={updateBooking.isPending}
-                        style={styles.bookingStatusChip}
-                        onPress={() => void changeBookingStatus(booking.id, "confirmed")}
-                      />
-                      <Chip
-                        label="Recusar"
-                        variant="danger"
-                        selected={booking.status === "declined"}
-                        disabled={updateBooking.isPending}
-                        style={styles.bookingStatusChip}
-                        onPress={() => void changeBookingStatus(booking.id, "declined")}
-                      />
-                    </View>
-                    {updateBooking.isPending &&
-                    updatingBookingIdRef.current === booking.id ? (
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Salvando status...
-                      </Typography>
-                    ) : null}
-                  </View>
                 </View>
+                {updateBooking.isPending &&
+                updatingBookingIdRef.current === booking.id ? (
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Salvando status...
+                  </Typography>
+                ) : null}
               </Card>
             ))
           )}
-        </View>
+        </FormSection>
 
         {service.packages.length > 0 ? (
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="bodyBold">Vender pacote</Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              A venda entra no financeiro; se for fiado, fica pendente para cobrança.
-            </Typography>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {service.packages
-                .filter((item) => item.active)
-                .map((item) => (
-                  <Chip
-                    key={item.id}
-                    label={`${item.name} · ${item.sessions} sessões`}
-                    selected={selectedPackageId === item.id}
-                    onPress={() => setSelectedPackageId(item.id)}
-                  />
-                ))}
+          <FormSection
+            title="Vender pacote"
+            subtitle="A venda entra no financeiro; se for fiado, fica pendente para cobrança."
+            collapsible={false}
+          >
+            <FormField label="Pacote">
+              <ChipChoiceField
+                accessibilityLabel="Pacote"
+                value={selectedPackageId}
+                options={service.packages
+                  .filter((item) => item.active)
+                  .map((item) => ({
+                    value: item.id,
+                    label: `${item.name} · ${item.sessions} sessões`,
+                  }))}
+                onChange={setSelectedPackageId}
+              />
+            </FormField>
+            <FormField label="Forma de pagamento">
+              <ChipChoiceField
+                accessibilityLabel="Forma de pagamento"
+                value={packagePaymentMethod}
+                options={PAYMENT_OPTIONS}
+                onChange={setPackagePaymentMethod}
+              />
+            </FormField>
+            <View style={isDesktop ? styles.inlineActionRow : undefined}>
+              <Button
+                title="Escolher cliente e vender"
+                disabled={!selectedPackageId}
+                loading={purchasePackage.isPending}
+                style={isDesktop ? styles.inlineAction : undefined}
+                onPress={() => setShowClientPicker(true)}
+              />
             </View>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Forma de pagamento
-            </Typography>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {[
-                { label: "Pix", value: "pix" as const },
-                { label: "Dinheiro", value: "cash" as const },
-                { label: "Cartão", value: "card" as const },
-                { label: "Transferência", value: "transfer" as const },
-                { label: "Fiado", value: "credit" as const },
-              ].map((method) => (
-                <Chip
-                  key={method.value}
-                  label={method.label}
-                  selected={packagePaymentMethod === method.value}
-                  onPress={() => setPackagePaymentMethod(method.value)}
-                />
-              ))}
-            </View>
-            <Button
-              title="Escolher cliente e vender pacote"
-              disabled={!selectedPackageId}
-              onPress={() => setShowClientPicker(true)}
-            />
-          </View>
+          </FormSection>
         ) : null}
 
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="bodyBold">Pacotes ativos</Typography>
+        <FormSection title="Pacotes ativos" collapsible={false}>
           {(purchases.data ?? []).filter((item) => item.status === "active").length ===
           0 ? (
             <Typography variant="body" color={theme.colors.textSecondary}>
@@ -374,10 +374,9 @@ export function ServiceDashboardModal({
                 </Card>
               ))
           )}
-        </View>
+        </FormSection>
 
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="bodyBold">Histórico recente</Typography>
+        <FormSection title="Histórico recente" collapsible={false}>
           {(insights.data?.recentAppointments ?? []).length === 0 ? (
             <Typography variant="body" color={theme.colors.textSecondary}>
               Os atendimentos concluídos aparecerão aqui com valor, custo e cliente.
@@ -406,7 +405,7 @@ export function ServiceDashboardModal({
               </Card>
             ))
           )}
-        </View>
+        </FormSection>
       </StandardModal>
 
       <ClientPickerModal
@@ -419,13 +418,6 @@ export function ServiceDashboardModal({
 }
 
 const styles = StyleSheet.create({
-  section: { gap: spacing.sm },
-  sectionHeading: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
   headingText: { flexShrink: 1, minWidth: 0 },
   metrics: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   metric: {
@@ -441,13 +433,13 @@ const styles = StyleSheet.create({
   bookingDetails: { gap: spacing.xs },
   detailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   notes: { borderLeftWidth: 2, paddingLeft: spacing.sm },
-  bookingStatusChip: {
-    flexGrow: 0,
-    flexShrink: 0,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.sm,
+  bookingActions: { gap: spacing.md },
+  bookingActionsDesktop: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  footer: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  editButton: { flexGrow: 1, flexBasis: 112, minWidth: 112 },
-  createButton: { flexGrow: 2, flexBasis: 164, minWidth: 164 },
+  inlineActionRow: { flexDirection: "row", justifyContent: "flex-end" },
+  inlineAction: { minWidth: 200 },
 });

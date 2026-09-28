@@ -5,14 +5,19 @@ import type {
   PlanType,
   UserProfile,
 } from "@lucro-caseiro/contracts";
-import { createHash } from "node:crypto";
+
+import { isActiveTrial } from "@lucro-caseiro/contracts";
 
 import {
   ForbiddenError,
   NotFoundError,
   ServiceUnavailableError,
 } from "../../shared/errors";
-import { buildFreemiumLimits, resolvePlan } from "./subscription.domain";
+import {
+  buildFreemiumLimits,
+  hashPurchaseToken,
+  resolvePlan,
+} from "./subscription.domain";
 import type {
   AndroidPurchaseData,
   ISubscriptionRepo,
@@ -50,7 +55,8 @@ export class SubscriptionUseCases {
     if (!profile) {
       throw new NotFoundError("Perfil não encontrado");
     }
-    await this.sendProfessionalTrialCampaignEmail(userId);
+    // Em segundo plano: falha no e-mail da campanha nunca derruba o perfil.
+    void this.sendProfessionalTrialCampaignEmail(userId);
     return profile;
   }
 
@@ -110,9 +116,12 @@ export class SubscriptionUseCases {
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
     }
-    const previousPlan = previous
-      ? resolvePlan(previous.plan, previous.planExpiresAt)
-      : "free";
+    // Teste grátis não é assinatura: sair do teste para um plano pago conta
+    // como Free→pago (subscription_completed + e-mail de ativação).
+    const previousPlan =
+      previous && !this.isTrial(previous)
+        ? resolvePlan(previous.plan, previous.planExpiresAt)
+        : "free";
     const activePlan = resolvePlan(updated.plan, updated.planExpiresAt);
 
     if (previous && previousPlan === "free" && isPaidPlan(activePlan)) {
@@ -151,6 +160,9 @@ export class SubscriptionUseCases {
 
   async deactivatePlan(userId: string): Promise<UserProfile> {
     const previous = await this.repo.getProfile(userId);
+    // Cancelamento/expiração de uma compra (Stripe/Play) nunca derruba o teste
+    // grátis em andamento: ele termina sozinho pela data.
+    if (previous && this.isTrial(previous)) return previous;
     const updated = await this.repo.updatePlan(userId, "free", null);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
@@ -205,7 +217,7 @@ export class SubscriptionUseCases {
         throw new ForbiddenError("Esta compra do Google Play nao pertence a esta conta.");
       }
 
-      const tokenHash = createHash("sha256").update(purchase.purchaseToken).digest("hex");
+      const tokenHash = hashPurchaseToken(purchase.purchaseToken);
       const claimed = await this.repo.claimPurchaseToken(
         userId,
         "google-play",
@@ -221,6 +233,10 @@ export class SubscriptionUseCases {
     }
 
     return this.getProfile(userId);
+  }
+
+  private isTrial(profile: UserProfile): boolean {
+    return isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial);
   }
 
   private async sendLifecycleNotification(
@@ -241,10 +257,12 @@ export class SubscriptionUseCases {
   private async sendProfessionalTrialCampaignEmail(userId: string): Promise<void> {
     if (!this.notifyProfessionalTrialCampaign) return;
 
-    const claim = await this.repo.claimProfessionalTrialCampaignEmail(userId);
-    if (!claim) return;
-
+    let claimed = false;
     try {
+      const claim = await this.repo.claimProfessionalTrialCampaignEmail(userId);
+      if (!claim) return;
+      claimed = true;
+
       const result = await this.notifyProfessionalTrialCampaign({
         ...claim,
         idempotencyKey: `professional-trial-campaign-2026-${claim.userId}`,
@@ -252,11 +270,20 @@ export class SubscriptionUseCases {
       await this.repo.completeProfessionalTrialCampaignEmail(userId, result.id);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      await this.repo.releaseProfessionalTrialCampaignEmail(userId, message);
       console.error("Professional trial campaign email failed", {
         userId,
         error: message,
       });
+      if (!claimed) return;
+      await this.repo
+        .releaseProfessionalTrialCampaignEmail(userId, message)
+        .catch((releaseError: unknown) => {
+          console.error("Professional trial campaign release failed", {
+            userId,
+            error:
+              releaseError instanceof Error ? releaseError.message : String(releaseError),
+          });
+        });
     }
   }
 }

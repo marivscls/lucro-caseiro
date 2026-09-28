@@ -2,6 +2,7 @@ import type { CreateSupplier, Supplier } from "@lucro-caseiro/contracts";
 import { Button } from "@lucro-caseiro/ui";
 import React from "react";
 
+import { FormActions } from "../../../shared/components/form-layout";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { showToast } from "../../../shared/components/toast";
 import { alertError } from "../../../shared/utils/alerts";
@@ -43,21 +44,27 @@ export function EditSupplierForm({
   return (
     <StandardModal
       title="Editar fornecedor"
+      size="form"
       visible={visible}
       onClose={onClose}
       closeAccessibilityLabel="Fechar formulário"
       dismissDisabled={isSubmitting}
       footer={
-        <Button
-          title="Salvar alterações"
-          size="lg"
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          onPress={() => {
-            void formRef.current?.submit();
-          }}
-          style={{ flex: 1 }}
-        />
+        <FormActions>
+          <Button
+            title="Cancelar"
+            variant="outline"
+            disabled={isSubmitting}
+            onPress={onClose}
+          />
+          <Button
+            title="Salvar alterações"
+            loading={isSubmitting}
+            onPress={() => {
+              void formRef.current?.submit();
+            }}
+          />
+        </FormActions>
       }
     >
       <SupplierForm

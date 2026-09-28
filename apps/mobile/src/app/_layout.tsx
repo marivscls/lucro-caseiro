@@ -1,3 +1,5 @@
+// Primeiro import: no modo demonstração trata `?reset=1` antes das stores.
+import "../shared/mock/boot";
 import { Manrope_400Regular } from "@expo-google-fonts/manrope/400Regular";
 import { Manrope_500Medium } from "@expo-google-fonts/manrope/500Medium";
 import { Manrope_600SemiBold } from "@expo-google-fonts/manrope/600SemiBold";
@@ -13,6 +15,7 @@ import {
 import { getActiveBrand } from "@lucro-caseiro/brands";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { useFonts } from "expo-font";
+import plusJakartaSansExtraBold from "../assets/fonts/PlusJakartaSans-ExtraBold.ttf";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -21,6 +24,7 @@ import { AppState, useColorScheme } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
+import { reportAppCrash } from "../features/analytics/crash-report";
 import { useAppMetrics } from "../features/analytics/use-app-metrics";
 import { useScreenMetrics } from "../features/analytics/use-screen-metrics";
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
@@ -31,6 +35,7 @@ import { useNotificationPrefs } from "../shared/hooks/notification-prefs";
 import { useThemePref } from "../shared/hooks/theme-pref";
 import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-notifier";
 import { AlertHost } from "../shared/components/alert-host";
+import { AppErrorBoundary } from "../shared/components/app-error-boundary";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { DesktopShell } from "../shared/components/desktop-shell";
 import { MobileFloatingTabBar } from "../shared/components/mobile-floating-tab-bar";
@@ -50,6 +55,7 @@ import { shouldShowMobileTabBar } from "../shared/layout/mobile-tab-bar";
 import { shouldRedirectToLogin } from "../shared/layout/session-gate";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { preloadStaticImageAssets } from "../shared/static-image-assets";
+import { shouldRetryQuery } from "../shared/utils/query-retry";
 import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
 import { getPaywallRecommendedTier } from "../features/subscription/limit-copy";
@@ -142,9 +148,12 @@ function AppContent() {
 
   // Comemora quando o plano vira pago (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app pagante.
+  // O teste grátis conta como "free": assinar o Essencial durante o teste
+  // (plano continua "essential", só sai do teste) também comemora.
   const prevPlan = useRef<string | undefined>(undefined);
+  const planKey = profile?.planIsTrial ? "free" : profile?.plan;
   useEffect(() => {
-    const plan = profile?.plan;
+    const plan = planKey;
     if (!plan) return;
     if (prevPlan.current === undefined) {
       prevPlan.current = plan;
@@ -154,7 +163,7 @@ function AppContent() {
       showPremiumSuccess();
     }
     prevPlan.current = plan;
-  }, [profile?.plan, showPremiumSuccess]);
+  }, [planKey, showPremiumSuccess]);
 
   useEffect(() => {
     void initialize();
@@ -246,6 +255,7 @@ function AppContent() {
     return (
       <BrandIntro
         authReady={!isLoading && staticAssetsReady}
+        skipMinimum={!isLoading && isAuthenticated}
         onFinish={() => setIntroDone(true)}
       />
     );
@@ -299,15 +309,6 @@ function AppContent() {
             options={{
               headerShown: false,
               title: activeBrand.vertical.operationLabel,
-              headerStyle: { backgroundColor: theme.colors.background },
-              headerTintColor: theme.colors.text,
-            }}
-          />
-          <Stack.Screen
-            name="lucro-apps"
-            options={{
-              headerShown: false,
-              title: "Conheça também",
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.text,
             }}
@@ -379,7 +380,7 @@ function AppContent() {
             name="insights"
             options={{
               headerShown: !showDesktopShell,
-              title: "Insights",
+              title: "Resultados",
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.text,
             }}
@@ -481,11 +482,13 @@ export default function RootLayout() {
             gcTime: Infinity,
             staleTime: 5 * 60 * 1000,
             networkMode: "offlineFirst",
-            retry: 3,
+            retry: shouldRetryQuery,
           },
           mutations: {
             networkMode: "offlineFirst",
-            retry: 3,
+            // Gravações nunca são repetidas sozinhas: repetir pode duplicar
+            // uma venda que o servidor já registrou.
+            retry: 0,
           },
         },
       }),
@@ -514,6 +517,7 @@ export default function RootLayout() {
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,
+    PlusJakartaSans_800ExtraBold: plusJakartaSansExtraBold,
   });
 
   // Preferencias ou fontes indisponiveis nao podem manter o app inteiro em
@@ -533,7 +537,9 @@ export default function RootLayout() {
       >
         <BrandProvider brand={activeBrand}>
           <QueryClientProvider client={queryClient}>
-            <AppContent />
+            <AppErrorBoundary onError={reportAppCrash}>
+              <AppContent />
+            </AppErrorBoundary>
           </QueryClientProvider>
         </BrandProvider>
       </ThemeProvider>

@@ -16,7 +16,7 @@ const PROFILE_KEY = ["subscription", "profile"];
 // único invalidate corre na frente disso. Relemos o perfil algumas vezes até
 // refletir — aí o botão "Desbloquear premium" some e a comemoração dispara
 // sozinha (watcher de plano no _layout).
-async function pollForPremium(token: string, queryClient: QueryClient) {
+async function pollForPremium(token: string, queryClient: QueryClient): Promise<boolean> {
   for (let attempt = 0; attempt < 6; attempt++) {
     await new Promise((resolve) => setTimeout(resolve, 2500));
     try {
@@ -24,12 +24,27 @@ async function pollForPremium(token: string, queryClient: QueryClient) {
       queryClient.setQueryData([...PROFILE_KEY, profile.id], profile);
       if (profile.plan !== "free") {
         await queryClient.invalidateQueries({ queryKey: ["subscription", "limits"] });
-        return;
+        return true;
       }
     } catch {
       // Falha de rede momentânea: tenta de novo na próxima volta.
     }
   }
+  return false;
+}
+
+function reportStripePurchase(
+  token: string,
+  result: "success" | "failure" | "cancel",
+  plan: PaidPlan,
+  period: BillingPeriod,
+) {
+  void trackAnalyticsAction("purchase_result", token, {
+    result,
+    provider: "stripe",
+    plan,
+    period,
+  });
 }
 
 export function useStripeCheckout() {
@@ -50,8 +65,12 @@ export function useStripeCheckout() {
         await WebBrowser.openBrowserAsync(url);
         void trackAnalyticsAction("subscription_started", token);
         await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-        void pollForPremium(token, queryClient);
+        // Sem confirmação do webhook em ~15 s após fechar o checkout, conta como desistência.
+        void pollForPremium(token, queryClient).then((premium) =>
+          reportStripePurchase(token, premium ? "success" : "cancel", tier, period),
+        );
       } catch {
+        reportStripePurchase(token, "failure", tier, period);
         showAlert({
           title: "Erro",
           message: "Não foi possível abrir o checkout da Stripe. Tente novamente.",

@@ -19,16 +19,17 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 
 ## Code pointers
 
-| Arquivo                                                           | Descricao                        |
-| ----------------------------------------------------------------- | -------------------------------- |
-| `apps/mobile/src/features/materials/api.ts`                       | Funcoes HTTP                     |
-| `apps/mobile/src/features/materials/hooks.ts`                     | React Query hooks                |
-| `apps/mobile/src/features/materials/types.ts`                     | Re-export dos tipos de contracts |
-| `apps/mobile/src/features/materials/domain.ts`                    | Badge de estoque, formatação     |
-| `apps/mobile/src/features/materials/domain.test.ts`               | Testes do dominio                |
-| `apps/mobile/src/features/materials/components/material-card.tsx` | Card com badge e botoes +/-      |
-| `apps/mobile/src/features/materials/components/material-form.tsx` | Formulario criar/editar/excluir  |
-| `apps/mobile/src/app/materials.tsx`                               | Tela `/materials`                |
+| Arquivo                                                            | Descricao                        |
+| ------------------------------------------------------------------ | -------------------------------- |
+| `apps/mobile/src/features/materials/api.ts`                        | Funcoes HTTP                     |
+| `apps/mobile/src/features/materials/hooks.ts`                      | React Query hooks                |
+| `apps/mobile/src/features/materials/types.ts`                      | Re-export dos tipos de contracts |
+| `apps/mobile/src/features/materials/domain.ts`                     | Badge de estoque, formatação     |
+| `apps/mobile/src/features/materials/domain.test.ts`                | Testes do dominio                |
+| `apps/mobile/src/features/materials/components/material-card.tsx`  | Card com badge e botoes +/-      |
+| `apps/mobile/src/features/materials/components/material-form.tsx`  | Formulario criar/editar/excluir  |
+| `apps/mobile/src/features/materials/components/material-table.tsx` | Tabela de estoque (desktop)      |
+| `apps/mobile/src/app/materials.tsx`                                | Tela `/materials`                |
 
 ## Components
 
@@ -129,3 +130,29 @@ MaterialForm expõe onCreated(material), somente após persistência, para ficha
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-09: Comprar insumos usa SelectionCheck (preenchimento e check em 150 ms). Seleção e lista compartilhada atualizam imediatamente; preferência de movimento reduzido é respeitada.
+
+## Desktop (web >= 1024px) — 2026-09-24
+
+Segue `shared/layout/desktop-screen-checklist.md`. Tudo atrás de `useDesktopLayout()`;
+no celular a tela é a mesma de antes.
+
+- `/tabs/materials`: conteúdo em `desktopPageContent`. O painel vinho mantém a sacola, com
+  valor em `desktopTotal` e indicadores em `desktopMetric`/`desktopMetricLabel` (sem
+  legendas de 11 e 12 px). O aviso de reposição vira uma faixa com texto de 16 px e o link
+  "Ver lista de compras" à direita.
+- Barra de ferramentas: busca que ocupa a linha, `DesktopToolbarButton` "Filtrar" ("Filtros
+  ativos" quando há filtro) e "Ordenar", abrindo os mesmos modais. No cabeçalho fica só
+  "Novo material"; busca e filtro saem do cabeçalho e `ScreenCreateBar` não aparece.
+- Estoque em `MaterialTable` (`components/material-table.tsx`, sobre `DesktopTable`):
+  Material, Custo, Em estoque (com mínimo), Situação (selo de 14 px e barra) e Ajustar
+  (os mesmos −/+). A linha abre a edição (`Editar <nome>`).
+- `MaterialStockControls` (botões −/+ com `useAdjustMaterial`) e `StockStatusBlock`/
+  `statusPresentation` agora são exportados de `material-card.tsx` e usados pelo card e
+  pela tabela.
+- Vazio e busca sem resultado: cartão tracejado na coluna (título de 18 px, texto de 16 px,
+  botão com a largura do texto).
+- `/buy-materials`: `DesktopSplit` com as seções "Sem estoque"/"Estoque baixo" em
+  `DesktopGrid` (cartões brancos selecionáveis) e a lateral "Sua lista de compras" com
+  selecionados em `desktopMetric`, o botão que marca ou desmarca a lista inteira, "Compartilhar lista" e
+  "Copiar lista". "Estoque em dia" vira um cartão tracejado em linha, não mais um texto
+  solto no centro da tela.

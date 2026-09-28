@@ -17,6 +17,9 @@ const LIGHT = {
   white: "#FFFFFF",
   border: "#EADADD",
   limeText: "#747D00",
+  onWineMuted: "#F2D9DE",
+  wineBar: "#8A5A6A",
+  wineDivider: "#6E4553",
 } as const;
 
 export function brandScreenPalette(theme: Theme) {
@@ -45,6 +48,11 @@ export function brandScreenPalette(theme: Theme) {
     white: light ? LIGHT.white : theme.colors.surfaceElevated,
     /** Texto/ícone sobre wineFill. */
     onWine: LIGHT.white,
+    /** Texto secundário sobre wineFill (AA). */
+    onWineMuted: LIGHT.onWineMuted,
+    /** Barras de gráfico e divisórias sobre wineFill (sem texto). */
+    wineBar: LIGHT.wineBar,
+    wineDivider: LIGHT.wineDivider,
     border: light ? LIGHT.border : theme.colors.border,
     overlay: theme.colors.overlay,
   };

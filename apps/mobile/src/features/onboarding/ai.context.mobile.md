@@ -19,6 +19,9 @@ Aprovado em 2026-09-04: a prévia foi integrada ao primeiro acesso real do Lucro
 - O Início mostra a recomendação da prioridade selecionada, com navegação para precificação, venda, agenda, financeiro, catálogo ou cadastro de serviço.
 - Ideias para divulgar: orientações determinísticas e recolhíveis para cada canal selecionado, adaptadas ao segmento. Não enviam mensagens, não publicam conteúdos e não fazem chamadas de IA.
 - `useBusinessCopy` reaproveita o tipo canônico e especializa serviços, peças de artesanato e exemplos de confeitaria. Marcas verticais mantêm seus próprios termos.
+- `components/welcome-hero.tsx`: boas-vindas de quem nunca entrou no aparelho (renderizada por `(auth)/login.tsx` no modo `welcome`). Ilustração, promessa, três benefícios e as saídas "Criar conta grátis" e "Já tenho conta" (no computador, título alinhado ao topo da ilustração e botões à base). A partir de 880 px vira duas colunas; no celular os detalhes dos benefícios somem para os botões caberem na primeira tela.
+- Formato de conversa (2026-09-23, escolhido por LUCAS): `business-profile-form.tsx` mostra cada pergunta num balão do app (`AppBubble`) e as respostas como botões grandes logo abaixo (`ChatChoices`). Respostas já dadas ficam em balões da pessoa (`AnswerBubble`) com "Mudar", que volta àquela pergunta. A pergunta do negócio chama pelo primeiro nome (`profileQuestion`); o texto dos balões vem de `profileAnswerSummary`. Barra de 5 passos no topo; no computador a conversa fica numa coluna de até 760 px. A coluna lateral e a trilha de etapas foram retiradas.
+- `components/auth-layout.tsx`: moldura comum da boas-vindas e do login (`(auth)/login.tsx` no modo `login`). Nome da marca no topo; a partir de 880 px, painel ilustrado à esquerda e conteúdo à direita. No celular o login esconde o painel para o formulário caber na tela.
 - “Primeiros passos” permanece separado. Depois da decisão de perfil, fica disponível sob demanda. O guia de produtos não é exibido para prestadores de serviço.
 - O convite de demonstração foi retirado do Início. A recomendação só aparece após concluir; o acesso continua em Configurações. Contas antigas não são forçadas a responder novamente.
 
@@ -66,6 +69,8 @@ Artesanato com prioridade de preço destaca a precificação de uma peça. Servi
 
 ## Change log / Decisions
 
+- 2026-09-28: integração preserva o Voltar do Android na escolha da primeira tarefa (dispensa persistida), enquanto o questionário mantém o retorno por etapas implementado no formulário.
+
 - 2026-09-28: no primeiro acesso, `first-task.tsx` permite escolher precificação ou nova venda antes do questionário. Completar o perfil continua opcional em Configurações. A dispensa só é confirmada após salvar na conta; falhas mantêm as opções e permitem nova tentativa. A edição de perfis existentes mantém o formulário completo.
 
 - 2026-09-04: prévia convertida em fluxo real com persistência por conta e layout compacto.
@@ -78,3 +83,46 @@ Home preserva prioridade do BusinessProfileCard e perfil recente. Orientação g
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
 
 - 2026-09-09: transições do perfil usam 360 ms e deslocamento horizontal de 36 px, invertido ao voltar. O onboarding das outras marcas compartilha o mesmo padrão; dados e salvamento permanecem imediatos, com movimento reduzido respeitado.
+
+- 2026-09-23: salvar o perfil emite `business_profile_completed` (segmento, estágio, objetivo e
+  quantidade de canais) ou `business_profile_skipped`, com `first` indicando a primeira decisão.
+  Nome e nome do negócio não são enviados.
+
+## Modo demonstração (sem servidor) — 2026-09-23
+
+Build-time, para revisar layouts do primeiro acesso sem API, Supabase, anúncios ou compras.
+Ligado só com `EXPO_PUBLIC_MOCK_MODE=1`; sem a flag, `isMockMode` é `false` e o app segue
+o caminho de produção (os módulos simulados nem são avaliados).
+
+- Gerar: `pnpm --filter @lucro-caseiro/mobile export:demo` (saída em `apps/mobile/dist/demo`;
+  aceita `-- --output-dir <pasta>`). O script remove do `index.html` o registro do service
+  worker e o `push-worker.js`, e só falha se o HTML final ainda registrar um worker. Site
+  estático na raiz da própria origem, com SPA fallback.
+- Código em `apps/mobile/src/shared/mock/`: `mode.ts` (flag), `auth.ts` (cliente Supabase
+  falso: auth + storage), `api.ts` (rotas em memória), `fixtures.ts` (confeitaria "Doces da
+  Ana"), `db.ts`/`storage.ts` (estado por conta no localStorage com prefixo `lucro-demo:`),
+  `reset.ts` e `boot.ts` (primeiro import de `app/_layout.tsx`).
+- Auth: qualquer e-mail e senha funcionam após ~600 ms. Cadastro cria conta nova e vazia
+  (boas-vindas → cadastro → perfil do negócio → Início sem vendas → primeira venda). Entrar
+  com e-mail ainda não cadastrado cria uma conta antiga com os dados de exemplo (produtos,
+  clientes, vendas com fiado, despesas, agenda). Google entra sempre na mesma conta de
+  demonstração (nova na primeira vez). Sair encerra a sessão local.
+- API: `api-client.ts` chama `mockApiRequest` em vez do `fetch`; status de erro viram
+  `ApiError` como na rede. Criar produto, cliente, venda (fiado nasce pendente; paga gera
+  entrada no financeiro e baixa estoque), encomenda e lançamento altera o estado da conta.
+  A vitrine (`/catalog/settings`) nasce na primeira leitura com os padrões da API
+  (slug do nome do negócio, desligada, sem personalização) e guarda o `PUT`;
+  `slug-availability` responde disponível.
+  Rotas sem mock respondem vazio (lista que também tem `items/total/page/limit/totalPages`)
+  ou ecoam a escrita, e aparecem no console como `[demo] rota sem mock: ...` para serem
+  preenchidas depois. Coleta de uso, relatórios de erro e push token são no-op. Checkout de
+  assinatura responde "Assinaturas ficam desativadas no modo demonstração.".
+- Desligados: anúncios (`ensureAdsInitialized`/`useShowAds`), compras na loja
+  (`react-native-iap` não carrega), pedidos de permissão e registro de push (nativo e
+  navegador), avaliação na loja, NetInfo (sempre online) e a fonte remota dos HTMLs exportados.
+- `?reset=1` apaga o localStorage/sessionStorage da origem (inclui AsyncStorage no web e o
+  estado simulado) e recarrega sem o parâmetro, para repetir o primeiro acesso.
+- Fora do mock: leitor de código de barras no web (o expo-camera baixa o jsQR de CDN),
+  página pública do catálogo, exportação PDF/Excel do financeiro e upload real de imagens
+  (a foto vira URL local da sessão).
+- Testes: `shared/mock/api.test.ts`, `auth.test.ts` e `reset.test.ts`.

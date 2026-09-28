@@ -1,16 +1,17 @@
+import { isMockMode } from "../mock/mode";
 import { asyncStorage } from "./async-storage";
 
 const ASKED_FLAG_KEY = "store-review-asked";
-const MIN_SALES_TO_ASK = 3;
+const MIN_SALES_TO_ASK = 5;
 
 /**
- * Pede avaliacao na loja apos a 3a venda registrada (momento de sucesso), uma
+ * Pede avaliacao na loja apos a 5a venda registrada (momento de sucesso), uma
  * unica vez por instalacao. Nunca lanca erro — falha silenciosa pra nao
  * quebrar o fluxo de venda.
  */
 export async function maybeAskForReview(totalSales: number): Promise<void> {
   try {
-    if (totalSales < MIN_SALES_TO_ASK) return;
+    if (isMockMode || totalSales < MIN_SALES_TO_ASK) return;
 
     const alreadyAsked = await asyncStorage.getItem(ASKED_FLAG_KEY);
     if (alreadyAsked) return;

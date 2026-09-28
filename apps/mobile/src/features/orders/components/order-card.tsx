@@ -13,7 +13,10 @@ interface OrderCardProps {
   readonly onPress?: () => void;
 }
 
-function toneColors(theme: Theme, tone: StatusTone): { bg: string; fg: string } {
+export function orderToneColors(
+  theme: Theme,
+  tone: StatusTone,
+): { bg: string; fg: string } {
   switch (tone) {
     case "info":
       return { bg: theme.colors.blueBg, fg: theme.colors.blue };
@@ -31,7 +34,7 @@ function toneColors(theme: Theme, tone: StatusTone): { bg: string; fg: string } 
   }
 }
 
-function orderIcon(order: Order): AppIconName {
+export function orderIcon(order: Order): AppIconName {
   if (order.status === "done") return "cube-outline";
   if (order.status === "in_production") return "bag-handle-outline";
   if (order.status === "ready") return "checkmark-circle-outline";
@@ -40,7 +43,7 @@ function orderIcon(order: Order): AppIconName {
 
 export function OrderCard({ order, onPress }: OrderCardProps) {
   const { theme } = useTheme();
-  const colors = toneColors(theme, STATUS_TONE[order.status]);
+  const colors = orderToneColors(theme, STATUS_TONE[order.status]);
 
   return (
     <Pressable

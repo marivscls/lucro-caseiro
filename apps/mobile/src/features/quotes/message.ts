@@ -1,7 +1,8 @@
 import type { Quote } from "@lucro-caseiro/contracts";
+import { formatCurrency } from "../../shared/utils/format";
 
 function money(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
+  return formatCurrency(value);
 }
 
 function qty(value: number): string {

@@ -16,6 +16,7 @@ describe("dashboard cohort semantics", () => {
     for (const name of [
       "034_product_analytics.sql",
       "035_analytics_behavior_events.sql",
+      "20260923100100_analytics_installation_acquisition.sql",
     ]) {
       await pg.exec(
         readFileSync(`../../packages/database/src/migrations/${name}`, "utf8"),

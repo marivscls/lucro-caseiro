@@ -5,6 +5,8 @@ import { GoogleAuth } from "google-auth-library";
 import { ServiceUnavailableError } from "../../shared/errors";
 import type {
   AndroidPurchaseData,
+  GooglePlaySubscriptionSnapshot,
+  IGooglePlaySubscriptionLookup,
   ISubscriptionStatusProvider,
   ProviderPlanState,
 } from "./subscription.types";
@@ -74,12 +76,12 @@ function isActiveState(state: SubscriptionState | undefined, expiresAt: Date | n
 /** Plano pago associado a um line item (productId, basePlanId ou o id do request). */
 function resolveLineItemPlan(
   item: NonNullable<GooglePlaySubscriptionPurchase["lineItems"]>[number],
-  purchase: AndroidPurchaseData,
+  productIdHint: string | undefined,
 ): PaidPlan | null {
   const candidates = [
     item.productId,
     item.offerDetails?.basePlanId,
-    item.productId === purchase.productId ? purchase.productId : undefined,
+    item.productId === productIdHint ? productIdHint : undefined,
   ];
   for (const candidate of candidates) {
     const plan = candidate ? planFromProductId(candidate) : null;
@@ -88,16 +90,28 @@ function resolveLineItemPlan(
   return null;
 }
 
-export class GooglePlayClient implements ISubscriptionStatusProvider {
+function isPermanentLookupFailure(error: unknown): boolean {
+  const status = (error as { response?: { status?: unknown } } | null)?.response?.status;
+  return status === 400 || status === 404 || status === 410;
+}
+
+export class GooglePlayClient
+  implements ISubscriptionStatusProvider, IGooglePlaySubscriptionLookup
+{
   constructor(
     private packageName: string,
     private serviceAccountJson: string,
   ) {}
 
-  async getPlanState(
-    _userId: string,
-    purchase: AndroidPurchaseData,
-  ): Promise<ProviderPlanState> {
+  /**
+   * Estado atual de um purchase token no subscriptionsv2.
+   * Retorna `null` quando o Google responde que o token nao existe (400/404/410).
+   * Falhas de rede/servidor viram `ServiceUnavailableError` (transitorio).
+   */
+  async getSubscription(
+    purchaseToken: string,
+    productIdHint?: string,
+  ): Promise<GooglePlaySubscriptionSnapshot | null> {
     if (!this.serviceAccountJson) {
       throw new ServiceUnavailableError(
         "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON não configurado no servidor",
@@ -111,36 +125,56 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
 
     const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${encodeURIComponent(
       this.packageName,
-    )}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchase.purchaseToken)}`;
+    )}/purchases/subscriptionsv2/tokens/${encodeURIComponent(purchaseToken)}`;
 
     let response;
     try {
       response = await auth.request<GooglePlaySubscriptionPurchase>({ url });
-    } catch {
+    } catch (error) {
+      if (isPermanentLookupFailure(error)) return null;
       throw new ServiceUnavailableError(
         "Não foi possível verificar assinatura no Google Play",
       );
     }
 
     const subscription = response.data;
-    const plan = subscription.lineItems
-      ?.map((item) => resolveLineItemPlan(item, purchase))
-      .find((resolved): resolved is PaidPlan => resolved !== null);
+    const plan =
+      subscription.lineItems
+        ?.map((item) => resolveLineItemPlan(item, productIdHint))
+        .find((resolved): resolved is PaidPlan => resolved !== null) ?? null;
+    const expiresAt = getLatestExpiry(subscription);
 
-    if (!plan) {
-      return { plan: "free", expiresAt: null, purchaseOwnerId: null };
+    return {
+      plan,
+      active: isActiveState(subscription.subscriptionState, expiresAt),
+      expiresAt,
+      purchaseOwnerId:
+        subscription.externalAccountIdentifiers?.obfuscatedExternalAccountId ?? null,
+    };
+  }
+
+  async getPlanState(
+    _userId: string,
+    purchase: AndroidPurchaseData,
+  ): Promise<ProviderPlanState> {
+    const snapshot = await this.getSubscription(
+      purchase.purchaseToken,
+      purchase.productId,
+    );
+    if (!snapshot) {
+      throw new ServiceUnavailableError(
+        "Não foi possível verificar assinatura no Google Play",
+      );
     }
 
-    const expiresAt = getLatestExpiry(subscription);
-    if (!isActiveState(subscription.subscriptionState, expiresAt)) {
+    if (!snapshot.plan || !snapshot.active) {
       return { plan: "free", expiresAt: null, purchaseOwnerId: null };
     }
 
     return {
-      plan,
-      expiresAt,
-      purchaseOwnerId:
-        subscription.externalAccountIdentifiers?.obfuscatedExternalAccountId ?? null,
+      plan: snapshot.plan,
+      expiresAt: snapshot.expiresAt,
+      purchaseOwnerId: snapshot.purchaseOwnerId,
     };
   }
 }

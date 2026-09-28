@@ -47,3 +47,7 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
 ## Refinamento de densidade — 2026-09-08
 
 A dona do produto solicitou textos menores e consistentes entre telas. A escala acima substitui os valores anteriores, inclusive nos estados vazios e nas orientações. Botões usam 14 px sem reduzir seus alvos de toque; subtítulos usam 13/18; campos de digitação mantêm 16 px. Zoom do navegador e preferências de tamanho de fonte continuam disponíveis. Tamanhos próprios de impressão/prévia de etiquetas e marcas em ilustrações não são uma escala de interface.
+
+## Exceção do nome da marca — 2026-09-23
+
+O dono do produto pediu uma fonte mais profissional para o nome ao lado do logo. Só esse nome usa Plus Jakarta Sans ExtraBold (OFL, arquivo em `apps/mobile/src/assets/fonts/`), pela variante `wordmark` e pelo token `fonts.brand`. Todo o resto do app continua em Manrope.

@@ -8,8 +8,6 @@ import {
   Badge,
   Button,
   Card,
-  Chip,
-  Input,
   Typography,
   useBrand,
   useFeature,
@@ -20,7 +18,7 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, useWindowDimensions, View } from "react-native";
+import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -29,9 +27,21 @@ import {
   type ComponentDraft,
 } from "../features/products/components/component-picker";
 import { CompositeToggle } from "../features/products/components/composite-toggle";
-import { CreateProductForm } from "../features/products/components/create-product-form";
+import {
+  CategoryField,
+  CreateProductForm,
+  GainEstimate,
+  PhotoField,
+} from "../features/products/components/create-product-form";
 import { pricingProductInitialValues } from "../features/products/pricing-initial-values";
 import { ProductList } from "../features/products/components/product-list";
+import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
+import {
+  DesktopCatalogBand,
+  DesktopListTitle,
+  DesktopProductTile,
+  DesktopProductToolbar,
+} from "../features/products/components/products-desktop";
 import {
   displayProductName,
   productInitial,
@@ -56,11 +66,20 @@ import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { FormSection } from "../shared/components/form-section";
 import {
+  FormField,
+  TextField,
+  fieldMetrics,
+  ChipChoiceField,
+  ChoiceField,
+} from "../shared/components/form-field";
+import { FormActions, FormBody, FormGrid } from "../shared/components/form-layout";
+import {
   useDeleteProduct,
   useAdjustProductStock,
   useAllProducts,
   useLowStockProducts,
   useProduct,
+  useProducts,
   useSalesVelocity,
   useStockMovements,
   useUpdateProduct,
@@ -72,6 +91,9 @@ import catalogProductsIllustration from "../assets/catalog-products.png";
 import { brandScreenPalette } from "../shared/brand-palette";
 import { desktopStretch, desktopWidths } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
+import { AdBanner } from "../shared/components/ad-banner";
+import { useShowAds } from "../shared/hooks/use-show-ads";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
@@ -96,6 +118,9 @@ const PRODUCT_STATUS_FILTERS: ReadonlyArray<{
   { value: "fast", label: "Venda rápida" },
   { value: "slow", label: "Venda lenta" },
 ];
+
+/** Valor da opção "Todas" no filtro de categoria (a categoria vazia é `null`). */
+const ALL_CATEGORIES = "__all__";
 
 const PRODUCT_SORT_LABELS: Record<ProductSort, string> = {
   name: "A–Z",
@@ -159,6 +184,15 @@ function StockValue({ product }: Readonly<{ product: Product }>) {
   );
 }
 
+/** Quantidade recebida: inteiro maior que zero. */
+function stockDeltaProblem(value: string): string | undefined {
+  if (!value.trim()) return "Informe a quantidade recebida.";
+  const delta = Number(value);
+  if (!Number.isInteger(delta) || delta <= 0)
+    return "Informe uma quantidade inteira maior que zero.";
+  return undefined;
+}
+
 function ProductDetailModal({
   productId,
   visible,
@@ -169,8 +203,10 @@ function ProductDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const palette = brandScreenPalette(theme);
-  const { copy } = useBrand();
+  const brand = useBrand();
+  const { copy } = brand;
   const variationsEnabled = useFeature("catalogoCores");
   const directCostEnabled = useFeature("custoDireto");
   const weightEnabled = useFeature("vendaPorPeso");
@@ -186,6 +222,18 @@ function ProductDetailModal({
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "compositeProducts");
   const showPaywall = usePaywall((s) => s.show);
+  const experienceCopy = businessCopyFor(profile?.businessType, brand.copy);
+  const { data: productsData } = useProducts();
+  // Mesmas opções de categoria do cadastro: as sugeridas e as já usadas.
+  const categories = useMemo(() => {
+    const set = new Set([
+      ...experienceCopy.categoryPresets,
+      ...(productsData?.items ?? [])
+        .map((item) => item.category)
+        .filter((item): item is string => !!item),
+    ]);
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [experienceCopy.categoryPresets, productsData]);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -206,22 +254,16 @@ function ProductDetailModal({
   const [stockVariationId, setStockVariationId] = useState<string | null>(null);
 
   const stockValidation = useFormValidation({
-    stockDelta:
-      (!Number.isFinite(Number(stockDelta)) || Number(stockDelta) <= 0) &&
-      "Informe a quantidade recebida em estoque.",
+    stockVariation:
+      (product?.variations?.length ?? 0) > 0 &&
+      !stockVariationId &&
+      "Escolha a variação que recebeu estoque.",
+    stockDelta: stockDeltaProblem(stockDelta),
   });
 
   function handleAddStock() {
     if (!stockValidation.validate()) return;
     const delta = Number.parseInt(stockDelta, 10);
-    if (!Number.isInteger(delta) || delta <= 0) {
-      alertValidation("Informe uma quantidade inteira maior que zero.");
-      return;
-    }
-    if ((product?.variations?.length ?? 0) > 0 && !stockVariationId) {
-      alertValidation("Escolha a variação que recebeu estoque.");
-      return;
-    }
     adjustStock.mutate(
       {
         productId,
@@ -285,14 +327,6 @@ function ProductDetailModal({
     if (!formValidation.validate()) return;
     const price = parseCurrencyInput(salePrice);
     const cost = costPrice ? parseCurrencyInput(costPrice) : undefined;
-    if (!name.trim()) {
-      alertValidation("Coloque o nome do produto");
-      return;
-    }
-    if (isNaN(price) || price <= 0) {
-      alertValidation("O preço precisa ser maior que zero");
-      return;
-    }
     if (cost !== undefined && (!Number.isFinite(cost) || cost < 0)) {
       alertValidation("O custo não pode ser negativo");
       return;
@@ -761,54 +795,58 @@ function ProductDetailModal({
             !product.isComposite &&
             (product.stockQuantity !== null || (product.variations?.length ?? 0) > 0) ? (
               <Card>
-                <View style={{ gap: spacing.md }}>
-                  <View>
-                    <Typography variant="h3">Adicionar estoque</Typography>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Registre a reposição sem abrir a edição do produto.
-                    </Typography>
-                  </View>
+                <FormSection
+                  collapsible={false}
+                  title="Adicionar estoque"
+                  subtitle="Registre a reposição sem abrir a edição do produto."
+                >
                   {(product.variations?.length ?? 0) > 0 ? (
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        flexWrap: "wrap",
-                        gap: spacing.sm,
-                      }}
+                    <FormField
+                      label="Variação"
+                      validation={stockValidation.field("stockVariation")}
                     >
-                      {product.variations?.map((variation) => (
-                        <Chip
-                          key={variation.id}
-                          label={variation.name}
-                          selected={stockVariationId === variation.id}
-                          onPress={() => setStockVariationId(variation.id)}
-                        />
-                      ))}
-                    </View>
+                      <ChipChoiceField
+                        accessibilityLabel="Variação"
+                        options={(product.variations ?? []).map((variation) => ({
+                          value: variation.id,
+                          label: variation.name,
+                        }))}
+                        value={stockVariationId}
+                        onChange={setStockVariationId}
+                      />
+                    </FormField>
                   ) : null}
-                  <ValidationField {...stockValidation.field("stockDelta")}>
-                    <Input
+                  <FormGrid>
+                    <FormField
                       label="Quantidade recebida"
-                      value={stockDelta}
-                      onChangeText={setStockDelta}
-                      keyboardType="number-pad"
-                      numericMode="integer"
-                      placeholder="Ex.: 12"
+                      validation={stockValidation.field("stockDelta")}
+                    >
+                      <TextField
+                        icon="albums-outline"
+                        value={stockDelta}
+                        onChangeText={setStockDelta}
+                        keyboardType="number-pad"
+                        numericMode="integer"
+                        placeholder="Ex: 12"
+                      />
+                    </FormField>
+                    <FormField label="Motivo" optional>
+                      <TextField
+                        value={stockReason}
+                        onChangeText={setStockReason}
+                        placeholder="Ex: compra do fornecedor"
+                      />
+                    </FormField>
+                  </FormGrid>
+                  <FormActions style={{ flexGrow: 0, flexBasis: "auto" }}>
+                    <Button
+                      title="Adicionar ao estoque"
+                      variant="secondary"
+                      onPress={handleAddStock}
+                      loading={adjustStock.isPending}
                     />
-                  </ValidationField>
-                  <Input
-                    label="Motivo (opcional)"
-                    value={stockReason}
-                    onChangeText={setStockReason}
-                    placeholder="Ex.: compra do fornecedor"
-                  />
-                  <Button
-                    title="Adicionar ao estoque"
-                    variant="secondary"
-                    onPress={handleAddStock}
-                    loading={adjustStock.isPending}
-                  />
-                </View>
+                  </FormActions>
+                </FormSection>
               </Card>
             ) : null}
 
@@ -914,60 +952,119 @@ function ProductDetailModal({
               </Card>
             ) : null}
 
-            <Button
-              title="Excluir produto"
-              variant="secondary"
-              onPress={handleDelete}
-              loading={deleteProduct.isPending}
-            />
+            <View style={{ alignItems: isDesktop ? "flex-start" : "stretch" }}>
+              <Button
+                title="Excluir produto"
+                variant="alertOutline"
+                icon={
+                  <AppIcon name="trash-outline" size={18} color={theme.colors.alert} />
+                }
+                onPress={handleDelete}
+                loading={deleteProduct.isPending}
+              />
+            </View>
           </View>
         ) : null}
       </StandardModal>
     );
   }
 
+  const isKg = saleUnit === "kg" && !isComposite;
+  const tracksUnitStock = saleUnit === "unit" && !isComposite;
+
   return (
     <StandardModal
       title="Editar produto"
+      size="form"
       visible={visible && editing}
       onClose={onClose}
       footer={
-        <>
+        <FormActions>
           <Button
             title="Cancelar"
-            variant="secondary"
+            variant="outline"
+            disabled={updateProduct.isPending || uploading}
             onPress={() => setEditing(false)}
-            style={{ flex: 1 }}
           />
           <Button
-            title={uploading ? "Enviando foto..." : "Salvar"}
-            size="lg"
+            title={uploading ? "Enviando foto…" : "Salvar alterações"}
             onPress={() => {
               void handleSave();
             }}
             loading={updateProduct.isPending || uploading}
-            style={{ flex: 1 }}
           />
-        </>
+        </FormActions>
       }
     >
       {!isLoading && product ? (
-        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+        <FormBody>
+          <FormGrid>
+            <FormField
+              label={`Nome do ${experienceCopy.productNoun}`}
+              validation={formValidation.field("name")}
+            >
+              <TextField
+                icon="pricetag-outline"
+                placeholder={`Ex: ${experienceCopy.productExample}`}
+                accessibilityLabel={`Nome do ${experienceCopy.productNoun}`}
+                value={name}
+                onChangeText={setName}
+              />
+            </FormField>
+            <FormField label="Categoria" validation={formValidation.field("category")}>
+              <CategoryField
+                value={category}
+                onChange={setCategory}
+                categories={categories}
+                placeholder={`Ex: ${experienceCopy.categoryExample}`}
+              />
+            </FormField>
+          </FormGrid>
+
           <FormSection
-            title="Informações básicas"
-            subtitle="Nome, categoria e tipo do produto"
-            icon="pricetag-outline"
-            initiallyOpen
+            collapsible={false}
+            title="Preço e custo"
+            subtitle="O ganho aparece enquanto você preenche."
           >
-            <ValidationField {...formValidation.field("name")}>
-              <Input label="Nome do produto" value={name} onChangeText={setName} />
-            </ValidationField>
-            <ValidationField {...formValidation.field("category")}>
-              <Input label="Categoria" value={category} onChangeText={setCategory} />
-            </ValidationField>
-            {variationsEnabled && !isComposite ? (
-              <VariationEditor value={variations} onChange={setVariations} />
+            <FormGrid>
+              <FormField
+                label={isKg ? "Preço por kg" : "Preço de venda"}
+                validation={formValidation.field("salePrice")}
+              >
+                <TextField
+                  prefix="R$"
+                  placeholder={isKg ? "80,00" : "3,50"}
+                  accessibilityLabel={
+                    isKg ? "Preço por kg, em reais" : "Preço de venda, em reais"
+                  }
+                  value={salePrice}
+                  onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+                  keyboardType="numeric"
+                />
+              </FormField>
+              {directCostEnabled && !isComposite ? (
+                <FormField label={isKg ? "Custo por kg" : "Custo de cada um"} optional>
+                  <TextField
+                    prefix="R$"
+                    placeholder={isKg ? "45,00" : "2,10"}
+                    accessibilityLabel="Custo, em reais"
+                    value={costPrice}
+                    onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
+                    keyboardType="numeric"
+                  />
+                </FormField>
+              ) : null}
+            </FormGrid>
+            {editGain !== null && editMargin !== null ? (
+              <GainEstimate gain={editGain} margin={editMargin} />
             ) : null}
+            {/* Venda por peso (kg) so faz sentido para produto simples. */}
+            {!isComposite && weightEnabled ? (
+              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+            ) : null}
+          </FormSection>
+
+          <FormSection collapsible={false} title="Tipo e variações">
             <CompositeToggle
               value={isComposite}
               onChange={(next) => {
@@ -979,7 +1076,7 @@ function ProductDetailModal({
               }}
               locked={!isPremium}
             />
-            {isComposite && (
+            {isComposite ? (
               <ValidationField {...formValidation.field("components")}>
                 <ComponentPicker
                   value={components}
@@ -987,176 +1084,93 @@ function ProductDetailModal({
                   excludeProductId={productId}
                 />
               </ValidationField>
-            )}
-          </FormSection>
-          <FormSection
-            title="Preço e custo"
-            subtitle="Confira o ganho antes de salvar"
-            icon="cash-outline"
-            initiallyOpen
-          >
-            {!isComposite && weightEnabled ? (
-              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
             ) : null}
-            <ValidationField {...formValidation.field("salePrice")}>
-              <Input
-                label={
-                  saleUnit === "kg" && !isComposite
-                    ? "Preço por kg (R$)"
-                    : "Preço de venda (R$)"
-                }
-                value={salePrice}
-                onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-                keyboardType="numeric"
+            {variationsEnabled && !isComposite ? (
+              <VariationEditor value={variations} onChange={setVariations} />
+            ) : null}
+          </FormSection>
+
+          <FormSection collapsible={false} title="Foto e descrição">
+            <PhotoField imageUri={imageUri} onPress={showPicker} />
+            <FormField label="Descrição" optional>
+              <TextField
+                value={description}
+                onChangeText={setDescription}
+                placeholder="O que é, sabores, tamanho, diferenciais…"
+                multiline
               />
-            </ValidationField>
-            {directCostEnabled && !isComposite ? (
-              <Input
-                label="Custo unitário (R$)"
-                value={costPrice}
-                onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
-                keyboardType="numeric"
-              />
-            ) : null}
-            {editGain !== null && editMargin !== null ? (
-              <View
-                style={{
-                  borderRadius: radii.xl,
-                  padding: spacing.lg,
-                  gap: spacing.xs,
-                  backgroundColor:
-                    editGain >= 0 ? theme.colors.successBg : theme.colors.alertBg,
-                }}
-              >
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Estimativa com os custos informados
-                </Typography>
-                <Typography
-                  variant="h3"
-                  color={editGain >= 0 ? theme.colors.success : theme.colors.alert}
-                >
-                  Ganho bruto: {formatCurrency(editGain)}
-                </Typography>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Margem sobre o preço: {editMargin.toFixed(1).replace(".", ",")}%
-                </Typography>
-              </View>
-            ) : null}
+            </FormField>
           </FormSection>
-          <FormSection
-            title="Foto e descrição"
-            subtitle="Apresentação do produto no catálogo"
-            icon="camera-outline"
-          >
-            <View>
-              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-                Foto do produto
-              </Typography>
-              <Pressable
-                onPress={showPicker}
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                {imageUri ? (
-                  <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
-                ) : (
-                  <View style={{ alignItems: "center", gap: 4 }}>
-                    <AppIcon
-                      name="camera-outline"
-                      size={28}
-                      color={theme.colors.textSecondary}
-                    />
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Adicionar
-                    </Typography>
-                  </View>
-                )}
-              </Pressable>
-            </View>
-            <Input
-              label="Descrição (opcional)"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
-              style={{ height: 100, textAlignVertical: "center" }}
-            />
-          </FormSection>
-          <FormSection
-            title="Estoque e identificação"
-            subtitle="Código, quantidade disponível e alerta de reposição"
-            icon="albums-outline"
-            initiallyOpen
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "flex-end", gap: spacing.sm }}
+
+          <FormSection collapsible={false} title="Estoque e identificação">
+            <FormField
+              label="Código de barras"
+              optional
+              hint="Para achar o produto com o leitor na hora da venda."
             >
-              <View style={{ flex: 1 }}>
-                <Input
-                  label="Código de barras (opcional)"
-                  placeholder="Ex: 789..."
-                  value={code}
-                  onChangeText={setCode}
-                />
-              </View>
-              <Pressable
-                onPress={() => setShowScanner(true)}
-                accessibilityRole="button"
-                accessibilityLabel="Escanear código"
-                style={{
-                  width: 56,
-                  height: 52,
-                  borderRadius: radii.md,
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon
-                  name="scan-outline"
-                  size={24}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-            {saleUnit === "unit" && !isComposite && variations.length === 0 && (
-              <>
-                <Input
-                  label="Quantidade em estoque (opcional)"
-                  placeholder="Ex: 50"
-                  value={stockQuantity}
-                  onChangeText={setStockQuantity}
-                  keyboardType="number-pad"
-                  numericMode="integer"
-                />
-                <Input
-                  label="Alerta de estoque baixo (opcional)"
-                  placeholder="Ex: 10"
-                  value={stockAlert}
-                  onChangeText={setStockAlert}
-                  keyboardType="number-pad"
-                  numericMode="integer"
-                />
-              </>
-            )}
-            {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
-              <Input
-                label="Alerta por variação (opcional)"
-                placeholder="Ex: 3"
-                value={stockAlert}
-                onChangeText={setStockAlert}
-                keyboardType="number-pad"
-                numericMode="integer"
+              <TextField
+                icon="barcode-outline"
+                placeholder="Ex: 7891234567890"
+                value={code}
+                onChangeText={setCode}
+                right={
+                  <Pressable
+                    onPress={() => setShowScanner(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Ler código com a câmera"
+                    hitSlop={6}
+                    style={({ pressed }) => ({
+                      width: 40,
+                      height: 40,
+                      marginRight: -spacing.sm,
+                      borderRadius: radii.sm,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: pressed ? theme.colors.primaryBg : "transparent",
+                    })}
+                  >
+                    <AppIcon
+                      name="scan-outline"
+                      size={fieldMetrics.iconSize}
+                      color={theme.colors.primaryStrong}
+                    />
+                  </Pressable>
+                }
               />
+            </FormField>
+            {tracksUnitStock ? (
+              <FormGrid>
+                {variations.length === 0 ? (
+                  <FormField label="Quantidade agora" optional>
+                    <TextField
+                      icon="albums-outline"
+                      placeholder="Ex: 50"
+                      value={stockQuantity}
+                      onChangeText={setStockQuantity}
+                      keyboardType="number-pad"
+                      numericMode="integer"
+                    />
+                  </FormField>
+                ) : null}
+                <FormField
+                  label={
+                    variations.length > 0
+                      ? "Avisar por variação com"
+                      : "Avisar quando tiver"
+                  }
+                  optional
+                >
+                  <TextField
+                    icon="notifications-outline"
+                    placeholder={variations.length > 0 ? "Ex: 3" : "Ex: 10"}
+                    suffix="ou menos"
+                    value={stockAlert}
+                    onChangeText={setStockAlert}
+                    keyboardType="number-pad"
+                    numericMode="integer"
+                  />
+                </FormField>
+              </FormGrid>
             ) : null}
           </FormSection>
           <BarcodeScanner
@@ -1167,7 +1181,7 @@ function ProductDetailModal({
               setCode(scanned);
             }}
           />
-        </View>
+        </FormBody>
       ) : null}
     </StandardModal>
   );
@@ -1732,9 +1746,6 @@ export default function ProductsScreen() {
     Number(statusFilter !== "all") +
     Number(categoryFilter !== null) +
     Number(sort !== "name");
-  const selectedStatusLabel =
-    PRODUCT_STATUS_FILTERS.find((filter) => filter.value === statusFilter)?.label ??
-    "Qualquer situação";
 
   useEffect(() => {
     if (create === "from-pricing" || guidedCreate) setShowCreate(true);
@@ -1743,6 +1754,22 @@ export default function ProductsScreen() {
   useEffect(() => {
     if (stock === "low" && stockEnabled) setStatusFilter("stock");
   }, [stock, stockEnabled]);
+
+  const showAds = useShowAds();
+  const lowStockQuery = useLowStockProducts();
+  const lowStockAlerts = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
+  const lowStockSummary =
+    stockEnabled && lowStockAlerts && lowStockQuery.data
+      ? summarizeLowStockProducts(lowStockQuery.data)
+      : null;
+
+  function clearDesktopFilters() {
+    setSearch("");
+    setTypeFilter("all");
+    setStatusFilter("all");
+    setCategoryFilter(null);
+    setSort("name");
+  }
 
   function handleBack() {
     if (backToHome) {
@@ -1884,6 +1911,245 @@ export default function ProductsScreen() {
       </View>
     );
 
+  const screenHeader = (
+    <ScreenHeader
+      guidance={{
+        area: "products",
+        onStart: () => setShowCreate(true),
+        hasRecords: products.length > 0,
+        loading: productsQuery.isLoading || productsQuery.isError,
+        suspended: showCreate,
+      }}
+      title={brand.copy.productNounPlural.replace(/^./, (letter) => letter.toUpperCase())}
+      subtitle={"Seu cat\u00e1logo, do seu jeito."}
+      onBack={handleBack}
+      backLabel={backToHome ? "Ir para o início" : "Voltar"}
+      hideBack={isDesktop}
+      style={{
+        width: "100%",
+        maxWidth: listContentMaxWidth,
+        alignSelf: isDesktop ? "stretch" : "center",
+        paddingHorizontal: isDesktop ? 0 : contentGutter,
+        paddingTop: spacing.xs,
+        paddingBottom: spacing.md,
+      }}
+      right={
+        <FAB
+          icon="add"
+          header
+          accessibilityLabel={`Novo ${brand.copy.productNoun}`}
+          onPress={() => setShowCreate(true)}
+        />
+      }
+    />
+  );
+
+  const filtersModal = (
+    <StandardModal
+      visible={filtersOpen}
+      onClose={() => setFiltersOpen(false)}
+      title="Filtros"
+      footer={
+        <FormActions>
+          <Button
+            title="Limpar"
+            variant="outline"
+            onPress={() => {
+              setStatusFilter("all");
+              setCategoryFilter(null);
+              setSort("name");
+            }}
+          />
+          <Button title="Ver produtos" onPress={() => setFiltersOpen(false)} />
+        </FormActions>
+      }
+    >
+      <FormBody>
+        {stockEnabled ? (
+          <FormField label="Situação">
+            <ChipChoiceField
+              accessibilityLabel="Situação"
+              value={statusFilter}
+              options={PRODUCT_STATUS_FILTERS}
+              onChange={setStatusFilter}
+            />
+          </FormField>
+        ) : null}
+
+        <FormField label="Categoria">
+          <ChipChoiceField
+            accessibilityLabel="Categoria"
+            value={categoryFilter ?? ALL_CATEGORIES}
+            options={[
+              { value: ALL_CATEGORIES, label: "Todas" },
+              ...categories.map((item) => ({ value: item, label: item })),
+            ]}
+            onChange={(value) =>
+              setCategoryFilter(value === ALL_CATEGORIES ? null : value)
+            }
+          />
+        </FormField>
+
+        <FormField label="Ordenação">
+          <ChoiceField
+            accessibilityLabel="Ordenação"
+            value={sort}
+            options={(
+              Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>
+            ).map(([value, label]) => ({ value, label }))}
+            onChange={setSort}
+          />
+        </FormField>
+      </FormBody>
+    </StandardModal>
+  );
+
+  const productNounTitle = brand.copy.productNounPlural.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
+  const kitNoun = productTypeFilters[2]?.label ?? "Kits";
+  const attentionCount = lowStockSummary
+    ? lowStockSummary.outOfStock + lowStockSummary.lowStock
+    : 0;
+  let desktopListTitle = `Todos os ${brand.copy.productNounPlural}`;
+  if (statusFilter === "stock") desktopListTitle = "Para repor";
+  else if (typeFilter !== "all")
+    desktopListTitle =
+      productTypeFilters.find((filter) => filter.value === typeFilter)?.label ??
+      productNounTitle;
+  const organizedLabel = products.length === 1 ? "item organizado" : "itens organizados";
+  const desktopCatalogSummary = productsQuery.isLoading
+    ? "Carregando cat\u00e1logo"
+    : `${products.length} ${organizedLabel}`;
+  let desktopListBody: React.ReactNode;
+  if (productsQuery.isLoading) {
+    desktopListBody = (
+      <DesktopGrid minColumnWidth={220} maxColumns={4}>
+        {Array.from({ length: 8 }, (_, index) => (
+          <SkeletonCard key={`product-skeleton-${index}`} lines={3} />
+        ))}
+      </DesktopGrid>
+    );
+  } else if (productsQuery.error) {
+    desktopListBody = (
+      <DesktopEmptyCard
+        icon="cloud-offline-outline"
+        title={"Não foi possível carregar os produtos"}
+        description={"Verifique sua conexão e tente novamente."}
+        action={{
+          label: "Tentar novamente",
+          onPress: () => void productsQuery.refetch(),
+          variant: "secondary",
+        }}
+      />
+    );
+  } else if (products.length === 0) {
+    desktopListBody = (
+      <DesktopEmptyCard
+        icon="cube-outline"
+        title={`Nenhum ${brand.copy.productNoun} ainda`}
+        description={
+          "Cadastre o primeiro para começar a vender e acompanhar o estoque aqui."
+        }
+        action={{
+          label: `Cadastrar ${brand.copy.productNoun}`,
+          onPress: () => setShowCreate(true),
+        }}
+      />
+    );
+  } else if (visibleProducts.length === 0) {
+    desktopListBody = (
+      <DesktopEmptyCard
+        icon="search-outline"
+        title={`Nenhum ${brand.copy.productNoun} encontrado`}
+        description="Tente outro nome ou limpe a busca e os filtros."
+        action={{
+          label: "Limpar busca e filtros",
+          onPress: clearDesktopFilters,
+          variant: "secondary",
+        }}
+      />
+    );
+  } else {
+    desktopListBody = (
+      <DesktopGrid minColumnWidth={220} maxColumns={4}>
+        {visibleProducts.map((product) => (
+          <DesktopProductTile
+            key={product.id}
+            product={product}
+            kitLabel={kitNoun.replace(/s$/, "")}
+            onPress={() => setSelectedProductId(product.id)}
+          />
+        ))}
+      </DesktopGrid>
+    );
+  }
+
+  const desktopView = isDesktop ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={[desktopPageContent(true), { gap: 0 }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      {screenHeader}
+      {filtersModal}
+      <View style={{ gap: spacing["2xl"] }}>
+        {products.length > 0 || productsQuery.isLoading ? (
+          <DesktopCatalogBand
+            summary={desktopCatalogSummary}
+            metrics={[
+              {
+                label: productNounTitle.toLocaleLowerCase("pt-BR"),
+                value: productsQuery.isLoading ? "—" : String(catalogMetrics.products),
+              },
+              {
+                label: kitNoun.toLocaleLowerCase("pt-BR"),
+                value: productsQuery.isLoading ? "—" : String(catalogMetrics.kits),
+              },
+              {
+                label: "unidades em estoque",
+                value: productsQuery.isLoading ? "—" : String(catalogMetrics.stockUnits),
+              },
+            ]}
+            illustration={catalogProductsIllustration}
+            attention={
+              lowStockSummary
+                ? {
+                    count: attentionCount,
+                    detail: `${lowStockSummary.outOfStock} sem estoque, ${lowStockSummary.lowStock} com estoque baixo`,
+                    onPress: () => setStatusFilter("stock"),
+                  }
+                : null
+            }
+          />
+        ) : null}
+        <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
+        {products.length > 0 ? (
+          <DesktopProductToolbar
+            search={search}
+            onSearch={setSearch}
+            searchLabel={`Buscar ${brand.copy.productNoun}`}
+            types={productTypeFilters}
+            selectedType={typeFilter}
+            onType={(value) => setTypeFilter(value as ProductTypeFilter)}
+            filterCount={activeFilterCount}
+            onFilters={() => setFiltersOpen(true)}
+          />
+        ) : null}
+        <View style={{ gap: spacing.lg }}>
+          {products.length > 0 ? (
+            <DesktopListTitle
+              title={desktopListTitle}
+              count={`${visibleProducts.length} ${visibleProducts.length === 1 ? "item" : "itens"}`}
+            />
+          ) : null}
+          {desktopListBody}
+          {showAds && visibleProducts.length > 0 ? <AdBanner size="banner" /> : null}
+        </View>
+      </View>
+    </ScrollView>
+  ) : null;
+
   return (
     <SafeAreaView
       style={{
@@ -1894,159 +2160,48 @@ export default function ProductsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
-        <ScreenHeader
-          guidance={{
-            area: "products",
-            onStart: () => setShowCreate(true),
-            hasRecords: products.length > 0,
-            loading: productsQuery.isLoading || productsQuery.isError,
-            suspended: showCreate,
-          }}
-          title={brand.copy.productNounPlural.replace(/^./, (letter) =>
-            letter.toUpperCase(),
-          )}
-          subtitle={"Seu cat\u00e1logo, do seu jeito."}
-          onBack={handleBack}
-          backLabel={backToHome ? "Ir para o início" : "Voltar"}
-          hideBack={isDesktop}
-          style={{
-            width: "100%",
-            maxWidth: listContentMaxWidth,
-            alignSelf: isDesktop ? "stretch" : "center",
-            paddingHorizontal: isDesktop ? 0 : contentGutter,
-            paddingTop: spacing.xs,
-            paddingBottom: spacing.md,
-          }}
-          right={
-            <FAB
-              icon="add"
-              header
-              accessibilityLabel={`Novo ${brand.copy.productNoun}`}
-              onPress={() => setShowCreate(true)}
+      {isDesktop ? (
+        desktopView
+      ) : (
+        <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
+          {screenHeader}
+
+          {filtersModal}
+
+          <View style={{ flex: 1 }}>
+            <ProductList
+              items={productsQuery.error ? [] : visibleProducts}
+              listLoading={productsQuery.isLoading}
+              onProductPress={(id) => setSelectedProductId(id)}
+              onAddPress={() => setShowCreate(true)}
+              addButtonTitle={`Novo ${brand.copy.productNoun}`}
+              listHeader={catalogListHeader}
+              listTitle="Todos os produtos"
+              listEmptyState={
+                productsQuery.error ? (
+                  <Card variant="elevated" style={{ marginVertical: spacing.lg }}>
+                    <View style={{ gap: spacing.md }}>
+                      <Typography variant="h3">
+                        {"N\u00e3o foi poss\u00edvel carregar os produtos"}
+                      </Typography>
+                      <Typography variant="body" color={theme.colors.textSecondary}>
+                        {"Verifique sua conex\u00e3o e tente novamente."}
+                      </Typography>
+                      <Button
+                        title="Tentar novamente"
+                        variant="secondary"
+                        onPress={() => void productsQuery.refetch()}
+                      />
+                    </View>
+                  </Card>
+                ) : undefined
+              }
+              contentMaxWidth={listContentMaxWidth}
+              horizontalPadding={isDesktop ? 0 : contentGutter}
             />
-          }
-        />
-
-        <StandardModal
-          visible={filtersOpen}
-          onClose={() => setFiltersOpen(false)}
-          title="Filtros"
-          subtitle="Abra somente a opção que quiser mudar"
-          footer={
-            <>
-              <Button
-                title="Limpar"
-                variant="secondary"
-                onPress={() => {
-                  setStatusFilter("all");
-                  setCategoryFilter(null);
-                  setSort("name");
-                }}
-                style={{ flex: 1 }}
-              />
-              <Button
-                title="Ver produtos"
-                onPress={() => setFiltersOpen(false)}
-                style={{ flex: 1 }}
-              />
-            </>
-          }
-        >
-          {stockEnabled ? (
-            <FormSection
-              title="Situação"
-              subtitle={selectedStatusLabel}
-              icon="trending-up-outline"
-            >
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {PRODUCT_STATUS_FILTERS.map((filter) => (
-                  <Chip
-                    key={filter.value}
-                    label={filter.label}
-                    selected={statusFilter === filter.value}
-                    onPress={() => setStatusFilter(filter.value)}
-                  />
-                ))}
-              </View>
-            </FormSection>
-          ) : null}
-
-          <FormSection
-            title="Categoria"
-            subtitle={categoryFilter ?? "Todas"}
-            icon="grid-outline"
-          >
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              <Chip
-                label="Todas"
-                selected={categoryFilter === null}
-                onPress={() => setCategoryFilter(null)}
-              />
-              {categories.map((item) => (
-                <Chip
-                  key={item}
-                  label={item}
-                  selected={categoryFilter === item}
-                  onPress={() => setCategoryFilter(item)}
-                />
-              ))}
-            </View>
-          </FormSection>
-
-          <FormSection
-            title="Ordenação"
-            subtitle={PRODUCT_SORT_LABELS[sort]}
-            icon="swap-horizontal-outline"
-          >
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {(Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>).map(
-                ([value, label]) => (
-                  <Chip
-                    key={value}
-                    label={label}
-                    selected={sort === value}
-                    onPress={() => setSort(value)}
-                  />
-                ),
-              )}
-            </View>
-          </FormSection>
-        </StandardModal>
-
-        <View style={{ flex: 1 }}>
-          <ProductList
-            items={productsQuery.error ? [] : visibleProducts}
-            listLoading={productsQuery.isLoading}
-            onProductPress={(id) => setSelectedProductId(id)}
-            onAddPress={() => setShowCreate(true)}
-            addButtonTitle={`Novo ${brand.copy.productNoun}`}
-            listHeader={catalogListHeader}
-            listTitle="Todos os produtos"
-            listEmptyState={
-              productsQuery.error ? (
-                <Card variant="elevated" style={{ marginVertical: spacing.lg }}>
-                  <View style={{ gap: spacing.md }}>
-                    <Typography variant="h3">
-                      {"N\u00e3o foi poss\u00edvel carregar os produtos"}
-                    </Typography>
-                    <Typography variant="body" color={theme.colors.textSecondary}>
-                      {"Verifique sua conex\u00e3o e tente novamente."}
-                    </Typography>
-                    <Button
-                      title="Tentar novamente"
-                      variant="secondary"
-                      onPress={() => void productsQuery.refetch()}
-                    />
-                  </View>
-                </Card>
-              ) : undefined
-            }
-            contentMaxWidth={listContentMaxWidth}
-            horizontalPadding={isDesktop ? 0 : contentGutter}
-          />
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Modal - criar item da marca */}
       <CreateProductForm
