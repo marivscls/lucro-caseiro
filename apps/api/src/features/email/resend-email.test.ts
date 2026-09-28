@@ -20,6 +20,26 @@ const message = {
 };
 
 describe("createResendEmailSender", () => {
+  it("includes an unsubscribe header for opted-in action emails", async () => {
+    let body: string | undefined;
+    const send = createResendEmailSender("re_test", "sender@example.com", ((
+      _input: unknown,
+      init?: RequestInit,
+    ) => {
+      body = init?.body as string;
+      return Promise.resolve(
+        new Response(JSON.stringify({ id: "email-2" }), { status: 200 }),
+      );
+    }) as typeof fetch);
+    await send({
+      ...message,
+      headers: { "List-Unsubscribe": "<https://example.com/unsubscribe>" },
+    });
+    expect(JSON.parse(body ?? "{}").headers).toEqual({
+      "List-Unsubscribe": "<https://example.com/unsubscribe>",
+    });
+  });
+
   it("envia texto e HTML com autenticacao e idempotencia", async () => {
     let request: RequestInit | undefined;
     const fetcher = vi.fn((_input: Parameters<typeof fetch>[0], init?: RequestInit) => {

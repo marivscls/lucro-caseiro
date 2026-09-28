@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       eyebrow="Privacidade e segurança"
       title="Política de Privacidade"
       description="Transparência sobre os dados necessários para o aplicativo funcionar e melhorar."
-      updatedAt="10 de setembro de 2026"
+      updatedAt="28 de setembro de 2026"
     >
       <article className={styles.document}>
         <section>
@@ -46,6 +46,10 @@ export default function PrivacyPage() {
               Identificador aleatório da instalação, plataforma, versão, telas acessadas e
               conclusão de funcionalidades importantes para métricas agregadas.
             </li>
+            <li>
+              Quando você ativa dicas por e-mail, datas de uso e conclusão de ações
+              básicas, como calcular um preço, para evitar dicas desnecessárias.
+            </li>
           </ul>
         </section>
 
@@ -59,6 +63,11 @@ export default function PrivacyPage() {
             </li>
             <li>Operar planos, assinaturas, segurança, suporte e prevenção de fraude.</li>
             <li>Medir estabilidade, ativação e uso agregado para melhorar o produto.</li>
+            <li>
+              Enviar dicas pontuais para concluir ações no aplicativo somente quando você
+              ativar “Dicas por e-mail” nas preferências. Você pode desativar essa opção
+              no aplicativo ou pelo link presente em cada dica.
+            </li>
           </ul>
         </section>
 

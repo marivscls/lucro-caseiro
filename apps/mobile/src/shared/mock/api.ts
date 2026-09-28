@@ -632,8 +632,20 @@ const demoUnavailable = (): MockResult => ({
 });
 
 const ID = "([^/?]+)";
+let actionEmailsDemo = false;
 
 const routes: [string, RegExp, Handler][] = [
+  ["GET", /^\/api\/v1\/email-preferences$/, () => ok({ actionEmails: actionEmailsDemo })],
+  [
+    "PUT",
+    /^\/api\/v1\/email-preferences$/,
+    ({ body }) => {
+      if (typeof body.actionEmails !== "boolean")
+        return { status: 400, body: { error: "VALIDATION_ERROR" } };
+      actionEmailsDemo = body.actionEmails;
+      return ok({ actionEmails: actionEmailsDemo });
+    },
+  ],
   // Assinatura e perfil
   ["GET", /^\/api\/v1\/subscription\/profile$/, ({ data }) => ok(data.profile)],
   [

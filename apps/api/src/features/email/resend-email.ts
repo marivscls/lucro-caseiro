@@ -7,6 +7,7 @@ export interface EmailMessage {
   html: string;
   idempotencyKey: string;
   replyTo?: string;
+  headers?: Record<string, string>;
   attachments?: Array<{
     content: string;
     filename: string;
@@ -50,6 +51,7 @@ export function createResendEmailSender(
         text: message.text,
         html: message.html,
         ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+        ...(message.headers ? { headers: message.headers } : {}),
         ...(message.attachments
           ? {
               attachments: message.attachments.map((attachment) => ({

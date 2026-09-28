@@ -145,10 +145,15 @@ import { createSubscriptionEmailNotifier } from "./features/email/subscription-l
 import { WelcomeEmailRepoPg } from "./features/email/welcome-email.repo.pg";
 import { WelcomeEmailUseCases } from "./features/email/welcome-email.usecases";
 import { startWelcomeEmailWorker } from "./features/email/welcome-email.worker";
+import { ActionEmailRepoPg } from "./features/email/action-email.repo.pg";
+import { createActionEmailRouter } from "./features/email/action-email.routes";
+import { ActionEmailUseCases } from "./features/email/action-email.usecases";
+import { startActionEmailWorker } from "./features/email/action-email.worker";
 
 // Database
 const db = createClient(config.databaseUrl);
 setDb(db);
+const actionEmailRepo = new ActionEmailRepoPg(db);
 
 // Repos
 const productsRepo = new ProductsRepoPg(db);
@@ -471,6 +476,9 @@ app.use(express.json({ limit: "256kb" }));
 // Structured request log for multi-brand operation (ADR-0009).
 app.use((req, res, next) => {
   const brand = req.header("x-brand")?.trim() || "lucro-caseiro";
+  const loggedPath = req.path.startsWith("/api/v1/email-preferences/unsubscribe/")
+    ? "/api/v1/email-preferences/unsubscribe/:token"
+    : req.path;
   res.on("finish", () => {
     // Request logs are the operational metric for brand-separated API traffic.
     // eslint-disable-next-line no-console
@@ -479,7 +487,7 @@ app.use((req, res, next) => {
         event: "api_request",
         brand,
         method: req.method,
-        path: req.path,
+        path: loggedPath,
         status: res.statusCode,
       }),
     );
@@ -492,6 +500,7 @@ app.use("/api/v1/health", healthRouter);
 
 // Feature routes
 app.use("/api/v1/account", createAccountRouter(accountUseCases));
+app.use("/api/v1/email-preferences", createActionEmailRouter(actionEmailRepo));
 app.use(
   "/api/v1/analytics",
   createAnalyticsRouter(analyticsUseCases, config.adminUserIds),
@@ -603,6 +612,33 @@ app.listen(config.port, () => {
     } else {
       console.error(
         "[welcome-email] disabled: RESEND_API_KEY and EMAIL_REPLY_TO are required",
+      );
+    }
+  }
+  if (config.actionEmailEnabled) {
+    if (
+      config.resendApiKey &&
+      config.emailReplyTo &&
+      config.actionEmailPublicUrl &&
+      config.actionEmailBusinessAddress.trim()
+    ) {
+      startActionEmailWorker(
+        new ActionEmailUseCases(
+          actionEmailRepo,
+          ({ from, message }) =>
+            createResendEmailSender(config.resendApiKey, from, (input, init) =>
+              fetch(input, { ...init, signal: AbortSignal.timeout(20_000) }),
+            )(message),
+          config.emailFrom,
+          config.emailReplyTo,
+          config.actionEmailPublicUrl,
+          config.actionEmailBusinessAddress,
+        ),
+      );
+      console.warn("[action-email] first-price automation enabled");
+    } else {
+      console.error(
+        "[action-email] disabled: Resend, reply-to, public URL or business address missing",
       );
     }
   }
