@@ -11,7 +11,8 @@ export type SolutionSlug =
   | "catalogo-digital-whatsapp"
   | "controle-de-vendas"
   | "app-para-marmita"
-  | "app-para-manicure";
+  | "app-para-manicure"
+  | "relatorio-mensal-mei";
 
 export type SolutionContent = {
   readonly slug: SolutionSlug;
@@ -41,6 +42,7 @@ export const SOLUTION_LABELS: Record<SolutionSlug, string> = {
   "controle-de-vendas": "Controle de vendas",
   "app-para-marmita": "App para marmitas",
   "app-para-manicure": "App para manicure e beleza",
+  "relatorio-mensal-mei": "Relatório mensal do MEI",
 };
 
 const freeAnswer = `Sim. Crie a conta grátis no Android ou no navegador. Toda conta nova ainda ganha ${ESSENTIAL_TRIAL_DAYS} dias do Essencial, sem cartão.`;
@@ -74,8 +76,8 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
         text: "O fiado não tem limite de uso no plano Gratuito. Você não paga nada para organizar o que tem a receber.",
       },
       {
-        title: "Cobrança pelo WhatsApp",
-        text: "Um toque abre o WhatsApp do cliente com a mensagem de cobrança pronta. Sem vergonha e sem esquecer ninguém.",
+        title: "Cobrança com Pix pronto",
+        text: "Um toque abre o WhatsApp do cliente com a cobrança, o Pix copia e cola com o valor exato e um link do extrato. O cliente paga sem digitar nada, e o dinheiro cai direto na sua conta, sem intermediário.",
       },
       {
         title: "Salvo na nuvem",
@@ -85,7 +87,7 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     steps: [
       "Registre a venda e marque o pagamento como pendente.",
       "Veja na tela de fiado quem deve e quanto, do mais antigo ao mais novo.",
-      "Toque em Cobrar no WhatsApp e marque como pago quando o dinheiro entrar.",
+      "Toque em Cobrar: a mensagem já leva o Pix com o valor. Marque como pago quando o dinheiro entrar.",
     ],
     faqs: [
       {
@@ -387,5 +389,61 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
       { question: "Posso começar grátis?", answer: freeAnswer },
     ],
     related: ["controle-de-fiado", "catalogo-digital-whatsapp", "controle-de-vendas"],
+  },
+  "relatorio-mensal-mei": {
+    slug: "relatorio-mensal-mei",
+    metaTitle: "Relatório mensal do MEI pronto e teto do ano",
+    metaDescription:
+      "Gere o Relatório Mensal das Receitas Brutas do MEI em PDF, veja quanto do teto de R$ 81 mil já usou e receba o lembrete do DAS. Grátis.",
+    eyebrow: "Para quem é MEI",
+    title: "Relatório do MEI pronto, sem planilha.",
+    lead: "O app soma o que entrou no mês e monta o Relatório Mensal das Receitas Brutas, separado com e sem nota. Você também vê quanto do teto anual já usou e recebe um aviso antes do DAS vencer.",
+    example: {
+      heading: "Teto do MEI · exemplo",
+      rows: [
+        { label: "Janeiro a agosto", value: "R$ 52.400,00" },
+        { label: "Setembro", value: "R$ 6.900,00" },
+        { label: "Teto do ano", value: "R$ 81.000,00" },
+      ],
+      totalLabel: "Ainda cabe no ano",
+      total: "R$ 21.700,00",
+    },
+    image: {
+      src: "/landing/current-finance.png",
+      alt: "Tela financeira do Lucro Caseiro com entradas, saídas e o que sobrou no mês",
+    },
+    benefits: [
+      {
+        title: "Relatório em PDF",
+        text: "Comércio, indústria e serviços, com e sem nota fiscal, no modelo do Portal do Empreendedor. Baixe ou mande no WhatsApp.",
+      },
+      {
+        title: "Alerta do teto",
+        text: "Uma barra mostra quanto do limite anual você já usou. A partir de 80%, o app avisa e mostra a projeção do ano.",
+      },
+      {
+        title: "Lembrete do DAS",
+        text: "Todo dia 15 o celular lembra que o DAS vence no dia 20, com o atalho para pagar no site da Receita.",
+      },
+    ],
+    steps: [
+      "Anote suas vendas e entradas no app, como você já faz.",
+      "Abra o Cantinho do MEI e escolha a sua atividade.",
+      "No fim do mês, baixe o relatório e guarde junto com as notas.",
+    ],
+    faqs: [
+      {
+        question: "O app emite o DAS ou a nota fiscal?",
+        answer:
+          "Não. O app monta o relatório, mostra o teto e lembra do vencimento. O DAS continua sendo pago pelo site ou app oficial da Receita.",
+      },
+      {
+        question: "De onde vem o valor do mês?",
+        answer:
+          "Das entradas do Financeiro, que incluem as vendas registradas no app. Você informa quanto teve nota fiscal.",
+      },
+      { question: "Posso começar grátis?", answer: freeAnswer },
+    ],
+    related: ["controle-de-vendas", "controle-de-fiado", "app-para-manicure"],
   },
 };

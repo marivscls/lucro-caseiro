@@ -97,6 +97,7 @@ const footerColumns = [
     title: "Organize",
     links: [
       { href: "/landing/controle-de-fiado", label: "Controle de fiado" },
+      { href: "/landing/relatorio-mensal-mei", label: "Relatório do MEI" },
       { href: "/landing/guias/como-calcular-preco-de-venda", label: "Guias de preço" },
       { href: "/#planos", label: "Planos" },
     ],
