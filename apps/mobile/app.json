@@ -38,8 +38,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#22C55E",
+          "icon": "../../packages/brands/lucro-caseiro/assets/notification-icon.png",
+          "color": "#B65F72",
           "defaultChannel": "default"
         }
       ],

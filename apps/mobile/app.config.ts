@@ -96,6 +96,15 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ? [["react-native-google-mobile-ads", { androidAppId, iosAppId }]]
       : [];
   const plugins: ExpoConfig["plugins"] = [
+    [
+      "expo-build-properties",
+      {
+        android: {
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
+        },
+      },
+    ],
     "expo-router",
     "expo-secure-store",
     [
@@ -132,7 +141,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: activeBrand.appName,
     slug: activeBrand.slug,
-    version: "1.2.1",
+    version: "1.2.2",
     orientation: "portrait",
     icon: brandAsset("icon.png"),
     userInterfaceStyle: "automatic",
@@ -151,7 +160,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         backgroundColor:
           activeBrand.id === DEFAULT_BRAND_ID
             ? "#FAF5F2"
-            : activeBrand.theme.primarySoft ?? "#F7DFD6",
+            : (activeBrand.theme.primarySoft ?? "#F7DFD6"),
       },
       package: activeBrand.androidPackage,
       ...(activeBrand.id === "lucro-caseiro"
@@ -160,7 +169,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
               process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
           }
         : {}),
-      versionCode: 30,
+      versionCode: 32,
       softwareKeyboardLayoutMode: "resize",
       permissions: [],
     },
