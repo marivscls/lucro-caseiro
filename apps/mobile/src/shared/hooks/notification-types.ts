@@ -10,6 +10,7 @@ export const NOTIFICATION_TYPES = {
   DAILY_REMINDER: "DAILY_REMINDER",
   TRIAL_EXPIRING: "TRIAL_EXPIRING",
   SERVICE_BOOKING: "SERVICE_BOOKING",
+  MEI_DAS: "MEI_DAS",
 } as const;
 
 export type NotificationType =
@@ -24,6 +25,7 @@ type NotificationData =
   | { type: typeof NOTIFICATION_TYPES.WEEKLY_SUMMARY }
   | { type: typeof NOTIFICATION_TYPES.DAILY_REMINDER }
   | { type: typeof NOTIFICATION_TYPES.TRIAL_EXPIRING }
+  | { type: typeof NOTIFICATION_TYPES.MEI_DAS }
   | {
       type: typeof NOTIFICATION_TYPES.SERVICE_BOOKING;
       serviceId: string;
@@ -60,6 +62,9 @@ export function handleNotificationResponse(response: NotificationResponse): void
       break;
     case NOTIFICATION_TYPES.SERVICE_BOOKING:
       router.push("/services");
+      break;
+    case NOTIFICATION_TYPES.MEI_DAS:
+      router.push("/mei");
       break;
   }
 }
