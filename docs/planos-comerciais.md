@@ -35,6 +35,13 @@ dados salvos (quem passou dos limites do Gratis so consulta; novos cadastros ped
 - No banco: `plan = 'essential'`, `plan_expires_at = cadastro + 7 dias` e
   `plan_is_trial = true` (migration `20260924100000_essential_trial_signup.sql`). A duracao
   fica em `ESSENTIAL_TRIAL_DAYS` (`@lucro-caseiro/contracts`).
+- O e-mail de boas-vindas informa o teste somente se ele ainda estiver ativo na conta.
+  Lembretes transacionais leves saem quando faltam de 3 a 2 dias, nas ultimas 24 horas e
+  apos o vencimento. Cada etapa e enviada no maximo uma vez; uma compra interrompe a
+  sequencia. Os textos esclarecem que nao ha cobranca automatica e que os dados ficam salvos.
+- A validade e aplicada por `resolveActivePlan`; ao vencer, os recursos do Essencial deixam
+  de estar disponiveis e o plano efetivo passa a Gratis. O registro do teste permanece para
+  mostrar o aviso no app e manter o historico. Nenhum dado do negocio e apagado.
 
 ## Plano Gratis
 

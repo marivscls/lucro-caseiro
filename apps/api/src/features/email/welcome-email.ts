@@ -4,7 +4,22 @@ export interface WelcomeProfile {
   name: string;
   businessName: string | null;
   businessType: string | null;
+  trialActive?: boolean;
 }
+
+const STEPS_MARKER =
+  '            <tr>\n              <td class="inset" style="padding:7px 42px 4px;">';
+const TRIAL_SECTION_HTML = `            <tr>
+              <td class="inset" style="padding:16px 42px 12px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FAF1F3" style="background-color:#FAF1F3;border-radius:10px;">
+                  <tr><td style="padding:20px 22px;">
+                    <h2 style="margin:0;font-family:Manrope,'Segoe UI',Arial,sans-serif;font-size:18px;line-height:25px;color:#5F2B33;">Seu presente de boas-vindas</h2>
+                    <p style="margin:8px 0 0;font-size:15px;line-height:24px;color:#2C2A29;">Você ganhou 7 dias do plano Essencial, sem cartão e sem cobrança. Ao fim do teste, sua conta continua no plano Gratuito com seus dados salvos. Assinar é opcional.</p>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+`;
 
 function escapeHtml(value: string): string {
   return value
@@ -23,18 +38,27 @@ export function buildWelcomeEmail(profile: WelcomeProfile): {
   const firstName = profile.name.trim().split(/\s+/)[0]?.slice(0, 60) ?? "";
   const service =
     profile.businessType === "services" || profile.businessType === "beauty";
-  const subject = firstName
+  let subject = firstName
     ? `${firstName}, seu negócio é bem-vindo aqui.`
     : "Seu negócio é bem-vindo no Lucro Caseiro.";
+  if (profile.trialActive) {
+    subject = firstName
+      ? `${firstName}, seus 7 dias do Essencial já começaram.`
+      : "Seus 7 dias do Essencial já começaram.";
+  }
+  let preheader = service
+    ? "Organize seus serviços, defina os preços e acompanhe seus atendimentos."
+    : "Organize os custos, calcule o preço e acompanhe suas vendas com o Lucro Caseiro.";
+  if (profile.trialActive) {
+    preheader = "Seu Essencial está ativo por 7 dias, sem cartão e sem cobrança.";
+  }
   const productCosts =
     profile.businessType === "food"
       ? "Inclua ingredientes, embalagens e outras despesas para produzir e vender."
       : "Inclua materiais ou custo de compra, embalagem, taxas e outras despesas.";
   const fields: Record<string, string> = {
     subject,
-    preheader: service
-      ? "Organize seus serviços, defina os preços e acompanhe seus atendimentos."
-      : "Organize os custos, calcule o preço e acompanhe suas vendas com o Lucro Caseiro.",
+    preheader,
     business: profile.businessName?.trim().slice(0, 150) || "seu negócio",
     greeting: firstName ? `Oi, ${firstName}!` : "Oi!",
     intro: service
@@ -57,7 +81,10 @@ export function buildWelcomeEmail(profile: WelcomeProfile): {
       "Responda a este email contando o que você faz e em qual etapa precisa de ajuda. Você também encontra orientações na área de Suporte do app.",
   };
   const replacements = new Map(Object.entries(fields));
-  const html = WELCOME_EMAIL_HTML.replace(/\{\{(\w+)\}\}/g, (_token, key: string) =>
+  const template = profile.trialActive
+    ? WELCOME_EMAIL_HTML.replace(STEPS_MARKER, TRIAL_SECTION_HTML + STEPS_MARKER)
+    : WELCOME_EMAIL_HTML;
+  const html = template.replace(/\{\{(\w+)\}\}/g, (_token, key: string) =>
     escapeHtml(replacements.get(key) ?? ""),
   );
   const text = [
@@ -68,6 +95,13 @@ export function buildWelcomeEmail(profile: WelcomeProfile): {
     "",
     fields.intro,
     "",
+    ...(profile.trialActive
+      ? [
+          "Seu presente de boas-vindas",
+          "Você ganhou 7 dias do plano Essencial, sem cartão e sem cobrança. Ao fim do teste, sua conta continua no plano Gratuito com seus dados salvos. Assinar é opcional.",
+          "",
+        ]
+      : []),
     `1. ${fields.step1title}`,
     fields.step1body,
     "",

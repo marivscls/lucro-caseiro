@@ -43,4 +43,32 @@ describe("welcome email", () => {
     expect(email.text).toContain("Oi!");
     expect(email.text).not.toMatch(/undefined|null|Gamaliel/);
   });
+
+  it("explains an active seven-day Essential gift without suggesting a charge", () => {
+    const email = buildWelcomeEmail({
+      name: "Ana Silva",
+      businessName: "Doces da Ana",
+      businessType: "food",
+      trialActive: true,
+    });
+    expect(email.subject).toContain("7 dias do Essencial");
+    expect(email.text).toContain("Você ganhou 7 dias do plano Essencial");
+    expect(email.text).toContain("sem cartão e sem cobrança");
+    expect(email.text).toContain("continua no plano Gratuito com seus dados salvos");
+    expect(email.text).toContain("Assinar é opcional");
+    expect(email.html).toContain("Você ganhou 7 dias do plano Essencial");
+    expect(email.html).toContain("sem cartão e sem cobrança");
+  });
+
+  it("does not promise a trial to someone without an active trial", () => {
+    const email = buildWelcomeEmail({
+      name: "Ana Silva",
+      businessName: null,
+      businessType: "food",
+      trialActive: false,
+    });
+    expect(email.subject).not.toContain("7 dias");
+    expect(email.text).not.toContain("Você ganhou 7 dias");
+    expect(email.html).not.toContain("Você ganhou 7 dias");
+  });
 });

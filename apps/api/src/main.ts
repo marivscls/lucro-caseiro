@@ -149,6 +149,9 @@ import { ActionEmailRepoPg } from "./features/email/action-email.repo.pg";
 import { createActionEmailRouter } from "./features/email/action-email.routes";
 import { ActionEmailUseCases } from "./features/email/action-email.usecases";
 import { startActionEmailWorker } from "./features/email/action-email.worker";
+import { TrialReminderRepoPg } from "./features/email/trial-reminder.repo.pg";
+import { TrialReminderUseCases } from "./features/email/trial-reminder.usecases";
+import { startTrialReminderWorker } from "./features/email/trial-reminder.worker";
 
 // Database
 const db = createClient(config.databaseUrl);
@@ -639,6 +642,26 @@ app.listen(config.port, () => {
     } else {
       console.error(
         "[action-email] disabled: Resend, reply-to, public URL or business address missing",
+      );
+    }
+  }
+  if (config.trialReminderEnabled) {
+    if (config.resendApiKey && config.emailReplyTo) {
+      startTrialReminderWorker(
+        new TrialReminderUseCases(
+          new TrialReminderRepoPg(db),
+          ({ from, message }) =>
+            createResendEmailSender(config.resendApiKey, from, (input, init) =>
+              fetch(input, { ...init, signal: AbortSignal.timeout(20_000) }),
+            )(message),
+          config.emailFrom,
+          config.emailReplyTo,
+        ),
+      );
+      console.warn("[trial-reminder] enabled");
+    } else {
+      console.error(
+        "[trial-reminder] disabled: RESEND_API_KEY and EMAIL_REPLY_TO are required",
       );
     }
   }
