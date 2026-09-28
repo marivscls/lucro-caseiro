@@ -26,3 +26,5 @@ export * from "./marketing";
 export * from "./retail";
 export * from "./operations";
 export * from "./verticals";
+export * from "./fiado-links";
+export * from "./assistant";

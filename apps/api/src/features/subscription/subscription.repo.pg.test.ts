@@ -9,6 +9,13 @@ import { SubscriptionRepoPg } from "./subscription.repo.pg";
 
 const TRIAL_MIGRATION =
   "../../packages/database/src/migrations/20260924100000_essential_trial_signup.sql";
+// Migrations de 28/09 que também mexem em users (rodam a cada boot, depois do teste).
+const LATER_USER_MIGRATIONS = [
+  "20260928220000_pix_fiado_links.sql",
+  "20260928220100_referrals.sql",
+  "20260928220200_mei_settings.sql",
+  "20260928220300_assistant_usage.sql",
+].map((file) => `../../packages/database/src/migrations/${file}`);
 const NEW_USER = "11111111-1111-4111-8111-111111111111";
 const OLD_USER = "22222222-2222-4222-8222-222222222222";
 const DAY = 24 * 60 * 60 * 1000;
@@ -32,6 +39,15 @@ const BASE_SCHEMA = `
     is_active boolean NOT NULL DEFAULT true,
     created_at timestamptz NOT NULL DEFAULT now()
   );
+  CREATE ROLE anon;
+  CREATE ROLE authenticated;
+  CREATE TABLE public.clients(id uuid PRIMARY KEY, user_id uuid);
+  CREATE TABLE public.sale_items(
+    product_id uuid,
+    service_id uuid,
+    item_name text,
+    CONSTRAINT sale_items_source_required CHECK (product_id IS NOT NULL OR service_id IS NOT NULL)
+  );
 `;
 
 function readTrialMigration(): string {
@@ -50,6 +66,13 @@ describe("Essential trial persistence in PostgreSQL", () => {
     // Roda duas vezes: a API reaplica a migration a cada boot.
     await pg.exec(readTrialMigration());
     await pg.exec(readTrialMigration());
+    for (let run = 0; run < 2; run++) {
+      for (const file of LATER_USER_MIGRATIONS) {
+        // Caminhos fixos da lista acima.
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        await pg.exec(readFileSync(file, "utf8"));
+      }
+    }
     await pg.exec(`CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
       FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`);
     repo = new SubscriptionRepoPg(drizzle(pg) as unknown as AppDatabase);
@@ -113,5 +136,14 @@ describe("Essential trial persistence in PostgreSQL", () => {
       name: "Antiga",
     });
     expect(old).toMatchObject({ plan: "free", planExpiresAt: null, planIsTrial: false });
+  });
+
+  it("aceita fiado do caderno só com nome depois da migration do assistente", async () => {
+    await pg.exec(
+      "INSERT INTO public.sale_items(item_name) VALUES ('Fiado anotado no caderno');",
+    );
+    await expect(
+      pg.exec("INSERT INTO public.sale_items(item_name) VALUES (NULL);"),
+    ).rejects.toThrow(/sale_items_source_required/);
   });
 });

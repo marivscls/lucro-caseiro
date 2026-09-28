@@ -30,5 +30,16 @@ export const users = pgTable("users", {
   // true enquanto o plano veio do teste grátis do Essencial (sem pagamento).
   planIsTrial: boolean("plan_is_trial").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
+  // Pix de quem vende: vai pronto (com valor) na cobrança, no recibo e no orçamento.
+  pixKeyType: text("pix_key_type"),
+  pixKey: text("pix_key"),
+  pixCity: text("pix_city"),
+  // Indicação: código próprio, quem indicou e quando as duas contas ganharam o prêmio.
+  referralCode: text("referral_code").unique(),
+  referredBy: uuid("referred_by"),
+  referredAt: timestamp("referred_at", { withTimezone: true }),
+  referralRewardedAt: timestamp("referral_rewarded_at", { withTimezone: true }),
+  // Cantinho do MEI: atividade do relatório mensal (null = ainda não configurou).
+  meiActivity: text("mei_activity"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();

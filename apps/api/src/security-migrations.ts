@@ -19,6 +19,10 @@ export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/20260923100100_analytics_installation_acquisition.sql",
   "../../../packages/database/src/migrations/20260923100200_analytics_event_props.sql",
   "../../../packages/database/src/migrations/20260924100000_essential_trial_signup.sql",
+  "../../../packages/database/src/migrations/20260928220000_pix_fiado_links.sql",
+  "../../../packages/database/src/migrations/20260928220100_referrals.sql",
+  "../../../packages/database/src/migrations/20260928220200_mei_settings.sql",
+  "../../../packages/database/src/migrations/20260928220300_assistant_usage.sql",
 ] as const;
 
 export function getSecurityMigrationPaths(baseUrl = import.meta.url): string[] {
