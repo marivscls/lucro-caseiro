@@ -91,3 +91,4 @@ URL pública do extrato: `EXPO_PUBLIC_CATALOG_URL ?? EXPO_PUBLIC_API_URL` + `/f/
 - 2026-09-28: criação. Pix estático (sem PSP, sem taxa) para não depender de banco parceiro.
   Nome do recebedor = nome do negócio (até 25 letras no código). O código vai sozinho numa
   linha da mensagem para facilitar copiar no WhatsApp.
+- 2026-09-28: salvar a chave mostra uma confirmação animada junto dos botões (some ao editar); tipos de chave em duas colunas com rótulo curto "Aleatória"; Salvar e Remover empilhados no celular.

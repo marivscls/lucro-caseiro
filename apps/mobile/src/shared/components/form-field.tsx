@@ -395,11 +395,14 @@ export function ChoiceField<T extends string>({
   options,
   onChange,
   accessibilityLabel,
+  columns,
 }: Readonly<{
   value: T;
   options: readonly ChoiceOption<T>[];
   onChange: (value: T) => void;
   accessibilityLabel: string;
+  /** Força N opções por linha (rótulos curtos), em vez de quebrar pela largura. */
+  columns?: 2;
 }>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
@@ -428,7 +431,7 @@ export function ChoiceField<T extends string>({
             }}
             style={({ pressed }) => ({
               flexGrow: 1,
-              flexBasis: 140,
+              flexBasis: columns ? "40%" : 140,
               minHeight: option.description ? 64 : fieldMetrics.height,
               borderRadius: fieldMetrics.radius,
               borderWidth: selected ? 2 : 1,
