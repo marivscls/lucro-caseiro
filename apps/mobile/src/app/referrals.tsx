@@ -37,8 +37,11 @@ const HOW: { icon: AppIconName; text: string }[] = [
     text: "Mande seu convite para quem também vende em casa.",
   },
   { icon: "person-add-outline", text: "A pessoa cria a conta e digita o seu código." },
-  { icon: "receipt-outline", text: "Quando ela registrar 3 vendas, vocês duas ganham." },
-  { icon: "gift-outline", text: "1 mês do plano Essencial para cada uma, sem cartão." },
+  {
+    icon: "receipt-outline",
+    text: "Quando essa pessoa registrar 3 vendas, vocês ganham.",
+  },
+  { icon: "gift-outline", text: "1 mês do plano Essencial para cada um, sem cartão." },
 ];
 
 function ProgressBar({ done, total }: Readonly<{ done: number; total: number }>) {
@@ -108,7 +111,7 @@ export default function ReferralsScreen() {
   return (
     <ToolPage
       title="Indique e ganhe"
-      subtitle="Cada amiga que começar a vender com o app vale 1 mês grátis para vocês duas"
+      subtitle="Cada pessoa que você indicar e começar a vender com o app vale 1 mês grátis para vocês"
     >
       <Card
         variant="transparent"
@@ -164,8 +167,7 @@ export default function ReferralsScreen() {
             Você entrou pelo convite de {summary.referredByName}
           </Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Registre {summary.requiredSales} vendas e o mês do Essencial chega para vocês
-            duas.
+            Registre {summary.requiredSales} vendas e o mês do Essencial chega para vocês.
           </Typography>
           <ProgressBar done={progress.done} total={progress.total} />
           <Typography variant="bodyBold" color={palette.wine}>

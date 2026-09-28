@@ -20,13 +20,13 @@ export function inviteMessage(appName: string, code: string, url: string): strin
     `Baixe por aqui: ${url}`,
     "",
     `Depois de criar a conta, abra Mais > Indique e ganhe e digite meu código *${code}*.`,
-    "Quando você registrar 3 vendas, nós duas ganhamos 1 mês do plano Essencial. 💛",
+    "Quando você registrar 3 vendas, nós ganhamos 1 mês do plano Essencial. 💛",
   ].join("\n");
 }
 
 export type ReferralStep = Readonly<{ done: number; total: number; label: string }>;
 
-/** Progresso de quem foi convidada até liberar o prêmio. */
+/** Progresso de quem foi convidado até liberar o prêmio. */
 export function claimProgress(summary: ReferralSummary): ReferralStep | null {
   if (!summary.referredByName || summary.rewarded) return null;
   const done = Math.min(summary.salesCount, summary.requiredSales);

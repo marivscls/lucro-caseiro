@@ -42,7 +42,7 @@ describe("referrals domain", () => {
     expect(msg).toContain("Indique e ganhe");
   });
 
-  it("mostra quantas vendas faltam para quem foi convidada", () => {
+  it("mostra quantas vendas faltam para quem foi convidado", () => {
     expect(claimProgress(summary())).toBeNull();
     expect(claimProgress(summary({ referredByName: "Bia", salesCount: 1 }))).toEqual({
       done: 1,

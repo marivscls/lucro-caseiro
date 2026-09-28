@@ -40,9 +40,9 @@ export type ClaimRefusal =
 export const CLAIM_REFUSAL_MESSAGES: Record<ClaimRefusal, string> = {
   window_closed: `O código de convite só pode ser usado nos primeiros ${REFERRAL_CLAIM_WINDOW_DAYS} dias da conta.`,
   already_referred: "Sua conta já está ligada a um convite.",
-  own_code: "Esse é o seu próprio código. Mande ele para uma amiga!",
+  own_code: "Esse é o seu próprio código. Mande ele para quem você quer indicar!",
   unknown_code: "Não achamos esse código. Confira as letras e os números.",
-  circular: "Vocês duas não podem convidar uma à outra.",
+  circular: "Vocês não podem convidar um ao outro.",
 };
 
 export function claimRefusal(

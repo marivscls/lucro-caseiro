@@ -157,7 +157,7 @@ export const MORE_MANAGEMENT_ITEMS = [
 export const ACCOUNT_HELP_ITEMS = [
   {
     title: "Indique e ganhe",
-    description: "1 mês grátis para vocês duas",
+    description: "1 mês grátis para você e quem indicar",
     icon: "gift-outline",
     route: "/referrals",
   },
