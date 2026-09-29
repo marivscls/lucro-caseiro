@@ -58,6 +58,10 @@ describe("assistant domain", () => {
   it("descreve o uso do mês", () => {
     expect(usageLabel({ used: 14, limit: 15 })).toBe("Resta 1 uso este mês");
     expect(usageLabel({ used: 2, limit: null })).toBe("Uso liberado no seu plano");
+    expect(usageLabel({ used: 3, limit: 10, trial: true })).toBe(
+      "Restam 7 usos de teste",
+    );
+    expect(usageLabel({ used: 9, limit: 10, trial: true })).toBe("Resta 1 uso de teste");
     expect(usageExhausted({ used: 15, limit: 15 })).toBe(true);
   });
 });

@@ -6,10 +6,10 @@ import {
   baseMimeType,
   bestNameMatch,
   fileProblem,
-  monthKey,
   sanitizeItem,
   stripDataUrl,
   todayIso,
+  usageKey,
 } from "./assistant.domain";
 import type {
   AssistantFile,
@@ -27,11 +27,9 @@ export class AssistantUseCases {
   ) {}
 
   async getUsage(userId: string): Promise<AssistantUsage> {
-    const [used, plan] = await Promise.all([
-      this.usage.getCount(userId, monthKey(this.clock())),
-      this.business.activePlan(userId),
-    ]);
-    return { used, limit: assistantLimit(plan) };
+    const plan = await this.business.activePlan(userId);
+    const used = await this.usage.getCount(userId, usageKey(plan, this.clock()));
+    return { used, limit: assistantLimit(plan), trial: plan === "free" };
   }
 
   /** Confere o limite antes de gastar a IA; conta o uso só se deu certo. */
@@ -39,22 +37,21 @@ export class AssistantUseCases {
     userId: string,
     run: () => Promise<T>,
   ): Promise<{ result: T; usage: AssistantUsage }> {
-    const month = monthKey(this.clock());
-    const [used, plan] = await Promise.all([
-      this.usage.getCount(userId, month),
-      this.business.activePlan(userId),
-    ]);
+    const plan = await this.business.activePlan(userId);
+    const key = usageKey(plan, this.clock());
+    const used = await this.usage.getCount(userId, key);
     const limit = assistantLimit(plan);
+    const trial = plan === "free";
     if (used >= limit) {
       throw new LimitExceededError(
-        plan === "free"
-          ? `Você já usou o assistente ${limit} vezes este mês no plano Gratuito. No Essencial ele fica praticamente à vontade.`
+        trial
+          ? `Você já usou os ${limit} testes do assistente no plano Gratuito. No Essencial ele vem com usos todo mês.`
           : `Você chegou a ${limit} usos do assistente este mês. O contador volta a zero no dia 1º.`,
       );
     }
     const result = await run();
-    const count = await this.usage.increment(userId, month);
-    return { result, usage: { used: count, limit } };
+    const count = await this.usage.increment(userId, key);
+    return { result, usage: { used: count, limit, trial } };
   }
 
   async draftSale(

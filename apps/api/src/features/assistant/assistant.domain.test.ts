@@ -1,4 +1,5 @@
 import {
+  ASSISTANT_FREE_TRIAL_USES,
   ASSISTANT_MAX_PRICE_SHARE,
   ASSISTANT_WORST_COST_PER_USE,
   PLAN_PRICING,
@@ -14,6 +15,7 @@ import {
   monthKey,
   nameTokens,
   sanitizeItem,
+  usageKey,
 } from "./assistant.domain";
 
 const products = [
@@ -102,7 +104,21 @@ describe("assistantLimit", () => {
     },
   );
 
-  it("mantém o grátis com teto pequeno", () => {
-    expect(assistantLimit("free")).toBe(15);
+  it("dá ao Gratuito só os usos de teste", () => {
+    expect(assistantLimit("free")).toBe(ASSISTANT_FREE_TRIAL_USES);
+  });
+});
+
+describe("usageKey", () => {
+  const now = new Date("2026-09-29T15:00:00Z");
+
+  it("conta o teste do Gratuito numa chave só, que não vira o mês", () => {
+    expect(usageKey("free", now)).toBe("trial");
+    expect(usageKey("free", new Date("2026-10-02T15:00:00Z"))).toBe("trial");
+  });
+
+  it("conta os planos pagos por mês", () => {
+    expect(usageKey("essential", now)).toBe(monthKey(now));
+    expect(usageKey("professional", now)).toBe(monthKey(now));
   });
 });

@@ -131,7 +131,7 @@ export const growthRoutes: [string, RegExp, Handler][] = [
   [
     "GET",
     /^\/api\/v1\/assistant\/usage$/,
-    () => ok({ used: 0, limit: ASSISTANT_MONTHLY_LIMITS.free }),
+    () => ok({ used: 0, limit: ASSISTANT_MONTHLY_LIMITS.free, trial: true }),
   ],
   ["POST", /^\/api\/v1\/assistant\/sale-draft$/, () => unavailable(AI_DEMO)],
 ];

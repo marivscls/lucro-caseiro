@@ -7,10 +7,14 @@ import { PLAN_PRICING, type PaidPlan } from "./plans";
 export const ASSISTANT_MAX_PRICE_SHARE = 0.1;
 
 /**
- * Custo de um uso no pior caso (R$): áudio de até 60 s, listas cheias de
- * produtos e clientes e raciocínio do modelo. Revisar se o modelo mudar.
+ * Custo de um uso no pior caso (R$): áudio de até 60 s e listas cheias de
+ * produtos e clientes, com o raciocínio do modelo desligado. Revisar se o
+ * modelo mudar.
  */
-export const ASSISTANT_WORST_COST_PER_USE = 0.03;
+export const ASSISTANT_WORST_COST_PER_USE = 0.02;
+
+/** Plano Gratuito: usos para testar, uma vez só (não renova todo mês). */
+export const ASSISTANT_FREE_TRIAL_USES = 10;
 
 /**
  * Usos por mês que cabem na fração do plano. Usa o mês do plano anual (o mais
@@ -23,9 +27,9 @@ function limitForPlan(plan: PaidPlan): number {
   );
 }
 
-/** Usos do assistente por mês em cada plano. O grátis tem um teto fixo e pequeno. */
+/** Usos do assistente em cada plano: por mês nos pagos; no Gratuito, o teste (total). */
 export const ASSISTANT_MONTHLY_LIMITS = {
-  free: 15,
+  free: ASSISTANT_FREE_TRIAL_USES,
   essential: limitForPlan("essential"),
   professional: limitForPlan("professional"),
 } as const;
@@ -61,6 +65,14 @@ export const AssistantSaleItemDto = z.object({
   unitPrice: z.number().min(0).max(MAX_MONEY).nullable(),
 });
 
+export const AssistantUsageDto = z.object({
+  used: z.number().int(),
+  limit: z.number().int().nullable(),
+  /** true no Gratuito: o limite é o teste, não renova no mês seguinte. */
+  trial: z.boolean().optional(),
+});
+export type AssistantUsage = z.infer<typeof AssistantUsageDto>;
+
 export const AssistantSaleDraftDto = z.object({
   /** O que o assistente entendeu (texto ou transcrição do áudio). */
   transcript: z.string(),
@@ -69,12 +81,6 @@ export const AssistantSaleDraftDto = z.object({
   items: z.array(AssistantSaleItemDto),
   paymentMethod: PaymentMethod.nullable(),
   notes: z.string().nullable(),
-  usage: z.object({ used: z.number().int(), limit: z.number().int().nullable() }),
+  usage: AssistantUsageDto,
 });
 export type AssistantSaleDraft = z.infer<typeof AssistantSaleDraftDto>;
-
-export const AssistantUsageDto = z.object({
-  used: z.number().int(),
-  limit: z.number().int().nullable(),
-});
-export type AssistantUsage = z.infer<typeof AssistantUsageDto>;

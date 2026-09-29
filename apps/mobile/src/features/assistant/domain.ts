@@ -61,6 +61,9 @@ export function usageLabel(usage: AssistantUsage | undefined): string {
   if (!usage) return "";
   if (usage.limit == null) return "Uso liberado no seu plano";
   const left = Math.max(0, usage.limit - usage.used);
+  if (usage.trial) {
+    return left === 1 ? "Resta 1 uso de teste" : `Restam ${left} usos de teste`;
+  }
   return left === 1 ? "Resta 1 uso este mês" : `Restam ${left} usos este mês`;
 }
 

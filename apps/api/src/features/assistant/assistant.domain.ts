@@ -78,6 +78,13 @@ export function assistantLimit(plan: PlanType): number {
   return ASSISTANT_MONTHLY_LIMITS[plan];
 }
 
+/** Chave do contador: o teste do Gratuito é um só; os pagos contam por mês. */
+export const TRIAL_USAGE_KEY = "trial";
+
+export function usageKey(plan: PlanType, now: Date): string {
+  return plan === "free" ? TRIAL_USAGE_KEY : monthKey(now);
+}
+
 export function monthKey(now: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",

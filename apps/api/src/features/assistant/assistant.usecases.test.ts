@@ -1,3 +1,4 @@
+import { ASSISTANT_FREE_TRIAL_USES } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import { LimitExceededError, ValidationError } from "../../shared/errors";
@@ -27,11 +28,18 @@ function ai(draft: Partial<RawSaleDraft> = {}): IAssistantAi {
   };
 }
 
-function usage(start = 0): IAssistantUsageRepo & { count: number } {
+function usage(start = 0): IAssistantUsageRepo & { count: number; keys: string[] } {
   const repo = {
     count: start,
-    getCount: () => Promise.resolve(repo.count),
-    increment: () => Promise.resolve(++repo.count),
+    keys: [] as string[],
+    getCount: (_userId: string, key: string) => {
+      repo.keys.push(key);
+      return Promise.resolve(repo.count);
+    },
+    increment: (_userId: string, key: string) => {
+      repo.keys.push(key);
+      return Promise.resolve(++repo.count);
+    },
   };
   return repo;
 }
@@ -56,7 +64,7 @@ describe("AssistantUseCases.draftSale", () => {
       clientName: "Célia Santos",
       paymentMethod: "credit",
       items: [{ productId: P1, name: "Marmita de frango", quantity: 3, unitPrice: 18 }],
-      usage: { used: 1, limit: 15 },
+      usage: { used: 1, limit: ASSISTANT_FREE_TRIAL_USES, trial: true },
     });
   });
 
@@ -74,7 +82,7 @@ describe("AssistantUseCases.draftSale", () => {
     expect(draft.clientId).toBeNull();
   });
 
-  it("bloqueia quando o limite do mês acabou, sem gastar a IA", async () => {
+  it("bloqueia quando os usos de teste do Gratuito acabaram, sem gastar a IA", async () => {
     let called = false;
     const sut = new AssistantUseCases(
       {
@@ -84,7 +92,7 @@ describe("AssistantUseCases.draftSale", () => {
           return Promise.reject(new Error("não deveria chamar"));
         },
       },
-      usage(15),
+      usage(ASSISTANT_FREE_TRIAL_USES),
       business(),
       () => NOW,
     );
@@ -92,6 +100,24 @@ describe("AssistantUseCases.draftSale", () => {
       LimitExceededError,
     );
     expect(called).toBe(false);
+  });
+
+  it("conta o Gratuito no teste e os planos pagos no mês", async () => {
+    const free = usage();
+    await new AssistantUseCases(ai(), free, business(), () => NOW).draftSale("u", {
+      text: "vendi 3 marmitas",
+    });
+    expect(new Set(free.keys)).toEqual(new Set(["trial"]));
+
+    const paid = usage();
+    const draft = await new AssistantUseCases(
+      ai(),
+      paid,
+      business({ activePlan: () => Promise.resolve("essential") }),
+      () => NOW,
+    ).draftSale("u", { text: "vendi 3 marmitas" });
+    expect(paid.keys.every((key) => key !== "trial")).toBe(true);
+    expect(draft.usage.trial).toBe(false);
   });
 
   it("recusa áudio em formato que o app não grava", async () => {
