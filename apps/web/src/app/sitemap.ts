@@ -5,6 +5,7 @@ import {
   PUBLIC_PAGE_UPDATED,
   SITE_URL,
 } from "@/features/landing/site-constants";
+import { loadGuideArticles } from "@/features/landing/guide-articles";
 import { SOLUTIONS } from "@/features/landing/solution-content";
 
 const SOLUTION_SLUGS = Object.keys(SOLUTIONS);
@@ -18,10 +19,17 @@ function priorityFor(path: (typeof PUBLIC_PATHS)[number]): number {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return PUBLIC_PATHS.map((path) => ({
+  const pages: MetadataRoute.Sitemap = PUBLIC_PATHS.map((path) => ({
     url: `${SITE_URL}${path}`,
     lastModified: new Date(`${PUBLIC_PAGE_UPDATED[path]}T00:00:00-03:00`),
     changeFrequency: path.includes("/guias/") ? "monthly" : "weekly",
     priority: priorityFor(path),
   }));
+  const guides: MetadataRoute.Sitemap = loadGuideArticles().map((article) => ({
+    url: `${SITE_URL}/landing/guias/${article.slug}`,
+    lastModified: new Date(`${article.publishedAt}T00:00:00-03:00`),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+  return [...pages, ...guides];
 }
