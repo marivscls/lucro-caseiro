@@ -153,21 +153,6 @@ export function sanitizeItem(item: {
   return { name, quantity, unitPrice: clampMoney(item.unitPrice) };
 }
 
-export function sanitizeNotebookRow(
-  row: { name: string; amount: number; date: string | null; note: string | null },
-  today: string,
-): { name: string; amount: number; date: string | null; note: string | null } | null {
-  const name = row.name.trim().slice(0, 200);
-  const amount = clampMoney(row.amount);
-  if (!name || amount == null) return null;
-  const date =
-    row.date && /^\d{4}-\d{2}-\d{2}$/.test(row.date) && row.date <= today
-      ? row.date
-      : null;
-  const note = row.note?.trim().slice(0, 200) || null;
-  return { name, amount, date, note };
-}
-
 /** Tipo sem parâmetros ("audio/webm;codecs=opus" vira "audio/webm"), como o Gemini espera. */
 export function baseMimeType(mimeType: string): string {
   return mimeType.split(";")[0]!.trim().toLowerCase();

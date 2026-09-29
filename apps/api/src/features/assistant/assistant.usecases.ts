@@ -1,10 +1,4 @@
-import type {
-  AssistantNotebookResult,
-  AssistantSaleDraft,
-  AssistantUsage,
-  ImportNotebook,
-  ImportNotebookResult,
-} from "@lucro-caseiro/contracts";
+import type { AssistantSaleDraft, AssistantUsage } from "@lucro-caseiro/contracts";
 
 import { LimitExceededError, ValidationError } from "../../shared/errors";
 import {
@@ -14,7 +8,6 @@ import {
   fileProblem,
   monthKey,
   sanitizeItem,
-  sanitizeNotebookRow,
   stripDataUrl,
   todayIso,
 } from "./assistant.domain";
@@ -115,87 +108,6 @@ export class AssistantUseCases {
       paymentMethod: raw.paymentMethod,
       notes: raw.notes?.trim().slice(0, 500) || null,
       usage,
-    };
-  }
-
-  async readNotebook(
-    userId: string,
-    image: AssistantFile,
-  ): Promise<AssistantNotebookResult> {
-    const problem = fileProblem(image, "image");
-    if (problem) throw new ValidationError([problem]);
-    const today = todayIso(this.clock());
-    const [clients, { result: raw, usage }] = await Promise.all([
-      this.business.listClients(userId),
-      this.withQuota(userId, () =>
-        this.ai.readNotebook({
-          image: {
-            data: stripDataUrl(image.data),
-            mimeType: baseMimeType(image.mimeType),
-          },
-          today,
-        }),
-      ),
-    ]);
-    const rows = raw
-      .map((row) => sanitizeNotebookRow(row, today))
-      .filter((row): row is NonNullable<typeof row> => row !== null)
-      .slice(0, 100)
-      .map((row) => ({ ...row, clientId: bestNameMatch(row.name, clients)?.id ?? null }));
-    return { rows, usage };
-  }
-
-  /**
-   * Transforma as linhas revisadas em clientes (quando novos) e fiados em aberto.
-   * Mesmo nome escrito em várias linhas vira um cliente só.
-   */
-  async importNotebook(
-    userId: string,
-    data: ImportNotebook,
-  ): Promise<ImportNotebookResult> {
-    const clients = await this.business.listClients(userId);
-    const known = new Set(clients.map((client) => client.id));
-    const newNames = new Map<string, string>();
-    for (const row of data.rows) {
-      if (row.clientId && known.has(row.clientId)) continue;
-      const existing = bestNameMatch(row.name, clients);
-      if (existing) continue;
-      const key = row.name.trim().toLocaleLowerCase("pt-BR");
-      if (!newNames.has(key)) newNames.set(key, row.name.trim());
-    }
-
-    const remaining = await this.business.remainingClients(userId);
-    if (remaining !== null && newNames.size > remaining) {
-      throw new LimitExceededError(
-        `O plano Gratuito guarda até 50 clientes e ainda cabem ${remaining}. Essa página tem ${newNames.size} pessoas novas. Assine o Essencial para importar tudo, ou tire algumas linhas.`,
-      );
-    }
-
-    const createdIds = new Map<string, string>();
-    for (const [key, name] of newNames) {
-      createdIds.set(key, await this.business.createClient(userId, name));
-    }
-
-    let total = 0;
-    for (const row of data.rows) {
-      const clientId =
-        (row.clientId && known.has(row.clientId) ? row.clientId : null) ??
-        bestNameMatch(row.name, clients)?.id ??
-        createdIds.get(row.name.trim().toLocaleLowerCase("pt-BR"));
-      if (!clientId) continue;
-      await this.business.createOpeningFiado(userId, {
-        clientId,
-        amount: row.amount,
-        date: row.date,
-        note: row.note,
-      });
-      total += row.amount;
-    }
-
-    return {
-      createdClients: createdIds.size,
-      createdFiados: data.rows.length,
-      total: Math.round(total * 100) / 100,
     };
   }
 }

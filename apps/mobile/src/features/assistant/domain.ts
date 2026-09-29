@@ -2,7 +2,6 @@ import type {
   AssistantSaleDraft,
   AssistantUsage,
   CreateSale,
-  NotebookRow,
   PaymentMethod,
 } from "@lucro-caseiro/contracts";
 
@@ -67,49 +66,6 @@ export function usageLabel(usage: AssistantUsage | undefined): string {
 
 export function usageExhausted(usage: AssistantUsage | undefined): boolean {
   return !!usage && usage.limit != null && usage.used >= usage.limit;
-}
-
-/** Linha do caderno editável na revisão (texto do valor como a pessoa digita). */
-export type EditableRow = Readonly<{
-  key: string;
-  name: string;
-  amount: string;
-  date: string | null;
-  note: string | null;
-  clientId: string | null;
-  include: boolean;
-}>;
-
-export function toEditableRows(
-  rows: NotebookRow[],
-  formatAmount: (value: number) => string,
-): EditableRow[] {
-  return rows.map((row, index) => ({
-    key: `${index}-${row.name}`,
-    name: row.name,
-    amount: formatAmount(row.amount),
-    date: row.date,
-    note: row.note,
-    clientId: row.clientId,
-    include: true,
-  }));
-}
-
-/** Linhas marcadas e válidas, no formato da importação. */
-export function rowsToImport(
-  rows: EditableRow[],
-  parseAmount: (value: string) => number,
-): NotebookRow[] {
-  return rows
-    .filter((row) => row.include && row.name.trim())
-    .map((row) => ({
-      name: row.name.trim(),
-      amount: parseAmount(row.amount),
-      date: row.date,
-      note: row.note,
-      clientId: row.clientId,
-    }))
-    .filter((row) => Number.isFinite(row.amount) && row.amount > 0);
 }
 
 export const PAYMENT_OPTIONS: { value: PaymentMethod; label: string }[] = [

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { ServiceUnavailableError } from "../../shared/errors";
 import type { CatalogClient, CatalogProduct, IAssistantAi } from "./assistant.types";
 
-// Modelos rápidos e baratos, com áudio e imagem nativos. O segundo é reserva.
+// Modelos rápidos e baratos, com áudio nativo. O segundo é reserva.
 const MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"] as const;
 
 const SaleSchema = z.object({
@@ -32,20 +32,6 @@ const SaleSchema = z.object({
   notes: z.string().nullable().describe("Recado extra, como horário de entrega"),
 });
 
-const NotebookSchema = z.object({
-  rows: z.array(
-    z.object({
-      name: z.string().describe("Nome da pessoa que está devendo"),
-      amount: z.number().describe("Valor devido em reais"),
-      date: z
-        .string()
-        .nullable()
-        .describe("Data da anotação em AAAA-MM-DD, se estiver escrita"),
-      note: z.string().nullable().describe("O que foi comprado, se estiver escrito"),
-    }),
-  ),
-});
-
 function saleSystem(products: CatalogProduct[], clients: CatalogClient[], today: string) {
   const productList = products
     .slice(0, 200)
@@ -70,17 +56,6 @@ Produtos cadastrados:
 ${productList || "(nenhum)"}
 Clientes cadastrados:
 ${clientList || "(nenhum)"}`;
-}
-
-function notebookSystem(today: string) {
-  return `Você lê a foto de uma página de caderno de fiado de um pequeno negócio brasileiro.
-Hoje é ${today}. Liste quem está devendo e quanto.
-Regras:
-- Ignore linhas riscadas, marcadas como "pago", "ok" ou com um visto de quitado.
-- Se a mesma pessoa aparece em várias linhas em aberto, devolva uma linha para cada anotação.
-- Valores em reais: "15,50" = 15.5; "15" = 15.
-- Datas sem ano são do ano de hoje; nunca devolva data no futuro.
-- Se não conseguir ler um nome ou um valor com segurança, pule a linha. Nunca invente.`;
 }
 
 export class GeminiAssistantAi implements IAssistantAi {
@@ -131,22 +106,11 @@ export class GeminiAssistantAi implements IAssistantAi {
       content,
     );
   }
-
-  async readNotebook(input: Parameters<IAssistantAi["readNotebook"]>[0]) {
-    const result = await this.run(NotebookSchema, notebookSystem(input.today), [
-      { type: "text", text: "Leia esta página do caderno de fiado." },
-      { type: "file", data: input.image.data, mediaType: input.image.mimeType },
-    ]);
-    return result.rows;
-  }
 }
 
 /** Sem chave da IA configurada: responde com um aviso claro em vez de derrubar a API. */
 export class UnavailableAssistantAi implements IAssistantAi {
   parseSale(): never {
-    throw new ServiceUnavailableError("O assistente ainda não está disponível.");
-  }
-  readNotebook(): never {
     throw new ServiceUnavailableError("O assistente ainda não está disponível.");
   }
 }

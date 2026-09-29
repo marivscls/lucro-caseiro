@@ -25,13 +25,6 @@ export interface RawSaleDraft {
   notes: string | null;
 }
 
-export interface RawNotebookRow {
-  name: string;
-  amount: number;
-  date: string | null;
-  note: string | null;
-}
-
 /** Modelo de IA (Gemini no composition root; falso nos testes). */
 export interface IAssistantAi {
   parseSale(input: {
@@ -41,7 +34,6 @@ export interface IAssistantAi {
     clients: CatalogClient[];
     today: string;
   }): Promise<RawSaleDraft>;
-  readNotebook(input: { image: AssistantFile; today: string }): Promise<RawNotebookRow[]>;
 }
 
 export interface IAssistantUsageRepo {
@@ -49,16 +41,9 @@ export interface IAssistantUsageRepo {
   increment(userId: string, month: string): Promise<number>;
 }
 
-/** Leitura do cadastro e escrita do caderno importado, vindas de outras features. */
+/** Leitura do cadastro, vinda de outras features. */
 export interface IAssistantBusiness {
   listProducts(userId: string): Promise<CatalogProduct[]>;
   listClients(userId: string): Promise<CatalogClient[]>;
   activePlan(userId: string): Promise<PlanType>;
-  /** Quantos clientes novos ainda cabem no plano (null = sem limite). */
-  remainingClients(userId: string): Promise<number | null>;
-  createClient(userId: string, name: string): Promise<string>;
-  createOpeningFiado(
-    userId: string,
-    data: { clientId: string; amount: number; date: string | null; note: string | null },
-  ): Promise<void>;
 }

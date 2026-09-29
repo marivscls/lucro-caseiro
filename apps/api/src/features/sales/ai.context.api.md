@@ -245,3 +245,4 @@ PATCH /api/v1/sales/sale-1/status
 - 2026-09-19: marcas sem `catalogoCores` (ex.: Lucro Caseiro) não enviam `variationId`.
   Produto com variações no cadastro deixa de bloquear a venda; a baixa usa o estoque
   do produto. `variationId` inválido continua recusado.
+- 2026-09-29: `createOpeningFiado` removido junto com a importação do caderno no assistente.

@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  draftToSale,
-  draftTotal,
-  rowsToImport,
-  toEditableRows,
-  usageExhausted,
-  usageLabel,
-} from "./domain";
+import { draftToSale, draftTotal, usageExhausted, usageLabel } from "./domain";
 
 const PRODUCT = "11111111-1111-4111-8111-111111111111";
 const CLIENT = "22222222-2222-4222-8222-222222222222";
@@ -66,20 +59,5 @@ describe("assistant domain", () => {
     expect(usageLabel({ used: 14, limit: 15 })).toBe("Resta 1 uso este mês");
     expect(usageLabel({ used: 2, limit: null })).toBe("Uso liberado no seu plano");
     expect(usageExhausted({ used: 15, limit: 15 })).toBe(true);
-  });
-
-  it("importa só as linhas marcadas e com valor", () => {
-    const rows = toEditableRows(
-      [
-        { name: "Dona Cida", amount: 35, date: "2026-09-10", note: null, clientId: null },
-        { name: "Seu Zé", amount: 12, date: null, note: "pão", clientId: null },
-      ],
-      (value) => value.toFixed(2).replace(".", ","),
-    );
-    const [first, second] = rows;
-    const edited = [first, { ...second, include: false }];
-    expect(rowsToImport(edited, (v) => Number(v.replace(",", ".")))).toEqual([
-      { name: "Dona Cida", amount: 35, date: "2026-09-10", note: null, clientId: null },
-    ]);
   });
 });

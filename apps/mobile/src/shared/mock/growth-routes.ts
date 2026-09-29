@@ -134,6 +134,4 @@ export const growthRoutes: [string, RegExp, Handler][] = [
     () => ok({ used: 0, limit: ASSISTANT_MONTHLY_LIMITS.free }),
   ],
   ["POST", /^\/api\/v1\/assistant\/sale-draft$/, () => unavailable(AI_DEMO)],
-  ["POST", /^\/api\/v1\/assistant\/notebook$/, () => unavailable(AI_DEMO)],
-  ["POST", /^\/api\/v1\/assistant\/notebook\/import$/, () => unavailable(AI_DEMO)],
 ];

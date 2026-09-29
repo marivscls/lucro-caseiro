@@ -462,42 +462,6 @@ export class SalesUseCases {
     return sale;
   }
 
-  /**
-   * Fiado trazido do caderno: uma venda em aberto só com o valor e a anotação,
-   * sem produto (não mexe em estoque nem no caixa até ser paga).
-   */
-  async createOpeningFiado(
-    userId: string,
-    data: { clientId: string; amount: number; date: string | null; note: string | null },
-  ): Promise<Sale> {
-    if (Number.isNaN(data.amount) || data.amount <= 0) {
-      throw new ValidationError(["Informe um valor maior que zero"]);
-    }
-    const soldAt = data.date
-      ? new Date(`${data.date}T12:00:00-03:00`).toISOString()
-      : undefined;
-    return this.repo.create(
-      userId,
-      {
-        clientId: data.clientId,
-        paymentMethod: "credit",
-        items: [
-          {
-            itemName: data.note ? `Caderno: ${data.note}` : "Fiado anotado no caderno",
-            quantity: 1,
-            unitPrice: data.amount,
-          },
-        ],
-        soldAt,
-        notes: "Importado do caderno de fiado",
-        paidAmount: 0,
-      },
-      data.amount,
-      "pending",
-      { subtotal: data.amount, discount: 0, total: data.amount },
-    );
-  }
-
   async updateStatus(userId: string, id: string, status: SaleStatus): Promise<Sale> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {

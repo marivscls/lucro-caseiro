@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { View } from "react-native";
 
-import { NotebookImportCard } from "../features/assistant/components/notebook-import-card";
 import { SaleVoiceCard } from "../features/assistant/components/sale-voice-card";
 import { usageExhausted, usageLabel } from "../features/assistant/domain";
 import { useAssistantUsage } from "../features/assistant/hooks";
@@ -21,7 +20,7 @@ export default function AssistantScreen() {
   return (
     <ToolPage
       title="Anotar falando"
-      subtitle="Fale a venda ou fotografe o caderno: o app anota por você"
+      subtitle="Fale ou escreva a venda: o app anota por você"
     >
       <View
         style={{
@@ -48,12 +47,10 @@ export default function AssistantScreen() {
       ) : null}
 
       <SaleVoiceCard disabled={exhausted} />
-      <NotebookImportCard disabled={exhausted} />
 
       <Typography variant="caption" color={theme.colors.textSecondary}>
         Sempre confira antes de salvar: a leitura automática pode errar um nome ou um
-        valor. O app não guarda as fotos nem os áudios: eles servem só para montar a
-        anotação.
+        valor. O app não guarda os áudios: eles servem só para montar a anotação.
       </Typography>
     </ToolPage>
   );

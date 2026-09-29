@@ -412,7 +412,7 @@ const insightsUseCases = new InsightsUseCases(insightsRepo);
 const fiadoUseCases = new FiadoUseCases(new FiadoRepoPg(db));
 const meiUseCases = new MeiUseCases(new MeiRepoPg(db), financeUseCases);
 
-// Assistente: anotar venda falando/escrevendo e ler a foto do caderno de fiado.
+// Assistente: anotar venda falando ou escrevendo.
 const assistantUseCases = new AssistantUseCases(
   marketingAi
     ? new GeminiAssistantAi((id) => marketingAi(id))
@@ -432,17 +432,6 @@ const assistantUseCases = new AssistantUseCases(
       return items.map((c) => ({ id: c.id, name: c.name }));
     },
     activePlan: (userId) => subscriptionUseCases.getActivePlan(userId),
-    remainingClients: async (userId) => {
-      const limits = await subscriptionUseCases.getLimits(userId);
-      return limits.maxClients === null
-        ? null
-        : Math.max(0, limits.maxClients - limits.currentClients);
-    },
-    createClient: async (userId, name) =>
-      (await clientsUseCases.create(userId, { name })).id,
-    createOpeningFiado: async (userId, data) => {
-      await salesUseCases.createOpeningFiado(userId, data);
-    },
   },
 );
 
@@ -532,7 +521,7 @@ app.use(
   billingLimit,
 );
 app.use("/api/v1/marketing/ai", expensiveLimit);
-app.use(["/api/v1/assistant/sale-draft", "/api/v1/assistant/notebook"], expensiveLimit);
+app.use("/api/v1/assistant/sale-draft", expensiveLimit);
 // Montado antes do parser global: áudio e foto do assistente passam de 256 KB.
 app.use("/api/v1/assistant", createAssistantRouter(assistantUseCases));
 app.use(express.json({ limit: "256kb" }));

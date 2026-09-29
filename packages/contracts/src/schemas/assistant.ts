@@ -52,55 +52,6 @@ export const AssistantSaleDraftDto = z.object({
 });
 export type AssistantSaleDraft = z.infer<typeof AssistantSaleDraftDto>;
 
-export const AssistantNotebookRequestDto = z.object({
-  image: Base64File,
-});
-export type AssistantNotebookRequest = z.infer<typeof AssistantNotebookRequestDto>;
-
-export const NotebookRowDto = z.object({
-  name: z.string(),
-  amount: z.number().positive().max(MAX_MONEY),
-  /** Data escrita na linha (AAAA-MM-DD), quando dá para ler. */
-  date: z.string().nullable(),
-  note: z.string().nullable(),
-  /** Cliente já cadastrado com o mesmo nome (null = cliente novo). */
-  clientId: z.string().uuid().nullable(),
-});
-export type NotebookRow = z.infer<typeof NotebookRowDto>;
-
-export const AssistantNotebookResultDto = z.object({
-  rows: z.array(NotebookRowDto),
-  usage: z.object({ used: z.number().int(), limit: z.number().int().nullable() }),
-});
-export type AssistantNotebookResult = z.infer<typeof AssistantNotebookResultDto>;
-
-/** Linhas do caderno revisadas pela pessoa, para virar clientes + fiado. */
-export const ImportNotebookDto = z.object({
-  rows: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1).max(200),
-        amount: z.number().positive().max(MAX_MONEY),
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .nullable(),
-        note: z.string().trim().max(200).nullable(),
-        clientId: z.string().uuid().nullable(),
-      }),
-    )
-    .min(1)
-    .max(100),
-});
-export type ImportNotebook = z.infer<typeof ImportNotebookDto>;
-
-export const ImportNotebookResultDto = z.object({
-  createdClients: z.number().int(),
-  createdFiados: z.number().int(),
-  total: z.number(),
-});
-export type ImportNotebookResult = z.infer<typeof ImportNotebookResultDto>;
-
 export const AssistantUsageDto = z.object({
   used: z.number().int(),
   limit: z.number().int().nullable(),

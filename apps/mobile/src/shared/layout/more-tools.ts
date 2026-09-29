@@ -33,7 +33,7 @@ export const DAILY_ITEMS = [
   },
   {
     title: "Anotar falando",
-    description: "Venda por voz e foto do caderno",
+    description: "Anote a venda falando",
     icon: "mic-outline",
     route: "/assistant",
     badge: "Novo",

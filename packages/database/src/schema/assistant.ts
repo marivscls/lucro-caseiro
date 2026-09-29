@@ -2,7 +2,7 @@ import { integer, pgTable, primaryKey, text, uuid } from "drizzle-orm/pg-core";
 
 import { users } from "./users";
 
-/** Usos do assistente (anotar falando / foto do caderno) por mês, para o limite do plano. */
+/** Usos do assistente (anotar falando) por mês, para o limite do plano. */
 export const assistantUsage = pgTable(
   "assistant_usage",
   {

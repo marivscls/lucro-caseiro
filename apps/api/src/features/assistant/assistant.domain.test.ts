@@ -8,7 +8,6 @@ import {
   monthKey,
   nameTokens,
   sanitizeItem,
-  sanitizeNotebookRow,
 } from "./assistant.domain";
 
 const products = [
@@ -72,21 +71,6 @@ describe("limpeza do que a IA devolve", () => {
       unitPrice: null,
     });
     expect(sanitizeItem({ name: "", quantity: 1, unitPrice: 5 })).toBeNull();
-  });
-
-  it("descarta linha sem valor e data no futuro", () => {
-    expect(
-      sanitizeNotebookRow(
-        { name: "Rosa", amount: 0, date: null, note: null },
-        "2026-09-28",
-      ),
-    ).toBeNull();
-    expect(
-      sanitizeNotebookRow(
-        { name: "Rosa", amount: 15.5, date: "2026-12-01", note: " bolo " },
-        "2026-09-28",
-      ),
-    ).toEqual({ name: "Rosa", amount: 15.5, date: null, note: "bolo" });
   });
 
   it("usa o mês de Brasília", () => {
