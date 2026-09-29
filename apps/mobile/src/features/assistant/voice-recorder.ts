@@ -1,9 +1,4 @@
-import {
-  AudioModule,
-  RecordingPresets,
-  requestRecordingPermissionsAsync,
-  setAudioModeAsync,
-} from "expo-audio";
+import { requireOptionalNativeModule } from "expo";
 import { File } from "expo-file-system";
 import { Platform } from "react-native";
 
@@ -21,9 +16,20 @@ export type VoiceRecording = Readonly<{
 /** Limite de uma gravação: uma venda cabe em poucos segundos. */
 const MAX_MS = 60_000;
 
-export const voiceRecordingSupported = true;
+/**
+ * Builds antigos do app (sem o módulo nativo) quebrariam ao importar expo-audio.
+ * Sem o módulo, a gravação fica desligada e o expo-audio nem é carregado.
+ */
+export const voiceRecordingSupported = requireOptionalNativeModule("ExpoAudio") != null;
 
-function recordingOptions() {
+type ExpoAudio = typeof import("expo-audio");
+
+function loadExpoAudio(): ExpoAudio {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- carregado só quando o módulo nativo existe
+  return require("expo-audio") as ExpoAudio;
+}
+
+function recordingOptions({ RecordingPresets }: ExpoAudio) {
   const preset = RecordingPresets.HIGH_QUALITY;
   const common = {
     extension: preset.extension,
@@ -38,11 +44,14 @@ function recordingOptions() {
 
 /** Começa a gravar pelo microfone (pede permissão na primeira vez). */
 export async function startVoiceRecording(): Promise<VoiceRecording> {
+  if (!voiceRecordingSupported) throw new Error("Gravação indisponível neste aparelho.");
+  const audio = loadExpoAudio();
+  const { AudioModule, requestRecordingPermissionsAsync, setAudioModeAsync } = audio;
   const permission = await requestRecordingPermissionsAsync();
   if (!permission.granted) throw new Error("Microfone sem permissão.");
   await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
 
-  const recorder = new AudioModule.AudioRecorder(recordingOptions());
+  const recorder = new AudioModule.AudioRecorder(recordingOptions(audio));
   await recorder.prepareToRecordAsync();
   recorder.record();
 

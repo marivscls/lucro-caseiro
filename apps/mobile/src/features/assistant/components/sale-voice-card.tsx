@@ -162,7 +162,7 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
     }
     if (!voiceRecordingSupported) {
       alertError(
-        "Este navegador não deixa gravar áudio aqui. Use o microfone do teclado ou escreva a venda.",
+        "Não dá para gravar áudio aqui. Use o microfone do teclado ou escreva a venda.",
       );
       return;
     }
