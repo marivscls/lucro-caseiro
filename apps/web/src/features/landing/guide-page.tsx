@@ -19,9 +19,27 @@ type GuidePageProps = {
   readonly description: string;
   readonly slug: string;
   readonly children: ReactNode;
+  /** Datas ISO (AAAA-MM-DD) dos guias gerados; os escritos à mão usam as datas do site. */
+  readonly publishedAt?: string;
+  readonly extraSchema?: readonly object[];
 };
 
-export async function GuidePage({ title, description, slug, children }: GuidePageProps) {
+const longDate = (day: string) =>
+  new Date(`${day}T12:00:00-03:00`).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Sao_Paulo",
+  });
+
+export async function GuidePage({
+  title,
+  description,
+  slug,
+  children,
+  publishedAt,
+  extraSchema = [],
+}: GuidePageProps) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   const schema = {
     "@context": "https://schema.org",
@@ -29,8 +47,9 @@ export async function GuidePage({ title, description, slug, children }: GuidePag
     headline: title,
     description,
     inLanguage: "pt-BR",
-    datePublished: "2026-07-16",
+    datePublished: publishedAt ?? "2026-07-16",
     dateModified:
+      publishedAt ??
       PUBLIC_PAGE_UPDATED[`/landing/guias/${slug}` as keyof typeof PUBLIC_PAGE_UPDATED],
     image: SOCIAL_IMAGE.url,
     mainEntityOfPage: `${SITE_URL}/landing/guias/${slug}`,
@@ -47,7 +66,7 @@ export async function GuidePage({ title, description, slug, children }: GuidePag
       eyebrow="Guia de precificação"
       title={title}
       description={description}
-      updatedAt="10 de setembro de 2026"
+      updatedAt={publishedAt ? longDate(publishedAt) : "10 de setembro de 2026"}
     >
       <script
         nonce={nonce}
@@ -68,6 +87,7 @@ export async function GuidePage({ title, description, slug, children }: GuidePag
                 },
               ],
             },
+            ...extraSchema,
           ]),
         }}
       />
