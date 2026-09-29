@@ -219,7 +219,7 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
               </Typography>
             </View>
           ) : null}
-          <FormActions>
+          <FormActions stack>
             {voiceRecordingSupported ? (
               <Button
                 title={recording ? "Parar e anotar" : "Gravar áudio"}

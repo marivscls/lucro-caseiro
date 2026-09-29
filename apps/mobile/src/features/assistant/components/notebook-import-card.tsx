@@ -207,7 +207,7 @@ export function NotebookImportCard({ disabled }: Readonly<{ disabled: boolean }>
           </FormActions>
         </>
       ) : (
-        <FormActions>
+        <FormActions stack>
           {Platform.OS === "web" ? null : (
             <Button
               title="Tirar foto"

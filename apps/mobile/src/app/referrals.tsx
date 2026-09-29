@@ -143,7 +143,7 @@ export default function ReferralsScreen() {
             {invitedSummary(summary)}
           </Typography>
         </View>
-        <FormActions>
+        <FormActions stack>
           <Button
             title="Copiar código"
             variant="outline"

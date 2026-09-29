@@ -332,7 +332,7 @@ export default function MeiScreen() {
             keyboardType="numeric"
           />
         </FormField>
-        <FormActions>
+        <FormActions stack>
           <Button
             title="Mandar no WhatsApp"
             variant="outline"
