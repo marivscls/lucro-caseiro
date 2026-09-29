@@ -31,8 +31,12 @@ fiado"). A IA monta um rascunho; a pessoa confere antes de salvar.
 
 ## Components
 
-- `SaleVoiceCard({ disabled })`: campo multilinha, botão de gravar, revisão com
-  itens, cliente e forma de pagamento; "Registrar venda" ou "Abrir Nova venda".
+- `SaleVoiceCard({ disabled })`: tela "microfone gigante" (opção A aprovada em 2026-09-29):
+  título "Toque e fale a venda", `MicButton` de 124 px com dois anéis (vinho no claro,
+  rosa no escuro, lima gravando; spinner enquanto monta), dois exemplos de frase e
+  "Prefere escrever?" com campo de uma linha e botão de enviar. Depois vira o cartão
+  "Confira a venda" com itens, cliente e forma de pagamento; "Registrar venda" ou
+  "Abrir Nova venda".
 
 ## Hooks
 

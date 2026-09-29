@@ -2,7 +2,7 @@ import type { AssistantSaleDraft, PaymentMethod } from "@lucro-caseiro/contracts
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -129,6 +129,87 @@ function DraftReview({
   );
 }
 
+function sendOpacity(enabled: boolean, pressed: boolean): number {
+  if (!enabled) return 0.45;
+  return pressed ? 0.85 : 1;
+}
+
+const EXAMPLES = ["“3 marmitas pra Dona Cida, fiado”", "“Um bolo de pote de 12 no pix”"];
+
+/** Botão grande do microfone, com anéis em volta (cresce a área de toque). */
+function MicButton({
+  recording,
+  busy,
+  disabled,
+  onPress,
+}: Readonly<{
+  recording: boolean;
+  busy: boolean;
+  disabled: boolean;
+  onPress: () => void;
+}>) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  // Escuro: vinho some no fundo, então o botão usa o rosa. Gravando: lima nos dois temas.
+  const idleFill = theme.mode === "dark" ? palette.rose : palette.wineFill;
+  const fill = recording ? palette.lime : idleFill;
+  const iconColor = recording ? palette.onLime : "#FFFFFF";
+  let label = "Gravar a venda";
+  if (recording) label = "Parar e anotar";
+  if (busy) label = "Montando a venda";
+  return (
+    <View
+      style={{
+        width: 220,
+        height: 220,
+        borderRadius: 110,
+        backgroundColor: palette.softRose,
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <View
+        style={{
+          width: 170,
+          height: 170,
+          borderRadius: 85,
+          backgroundColor: palette.border,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          accessibilityState={{ disabled: disabled || busy, busy }}
+          disabled={disabled || busy}
+          onPress={onPress}
+          style={({ pressed }) => ({
+            width: 124,
+            height: 124,
+            borderRadius: 62,
+            backgroundColor: fill,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          {busy ? (
+            <ActivityIndicator color={iconColor} size="large" />
+          ) : (
+            <AppIcon
+              name={recording ? "square-outline" : "mic-outline"}
+              size={48}
+              color={iconColor}
+            />
+          )}
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 /** Anotar uma venda falando (ou escrevendo do jeito que fala). */
 export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
   const { theme } = useTheme();
@@ -179,18 +260,10 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
     }
   }
 
-  const hint = "Escreva como você falaria, ou grave um áudio.";
-
-  return (
-    <Card variant="surface" padding="xl" style={{ gap: spacing.lg }}>
-      <View style={{ gap: spacing.xs }}>
-        <Typography variant="h3">Anotar uma venda</Typography>
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Diga o que vendeu, para quem e como foi pago. O app monta a venda para você
-          conferir.
-        </Typography>
-      </View>
-      {draft ? (
+  if (draft) {
+    return (
+      <Card variant="surface" padding="xl" style={{ gap: spacing.lg }}>
+        <Typography variant="h3">Confira a venda</Typography>
         <DraftReview
           draft={draft}
           onDone={() => {
@@ -198,50 +271,90 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
             setText("");
           }}
         />
-      ) : (
-        <>
-          <FormField label="O que você vendeu?" hint={hint}>
+      </Card>
+    );
+  }
+
+  const canSendText = !disabled && !recording && text.trim().length >= 3;
+  let title = "Toque e fale a venda";
+  if (recording) title = "Gravando… toque para parar";
+  if (draftSale.isPending) title = "Montando a venda…";
+
+  return (
+    <View style={{ gap: spacing["2xl"] }}>
+      <View
+        style={{ alignItems: "center", gap: spacing.xl, paddingVertical: spacing.lg }}
+      >
+        <Typography variant="h2" color={palette.wine} style={{ textAlign: "center" }}>
+          {title}
+        </Typography>
+        <MicButton
+          recording={recording}
+          busy={draftSale.isPending}
+          disabled={disabled}
+          onPress={() => void toggleRecording()}
+        />
+        <Typography
+          variant="body"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center" }}
+        >
+          Fale do seu jeito, por exemplo:
+        </Typography>
+        <View style={{ alignItems: "center", gap: spacing.sm }}>
+          {EXAMPLES.map((example) => (
+            <View
+              key={example}
+              style={{
+                borderWidth: 1,
+                borderColor: palette.border,
+                backgroundColor: theme.colors.surface,
+                borderRadius: 14,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+              }}
+            >
+              <Typography variant="bodyBold">{example}</Typography>
+            </View>
+          ))}
+        </View>
+      </View>
+      <FormField label="Prefere escrever?">
+        <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}>
+          <View style={{ flex: 1 }}>
             <TextField
-              multiline
               accessibilityLabel="O que você vendeu"
-              placeholder="Ex: 3 marmitas para a Dona Cida, no fiado"
+              placeholder="Ex: 2 brigadeiros pra Ana, dinheiro"
               value={text}
               onChangeText={setText}
               maxLength={500}
+              returnKeyType="send"
+              onSubmitEditing={() => {
+                if (text.trim().length >= 3) void send({ text: text.trim() });
+              }}
             />
-          </FormField>
-          {recording ? (
-            <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}>
-              <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: palette.rose,
-                }}
-              />
-              <Typography variant="bodyBold" color={palette.wine}>
-                Gravando… fale a venda e toque em Parar.
-              </Typography>
-            </View>
-          ) : null}
-          <FormActions stack>
-            <Button
-              title={recording ? "Parar e anotar" : "Gravar áudio"}
-              variant="outline"
-              disabled={disabled || draftSale.isPending}
-              icon={<AppIcon name="mic-outline" size={20} color={palette.wine} />}
-              onPress={() => void toggleRecording()}
-            />
-            <Button
-              title="Montar venda"
-              disabled={disabled || recording || text.trim().length < 3}
-              loading={draftSale.isPending}
-              onPress={() => void send({ text: text.trim() })}
-            />
-          </FormActions>
-        </>
-      )}
-    </Card>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Montar venda"
+            disabled={
+              disabled || recording || draftSale.isPending || text.trim().length < 3
+            }
+            onPress={() => void send({ text: text.trim() })}
+            style={({ pressed }) => ({
+              width: 52,
+              height: 52,
+              borderRadius: 16,
+              backgroundColor: palette.rose,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: sendOpacity(canSendText, pressed),
+            })}
+          >
+            <AppIcon name="arrow-forward" size={22} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      </FormField>
+    </View>
   );
 }
