@@ -23,6 +23,8 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { usageExhausted, usageLabel } from "../../features/assistant/domain";
+import { useAssistantUsage } from "../../features/assistant/hooks";
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
@@ -66,6 +68,7 @@ import {
   HomeSetupSteps,
   HomeSetupTip,
   HomeStreakCard,
+  HomeVoiceEntry,
   QueryNotice,
 } from "../../features/home/components";
 import {
@@ -156,6 +159,7 @@ export default function HomeScreen() {
   const colors = useBrandScreenPalette();
   const brand = useBrand();
   const router = useRouter();
+  const { data: assistantUsage } = useAssistantUsage();
   const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const now = new Date();
@@ -301,6 +305,13 @@ export default function HomeScreen() {
     return <Redirect href="/onboarding" />;
 
   const newSale = () => router.push("/tabs/new-sale");
+  const voiceEntry = usageExhausted(assistantUsage) ? null : (
+    <HomeVoiceEntry
+      usageLabel={assistantUsage?.trial ? usageLabel(assistantUsage) : undefined}
+      onWrite={() => router.push("/assistant")}
+      onSpeak={() => router.push({ pathname: "/assistant", params: { falar: "1" } })}
+    />
+  );
   const pendingPhase = failedQuery ? (
     <QueryNotice query={failedQuery} label="seu Início" />
   ) : (
@@ -424,6 +435,7 @@ export default function HomeScreen() {
             {isDesktop ? null : (
               <HomePrimaryButton label="Anotar outra venda" onPress={newSale} />
             )}
+            {voiceEntry}
             <HomeDayNumbers
               desktop={isDesktop}
               history={history}
@@ -462,9 +474,12 @@ export default function HomeScreen() {
                 />
               ) : null}
             </Columns>
-            {isDesktop ? null : (
+            {isDesktop ? (
+              voiceEntry
+            ) : (
               <>
                 <HomePrimaryButton label="Anotar venda" onPress={newSale} />
+                {voiceEntry}
                 <HomeHabitGoal
                   full={false}
                   history={history}
