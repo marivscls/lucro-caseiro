@@ -1,13 +1,11 @@
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
 import React from "react";
-import { View } from "react-native";
 
 import { SaleVoiceCard } from "../features/assistant/components/sale-voice-card";
 import { usageExhausted, usageLabel } from "../features/assistant/domain";
 import { useAssistantUsage } from "../features/assistant/hooks";
 import { brandScreenPalette } from "../shared/brand-palette";
-import { AppIcon } from "../shared/components/app-icon";
 import { ToolPage } from "../shared/layout/tool-page";
 
 export default function AssistantScreen() {
@@ -22,19 +20,9 @@ export default function AssistantScreen() {
       title="Anotar falando"
       subtitle="Fale ou escreva a venda: o app anota por você"
     >
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: spacing.sm,
-        }}
-      >
-        <AppIcon name="sparkles-outline" size={20} color={palette.wine} />
-        <Typography variant="bodyBold" color={palette.wine} style={{ flex: 1 }}>
-          {usageLabel(usage)}
-        </Typography>
-      </View>
+      <Typography variant="bodyBold" color={palette.wine}>
+        {usageLabel(usage)}
+      </Typography>
 
       {exhausted ? (
         <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>

@@ -463,7 +463,6 @@ function ToolCard({
         </Typography>
         {item.badge ? (
           <View style={[styles.organizeChip, { backgroundColor: palette.lime }]}>
-            <AppIcon name="sparkles" size={iconSizes.xs} color={palette.wine} />
             <Typography
               variant="captionBold"
               color={palette.wine}
@@ -566,7 +565,6 @@ function DesktopToolTile({
         </Typography>
         {item.badge ? (
           <View style={[styles.organizeChip, { backgroundColor: palette.lime }]}>
-            <AppIcon name="sparkles" size={iconSizes.xs} color={palette.wine} />
             <Typography variant="desktopMeta" color={palette.wine}>
               {item.badge}
             </Typography>
