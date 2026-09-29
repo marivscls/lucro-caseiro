@@ -168,7 +168,13 @@ function ProfileCard({
         { backgroundColor: palette.softRose, borderColor: palette.border },
       ]}
     >
-      <View style={styles.profileIdentity}>
+      <View
+        style={[
+          styles.profileIdentity,
+          // Celular: "Editar perfil" desce para a própria linha e o selo não quebra.
+          inlineAction ? undefined : styles.profileIdentityFull,
+        ]}
+      >
         <View style={[styles.avatar, { backgroundColor: avatarTint.bg }]}>
           {avatarUrl ? (
             <Image
@@ -1256,6 +1262,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     justifyContent: "center",
   },
+  profileIdentityFull: {
+    flexBasis: "100%",
+  },
   profileIdentity: {
     flex: 1,
     minWidth: 0,
@@ -1300,15 +1309,20 @@ const styles = StyleSheet.create({
   singleColumnGrid: {
     flexDirection: "column",
   },
+  // Celular em duas colunas: ícone em cima, nome com a largura toda do cartão
+  // (lado a lado, "Precificação" quebrava no meio da palavra).
   denseToolCard: {
     flex: 1,
     minHeight: 96,
+    flexDirection: "column",
+    alignItems: "flex-start",
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
     gap: spacing.xs,
   },
   denseToolCopy: {
-    flex: 1,
+    flex: 0,
+    alignSelf: "stretch",
     minWidth: 0,
   },
   denseToolDescription: {
