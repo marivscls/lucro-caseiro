@@ -28,7 +28,8 @@ Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem c
 - `apps/web/src/features/landing/price-calculator.tsx` — calculadora com campos agrupados, validação local, ficha de resultado e explicações da fórmula
 - `apps/web/src/features/landing/public-page.tsx` — shell canônico das páginas públicas internas
 - `apps/web/src/features/landing/site-chrome.tsx` — navegação e rodapé compartilhados
-- `apps/web/src/app/sitemap.ts` e `robots.ts` — descoberta e isolamento das rotas públicas
+- `apps/web/src/app/sitemap.ts` e `robots.ts` — descoberta e isolamento das rotas públicas; o sitemap inclui os guias gerados
+- `apps/web/src/app/landing/guias/[slug]/page.tsx` e `apps/web/src/features/landing/guide-articles.ts` — guias gerados: um JSON por guia em `apps/web/content/guias/<slug>.json`, enviado ao repositório pela Ametista (conexão GitHub). Arquivos inválidos são ignorados sem quebrar o build; endereços fora da pasta dão 404; guias escritos à mão mantêm rota própria e vencem um arquivo com o mesmo endereço
 - `apps/web/public/landing/` — logo, ilustração e capturas reais do aplicativo
 - `apps/web/PRODUCT.md` e `apps/web/.impeccable/` — verdade de produto e registro do processo de design (comp aprovado, spec medida, estado das fases, capturas de revisão)
 
@@ -38,6 +39,7 @@ Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem c
 - `SiteHeader` — aceita `tone="wine"` (barra em fluxo dentro da faixa vinho, usada só na landing) ou `paper` (barra flutuante das páginas internas); navegação compacta em `details` nativo, sem JavaScript de cliente
 - `PriceCalculator` — ficha de preço com quatro grupos de campos (produto, tempo, fixos, lucro/taxas), exemplo identificado e ação para limpar/restaurar. O resumo separa custo, taxas e sobra; estado inválido oculta o resultado. Links para o resultado no celular e FAQ com `details`. As antigas prévias simuladas foram substituídas pelo link aos recursos reais da landing.
 - `PublicPage` — estrutura reutilizada por guias, suporte, privacidade, termos e exclusão
+- `GuidePage` — guia com breadcrumb, schema Article/BreadcrumbList, guias relacionados e CTA da calculadora; aceita `publishedAt` e schema extra (FAQPage) para os guias gerados
 - Capturas do produto — usam os PNGs `current-*.png`, capturados no emulador Android com o código atual em 2026-09-04. Produtos, catálogo, precificação e financeiro; procedência e valores em `apps/web/public/landing/CAPTURES.md`. Imagens anteriores preservadas, mas fora da landing principal.
 - Cards de planos — refletem Gratuito, Essencial e Profissional conforme a matriz comercial vigente
 
@@ -77,6 +79,7 @@ Não há carregamento de dados. Links externos apontam para Google Play, políti
 ## Test matrix
 
 - Renderização e build da rota sem erro
+- Guias gerados: validação (endereço igual ao arquivo, data AAAA-MM-DD, ao menos duas seções), ordem do mais novo ao mais antigo e precedência dos guias escritos à mão (`guide-articles.test.ts`)
 - CTAs apontam para o package Android canônico
 - Visual responsivo em desktop, tablet e celular
 - FAQ navegável por teclado com elemento semântico nativo
