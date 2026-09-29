@@ -2,7 +2,7 @@ import type { AssistantSaleDraft, PaymentMethod } from "@lucro-caseiro/contracts
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -162,7 +162,9 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
     }
     if (!voiceRecordingSupported) {
       alertError(
-        "Não dá para gravar áudio aqui. Use o microfone do teclado ou escreva a venda.",
+        Platform.OS === "web"
+          ? "Este navegador não deixa gravar áudio aqui. Use o microfone do teclado ou escreva a venda."
+          : "Esta versão do app ainda não grava áudio. Atualize o app, ou use o microfone do teclado.",
       );
       return;
     }

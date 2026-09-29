@@ -77,3 +77,4 @@ fiado"). A IA monta um rascunho; a pessoa confere antes de salvar.
   ditado do teclado; na web, MediaRecorder. Limites de uso por plano ficam na API.
 - 2026-09-29: gravação de áudio também no celular (expo-audio, permissão de microfone no app.config). Precisa de um build novo do app.
 - 2026-09-29: removida a importação por foto do caderno (LUCAS): a leitura da foto falhava com frequência ("Não achei nomes e valores nessa foto"). Endpoints `/assistant/notebook*` e contratos saíram junto.
+- 2026-09-29: `expo-audio` só é carregado quando o binário tem o módulo nativo (`requireOptionalNativeModule("ExpoAudio")`). Build sem o módulo não quebra mais: o botão avisa para atualizar o app.

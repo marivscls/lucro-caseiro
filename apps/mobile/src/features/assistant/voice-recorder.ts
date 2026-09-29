@@ -17,20 +17,22 @@ export type VoiceRecording = Readonly<{
 const MAX_MS = 60_000;
 
 /**
- * Builds antigos do app (sem o módulo nativo) quebrariam ao importar expo-audio.
- * Sem o módulo, a gravação fica desligada e o expo-audio nem é carregado.
+ * Só grava quando o binário instalado tem o módulo nativo do expo-audio.
+ * Um build antigo (ou um dev client sem o módulo) não quebra: o botão avisa.
+ * O expo-audio é carregado só depois dessa checagem, porque importar o pacote
+ * num binário sem o módulo derruba o app.
  */
 export const voiceRecordingSupported = requireOptionalNativeModule("ExpoAudio") != null;
 
 type ExpoAudio = typeof import("expo-audio");
 
 function loadExpoAudio(): ExpoAudio {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- carregado só quando o módulo nativo existe
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require("expo-audio") as ExpoAudio;
 }
 
-function recordingOptions({ RecordingPresets }: ExpoAudio) {
-  const preset = RecordingPresets.HIGH_QUALITY;
+function recordingOptions(audio: ExpoAudio) {
+  const preset = audio.RecordingPresets.HIGH_QUALITY;
   const common = {
     extension: preset.extension,
     sampleRate: 16_000,
@@ -44,7 +46,9 @@ function recordingOptions({ RecordingPresets }: ExpoAudio) {
 
 /** Começa a gravar pelo microfone (pede permissão na primeira vez). */
 export async function startVoiceRecording(): Promise<VoiceRecording> {
-  if (!voiceRecordingSupported) throw new Error("Gravação indisponível neste aparelho.");
+  if (!voiceRecordingSupported) {
+    throw new Error("Gravação de voz indisponível nesta versão do app.");
+  }
   const audio = loadExpoAudio();
   const { AudioModule, requestRecordingPermissionsAsync, setAudioModeAsync } = audio;
   const permission = await requestRecordingPermissionsAsync();
