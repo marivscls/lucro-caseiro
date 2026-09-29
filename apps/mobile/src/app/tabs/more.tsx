@@ -796,6 +796,12 @@ export default function MoreScreen() {
   const isFeatureAvailable = (item: ToolItem) =>
     !item.feature || brand.features[item.feature];
 
+  const dailyRest = DAILY_ITEMS.slice(1);
+  const dailyGridCount = compactGrid
+    ? dailyRest.length
+    : dailyRest.length - (dailyRest.length % 2);
+  const dailyGridItems = dailyRest.slice(0, dailyGridCount);
+  const dailyRowItems = dailyRest.slice(dailyGridCount);
   const featuredItems = FEATURED_MANAGEMENT_ITEMS.filter(isFeatureAvailable).map(
     (item) => {
       if (item.route === "/products") {
@@ -999,7 +1005,7 @@ export default function MoreScreen() {
                   compactGrid ? styles.singleColumnGrid : null,
                 ]}
               >
-                {DAILY_ITEMS.slice(1).map((item, index) => (
+                {dailyGridItems.map((item, index) => (
                   <View
                     key={item.route}
                     style={[
@@ -1016,6 +1022,16 @@ export default function MoreScreen() {
                   </View>
                 ))}
               </View>
+              {/* Sobra ímpar da grade: cartão em linha na largura toda, em vez de meio
+                  cartão esticado. */}
+              {dailyRowItems.map((item, index) => (
+                <ToolCard
+                  key={item.route}
+                  index={index + 1 + dailyGridItems.length}
+                  item={item}
+                  onPress={() => router.push(item.route)}
+                />
+              ))}
             </View>
 
             <View style={styles.section}>
