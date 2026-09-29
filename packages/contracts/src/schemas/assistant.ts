@@ -1,12 +1,33 @@
 import { z } from "zod";
 
 import { MAX_MONEY, MAX_QUANTITY, PaymentMethod } from "./common";
+import { PLAN_PRICING, type PaidPlan } from "./plans";
 
-/** Usos do assistente por mês em cada plano (null = sem limite). */
+/** Parte máxima do preço mensal do plano que pode ir para a IA do assistente. */
+export const ASSISTANT_MAX_PRICE_SHARE = 0.1;
+
+/**
+ * Custo de um uso no pior caso (R$): áudio de até 60 s, listas cheias de
+ * produtos e clientes e raciocínio do modelo. Revisar se o modelo mudar.
+ */
+export const ASSISTANT_WORST_COST_PER_USE = 0.03;
+
+/**
+ * Usos por mês que cabem na fração do plano. Usa o mês do plano anual (o mais
+ * barato), para a IA nunca passar da fração em nenhuma forma de pagamento.
+ */
+function limitForPlan(plan: PaidPlan): number {
+  const cheapestMonth = PLAN_PRICING[plan].annual / 12;
+  return Math.floor(
+    (cheapestMonth * ASSISTANT_MAX_PRICE_SHARE) / ASSISTANT_WORST_COST_PER_USE,
+  );
+}
+
+/** Usos do assistente por mês em cada plano. O grátis tem um teto fixo e pequeno. */
 export const ASSISTANT_MONTHLY_LIMITS = {
   free: 15,
-  essential: 300,
-  professional: 600,
+  essential: limitForPlan("essential"),
+  professional: limitForPlan("professional"),
 } as const;
 
 /** Tamanho máximo de áudio/foto enviados (em bytes, depois de decodificar). */

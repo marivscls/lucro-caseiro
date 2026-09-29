@@ -31,7 +31,7 @@ com os produtos e clientes cadastrados.
 
 ## Invariants
 
-- Limite por mês: Gratuito 15, Essencial 300, Profissional 600 (`ASSISTANT_MONTHLY_LIMITS`).
+- Limite por mês (`ASSISTANT_MONTHLY_LIMITS`): Gratuito 15; pagos calculados para a IA nunca passar de `ASSISTANT_MAX_PRICE_SHARE` (10%) do mês do plano anual, com `ASSISTANT_WORST_COST_PER_USE` (R$ 0,03) por uso: Essencial 83, Profissional 194.
 - O limite é conferido antes da IA; o uso só conta quando a IA responde.
 - Casamento de nomes exige todas as palavras faladas no cadastro.
 - Arquivo: áudio `audio/*` do app, até 6 MB.

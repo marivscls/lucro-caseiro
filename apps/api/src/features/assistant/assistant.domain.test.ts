@@ -1,6 +1,12 @@
+import {
+  ASSISTANT_MAX_PRICE_SHARE,
+  ASSISTANT_WORST_COST_PER_USE,
+  PLAN_PRICING,
+} from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
+  assistantLimit,
   base64Bytes,
   baseMimeType,
   bestNameMatch,
@@ -82,5 +88,21 @@ describe("baseMimeType", () => {
   it("tira os parâmetros do tipo", () => {
     expect(baseMimeType("audio/webm;codecs=opus")).toBe("audio/webm");
     expect(baseMimeType("IMAGE/JPEG")).toBe("image/jpeg");
+  });
+});
+
+describe("assistantLimit", () => {
+  it.each(["essential", "professional"] as const)(
+    "no pior caso, o plano %s nunca gasta mais que a fração do preço com IA",
+    (plan) => {
+      const cheapestMonth = PLAN_PRICING[plan].annual / 12;
+      const worstSpend = assistantLimit(plan) * ASSISTANT_WORST_COST_PER_USE;
+      expect(assistantLimit(plan)).toBeGreaterThan(0);
+      expect(worstSpend).toBeLessThanOrEqual(cheapestMonth * ASSISTANT_MAX_PRICE_SHARE);
+    },
+  );
+
+  it("mantém o grátis com teto pequeno", () => {
+    expect(assistantLimit("free")).toBe(15);
   });
 });
