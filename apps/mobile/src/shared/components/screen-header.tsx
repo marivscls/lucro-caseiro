@@ -65,6 +65,10 @@ export function ScreenHeader({
   const isDesktop = useDesktopLayout();
   const { width } = useWindowDimensions();
   const subtitleBelow = !isDesktop && width < 400;
+  // Celular: o título nunca é espremido (quebrava no meio da palavra, "Financeir/o").
+  // Ele ocupa só a largura do texto e, se as ações não couberem ao lado, elas
+  // descem para a linha de baixo, alinhadas à direita.
+  const titleMaxWidth = width - spacing.lg * 2 - (hideBack ? 0 : 44 + spacing.sm);
 
   function handleBack() {
     if (onBack) {
@@ -118,7 +122,13 @@ export function ScreenHeader({
           <AppIcon name="chevron-back" size={iconSizes.md} color={theme.colors.text} />
         </Pressable>
       ) : null}
-      <View style={{ flex: 1, minWidth: 0 }}>
+      <View
+        style={
+          isDesktop || (subtitle && !subtitleBelow)
+            ? { flex: 1, minWidth: 0 }
+            : { flexShrink: 0, maxWidth: titleMaxWidth, minWidth: 0 }
+        }
+      >
         {/* Desktop: mesma escala do Início (título 36px, subtítulo 17px). */}
         <Typography
           variant={isDesktop ? "desktopPageTitle" : "screenTitle"}
@@ -143,21 +153,20 @@ export function ScreenHeader({
           </Typography>
         ) : null}
       </View>
-      {helpButton ? (
+      {helpButton || right ? (
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.xs,
             flexShrink: 0,
+            marginLeft: "auto",
           }}
         >
           {helpButton}
           {right}
         </View>
-      ) : (
-        right
-      )}
+      ) : null}
       {subtitle && subtitleBelow ? (
         <Typography
           variant="caption"
