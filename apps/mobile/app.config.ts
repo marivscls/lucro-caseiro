@@ -116,6 +116,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     ],
     [
+      "expo-audio",
+      {
+        microphonePermission: "O app usa o microfone para você anotar uma venda falando.",
+      },
+    ],
+    [
       "expo-image-picker",
       {
         photosPermission:

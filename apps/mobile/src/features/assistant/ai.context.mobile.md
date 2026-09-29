@@ -12,7 +12,7 @@ confere antes de salvar.
 
 - Não salva nada sem confirmação.
 - Não cria produto nem preço: item não reconhecido manda para a Nova venda.
-- No celular não grava áudio (usa o ditado do teclado); a gravação é só na web.
+- O botão Gravar áudio aparece sempre: no celular grava com expo-audio (AAC .m4a, mono 16 kHz), na web com MediaRecorder. Navegador sem microfone (ex.: http fora do localhost) mostra aviso para usar o ditado do teclado.
 
 ## Boundaries & Ownership
 
@@ -27,7 +27,7 @@ confere antes de salvar.
 | ------------------------------------- | ----------------------------------------------------------- |
 | `api.ts` / `hooks.ts`                 | Uso do mês, rascunho, leitura do caderno, importação        |
 | `domain.ts`                           | `draftToSale`, `draftTotal`, `usageLabel`, linhas editáveis |
-| `voice-recorder.ts` / `.web.ts`       | Sem gravação no celular; MediaRecorder na web (60 s)        |
+| `voice-recorder.ts` / `.web.ts`       | expo-audio no celular; MediaRecorder na web (60 s)          |
 | `components/sale-voice-card.tsx`      | Texto/áudio, revisão, pagamento e registrar venda           |
 | `components/notebook-import-card.tsx` | Foto, revisão por linha e importação                        |
 | `app/assistant.tsx`                   | Tela                                                        |
@@ -88,3 +88,4 @@ confere antes de salvar.
 
 - 2026-09-28: criação. Sem biblioteca nova de áudio (evita build nativo novo): no celular,
   ditado do teclado; na web, MediaRecorder. Limites de uso por plano ficam na API.
+- 2026-09-29: gravação de áudio também no celular (expo-audio, permissão de microfone no app.config). Precisa de um build novo do app.

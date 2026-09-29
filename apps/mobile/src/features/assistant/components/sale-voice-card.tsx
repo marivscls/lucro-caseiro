@@ -2,7 +2,7 @@ import type { AssistantSaleDraft, PaymentMethod } from "@lucro-caseiro/contracts
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -160,20 +160,23 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
       }
       return;
     }
+    if (!voiceRecordingSupported) {
+      alertError(
+        "Este navegador não deixa gravar áudio aqui. Use o microfone do teclado ou escreva a venda.",
+      );
+      return;
+    }
     try {
       recorder.current = await startVoiceRecording();
       setRecording(true);
     } catch {
       alertError(
-        "Não consegui usar o microfone. Libere o acesso no navegador ou escreva a venda.",
+        "Não consegui usar o microfone. Libere o acesso ao microfone e tente de novo, ou escreva a venda.",
       );
     }
   }
 
-  const hint =
-    Platform.OS === "web"
-      ? "Escreva como você falaria, ou grave um áudio."
-      : "Toque no microfone do teclado e fale, ou escreva do seu jeito.";
+  const hint = "Escreva como você falaria, ou grave um áudio.";
 
   return (
     <Card variant="surface" padding="xl" style={{ gap: spacing.lg }}>
@@ -220,15 +223,13 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
             </View>
           ) : null}
           <FormActions stack>
-            {voiceRecordingSupported ? (
-              <Button
-                title={recording ? "Parar e anotar" : "Gravar áudio"}
-                variant="outline"
-                disabled={disabled || draftSale.isPending}
-                icon={<AppIcon name="mic-outline" size={20} color={palette.wine} />}
-                onPress={() => void toggleRecording()}
-              />
-            ) : null}
+            <Button
+              title={recording ? "Parar e anotar" : "Gravar áudio"}
+              variant="outline"
+              disabled={disabled || draftSale.isPending}
+              icon={<AppIcon name="mic-outline" size={20} color={palette.wine} />}
+              onPress={() => void toggleRecording()}
+            />
             <Button
               title="Montar venda"
               disabled={disabled || recording || text.trim().length < 3}
