@@ -78,6 +78,8 @@ export class GeminiAssistantAi implements IAssistantAi {
           output: Output.object({ schema }),
           abortSignal: AbortSignal.timeout(40_000),
           maxRetries: 0,
+          // Extrair uma venda não precisa de raciocínio; ele é cobrado como resposta.
+          providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
         });
         return result.output;
       } catch (error) {
