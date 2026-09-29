@@ -1,7 +1,7 @@
 import type { AssistantSaleDraft, PaymentMethod } from "@lucro-caseiro/contracts";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
@@ -130,7 +130,10 @@ function DraftReview({
 }
 
 /** Anotar uma venda falando (ou escrevendo do jeito que fala). */
-export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
+export function SaleVoiceCard({
+  disabled,
+  autoStart = false,
+}: Readonly<{ disabled: boolean; autoStart?: boolean }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const [text, setText] = useState("");
@@ -146,6 +149,14 @@ export function SaleVoiceCard({ disabled }: Readonly<{ disabled: boolean }>) {
       alertError(errorMessage(error));
     }
   }
+
+  // Vindo do "Falar" do Início: já começa a gravar (sem aviso se o aparelho não grava).
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!autoStart || disabled || autoStarted.current || !voiceRecordingSupported) return;
+    autoStarted.current = true;
+    void toggleRecording();
+  }, [autoStart, disabled]);
 
   async function toggleRecording() {
     if (recording) {

@@ -1,5 +1,5 @@
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 
 import { SaleVoiceCard } from "../features/assistant/components/sale-voice-card";
@@ -12,6 +12,7 @@ export default function AssistantScreen() {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const router = useRouter();
+  const { falar } = useLocalSearchParams<{ falar?: string }>();
   const { data: usage } = useAssistantUsage();
   const exhausted = usageExhausted(usage);
 
@@ -38,7 +39,7 @@ export default function AssistantScreen() {
         </Card>
       ) : null}
 
-      <SaleVoiceCard disabled={exhausted} />
+      <SaleVoiceCard disabled={exhausted} autoStart={falar === "1"} />
 
       <Typography variant="caption" color={theme.colors.textSecondary}>
         Sempre confira antes de salvar: a leitura automática pode errar um nome ou um

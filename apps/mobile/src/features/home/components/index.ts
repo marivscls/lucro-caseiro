@@ -10,3 +10,4 @@ export {
 export { HomePrimaryButton, HomeSection, QueryNotice, type Query } from "./parts";
 export { HomeNextIdeas, HomeReadyBanner, HomeStreakCard } from "./ready";
 export { HomeSetupSteps, HomeSetupTip } from "./setup";
+export { HomeVoiceEntry } from "./voice-entry";
