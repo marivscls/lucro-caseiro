@@ -26,9 +26,13 @@ export default function AssistantScreen() {
 
       {exhausted ? (
         <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
-          <Typography variant="h3">Você usou tudo deste mês</Typography>
+          <Typography variant="h3">
+            {usage?.trial ? "Seus usos de teste acabaram" : "Você usou tudo deste mês"}
+          </Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            No próximo mês os usos voltam. Nos planos pagos você anota muito mais vezes.
+            {usage?.trial
+              ? "Nos planos pagos você anota falando todo mês."
+              : "No dia 1º os usos voltam."}
           </Typography>
           <Button title="Ver planos" onPress={() => router.push("/plans")} />
         </Card>
