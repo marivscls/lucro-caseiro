@@ -7,6 +7,7 @@ import { Platform, View } from "react-native";
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { ChoiceField, FormField, TextField } from "../../../shared/components/form-field";
+import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
 import { FormActions } from "../../../shared/components/form-layout";
 import { showToast } from "../../../shared/components/toast";
 import { alertError, errorMessage } from "../../../shared/utils/alerts";
@@ -74,7 +75,7 @@ function DraftReview({
             >
               <View style={{ flex: 1 }}>
                 <Typography variant="bodyBold">
-                  {item.quantity}x {item.name}
+                  {item.quantity}x {displayIngredientName(item.name)}
                 </Typography>
                 {ready ? null : (
                   <Typography variant="caption" color={palette.rose}>
