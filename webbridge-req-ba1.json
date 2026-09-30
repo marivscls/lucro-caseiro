@@ -1,0 +1,7 @@
+{
+  "action": "evaluate",
+  "args": {
+    "code": "(()=>{const b=document.querySelector('button[aria-label=\"Enviar mensagem\"]');if(!b)return 'not found';b.click();return 'clicked'})()"
+  },
+  "session": "pousti-onboarding"
+}

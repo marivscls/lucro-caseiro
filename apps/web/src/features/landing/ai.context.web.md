@@ -129,3 +129,15 @@ Rota `/landing/calculadora` ganhou composição própria com o cabeçalho/rodap�
 - Planos importam preços e limites do contracts. Catálogo personalizado no Essencial/Profissional; mão de obra, rateio por produção e taxas manuais em todos os planos.
 - Guias revisados com exemplos fechados, diferença entre markup e margem, fontes e links relacionados.
 - `analytics-events.ts` diferencia exemplo inicial de resultado editado válido. Eventos sem valores financeiros; ID GA precisa ser configurado no build e validado na propriedade.
+
+## Revisão local da landing — 2026-09-30
+
+Promessa oferece preço ou venda como primeiro valor, com produção, revenda e serviços. CTAs sem rótulo explícito dizem o destino (navegador ou Google Play); sem JavaScript o destino inicial é o navegador, disponível em qualquer aparelho. IDs de analytics, atribuição e rotas são preservados. A calculadora explica antes dos links que não transfere valores para o app; aria-describedby liga ambos à explicação. Não há importação, mudança de autenticação, preço, API ou coleta adicional. Instagram oficial atualizado para @lucrocaseiroapp conforme confirmação da dona do produto. A jornada usa capturas reais de 04/09/2026 da conta de testes, identificadas como históricas, sem prometer a UI atual. Walkthrough em revisão fica fora da LP até aprovação visual; não representa execução atual de QA.
+
+## Calculadora pública — 2026-09-30
+
+Input textual com teclado decimal preserva vírgula/ponto e não descarta caracteres silenciosamente; valores ambíguos são inválidos. Modo lote divide materiais, embalagem e trabalho pela quantidade inteira positiva, mantendo rateio mensal por unidades do mês. Revenda usa preço de compra por item; serviço usa material e tempo por atendimento. Valor da hora vazio com tempo positivo produz resultado parcial identificado; zero deliberado avisa que o tempo não está remunerado. Nenhum valor vai para analytics ou API. Fórmulas compartilhadas e gross-up de taxas preservados.
+
+### Evidência de revisão — 30/09/2026
+
+14 testes unitários de landing aprovados; typecheck e lint direcionado sem erros após correção de tipos. Chromium local isolado (pt-BR, tráfego externo interceptado): 39 verificações de calculadora/responsividade e 14 cliques de CTA em desktop e Android por user-agent; isso não é Android real. Vírgula digitada sequencialmente, ponto, colagem de 1.234,56, saída do campo, erros/recuperação, hora ausente/zero, herança do exemplo e casos lote/revenda/serviço conferidos. Arquivos de evidência estão no workspace task-4 (browser-results.json, cta-click-results.json e capturas PNG). O cabeçalho móvel não cobre mais o início do resultado no atalho, por scroll-margin-top. Sem deploy, push ou novas contas. Vídeo permanece pendente, conforme prioridade da calculadora.

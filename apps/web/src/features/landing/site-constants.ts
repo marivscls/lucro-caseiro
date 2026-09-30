@@ -43,7 +43,7 @@ export const WHATSAPP_URL: string | null = null;
 
 /** Perfis oficiais. Só entram no rodapé quando o endereço for preenchido. */
 export const SOCIAL_LINKS: readonly { readonly name: string; readonly url: string }[] = [
-  { name: "Instagram", url: "https://www.instagram.com/lucrocaseiro.app/" },
+  { name: "Instagram", url: "https://www.instagram.com/lucrocaseiroapp/" },
 ];
 
 export const PUBLIC_PATHS = [

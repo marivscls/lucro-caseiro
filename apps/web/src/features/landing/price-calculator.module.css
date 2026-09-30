@@ -658,3 +658,34 @@
     padding: 24px;
   }
 }
+
+.calculationMode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.calculationMode label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.calculationMode input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--wine);
+}
+.calculationMode label:focus-within {
+  outline: 2px solid var(--wine);
+  outline-offset: 3px;
+}
+
+.resultColumn {
+  scroll-margin-top: 112px;
+}

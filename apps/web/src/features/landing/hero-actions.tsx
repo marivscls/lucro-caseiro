@@ -17,11 +17,13 @@ export function startDestinations(placement: string, browserFirst: boolean) {
     href: playStoreUrl(`play_store_${placement}`),
     analytics: `play_store_${placement}`,
     label: "ou baixe no Google Play",
+    primaryLabel: "Baixar grátis no Google Play",
   };
   const browser = {
     href: pwaUrl(`pwa_${placement}`),
     analytics: `pwa_${placement}`,
     label: "ou use no navegador, sem instalar",
+    primaryLabel: "Começar grátis no navegador",
   };
   return browserFirst
     ? { primary: browser, alternative: play }
@@ -29,8 +31,8 @@ export function startDestinations(placement: string, browserFirst: boolean) {
 }
 
 function useBrowserFirst(): boolean {
-  // Antes de hidratar (e para buscadores) o destino é a Play Store.
-  const [browserFirst, setBrowserFirst] = useState(false);
+  // Sem JavaScript, o app no navegador funciona em qualquer aparelho.
+  const [browserFirst, setBrowserFirst] = useState(true);
   useEffect(() => {
     setBrowserFirst(prefersBrowserApp(navigator.userAgent));
   }, []);
@@ -54,7 +56,7 @@ type StartCtaProps = {
  */
 export function StartCta({
   placement,
-  label = "Começar grátis",
+  label,
   buttonClassName = styles.primaryCta,
   alternativeClassName = styles.startAlternative,
   className = styles.startCta,
@@ -70,7 +72,7 @@ export function StartCta({
         href={primary.href}
         data-analytics={primary.analytics}
       >
-        {label}
+        {label ?? primary.primaryLabel}
         {children === undefined ? <ArrowRight aria-hidden="true" size={18} /> : children}
       </a>
       {showAlternative ? (

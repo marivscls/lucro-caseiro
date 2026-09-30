@@ -45,6 +45,14 @@ Usar segmentação por URL para campanhas, mantendo a página padrão para desco
 
 Não anunciar funções setoriais específicas que o app não possui. Categoria, suporte e política de privacidade permanecem compartilhados pela Play. Registrar os links finais após salvar cada página.
 
+### Ampliação solicitada em 28/09/2026
+
+As três páginas iniciais são recortes de campanha, não o limite de atuação do Lucro Caseiro. A página padrão continua descrevendo o produto para quem produz, vende ou presta serviços. Cinco novas páginas foram preparadas em [paginas-por-publico-novas.json](paginas-por-publico-novas.json): alimentação, beleza, costura, papelaria e comércio/revenda. Cada uma tem nome interno, título, descrição curta, introdução e parâmetro de URL próprios. Os textos devem ser seguidos pelo conteúdo comum da descrição completa, a partir de “CATÁLOGO ONLINE COM A SUA MARCA”, conforme [play-listing-diferenciais.json](play-listing-diferenciais.json), que explica os limites dos planos.
+
+**Execução:** as cinco páginas foram criadas na Play Console da ORIONSEVEN duplicando os recursos visuais da ficha padrão. Cada uma recebeu título, descrições e parâmetro de URL próprios. Foram configuradas para 100% de quem acessar o link específico, sem data de término. A Console confirmou a criação e exibiu todas como **Pronta para revisão**. Os IDs e links estão em [paginas-por-publico-novas.json](paginas-por-publico-novas.json).
+
+Na Visão geral da publicação, foram enviadas **8 mudanças para revisão**: os cinco idiomas pt-BR das novas páginas e três ajustes automáticos de prioridade das páginas existentes (Serviços para a posição 6, Artesanato para a 7 e Confeitaria para a 8). A Console mostrou **Alterações em análise** e verificações rápidas ainda em andamento. Publicação gerenciada permanece desativada. Os links novos não devem ser divulgados até que cada página apareça como **No ar**; a aprovação e a disponibilização dependem do Google.
+
 ## 4. Experimento de primeira imagem
 
 Hipótese: destacar o catálogo e a gestão do negócio na abertura aumenta a conversão em comparação com uma abertura centrada em precificação. O fator testado é a ordem da galeria: mover a captura existente de precificação para a primeira posição. Manter os mesmos sete arquivos, descrições, ícone, vídeo e capturas de tablet. Uma única variante; divisão equilibrada entre controle e variante.

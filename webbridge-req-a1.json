@@ -1,0 +1,5 @@
+{
+  "action": "find_tab",
+  "args": { "url": "pousti", "active": true },
+  "session": "pousti-onboarding"
+}

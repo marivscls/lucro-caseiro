@@ -22,7 +22,7 @@ export const metadata: Metadata = publicMetadata({
     siteName: "Lucro Caseiro",
     title: "Lucro Caseiro. Preço certo. Venda pronta.",
     description:
-      "Do custo à venda, sem chute e sem retrabalho. Comece grátis no Android.",
+      "Calcule um preço ou registre uma venda. Para produção, revenda e serviços. Comece grátis no navegador ou no Android.",
   },
   robots: { index: true, follow: true },
 });
@@ -34,7 +34,7 @@ export default async function Page() {
     "@type": "SoftwareApplication",
     name: "Lucro Caseiro",
     description:
-      "Aplicativo para calcular preços e organizar produtos, catálogo, vendas e finanças de quem produz ou vende, do trabalho autônomo a negócios estruturados.",
+      "Aplicativo para calcular preços e organizar produtos, catálogo, vendas e finanças de quem produz, revende ou presta serviços, do trabalho autônomo a negócios estruturados.",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Android, Web",
     url: SITE_URL,

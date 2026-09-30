@@ -1,0 +1,57 @@
+[
+  {
+    "slug": "alimentacao",
+    "referenceName": "Alimentação — custos e encomendas",
+    "title": "Lucro Caseiro: Alimentação",
+    "shortDescription": "Produtos, custos, encomendas e vendas para quem trabalha com alimentação.",
+    "introduction": "Organize a produção, os pedidos e o dinheiro do seu negócio de alimentação.\n\nCadastre produtos como marmitas e salgados, reúna ingredientes e embalagens para formar preços e apresente seus itens em um catálogo online. Acompanhe encomendas, vendas, pagamentos pendentes e despesas em um só lugar.",
+    "urlParameter": "alimentacao",
+    "consoleId": "4832782474345689995",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=alimentacao",
+    "status": "enviada para revisão; verificações automáticas em andamento"
+  },
+  {
+    "slug": "beleza",
+    "referenceName": "Beleza e estética — agenda e clientes",
+    "title": "Lucro Caseiro: Beleza",
+    "shortDescription": "Serviços, agenda, clientes e recebimentos para profissionais de beleza.",
+    "introduction": "Apresente seus serviços e cuide da rotina de atendimentos com mais clareza.\n\nOrganize seus serviços em um catálogo online, prepare orçamentos, acompanhe a agenda e mantenha o histórico dos clientes. Registre vendas, materiais usados no negócio, despesas e valores a receber para entender os resultados do seu trabalho.",
+    "urlParameter": "beleza",
+    "consoleId": "4834433198103441210",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=beleza",
+    "status": "enviada para revisão; verificações automáticas em andamento"
+  },
+  {
+    "slug": "costura",
+    "referenceName": "Costura e ateliês — pedidos e preços",
+    "title": "Lucro Caseiro: Costura",
+    "shortDescription": "Orçamentos, encomendas e custos para costureiras e ateliês.",
+    "introduction": "Cada ajuste ou peça sob medida tem materiais, prazo e valor próprios.\n\nCadastre seus serviços e peças, organize os custos de tecidos e aviamentos e prepare orçamentos para os clientes. Acompanhe encomendas na agenda, pagamentos pendentes, vendas e despesas do ateliê sem espalhar informações entre caderno e mensagens.",
+    "urlParameter": "costura",
+    "consoleId": "4835334450425178074",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=costura",
+    "status": "enviada para revisão; verificações automáticas em andamento"
+  },
+  {
+    "slug": "papelaria",
+    "referenceName": "Papelaria e personalizados — catálogo e pedidos",
+    "title": "Lucro Caseiro: Papelaria",
+    "shortDescription": "Catálogo, personalizados, pedidos e custos da sua papelaria.",
+    "introduction": "Mostre seus produtos e acompanhe cada pedido personalizado.\n\nMonte um catálogo online para compartilhar com clientes, cadastre materiais e embalagens usados nos produtos e prepare orçamentos. Organize encomendas por data, registre vendas e acompanhe recebimentos e despesas do seu negócio.",
+    "urlParameter": "papelaria",
+    "consoleId": "4836733715468081456",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=papelaria",
+    "status": "enviada para revisão; verificações automáticas em andamento"
+  },
+  {
+    "slug": "comercio",
+    "referenceName": "Comércio e revenda — catálogo e vendas",
+    "title": "Lucro Caseiro: Comércio",
+    "shortDescription": "Organize produtos, catálogo, vendas e dinheiro do seu comércio.",
+    "introduction": "Deixe seus produtos à vista e suas vendas sob controle.\n\nCadastre itens para venda ou revenda, apresente um catálogo online e compartilhe o link com clientes. Registre vendas, compras de fornecedores e despesas, acompanhe pagamentos pendentes e veja os resultados do período para decidir com mais clareza.",
+    "urlParameter": "comercio",
+    "consoleId": "4832966834931618035",
+    "url": "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&listing=comercio",
+    "status": "enviada para revisão; verificações automáticas em andamento"
+  }
+]

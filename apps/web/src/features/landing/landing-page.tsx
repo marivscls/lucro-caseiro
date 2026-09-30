@@ -40,7 +40,7 @@ const problems = [
   },
   {
     title: "Seu tempo fica de graça",
-    text: "Horas de produção entram no produto, mas muitas vezes não entram no preço.",
+    text: "Horas de produção ou atendimento muitas vezes ficam fora do preço.",
   },
   {
     title: "O dinheiro se mistura",
@@ -95,7 +95,10 @@ const featureTiles: readonly FeatureTile[] = [
 
 const audiences = [
   { name: "Confeitaria e doces", text: "Bolos, brigadeiros e encomendas de festa." },
-  { name: "Marmitas e salgados", text: "Produção do dia com custo de gás e embalagem." },
+  {
+    name: "Revenda e comércio",
+    text: "Preço de compra, estoque e vendas de roupas, presentes ou papelaria.",
+  },
   { name: "Artesanato e costura", text: "Peças com material e horas de trabalho." },
   { name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
 ] as const;
@@ -198,7 +201,7 @@ export const landingFaqs = [
   {
     question: "Serve só para confeitaria?",
     answer:
-      "Não. Ele atende quem produz, vende ou presta serviços: confeitaria, marmitas, salgados, artesanato, costura, beleza e muito mais, de quem trabalha por conta própria a negócios em crescimento.",
+      "Não. Ele atende quem produz, vende ou presta serviços: confeitaria, marmitas, artesanato, revenda, papelaria, beleza e outros serviços, de quem trabalha por conta própria a negócios em crescimento.",
   },
 ] as const;
 
@@ -262,8 +265,9 @@ export function LandingPage() {
                 </em>
               </h1>
               <p className={styles.heroText}>
-                Para quem produz, vende ou presta serviços. Some seus custos, valorize seu
-                trabalho e transforme a conta em produto, catálogo ou venda no mesmo app.
+                Para quem produz, revende ou presta serviços. Comece calculando um preço
+                ou registrando uma venda. Organize produtos, clientes e recebimentos
+                conforme precisar.
               </p>
               <HeroActions />
               <p className={styles.heroNote}>
@@ -363,11 +367,13 @@ export function LandingPage() {
         >
           <div className={styles.journeyStage}>
             <div className={styles.journeyCopy}>
-              <p className={styles.journeyKicker}>Do preço ao pedido</p>
+              <p className={styles.journeyKicker}>
+                Telas reais do aplicativo · capturas de 04/09/2026
+              </p>
               <h2 id="journey-title">
                 Do custo ao pedido.
                 <br />
-                Sem começar de novo.
+                No mesmo aplicativo.
               </h2>
               <div className={styles.journeyChapters}>
                 {[
@@ -417,12 +423,12 @@ export function LandingPage() {
                 },
                 {
                   src: "/landing/current-products.png",
-                  alt: "Produtos atuais do app com preço e estoque",
+                  alt: "Lista de produtos da conta de testes, com preço e estoque",
                   label: "Produto organizado",
                 },
                 {
                   src: "/landing/current-catalog.png",
-                  alt: "Catálogo atual do app pronto para compartilhar",
+                  alt: "Tela de catálogo da conta de testes, com link e botão para compartilhar",
                   label: "Vitrine pronta",
                 },
               ].map((screen, index) => (
@@ -590,8 +596,9 @@ export function LandingPage() {
               <em>Coloque isso no preço.</em>
             </h2>
             <p>
-              Comece grátis no celular ou no computador. Os primeiros {trialDays} dias têm
-              tudo do Essencial.
+              Calcule seu primeiro preço ou registre uma venda no app. Use no navegador ou
+              no Android, com {trialDays} dias do Essencial sem cartão. Depois, continue
+              no Gratuito ou escolha um plano.
             </p>
           </div>
           <StartCta

@@ -1,0 +1,7 @@
+{
+  "action": "evaluate",
+  "args": {
+    "code": "(async()=>{await new Promise(r=>setTimeout(r,9000));const m=document.querySelector('main');return JSON.stringify((m?m.innerText:document.body.innerText).slice(-1600))})()"
+  },
+  "session": "pousti-onboarding"
+}
