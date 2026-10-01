@@ -1,3 +1,4 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
 import { formatCurrency } from "../shared/utils/format";
 import {
   FilterChipRow,
@@ -741,6 +742,11 @@ function PackagingScreenContent() {
       edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="packaging"
+        hidden={showCreate}
+        onResume={() => setShowCreate(true)}
+      />
 
       {isDesktop ? (
         renderDesktop()

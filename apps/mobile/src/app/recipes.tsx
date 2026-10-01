@@ -1,3 +1,4 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
 import { useBusinessCopy } from "../features/subscription/business-copy";
 import { iconSizes, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
@@ -118,6 +119,11 @@ function RecipesContent() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="recipes"
+        hidden={modal.type !== "none"}
+        onResume={() => setModal({ type: "create" })}
+      />
 
       <View style={{ flex: 1, width: "100%", ...pageFrame }}>
         {isDesktop ? null : recipesHeader}

@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 import { create } from "zustand";
 
+import { clearCreateFormDrafts } from "../form-drafts/controller";
 import { supabase } from "../utils/supabase";
 import { withoutAuthParams } from "../utils/auth-url";
 import { getRecoveryLinkError } from "../utils/password-recovery";
@@ -558,6 +559,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    await clearCreateFormDrafts();
     const pushToken = get().token;
     if (Platform.OS === "web" && pushToken) {
       await stopBrowserPush(pushToken).catch(() => {});

@@ -1,3 +1,5 @@
+import { useCreateFormDraft } from "../../../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../../../shared/components/create-draft-recovery";
 import { Button } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 
@@ -27,8 +29,36 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     letter.toUpperCase(),
   );
   const draft = useRecipeDraft({ visible, requireCategory: true });
-  const { imageUri, showPicker } = useImagePicker();
+  const { imageUri, showPicker, clear: clearImage } = useImagePicker();
   const [uploading, setUploading] = useState(false);
+
+  const draftSession = useCreateFormDraft({
+    feature: "recipes",
+    enabled: visible,
+    snapshot: {
+      name: draft.name,
+      category: draft.category,
+      instructions: draft.instructions,
+      yieldQuantity: draft.yieldQuantity,
+      yieldUnit: draft.yieldUnit,
+      lines: draft.lines,
+      step: draft.step,
+    },
+    restore: (saved) => {
+      draft.setName(saved.name);
+      draft.setCategory(saved.category);
+      draft.setInstructions(saved.instructions);
+      draft.setYieldQuantity(saved.yieldQuantity);
+      draft.setYieldUnit(saved.yieldUnit);
+      draft.setLines(saved.lines);
+      draft.setStep(saved.step);
+    },
+    resetExtras: clearImage,
+  });
+  function closeDraft() {
+    draftSession.discard();
+    onClose();
+  }
 
   const createRecipe = useCreateRecipe();
   const { data: recipesData } = useRecipes();
@@ -88,6 +118,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
         title: `${formulaLabel} cadastrada!`,
         message: `${name} foi adicionada`,
       });
+      draftSession.discard();
       onSuccess?.();
     } catch (e) {
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
@@ -126,8 +157,8 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     <StandardModal
       title={`Nova ${experienceCopy.formulaNoun}`}
       size="form"
-      visible={visible}
-      onClose={onClose}
+      visible={visible && draftSession.ready}
+      onClose={closeDraft}
       footer={
         <FormActions>
           {draft.step > 1 ? (
@@ -142,13 +173,14 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
               title="Cancelar"
               variant="outline"
               disabled={loading}
-              onPress={onClose}
+              onPress={closeDraft}
             />
           )}
           {primaryAction}
         </FormActions>
       }
     >
+      <CreateDraftStatus hasPhoto {...draftSession} onClear={draftSession.discard} />
       <RecipeFormSteps draft={draft} imageUri={imageUri} onPickPhoto={showPicker} />
     </StandardModal>
   );

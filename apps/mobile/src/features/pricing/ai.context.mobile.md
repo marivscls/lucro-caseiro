@@ -122,3 +122,7 @@ Só no desktop; o celular continua com `FormStepProgress`, rodapé fixo e cabeç
 - Etapa 3: a coluna principal mostra "Quanto você quer ganhar?" e, abaixo, o `PricingSummary` completo, com simulação, composição e aplicar ou criar produto. A lateral mostra `PricingResultPreview`, com o preço sugerido (ou simulado), o ganho ou prejuízo e a margem, pelas mesmas contas do `PricingSummary` (`pricingQuote` e `evaluateSalePrice`).
 - No desktop, o rótulo do `PricingSummary` fica em caixa normal ("Preço sugerido por unidade").
 - Os seletores de produto, embalagem e filtro do histórico são `SelectField` que abrem um `StandardModal` com busca (`PricingPicker`). "Calcular sem produto" e os avisos de custo alterado têm a largura do texto no desktop.
+
+## Rascunho local — 2026-10-01
+
+Custos, ganho e etapa são persistidos localmente em pricing-draft:v1, vinculados à conta e ao contexto inicial. Recarregar restaura o rascunho. Trocar de conta ou sair limpa o rascunho. Dados inválidos são descartados; uma edição durante hidratação prevalece. Não há gravação automática no backend.

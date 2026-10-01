@@ -48,6 +48,7 @@ export function CreateSupplierForm({
 
     try {
       const created = await createSupplier.mutateAsync(data);
+      formRef.current?.discardDraft?.();
       onSuccess?.(created);
       showToast(`${created.name} foi adicionado à sua lista.`);
     } catch (error) {
@@ -63,12 +64,17 @@ export function CreateSupplierForm({
     }
   }
 
+  function closeDraft() {
+    formRef.current?.discardDraft?.();
+    modal.onClose();
+  }
+
   const isSubmitting = createSupplier.isPending || formSubmitting;
 
   return (
     <StandardModal
       visible={modal.visible}
-      onClose={modal.onClose}
+      onClose={closeDraft}
       title="Novo fornecedor"
       size="form"
       closeAccessibilityLabel="Fechar formulário"
@@ -79,7 +85,7 @@ export function CreateSupplierForm({
             title="Cancelar"
             variant="outline"
             disabled={isSubmitting}
-            onPress={modal.onClose}
+            onPress={closeDraft}
           />
           <Button
             title="Cadastrar fornecedor"
@@ -93,6 +99,7 @@ export function CreateSupplierForm({
     >
       <SupplierForm
         ref={formRef}
+        draftVisible={modal.visible}
         onSubmit={submit}
         disabled={isSubmitting}
         onSubmittingChange={setFormSubmitting}

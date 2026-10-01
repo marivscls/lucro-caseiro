@@ -1,3 +1,4 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
 import type { Material } from "@lucro-caseiro/contracts";
 import {
   CenteredTextInput,
@@ -848,6 +849,11 @@ function MaterialsScreenContent() {
       edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="materials"
+        hidden={showCreate}
+        onResume={() => setShowCreate(true)}
+      />
       <ScreenHeader
         guidance={{
           area: "materials",

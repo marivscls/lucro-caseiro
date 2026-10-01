@@ -199,3 +199,7 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 - Agenda vazia e dia sem encomenda: cartão tracejado (`AgendaDesktopEmpty`) na coluna.
 - `agendaStripDays`, `agendaDayCountLabel` e `agendaTimelineSlots` são puras e testadas
   em `domain.test.ts`.
+
+## Linguagem da agenda — 2026-10-01
+
+A ação de adicionar, o vazio e o formulário usam o nome da atividade do segmento. Selecionar serviço usa atendimento; o exemplo vem do segmento ou serviço escolhido. Não muda datas, preços, pagamentos ou notificações.

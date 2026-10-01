@@ -1305,10 +1305,12 @@ function AgendaContent() {
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error, refetch } = useOrders();
   const guidanceCopy = useBusinessCopy();
-  const createOrderLabel =
-    guidanceCopy.orderNoun === "encomenda"
-      ? "Nova encomenda"
-      : `Novo ${guidanceCopy.orderNoun}`;
+  const createOrderLabel = `Adicionar ${guidanceCopy.orderNoun}`;
+  const agendaArticle = guidanceCopy.orderNoun === "encomenda" ? "uma" : "um";
+  const agendaEmptyDescription =
+    guidanceCopy.orderNoun === "atendimento"
+      ? "Adicione um atendimento com data e horário para começar a organizar sua agenda."
+      : `Adicione ${agendaArticle} ${guidanceCopy.orderNoun} com a data combinada para começar a organizar sua agenda.`;
   const [showCreate, setShowCreate] = useState(false);
   const [showDayFilter, setShowDayFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -1368,7 +1370,7 @@ function AgendaContent() {
         <ScrollView contentContainerStyle={desktopPageContent(true)}>
           <AgendaDesktopEmpty
             title="Sua agenda está vazia"
-            description="Cadastre uma encomenda com data de entrega para começar a se organizar."
+            description={agendaEmptyDescription}
             actionLabel={createOrderLabel}
             onAction={() => setShowCreate(true)}
           />
@@ -1379,7 +1381,7 @@ function AgendaContent() {
       return (
         <EmptyState
           title="Sua agenda está vazia"
-          description="Cadastre uma encomenda com data de entrega para começar a se organizar."
+          description={agendaEmptyDescription}
           action={<Button title={createOrderLabel} onPress={() => setShowCreate(true)} />}
           style={
             nativeMobile
@@ -1416,6 +1418,8 @@ function AgendaContent() {
       <ScreenHeader
         guidance={{
           area: "agenda",
+          actionLabel: createOrderLabel,
+          title: `Organize ${guidanceCopy.orderNounPlural}`,
           onStart: () => setShowCreate(true),
           hasRecords: (orders?.length ?? 0) > 0,
           loading: isLoading || !!error,

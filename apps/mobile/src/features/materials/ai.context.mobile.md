@@ -156,3 +156,7 @@ no celular a tela é a mesma de antes.
   selecionados em `desktopMetric`, o botão que marca ou desmarca a lista inteira, "Compartilhar lista" e
   "Copiar lista". "Estoque em dia" vira um cartão tracejado em linha, não mais um texto
   solto no centro da tela.
+
+## Retomada de cadastro - 2026-10-01
+
+O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.

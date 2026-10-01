@@ -1,3 +1,5 @@
+import { useCreateFormDraft } from "../../../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../../../shared/components/create-draft-recovery";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { CreateQuote, Product, Quote, QuoteItem } from "@lucro-caseiro/contracts";
 import { Button, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
@@ -167,6 +169,41 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
   useEffect(() => {
     if (visible) setFormStep(1);
   }, [quote?.id, visible]);
+  const draftSession = useCreateFormDraft({
+    feature: "quotes",
+    enabled: visible && !quote,
+    snapshot: {
+      title,
+      clientId,
+      clientName,
+      validUntil,
+      notes,
+      discountType,
+      discountValue,
+      items,
+      formStep,
+    },
+    restore: (saved) => {
+      setTitle(saved.title);
+      setClientId(saved.clientId);
+      setClientName(saved.clientName);
+      setValidUntil(saved.validUntil);
+      setNotes(saved.notes);
+      setDiscountType(saved.discountType);
+      setDiscountValue(saved.discountValue);
+      setItems(saved.items);
+      setFormStep(saved.formStep);
+    },
+    resetExtras: () => {
+      setReviewData(null);
+      setShowClientPicker(false);
+      setShowProductPicker(false);
+    },
+  });
+  function closeDraft() {
+    draftSession.discard();
+    onClose();
+  }
 
   function setItem(index: number, patch: Partial<ItemDraft>) {
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
@@ -301,6 +338,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
       }
       showToast(quote ? "Orçamento atualizado!" : "Orçamento criado!");
       setReviewData(null);
+      draftSession.discard();
       onSuccess?.();
     } catch (err) {
       const message =
@@ -328,8 +366,8 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
     <>
       <StandardModal
         title={quote ? "Editar orçamento" : "Novo orçamento"}
-        visible={visible && reviewData === null}
-        onClose={onClose}
+        visible={visible && draftSession.ready && reviewData === null}
+        onClose={closeDraft}
         size="form"
         footer={
           <FormActions>
@@ -340,7 +378,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                 onPress={() => setFormStep(formStep - 1)}
               />
             ) : (
-              <Button title="Cancelar" variant="outline" onPress={onClose} />
+              <Button title="Cancelar" variant="outline" onPress={closeDraft} />
             )}
             {formStep < QUOTE_FORM_STEPS.length ? (
               <Button title="Continuar" onPress={goToNextStep} />
@@ -350,6 +388,11 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
           </FormActions>
         }
       >
+        <CreateDraftStatus
+          enabled={!quote}
+          {...draftSession}
+          onClear={draftSession.discard}
+        />
         <FormStepProgress
           current={formStep}
           steps={QUOTE_FORM_STEPS}

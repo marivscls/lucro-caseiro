@@ -18,6 +18,7 @@ import {
   useRecipeDraft,
 } from "./recipe-form-fields";
 import { emptyLine } from "./recipe-materials-editor";
+import { formatRecipeQuantity } from "../domain";
 import { alertError } from "../../../shared/utils/alerts";
 
 interface EditRecipeFormProps {
@@ -44,13 +45,13 @@ export function EditRecipeForm({
       name: recipe.name,
       category: recipe.category,
       instructions: recipe.instructions ?? "",
-      yieldQuantity: String(recipe.yieldQuantity),
+      yieldQuantity: formatRecipeQuantity(recipe.yieldQuantity),
       yieldUnit: recipe.yieldUnit,
       lines:
         recipe.ingredients.length > 0
           ? recipe.ingredients.map((line) => ({
               materialId: line.materialId,
-              quantity: String(line.quantity),
+              quantity: formatRecipeQuantity(line.quantity),
               unit: line.unit,
             }))
           : [emptyLine()],

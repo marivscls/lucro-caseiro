@@ -1,5 +1,5 @@
 import React from "react";
-import { View, type PressableProps, type ViewStyle } from "react-native";
+import { View, type PressableProps, type StyleProp, type ViewStyle } from "react-native";
 
 import { PressableScale } from "./pressable-scale";
 import { useTheme } from "../theme-context";
@@ -9,7 +9,7 @@ interface CardProps {
   children: React.ReactNode;
   onPress?: PressableProps["onPress"];
   variant?: "surface" | "elevated" | "transparent";
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padding?: keyof typeof spacing;
   /**
    * Elevacao opcional via tokens (`theme.shadows`). Padrao: nenhuma — o app
@@ -45,16 +45,19 @@ export function Card({
       ? { borderWidth: 1, borderColor: theme.colors.border }
       : null),
     ...(shadow ? theme.shadows[shadow] : null),
-    ...style,
   };
 
   if (onPress) {
     return (
-      <PressableScale accessibilityRole="button" onPress={onPress} style={cardStyle}>
+      <PressableScale
+        accessibilityRole="button"
+        onPress={onPress}
+        style={[cardStyle, style]}
+      >
         {children}
       </PressableScale>
     );
   }
 
-  return <View style={cardStyle}>{children}</View>;
+  return <View style={[cardStyle, style]}>{children}</View>;
 }

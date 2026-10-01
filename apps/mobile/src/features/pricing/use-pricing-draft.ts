@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from "react";
-import { create } from "zustand";
+import { asyncStorage } from "../../shared/utils/async-storage";
+import { createPricingDraftSession } from "./pricing-draft-session";
 import { MAX_MONEY } from "@lucro-caseiro/contracts";
 import type {
   CreatePricing,
@@ -51,10 +52,13 @@ export const decimalValue = (text: string) =>
   text.trim() ? Number(text.replace(",", ".")) : 0;
 export const moneyValue = (text: string) => (text.trim() ? parseCurrencyInput(text) : 0);
 
-// In-memory only. A distinct account/import key never sees another draft.
-const useDraftSession = create<{ key: string | null; draft: PricingDraft | null }>(
-  () => ({ key: null, draft: null }),
-);
+const useDraftSession = createPricingDraftSession(asyncStorage);
+
+/** Called with the existing cache cleanup when signing out or changing account. */
+export function clearPricingDraft() {
+  useDraftSession.setState({ key: null, draft: null, step: 1 });
+  useDraftSession.persist.clearStorage();
+}
 
 export function usePricingDraft(initialCost?: number, sessionKey = "pricing") {
   const initial = useMemo<PricingDraft>(
@@ -71,17 +75,35 @@ export function usePricingDraft(initialCost?: number, sessionKey = "pricing") {
   const hasSession = session.key === sessionKey && session.draft != null;
   const draft = hasSession ? session.draft! : initial;
   const update = useCallback(
-    (patch: Partial<PricingDraft>) =>
+    (patch: Partial<PricingDraft>) => {
       useDraftSession.setState((current) => ({
         key: sessionKey,
+        step: current.key === sessionKey ? current.step : 1,
         draft: {
           ...(current.key === sessionKey ? (current.draft ?? initial) : initial),
           ...patch,
         },
-      })),
+      }));
+    },
     [sessionKey, initial],
   );
-  return { draft, update, hasSession, reset: () => update({ ...emptyDraft }) };
+  const updateStep = useCallback(
+    (step: PricingStep) => {
+      const current = useDraftSession.getState();
+      if (current.key !== sessionKey || current.step === step) return;
+      useDraftSession.setState({ step });
+    },
+    [sessionKey],
+  );
+  return {
+    draft,
+    update,
+    hasSession,
+    updateStep,
+    savedStep: hasSession ? session.step : 1,
+    hydrated: session.hydrated,
+    reset: () => update({ ...emptyDraft }),
+  };
 }
 
 export function draftForProduct(

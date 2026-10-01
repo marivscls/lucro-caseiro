@@ -242,3 +242,7 @@ Só no desktop (`useDesktopLayout()`); o celular não muda. Peças em `component
 - Lista em `DesktopGrid` (220px mínimo, até 4 colunas) com `DesktopProductTile`: foto ou inicial, selo de kit, nome, categoria, preço e estoque ("18 em estoque", "Estoque baixo" e "Sem estoque" em alerta, seguindo `getStockBadge`). O cartão inteiro abre o detalhe.
 - O título da lista acompanha o filtro de tipo ou o "Para repor", com a contagem.
 - Estados vazio, sem resultado e erro usam `DesktopEmptyCard` (`shared/layout/desktop-kit.tsx`), um cartão tracejado com a ação ("Cadastrar produto", "Limpar busca e filtros", "Tentar novamente").
+
+## Recuperação de lista — 2026-10-01
+
+O Card compartilhado aceita StyleProp e compõe arrays sem espalhá-los em objeto CSS. Isso preserva o estado de erro e Tentar novamente quando FlatList clona o componente vazio. Validado com GET /products 500 simulado; não indica incidente real de backend.

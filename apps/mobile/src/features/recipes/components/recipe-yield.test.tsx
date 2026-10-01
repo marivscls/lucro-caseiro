@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Recipe } from "@lucro-caseiro/contracts";
 import { EditRecipeForm } from "./edit-recipe-form";
+import { RecipeDetail } from "./recipe-detail";
 
 vi.mock("react-native", async () => vi.importActual("react-native-web"));
 vi.mock("../../../../../../packages/ui/src/use-reduced-motion", () => ({
@@ -33,9 +34,24 @@ vi.mock("../../../shared/components/standard-modal", () => ({
 vi.mock("../hooks", () => ({
   useUpdateRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
   useDeleteRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
+  useRecipe: () => ({ data: fractionalRecipe, isLoading: false }),
+  useDuplicateRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
+  useScaleRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
 }));
 vi.mock("../../materials/hooks", () => ({
-  useMaterials: () => ({ data: { items: [] } }),
+  useMaterials: () => ({
+    data: {
+      items: [
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          name: "Farinha",
+          unit: "kg",
+          costPerUnit: 4.5,
+          stockQuantity: 1,
+        },
+      ],
+    },
+  }),
 }));
 vi.mock("../../../shared/utils/alerts", () => ({
   alertValidation: vi.fn(),
@@ -58,6 +74,23 @@ const recipe: Recipe = {
 };
 
 afterEach(cleanup);
+const fractionalRecipe: Recipe = {
+  ...recipe,
+  yieldQuantity: 1.5,
+  yieldUnit: "kg",
+  totalCost: 2.25,
+  costPerUnit: 1.5,
+  ingredients: [
+    {
+      materialId: recipe.id,
+      materialName: "Farinha",
+      materialCostPerUnit: 4.5,
+      quantity: 0.5,
+      unit: "kg",
+      cost: 2.25,
+    },
+  ],
+};
 
 function render(ui: React.ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -65,6 +98,22 @@ function render(ui: React.ReactNode) {
 }
 
 describe("recipe yield step", () => {
+  it("reopens fractional yield and ingredient quantities with Brazilian decimals", () => {
+    render(
+      <EditRecipeForm recipe={fractionalRecipe} visible onClose={() => undefined} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(screen.getByPlaceholderText<HTMLInputElement>("Ex: 30 ou 1,5").value).toBe(
+      "1,5",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(screen.getByPlaceholderText<HTMLInputElement>("Ex: 2").value).toBe("0,5");
+  });
+  it("shows fractional yield and ingredients with commas in the recipe detail", () => {
+    render(<RecipeDetail recipeId={recipe.id} />);
+    expect(screen.getByText("Rende: 1,5 kg")).toBeTruthy();
+    expect(screen.getByText("0,5 kg")).toBeTruthy();
+  });
   it("blocks words in the actual recipe field", () => {
     render(<EditRecipeForm recipe={recipe} visible onClose={() => undefined} />);
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));

@@ -175,3 +175,7 @@ Só no desktop; o celular não muda. Peças em `components/packaging-desktop.tsx
 - `DesktopPackagingToolbar`: busca de largura total e os filtros de tipo da fileira principal e os extras (Rótulo e Outro) na mesma linha, sem o botão "Filtros".
 - `DesktopPackagingTable` mostra embalagem (avatar e nome), tipo (ponto na cor da faixa), fornecedor ("Não informado" quando vazio) e custo unitário, com o menu "⋮" (Editar ou Excluir embalagem, igual ao cartão). A linha abre o detalhe.
 - Os estados vazio, sem resultado e erro usam um cartão tracejado com a ação.
+
+## Retomada de cadastro - 2026-10-01
+
+O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.

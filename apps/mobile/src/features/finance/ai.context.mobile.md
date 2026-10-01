@@ -184,3 +184,7 @@ que não mudou (tudo atrás de `useDesktopLayout`).
   `DesktopSegmented`, `DesktopSearchField`, `DesktopEmptyCard` e `DesktopTag` vêm de
   `shared/layout/desktop-kit.tsx`.
 - Textos de exibição dos lançamentos ficaram puros em `entry-display.ts` (com teste).
+
+## Retomada de cadastro - 2026-10-01
+
+O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.

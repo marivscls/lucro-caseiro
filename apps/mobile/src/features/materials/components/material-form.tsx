@@ -1,3 +1,5 @@
+import { useCreateFormDraft } from "../../../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../../../shared/components/create-draft-recovery";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Material } from "@lucro-caseiro/contracts";
 import { Button, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
@@ -239,6 +241,39 @@ export function MaterialForm({
     material?.supplierId ?? null,
   );
 
+  const draftSession = useCreateFormDraft({
+    feature: "materials",
+    enabled: visible && !material,
+    snapshot: {
+      name,
+      unit,
+      stock,
+      alertThreshold,
+      cost,
+      contentPerUnit,
+      contentUnit,
+      notes,
+      icon,
+      supplierId,
+    },
+    restore: (saved) => {
+      setName(saved.name);
+      setUnit(saved.unit);
+      setStock(saved.stock);
+      setAlertThreshold(saved.alertThreshold);
+      setCost(saved.cost);
+      setContentPerUnit(saved.contentPerUnit);
+      setContentUnit(saved.contentUnit);
+      setNotes(saved.notes);
+      setIcon(saved.icon);
+      setSupplierId(saved.supplierId);
+    },
+  });
+  function closeDraft() {
+    draftSession.discard();
+    onClose();
+  }
+
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
   const deleteMaterial = useDeleteMaterial();
@@ -313,6 +348,7 @@ export function MaterialForm({
         const created = await createMaterial.mutateAsync(data);
         onCreated?.(created);
       }
+      draftSession.discard();
       onSuccess?.();
     } catch (e: unknown) {
       if (e instanceof Error) {
@@ -357,15 +393,15 @@ export function MaterialForm({
           : `Cadastre um ${experienceCopy.materialNoun} para controlar custos e usar na ${experienceCopy.formulaNoun}.`
       }
       size="form"
-      visible={visible}
-      onClose={onClose}
+      visible={visible && draftSession.ready}
+      onClose={closeDraft}
       footer={
         <FormActions>
           <Button
             title="Cancelar"
             variant="outline"
             disabled={saving}
-            onPress={onClose}
+            onPress={closeDraft}
           />
           <Button
             title={
@@ -379,6 +415,11 @@ export function MaterialForm({
         </FormActions>
       }
     >
+      <CreateDraftStatus
+        enabled={!isEditing}
+        {...draftSession}
+        onClear={draftSession.discard}
+      />
       <FormBody>
         <FormGrid>
           {isEditing ? (

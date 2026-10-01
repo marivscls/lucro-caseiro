@@ -1,3 +1,5 @@
+import { useCreateFormDraft } from "../../../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../../../shared/components/create-draft-recovery";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
@@ -143,6 +145,22 @@ export function PackagingForm({
     packaging?.supplierId ?? null,
   );
 
+  const draftSession = useCreateFormDraft({
+    feature: "packaging",
+    enabled: visible && !isEditing,
+    snapshot: { name, type, unitCost, supplierId },
+    restore: (saved) => {
+      setName(saved.name);
+      setType(saved.type);
+      setUnitCost(saved.unitCost);
+      setSupplierId(saved.supplierId);
+    },
+  });
+  function closeDraft() {
+    draftSession.discard();
+    onClose();
+  }
+
   const createPackaging = useCreatePackaging();
   const updatePackaging = useUpdatePackaging();
   const { data: matchingPackaging, refetch: refetchMatchingPackaging } = usePackagingList(
@@ -194,6 +212,7 @@ export function PackagingForm({
       } else {
         await createPackaging.mutateAsync(data);
       }
+      draftSession.discard();
       onSuccess?.();
     } catch (e: unknown) {
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
@@ -212,15 +231,18 @@ export function PackagingForm({
         isEditing ? undefined : "Cadastre uma embalagem para usar nos seus produtos."
       }
       size="form"
-      visible={visible}
-      onClose={onClose}
+      visible={visible && draftSession.ready}
+      onClose={closeDraft}
       footer={
         <FormActions>
           <Button
             title="Cancelar"
             variant="outline"
             disabled={saving}
-            onPress={() => (onCancel ?? onClose)()}
+            onPress={() => {
+              draftSession.discard();
+              (onCancel ?? onClose)();
+            }}
           />
           <Button
             title={isEditing ? "Salvar alterações" : "Cadastrar embalagem"}
@@ -232,6 +254,11 @@ export function PackagingForm({
         </FormActions>
       }
     >
+      <CreateDraftStatus
+        enabled={!isEditing}
+        {...draftSession}
+        onClear={draftSession.discard}
+      />
       <FormBody>
         <FormGrid>
           {isEditing ? (

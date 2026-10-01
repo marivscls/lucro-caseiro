@@ -673,14 +673,22 @@ export function OrderForm({
     );
   }
 
-  let modalTitle = isEditing
-    ? `Editar ${experienceCopy.orderNoun}`
-    : `Adicionar ${experienceCopy.orderNoun}`;
+  const agendaNoun =
+    isAppointment || serviceId ? "atendimento" : experienceCopy.orderNoun;
+  const agendaNameLabel = `Nome ${agendaNoun === "encomenda" ? "da" : "do"} ${agendaNoun}`;
+  const formSteps = [
+    {
+      label: agendaNoun.replace(/^./, (letter) => letter.toUpperCase()),
+      title: `${agendaNoun.replace(/^./, (letter) => letter.toUpperCase())}, serviço e cliente`,
+    },
+    ...ORDER_FORM_STEPS.slice(1),
+  ];
+  let modalTitle = isEditing ? `Editar ${agendaNoun}` : `Adicionar ${agendaNoun}`;
   if (isAppointment) {
-    modalTitle = isEditing ? "Editar atendimento" : "Novo atendimento";
+    modalTitle = isEditing ? "Editar atendimento" : "Adicionar atendimento";
   }
 
-  let saveLabel = `Salvar ${experienceCopy.orderNoun}`;
+  let saveLabel = `Salvar ${agendaNoun}`;
   if (isAppointment) saveLabel = "Salvar atendimento";
   if (uploading) saveLabel = "Enviando imagem...";
 
@@ -920,7 +928,7 @@ export function OrderForm({
       subtitle={
         isAppointment
           ? "Organize cliente, horário, local e valores"
-          : "Organize cliente, atendimento, prazo e valores em um só lugar"
+          : `Organize cliente, ${agendaNoun}, prazo e valores em um só lugar`
       }
       visible={visible}
       onClose={onClose}
@@ -942,11 +950,7 @@ export function OrderForm({
         </FormActions>
       }
     >
-      <FormStepProgress
-        current={formStep}
-        steps={ORDER_FORM_STEPS}
-        onStepPress={setFormStep}
-      />
+      <FormStepProgress current={formStep} steps={formSteps} onStepPress={setFormStep} />
 
       <View {...stepProps(1)}>
         <FormBody>
@@ -958,11 +962,14 @@ export function OrderForm({
           ) : (
             <>
               <FormGrid>
-                <FormField label="O que é?" validation={stepOneValidation.field("title")}>
+                <FormField
+                  label={agendaNameLabel}
+                  validation={stepOneValidation.field("title")}
+                >
                   <TextField
                     icon="cube-outline"
-                    placeholder={`Ex: ${experienceCopy.productExample}`}
-                    accessibilityLabel="Nome da encomenda"
+                    placeholder={`Ex: ${selectedService?.name ?? experienceCopy.productExample}`}
+                    accessibilityLabel={agendaNameLabel}
                     value={title}
                     onChangeText={setTitle}
                     autoFocus={!isEditing}

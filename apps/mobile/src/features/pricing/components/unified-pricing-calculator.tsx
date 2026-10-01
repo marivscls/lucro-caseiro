@@ -71,16 +71,27 @@ export function UnifiedPricingCalculator({
   const professional =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedPricing");
   const userId = useAuth((state) => state.userId);
-  const { draft, update, reset, hasSession } = usePricingDraft(
+  const sessionKey = JSON.stringify([
+    userId,
     initialIngredientCost,
-    JSON.stringify([
-      userId,
-      initialIngredientCost,
-      initialProductId,
-      initialProduct?.name,
-      initialProduct?.category,
-    ]),
-  );
+    initialProductId,
+    initialProduct?.name,
+    initialProduct?.category,
+  ]);
+  const { draft, update, reset, hasSession, hydrated, savedStep, updateStep } =
+    usePricingDraft(initialIngredientCost, sessionKey);
+  const restoredSession = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (restoredSession.current !== sessionKey) {
+      restoredSession.current = sessionKey;
+      if (hasSession) {
+        onStepChange(savedStep);
+        return;
+      }
+    }
+    updateStep(step);
+  }, [hydrated, sessionKey, hasSession, savedStep, step, updateStep, onStepChange]);
   const save = useCalculatePricing(true);
   const apply = useUpdateProduct();
   const queryClient = useQueryClient();
@@ -162,6 +173,7 @@ export function UnifiedPricingCalculator({
   }
   useEffect(() => {
     if (
+      hydrated &&
       !initialLoaded.current &&
       !hasSession &&
       initialProductId &&
@@ -180,7 +192,7 @@ export function UnifiedPricingCalculator({
           ),
         );
     }
-  }, [initialProductId, sources.data, profile, update, hasSession]);
+  }, [hydrated, initialProductId, sources.data, profile, update, hasSession]);
 
   const formValidation = useFormValidation({
     ingredient:

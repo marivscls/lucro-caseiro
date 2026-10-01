@@ -1,3 +1,6 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
+import { useCreateFormDraft } from "../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../shared/components/create-draft-recovery";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { ScreenGuidance } from "../shared/guidance/screen-guidance";
@@ -245,6 +248,11 @@ export default function RecurringExpensesScreen() {
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="recurring"
+        hidden={showForm || !canUseRecurringExpenses}
+        onResume={handleAddPress}
+      />
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
 
       <View style={styles.screen}>
@@ -688,6 +696,22 @@ function RecurringFormModal({
   const [amount, setAmount] = useState(item ? moneyInputValue(item.amount) : "");
   const [category, setCategory] = useState<ExpenseCategory>(item?.category ?? "utility");
   const [day, setDay] = useState(item ? String(item.dayOfMonth) : "");
+  const draftSession = useCreateFormDraft({
+    feature: "recurring",
+    enabled: !isEditing,
+    snapshot: { description, amount, category, day },
+    restore: (saved) => {
+      setDescription(saved.description);
+      setAmount(saved.amount);
+      setCategory(saved.category);
+      setDay(saved.day);
+    },
+  });
+  function closeDraft() {
+    draftSession.discard();
+    onClose();
+  }
+
   const parsedDay = Number.parseInt(day, 10);
   const validDay = !Number.isNaN(parsedDay) && parsedDay >= 1 && parsedDay <= 28;
   const categories = CATEGORIES.map((categoryOption) => {
@@ -733,6 +757,7 @@ function RecurringFormModal({
         throw new Error("A API não confirmou o gasto fixo enviado.");
       }
       showToast(item ? "Gasto fixo atualizado!" : "Gasto fixo cadastrado!");
+      draftSession.discard();
       onSaved?.(saved);
       onClose();
     } catch (error) {
@@ -750,8 +775,8 @@ function RecurringFormModal({
 
   return (
     <StandardModal
-      visible
-      onClose={onClose}
+      visible={draftSession.ready}
+      onClose={closeDraft}
       dismissDisabled={isSaving}
       size="form"
       title={isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
@@ -766,7 +791,7 @@ function RecurringFormModal({
             title="Cancelar"
             variant="outline"
             disabled={isSaving}
-            onPress={onClose}
+            onPress={closeDraft}
           />
           <Button
             loading={isSaving}
@@ -776,6 +801,11 @@ function RecurringFormModal({
         </FormActions>
       }
     >
+      <CreateDraftStatus
+        enabled={!isEditing}
+        {...draftSession}
+        onClear={draftSession.discard}
+      />
       <FormBody>
         <FormGrid>
           <FormField

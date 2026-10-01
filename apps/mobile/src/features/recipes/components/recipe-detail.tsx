@@ -1,4 +1,5 @@
 import { formatCurrency } from "../../../shared/utils/format";
+import { formatRecipeQuantity } from "../domain";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { ChipChoiceField, FormField } from "../../../shared/components/form-field";
@@ -144,7 +145,7 @@ export function RecipeDetail({
       <FormSection
         collapsible={false}
         title={materialsLabel}
-        subtitle={`Rende: ${displayRecipe.yieldQuantity} ${displayRecipe.yieldUnit}`}
+        subtitle={`Rende: ${formatRecipeQuantity(displayRecipe.yieldQuantity)} ${displayRecipe.yieldUnit}`}
       >
         <Card
           style={{
@@ -214,7 +215,7 @@ export function RecipeDetail({
                   color={theme.colors.textSecondary}
                   style={{ flex: 1, textAlign: "center" }}
                 >
-                  {ing.quantity} {ing.unit}
+                  {formatRecipeQuantity(ing.quantity)} {ing.unit}
                 </Typography>
                 <Typography
                   variant="body"

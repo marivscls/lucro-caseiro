@@ -225,3 +225,7 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 - 2026-09-24: no desktop, a prévia da etiqueta fica na lateral em todas as etapas
   (não só no acabamento). Validade/fabricação e nome/telefone ficam em duas colunas
   (`DesktopFormGrid`), e o selo "Profissional" usa `DesktopTag` (14 px).
+
+## Retomada de cadastro - 2026-10-01
+
+O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.

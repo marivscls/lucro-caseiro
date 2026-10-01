@@ -1,3 +1,4 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { hasActiveFeature, type Label, type LabelData } from "@lucro-caseiro/contracts";
 import {
@@ -1012,6 +1013,11 @@ export default function LabelsScreen() {
       edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="labels"
+        hidden={showCreate}
+        onResume={() => setShowCreate(true)}
+      />
       <ScreenHeader
         guidance={{
           area: "labels",

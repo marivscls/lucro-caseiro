@@ -1,3 +1,5 @@
+import { useCreateFormDraft } from "../../../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../../../shared/components/create-draft-recovery";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type {
   CreateSupplier,
@@ -37,10 +39,14 @@ import { SupplierIllustration } from "./supplier-illustration";
 
 type SubmitData = CreateSupplier;
 
-export type SupplierFormHandle = { submit: () => Promise<void> };
+export type SupplierFormHandle = {
+  submit: () => Promise<void>;
+  discardDraft: () => void;
+};
 
 type SupplierFormProps = Readonly<{
   supplier?: Supplier;
+  draftVisible?: boolean;
   onSubmit: (data: SubmitData) => Promise<void>;
   disabled?: boolean;
   onSubmittingChange?: (submitting: boolean) => void;
@@ -118,7 +124,7 @@ function WhatsAppToggle({
 
 export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormProps>(
   function SupplierForm(
-    { supplier, onSubmit, disabled = false, onSubmittingChange },
+    { supplier, onSubmit, disabled = false, onSubmittingChange, draftVisible = false },
     ref,
   ) {
     const { theme } = useTheme();
@@ -152,6 +158,36 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
     const submitLock = React.useRef(false);
     const localObjectUrl = React.useRef<string | null>(null);
 
+    const draftSession = useCreateFormDraft({
+      feature: "suppliers",
+      enabled: draftVisible && !supplier,
+      snapshot: {
+        name,
+        category,
+        phone,
+        hasWhatsApp,
+        email,
+        address,
+        purchaseDescription,
+        isPreferred,
+        avatarPresetId,
+      },
+      restore: (saved) => {
+        setName(saved.name);
+        setCategory(saved.category);
+        setPhone(saved.phone);
+        setHasWhatsApp(saved.hasWhatsApp);
+        setEmail(saved.email);
+        setAddress(saved.address);
+        setPurchaseDescription(saved.purchaseDescription);
+        setIsPreferred(saved.isPreferred);
+        setAvatarPresetId(saved.avatarPresetId);
+      },
+      resetExtras: () => {
+        clearUpload();
+        picker.clear();
+      },
+    });
     const presets = supplierPresets(category);
     const controlsDisabled = disabled || submitting;
 
@@ -275,10 +311,20 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
       }
     }
 
-    React.useImperativeHandle(ref, () => ({ submit: handleSubmit }));
+    React.useImperativeHandle(ref, () => ({
+      submit: handleSubmit,
+      discardDraft: draftSession.discard,
+    }));
 
+    if (!draftSession.ready) return <Typography>Carregando rascunho...</Typography>;
     return (
       <FormBody>
+        <CreateDraftStatus
+          hasPhoto
+          enabled={draftVisible && !supplier}
+          {...draftSession}
+          onClear={draftSession.discard}
+        />
         <FormSection
           collapsible={false}
           title="Identificação"

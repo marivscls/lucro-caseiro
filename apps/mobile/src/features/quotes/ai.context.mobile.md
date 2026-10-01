@@ -139,3 +139,11 @@ Orçamentos usam três etapas antes da confirmação existente: orçamento e cli
 
 - 2026-09-28: `buildQuoteMessage(quote, businessName, pixCode?)` termina com o Pix copia e cola
   do total quando a pessoa tem chave Pix (não vai em orçamento recusado).
+
+## Data de criação — 2026-10-01
+
+A lista e a tabela dizem Criado para datas derivadas de createdAt. Salvar um orçamento não comprova envio ao cliente; o texto não deve dizer Enviado.
+
+## Retomada de cadastro - 2026-10-01
+
+O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.

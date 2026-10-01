@@ -1,3 +1,4 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
 import { hasActiveFeature, type SupplierOverviewItem } from "@lucro-caseiro/contracts";
 import { Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
@@ -141,6 +142,11 @@ export default function SuppliersScreen() {
       edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="suppliers"
+        hidden={showCreate}
+        onResume={() => setShowCreate(true)}
+      />
       <ScreenHeader
         guidance={{
           area: "suppliers",

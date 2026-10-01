@@ -1,3 +1,5 @@
+import { useCreateFormDraft } from "../../../shared/form-drafts/use-create-form-draft";
+import { CreateDraftStatus } from "../../../shared/components/create-draft-recovery";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { CreateProductForm } from "../../products/components/create-product-form";
 import { guidanceEvent } from "../../../shared/guidance/guidance-events";
@@ -83,6 +85,28 @@ export function CreateLabelForm({
   useEffect(() => {
     if (visible) setFormStep(1);
   }, [visible]);
+  const draftSession = useCreateFormDraft({
+    feature: "labels",
+    enabled: visible,
+    snapshot: { name, templateId, labelData, selectedProductId, includeQr, formStep },
+    restore: (saved) => {
+      setName(saved.name);
+      setTemplateId(saved.templateId);
+      setLabelData(saved.labelData);
+      setSelectedProductId(saved.selectedProductId);
+      setIncludeQr(saved.includeQr);
+      setFormStep(saved.formStep);
+    },
+    resetExtras: () => {
+      clearLogo();
+      setCreatingProduct(false);
+      setProductCreated(false);
+    },
+  });
+  function closeDraft() {
+    draftSession.discard();
+    onClose();
+  }
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
     setLabelData((previous) => ({ ...previous, [key]: value }));
@@ -191,6 +215,7 @@ export function CreateLabelForm({
         title: "Etiqueta criada!",
         message: "Agora você pode imprimir uma unidade ou a folha configurada.",
       });
+      draftSession.discard();
       onSuccess?.();
     } catch (error) {
       showAlert({
@@ -272,8 +297,8 @@ export function CreateLabelForm({
     <>
       <StandardModal
         title="Nova etiqueta"
-        visible={visible && !creatingProduct}
-        onClose={onClose}
+        visible={visible && draftSession.ready && !creatingProduct}
+        onClose={closeDraft}
         wide
         footer={
           <FormActions stack={lastStep}>
@@ -285,7 +310,7 @@ export function CreateLabelForm({
                 onPress={() => setFormStep(formStep - 1)}
               />
             ) : (
-              <Button title="Cancelar" variant="outline" onPress={onClose} />
+              <Button title="Cancelar" variant="outline" onPress={closeDraft} />
             )}
             {lastStep ? (
               <Button
@@ -314,6 +339,7 @@ export function CreateLabelForm({
           </FormActions>
         }
       >
+        <CreateDraftStatus hasPhoto {...draftSession} onClear={draftSession.discard} />
         <FormStepProgress
           current={formStep}
           steps={LABEL_FORM_STEPS}

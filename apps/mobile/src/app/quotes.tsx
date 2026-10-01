@@ -1,3 +1,4 @@
+import { CreateDraftRecovery } from "../shared/components/create-draft-recovery";
 import type { Quote, QuoteStatusType } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
@@ -120,17 +121,21 @@ function normalizeQuoteSearch(value: string): string {
     .toLocaleLowerCase("pt-BR");
 }
 
-function formatSentDate(createdAt: string): string {
+function formatCreatedDate(createdAt: string): string {
   const created = new Date(createdAt);
-  if (Number.isNaN(created.getTime())) return "Enviado recentemente";
+  if (Number.isNaN(created.getTime())) return "Criado recentemente";
 
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const sentDay = new Date(created.getFullYear(), created.getMonth(), created.getDate());
-  const daysAgo = Math.floor((today.getTime() - sentDay.getTime()) / 86_400_000);
+  const createdDay = new Date(
+    created.getFullYear(),
+    created.getMonth(),
+    created.getDate(),
+  );
+  const daysAgo = Math.floor((today.getTime() - createdDay.getTime()) / 86_400_000);
 
-  if (daysAgo === 0) return "Enviado hoje";
-  if (daysAgo === 1) return "Enviado ontem";
+  if (daysAgo === 0) return "Criado hoje";
+  if (daysAgo === 1) return "Criado ontem";
 
   const compactDate = new Intl.DateTimeFormat("pt-BR", {
     day: "numeric",
@@ -139,7 +144,7 @@ function formatSentDate(createdAt: string): string {
     .format(created)
     .replace(" de ", " ")
     .replace(".", "");
-  return `Enviado ${compactDate}`;
+  return `Criado ${compactDate}`;
 }
 
 function QuoteStatusChip({ status }: Readonly<{ status: string }>) {
@@ -333,7 +338,7 @@ function QuoteCard({
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <AppIcon name="calendar-outline" size={iconSizes.xs} color={pal.muted} />
               <Typography variant="caption" color={pal.muted} numberOfLines={1}>
-                {formatSentDate(quote.createdAt)}
+                {formatCreatedDate(quote.createdAt)}
               </Typography>
             </View>
             <QuoteStatusChip status={quote.status} />
@@ -394,7 +399,7 @@ function QuoteCard({
           >
             <AppIcon name="calendar-outline" size={iconSizes.xs} color={pal.muted} />
             <Typography variant="caption" color={pal.muted} numberOfLines={1}>
-              {formatSentDate(quote.createdAt)}
+              {formatCreatedDate(quote.createdAt)}
             </Typography>
           </View>
         </View>
@@ -728,8 +733,8 @@ function quoteTone(status: string): DesktopTone {
   return "attention";
 }
 
-function sentDateCell(createdAt: string): string {
-  const label = formatSentDate(createdAt).replace(/^Enviado /, "");
+function createdDateCell(createdAt: string): string {
+  const label = formatCreatedDate(createdAt).replace(/^Criado /, "");
   return label.charAt(0).toLocaleUpperCase("pt-BR") + label.slice(1);
 }
 
@@ -788,7 +793,7 @@ function DesktopQuotesBody({
     [
       `Nº ${String(quoteNumberById.get(quote.id) ?? 1).padStart(2, "0")}`,
       quote.items.length === 1 ? "1 item" : `${quote.items.length} itens`,
-      wide ? null : sentDateCell(quote.createdAt),
+      wide ? null : createdDateCell(quote.createdAt),
     ]
       .filter(Boolean)
       .join(" · ");
@@ -823,10 +828,10 @@ function DesktopQuotesBody({
       ? [
           {
             key: "sent",
-            title: "Enviado",
+            title: "Criado",
             flex: 1,
             render: (quote: Quote) => (
-              <DesktopCellText>{sentDateCell(quote.createdAt)}</DesktopCellText>
+              <DesktopCellText>{createdDateCell(quote.createdAt)}</DesktopCellText>
             ),
           },
         ]
@@ -1032,6 +1037,11 @@ export default function QuotesScreen() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
         <Stack.Screen options={{ headerShown: false }} />
+        <CreateDraftRecovery
+          feature="quotes"
+          hidden={showCreate}
+          onResume={() => setShowCreate(true)}
+        />
         <ScrollView
           style={{ flex: 1 }}
           keyboardShouldPersistTaps="handled"
@@ -1084,6 +1094,11 @@ export default function QuotesScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
+      <CreateDraftRecovery
+        feature="quotes"
+        hidden={showCreate}
+        onResume={() => setShowCreate(true)}
+      />
 
       <ScreenHeader
         guidance={{

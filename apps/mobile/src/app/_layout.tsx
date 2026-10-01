@@ -56,6 +56,8 @@ import { shouldRedirectToLogin } from "../shared/layout/session-gate";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { preloadStaticImageAssets } from "../shared/static-image-assets";
 import { shouldRetryQuery } from "../shared/utils/query-retry";
+import { clearCreateFormDrafts } from "../shared/form-drafts/use-create-form-draft";
+import { clearPricingDraft } from "../features/pricing/use-pricing-draft";
 import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
 import { getPaywallRecommendedTier } from "../features/subscription/limit-copy";
@@ -243,6 +245,8 @@ function AppContent() {
   useEffect(() => {
     if (prevUserId.current !== null && prevUserId.current !== userId) {
       appQueryClient.clear();
+      clearPricingDraft();
+      void clearCreateFormDrafts();
       useOfflineQueue.getState().clear();
       prevPlan.current = undefined;
     }

@@ -215,3 +215,11 @@ Só no desktop; o celular não muda. Peças em `components/recipes-desktop.tsx`.
 - `DesktopRecipeTable` mostra receita (miniatura, nome e tipo do prefixo), categoria, rendimento, custo por unidade e custo total, com o menu "⋮" (Editar ou Excluir, com a mesma confirmação). A linha abre o detalhe. Abaixo de 800px de largura, a categoria sai da tabela, porque já está nos filtros.
 - `recipeAvatarFallback(category)`, exportado por `recipe-card.tsx`, é compartilhado entre o cartão e a tabela.
 - Os estados vazio, sem resultado e erro usam um cartão tracejado com a ação.
+
+## Quantidades brasileiras — 2026-10-01
+
+Detalhe e edição usam formatRecipeQuantity para rendimento e insumos (1,5 e 0,5), como a lista. Somente apresentação; valores enviados e cálculos continuam numéricos.
+
+## Retomada de cadastro - 2026-10-01
+
+O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.
