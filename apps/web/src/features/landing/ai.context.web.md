@@ -35,6 +35,8 @@ Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem c
 
 ## Components
 
+- 2026-10-01: rodapé "Para quem" alinhado ao público amplo da landing: confeitaria/doces, marmitas, revenda/comércio, artesanato/costura e beleza/serviços. Links amplos usam âncoras reais da seção existente, acessíveis também das páginas internas; páginas de confeitaria, marmitas e manicure permanecem disponíveis. Sem páginas novas ou alegações de funcionalidades adicionais.
+
 - `AppDemo` - vídeo interno real de 64,4 segundos, build local mock com dados fictícios; cadastro, preço, venda e catálogo desativado. Controles nativos, sem áudio/autoplay/loop, preload none, poster local e transcrição em details. Download permanece disponível se reprodução falhar. Assets locais em `public/landing/demo`; não consulta API nem cria conta. Não demonstra backend real, lucro realizado ou catálogo público ativo.
 
 - `LandingPage` — cabeçalho em fluxo sobre faixa vinho, hero com conta ilustrativa (custos, subtotal, preço e sobra), faixa de benefícios, problema, jornada única de preço → produto → catálogo com três capturas, recursos, públicos, planos, guias, FAQ, CTA final e rodapé

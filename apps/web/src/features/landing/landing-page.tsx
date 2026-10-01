@@ -97,11 +97,12 @@ const featureTiles: readonly FeatureTile[] = [
 const audiences = [
   { name: "Confeitaria e doces", text: "Bolos, brigadeiros e encomendas de festa." },
   {
+    id: "revenda-comercio",
     name: "Revenda e comércio",
     text: "Preço de compra, estoque e vendas de roupas, presentes ou papelaria.",
   },
-  { name: "Artesanato e costura", text: "Peças com material e horas de trabalho." },
-  { name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
+  { id: "artesanato-costura", name: "Artesanato e costura", text: "Peças com material e horas de trabalho." },
+  { id: "beleza-servicos", name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
 ] as const;
 
 const trialDays = ESSENTIAL_TRIAL_DAYS;
@@ -505,7 +506,7 @@ export function LandingPage() {
           </h2>
           <ul className={styles.audienceList}>
             {audiences.map((item) => (
-              <li key={item.name}>
+              <li key={item.name} id={"id" in item ? item.id : undefined}>
                 <strong>{item.name}</strong>
                 <span>{item.text}</span>
               </li>

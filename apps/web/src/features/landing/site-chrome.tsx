@@ -105,9 +105,11 @@ const footerColumns = [
   {
     title: "Para quem",
     links: [
-      { href: "/landing/app-para-confeitaria", label: "Confeitaria" },
+      { href: "/landing/app-para-confeitaria", label: "Confeitaria e doces" },
       { href: "/landing/app-para-marmita", label: "Marmitas" },
-      { href: "/landing/app-para-manicure", label: "Manicure e beleza" },
+      { href: "/#revenda-comercio", label: "Revenda e comércio" },
+      { href: "/#artesanato-costura", label: "Artesanato e costura" },
+      { href: "/#beleza-servicos", label: "Beleza e serviços" },
     ],
   },
 ] as const;
