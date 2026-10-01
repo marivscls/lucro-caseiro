@@ -35,6 +35,8 @@ Site público do Lucro Caseiro. Apresenta a promessa “do custo à venda, sem c
 
 ## Components
 
+- `AppDemo` - vídeo interno real de 64,4 segundos, build local mock com dados fictícios; cadastro, preço, venda e catálogo desativado. Controles nativos, sem áudio/autoplay/loop, preload none, poster local e transcrição em details. Download permanece disponível se reprodução falhar. Assets locais em `public/landing/demo`; não consulta API nem cria conta. Não demonstra backend real, lucro realizado ou catálogo público ativo.
+
 - `LandingPage` — cabeçalho em fluxo sobre faixa vinho, hero com conta ilustrativa (custos, subtotal, preço e sobra), faixa de benefícios, problema, jornada única de preço → produto → catálogo com três capturas, recursos, públicos, planos, guias, FAQ, CTA final e rodapé
 - `SiteHeader` — aceita `tone="wine"` (barra em fluxo dentro da faixa vinho, usada só na landing) ou `paper` (barra flutuante das páginas internas); navegação compacta em `details` nativo, sem JavaScript de cliente
 - `PriceCalculator` — ficha de preço com quatro grupos de campos (produto, tempo, fixos, lucro/taxas), exemplo identificado e ação para limpar/restaurar. O resumo separa custo, taxas e sobra; estado inválido oculta o resultado. Links para o resultado no celular e FAQ com `details`. As antigas prévias simuladas foram substituídas pelo link aos recursos reais da landing.

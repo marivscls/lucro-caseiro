@@ -19,6 +19,7 @@ import {
 } from "@lucro-caseiro/contracts";
 
 import styles from "./landing-page.module.css";
+import { AppDemo } from "./app-demo";
 import { HeroActions, StartCta } from "./hero-actions";
 import { LandingMotion } from "./landing-motion";
 import { SiteFooter, SiteHeader } from "./site-chrome";
@@ -358,6 +359,8 @@ export function LandingPage() {
         </section>
 
         <div id="como-funciona" />
+
+        <AppDemo />
 
         <section
           className={styles.journey}
