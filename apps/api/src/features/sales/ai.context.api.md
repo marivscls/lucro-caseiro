@@ -246,3 +246,10 @@ PATCH /api/v1/sales/sale-1/status
   Produto com variações no cadastro deixa de bloquear a venda; a baixa usa o estoque
   do produto. `variationId` inválido continua recusado.
 - 2026-09-29: `createOpeningFiado` removido junto com a importação do caderno no assistente.
+
+## QA de integração local — 02/10/2026
+
+- Cabeçalho da venda e itens são gravados na mesma transação PostgreSQL. Falha SQL nos itens não deixa venda órfã; repetir após falha cria apenas a tentativa bem-sucedida.
+- Edição do total/recebido e substituição dos itens também são atômicas: falha no insert preserva os valores e itens anteriores. Validação de cliente e filtros userId permanecem.
+- O provider de consumo retorna quantidade POR UNIDADE FINAL, dividida pelo rendimento da receita na composição de main.ts. Receita0,5kg/rendimento5un consome0,1kg por produto; vender2 consome0,2kg. Conversão arbitrária de unidades continua fora deste ajuste.
+- Verificado em PGlite com SQL real e falha de constraint apenas no banco descartável; não prova incidente de produção nem Supabase Auth/RLS.

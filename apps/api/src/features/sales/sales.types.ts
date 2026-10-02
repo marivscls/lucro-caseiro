@@ -52,7 +52,7 @@ export interface RecipeConsumptionLine {
   quantity: number;
 }
 
-/** Fonte das linhas de insumo de uma receita (injetada da feature recipes). */
+/** Fonte das quantidades de insumo por unidade final da receita (injetada da feature recipes). */
 export interface IRecipeConsumptionProvider {
   getRecipeLines(userId: string, recipeId: string): Promise<RecipeConsumptionLine[]>;
 }

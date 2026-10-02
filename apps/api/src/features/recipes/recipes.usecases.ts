@@ -25,6 +25,18 @@ export class RecipesUseCases {
     return recipe;
   }
 
+  /** Ingredient quantities for one finished unit, not an entire recipe batch. */
+  async getConsumptionPerUnit(userId: string, id: string) {
+    const recipe = await this.getById(userId, id);
+    if (!Number.isFinite(recipe.yieldQuantity) || recipe.yieldQuantity <= 0) {
+      throw new ValidationError(["Rendimento deve ser maior que zero"]);
+    }
+    return recipe.ingredients.map((line) => ({
+      materialId: line.materialId,
+      quantity: line.quantity / recipe.yieldQuantity,
+    }));
+  }
+
   async list(userId: string, opts: FindAllOpts) {
     const { items, total } = await this.repo.findAll(userId, opts);
     return {

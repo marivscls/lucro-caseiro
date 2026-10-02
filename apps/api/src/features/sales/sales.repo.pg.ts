@@ -30,45 +30,47 @@ export class SalesRepoPg implements ISalesRepo {
     pricing = { subtotal: total, discount: 0, total },
   ): Promise<Sale> {
     if (data.clientId) await this.assertOwnedClient(userId, data.clientId);
-    const [saleRow] = await this.db
-      .insert(sales)
-      .values({
-        userId,
-        clientId: data.clientId ?? null,
-        paymentMethod: data.paymentMethod as PaymentMethodColumn,
-        status,
-        subtotal: String(pricing.subtotal),
-        discount: String(pricing.discount),
-        discountType: data.discountType ?? null,
-        discountValue: String(data.discountValue ?? 0),
-        total: String(pricing.total),
-        paidAmount: String(data.paidAmount ?? (status === "paid" ? pricing.total : 0)),
-        sourceOrderId: data.sourceOrderId ?? null,
-        notes: data.notes ?? null,
-        soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),
-      })
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [saleRow] = await tx
+        .insert(sales)
+        .values({
+          userId,
+          clientId: data.clientId ?? null,
+          paymentMethod: data.paymentMethod as PaymentMethodColumn,
+          status,
+          subtotal: String(pricing.subtotal),
+          discount: String(pricing.discount),
+          discountType: data.discountType ?? null,
+          discountValue: String(data.discountValue ?? 0),
+          total: String(pricing.total),
+          paidAmount: String(data.paidAmount ?? (status === "paid" ? pricing.total : 0)),
+          sourceOrderId: data.sourceOrderId ?? null,
+          notes: data.notes ?? null,
+          soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),
+        })
+        .returning();
 
-    const sale = saleRow!;
+      const sale = saleRow!;
 
-    const itemRows = await this.db
-      .insert(saleItems)
-      .values(
-        data.items.map((item) => ({
-          saleId: sale.id,
-          productId: item.productId ?? null,
-          serviceId: item.serviceId ?? null,
-          itemName: item.itemName ?? null,
-          quantity: String(item.quantity),
-          unitPrice: String(item.unitPrice),
-          variationId: item.variationId ?? null,
-          variationName: item.variationName ?? null,
-          subtotal: String(item.quantity * item.unitPrice),
-        })),
-      )
-      .returning();
+      const itemRows = await tx
+        .insert(saleItems)
+        .values(
+          data.items.map((item) => ({
+            saleId: sale.id,
+            productId: item.productId ?? null,
+            serviceId: item.serviceId ?? null,
+            itemName: item.itemName ?? null,
+            quantity: String(item.quantity),
+            unitPrice: String(item.unitPrice),
+            variationId: item.variationId ?? null,
+            variationName: item.variationName ?? null,
+            subtotal: String(item.quantity * item.unitPrice),
+          })),
+        )
+        .returning();
 
-    return this.toSale(sale, itemRows, null);
+      return this.toSale(sale, itemRows, null);
+    });
   }
 
   async update(
@@ -101,40 +103,42 @@ export class SalesRepoPg implements ISalesRepo {
       setFields.discountValue = String(data.discountValue);
     }
 
-    const [row] = await this.db
-      .update(sales)
-      .set(setFields)
-      .where(and(eq(sales.userId, userId), eq(sales.id, id)))
-      .returning();
-
-    if (!row) return null;
-
-    if (row.status === "paid") {
-      await this.db
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
         .update(sales)
-        .set({ paidAmount: String(pricing.total) })
-        .where(and(eq(sales.userId, userId), eq(sales.id, id)));
-    }
+        .set(setFields)
+        .where(and(eq(sales.userId, userId), eq(sales.id, id)))
+        .returning();
 
-    if (data.items) {
-      await this.db.delete(saleItems).where(eq(saleItems.saleId, id));
+      if (!row) return null;
 
-      await this.db.insert(saleItems).values(
-        data.items.map((item) => ({
-          saleId: id,
-          productId: item.productId ?? null,
-          serviceId: item.serviceId ?? null,
-          itemName: item.itemName ?? null,
-          quantity: String(item.quantity),
-          unitPrice: String(item.unitPrice),
-          variationId: item.variationId ?? null,
-          variationName: item.variationName ?? null,
-          subtotal: String(item.quantity * item.unitPrice),
-        })),
-      );
-    }
+      if (row.status === "paid") {
+        await tx
+          .update(sales)
+          .set({ paidAmount: String(pricing.total) })
+          .where(and(eq(sales.userId, userId), eq(sales.id, id)));
+      }
 
-    return this.findById(userId, id);
+      if (data.items) {
+        await tx.delete(saleItems).where(eq(saleItems.saleId, id));
+
+        await tx.insert(saleItems).values(
+          data.items.map((item) => ({
+            saleId: id,
+            productId: item.productId ?? null,
+            serviceId: item.serviceId ?? null,
+            itemName: item.itemName ?? null,
+            quantity: String(item.quantity),
+            unitPrice: String(item.unitPrice),
+            variationId: item.variationId ?? null,
+            variationName: item.variationName ?? null,
+            subtotal: String(item.quantity * item.unitPrice),
+          })),
+        );
+      }
+
+      return new SalesRepoPg(tx as unknown as AppDatabase).findById(userId, id);
+    });
   }
 
   async findById(userId: string, id: string): Promise<Sale | null> {

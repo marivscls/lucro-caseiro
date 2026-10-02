@@ -324,3 +324,8 @@ POST /api/v1/ingredients
   mantem `costPerUnit * quantity`. `RecipeIngredientFull.materialCostPerUnit` passou a refletir o
   custo por unidade da linha (ja convertido) para manter `cost == materialCostPerUnit * quantity`.
   Sem tabela global de conversao — conversao arbitraria de unidades segue fora de escopo.
+
+## QA de integração local — 02/10/2026
+
+- `RecipesUseCases.getConsumptionPerUnit(userId, recipeId)` expõe à composição das vendas linhas com quantidade dividida por yieldQuantity. Usa getById escopado e recusa rendimento não positivo/não finito; não muda ingrediente armazenado, receita, preço ou endpoint.
+- A baixa de insumos deixa de consumir um lote inteiro para cada unidade vendida. Exemplo:0,5kg para5un ->0,1kg/un; quantidade decimal de rendimento também suportada. Sem conversão nova de kg/g ou conteúdo/embalagem.

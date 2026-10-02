@@ -215,3 +215,26 @@ describe("RecipesUseCases", () => {
     });
   });
 });
+
+describe("recipe consumption per finished unit", () => {
+  it.each([
+    [5, 0.1],
+    [1, 0.5],
+    [1.5, 1 / 3],
+  ])("divides ingredient0.5 by yield%s", async (yieldQuantity, expected) => {
+    const recipe = makeRecipe({
+      yieldQuantity,
+      ingredients: [{ ...makeRecipe().ingredients[0]!, quantity: 0.5 }],
+    });
+    const { sut } = makeSut({ findById: () => Promise.resolve(recipe) });
+    const result = await sut.getConsumptionPerUnit(USER_ID, recipe.id);
+    expect(result[0]!.quantity).toBeCloseTo(expected);
+    expect(recipe.ingredients[0]!.quantity).toBe(0.5);
+  });
+  it("rejects a recipe not owned by the requested account", async () => {
+    const { sut } = makeSut({ findById: () => Promise.resolve(null) });
+    await expect(sut.getConsumptionPerUnit("other-user", "recipe-1")).rejects.toThrow(
+      NotFoundError,
+    );
+  });
+});

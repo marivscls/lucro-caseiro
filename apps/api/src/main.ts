@@ -230,11 +230,7 @@ const salesUseCases = new SalesUseCases(
     // Linhas de insumo da receita (materialId + quantidade) para dar baixa na venda.
     getRecipeLines: async (userId, recipeId) => {
       try {
-        const recipe = await recipesUseCases.getById(userId, recipeId);
-        return recipe.ingredients.map((line) => ({
-          materialId: line.materialId,
-          quantity: line.quantity,
-        }));
+        return await recipesUseCases.getConsumptionPerUnit(userId, recipeId);
       } catch {
         return [];
       }
