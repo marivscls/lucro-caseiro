@@ -277,3 +277,7 @@ A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida n
 - 2026-09-28: `buildChargeMessage(group, extras)` aceita `pixCode` e `statementUrl` (cobrança
   do fiado com Pix copia e cola e link do extrato); `buildReceiptMessage(sale, pixCode)` põe o
   Pix só em venda pendente. `DesktopFiadoPage` ganhou `notice` (aviso de cadastrar a chave Pix).
+
+## Clareza dos rótulos — 2026-10-02
+
+O resumo conta produtos distintos por productId e apresenta unidades e kg separadamente, inclusive ao selecionar variações do mesmo produto. É apenas apresentação; total e payload de venda permanecem iguais.

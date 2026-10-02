@@ -137,3 +137,7 @@ e, no plano com gráficos, `MonthlyBars` com 240px de altura, eixos de 14px e o 
 à direita; ao lado (a partir de 960px) ou abaixo, o cartão "O que fazer agora". Rankings em grade
 de 2 colunas, "Perguntas rápidas" e, sem plano, o convite em duas colunas
 (`components/insights-desktop.tsx`).
+
+## Clareza dos rótulos — 2026-10-02
+
+A ajuda diferencia faturamento de vendas não canceladas (incluindo fiado), dinheiro registrado como recebido e ganho estimado condicionado aos custos na Precificação. Não altera agregações nem apresenta lucro calculado novo.

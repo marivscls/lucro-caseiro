@@ -49,6 +49,7 @@ import { displayProductName, productInitial } from "../../features/products/disp
 import { useAllProducts, useProductCodeLookup } from "../../features/products/hooks";
 import {
   cartTotal as computeCartTotal,
+  cartItemSummary as summarizeCart,
   formatWeight,
   salePricing,
   saleVariationFields,
@@ -873,11 +874,7 @@ export default function NewSaleScreen() {
   const paymentMethodLabel =
     PAYMENT_OPTIONS.find((option) => option.value === paymentMethod)?.label ?? "—";
   const summaryTotal = step >= 3 ? pricing.total : cartTotal;
-  let cartItemSummary = "Nenhum item";
-  if (cart.length > 0) {
-    const itemLabel = cart.length === 1 ? "item" : "itens";
-    cartItemSummary = `${cart.length} ${itemLabel}`;
-  }
+  const cartItemSummary = summarizeCart(cart);
 
   let nextActionLabel = "Continuar";
   if (step === 1) nextActionLabel = "Pagamento";

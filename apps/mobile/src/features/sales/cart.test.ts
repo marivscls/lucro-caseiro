@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   canUseQuickSale,
   cartTotal,
+  cartItemSummary,
   formatWeight,
   itemSubtotal,
   salePricing,
@@ -106,5 +107,35 @@ describe("saleVariationFields", () => {
         variationName: "Rosa",
       }),
     ).toEqual({ variationId: "var-rosa", variationName: "Rosa" });
+  });
+});
+
+describe("cartItemSummary", () => {
+  it("distingue uma linha de duas unidades", () => {
+    expect(cartItemSummary([{ productId: "a", quantity: 2, saleUnit: "unit" }])).toBe(
+      "1 produto · 2 unidades",
+    );
+  });
+  it("conta variações do mesmo produto uma vez", () => {
+    expect(
+      cartItemSummary([
+        { productId: "a", quantity: 1, saleUnit: "unit" },
+        { productId: "a", quantity: 2, saleUnit: "unit" },
+      ]),
+    ).toBe("1 produto · 3 unidades");
+  });
+  it("separa peso e unidades", () => {
+    expect(
+      cartItemSummary([
+        { productId: "a", quantity: 1, saleUnit: "unit" },
+        { productId: "b", quantity: 1.5, saleUnit: "kg" },
+      ]),
+    ).toBe("2 produtos · 1 unidade · 1,5 kg");
+  });
+  it("mostra somente kg para venda por peso e lida com vazio", () => {
+    expect(cartItemSummary([{ productId: "b", quantity: 0.5, saleUnit: "kg" }])).toBe(
+      "1 produto · 0,5 kg",
+    );
+    expect(cartItemSummary([])).toBe("Nenhum produto");
   });
 });

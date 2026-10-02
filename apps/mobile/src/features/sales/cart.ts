@@ -65,3 +65,24 @@ export function saleVariationFields(
     ...(item.variationName ? { variationName: item.variationName } : {}),
   };
 }
+
+/** Resumo de produtos distintos; unidades e peso nunca são somados entre si. */
+export function cartItemSummary(
+  items: ReadonlyArray<{ productId: string; quantity: number; saleUnit: "unit" | "kg" }>,
+): string {
+  if (items.length === 0) return "Nenhum produto";
+  const products = new Set(items.map((item) => item.productId)).size;
+  const units = items
+    .filter((item) => item.saleUnit !== "kg")
+    .reduce((sum, item) => sum + item.quantity, 0);
+  const weight = items
+    .filter((item) => item.saleUnit === "kg")
+    .reduce((sum, item) => sum + item.quantity, 0);
+  const parts = [`${products} ${products === 1 ? "produto" : "produtos"}`];
+  if (units > 0)
+    parts.push(
+      `${units.toLocaleString("pt-BR")} ${units === 1 ? "unidade" : "unidades"}`,
+    );
+  if (weight > 0) parts.push(formatWeight(weight));
+  return parts.join(" · ");
+}

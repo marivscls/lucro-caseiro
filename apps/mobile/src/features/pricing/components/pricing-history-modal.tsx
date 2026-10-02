@@ -129,7 +129,7 @@ function PricingHistoryCard({
               Custo total: {formatCurrency(item.totalCost)}
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
-              Acréscimo: {markup}%
+              Acréscimo sobre custo-base: {markup}%
             </Typography>
           </View>
         </View>
@@ -245,7 +245,10 @@ export function PricingHistoryModal({
         >
           <View style={{ flex: 1, gap: spacing.xs }}>
             <Typography variant="h3">Histórico</Typography>
-            <Typography variant="caption">Cálculos de precificação salvos</Typography>
+            <Typography variant="caption">
+              Cálculos salvos. O acréscimo incide sobre o custo-base, não sobre o preço de
+              venda.
+            </Typography>
           </View>
           <Pressable
             onPress={onClose}

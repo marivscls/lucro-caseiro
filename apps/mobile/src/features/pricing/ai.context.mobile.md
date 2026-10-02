@@ -126,3 +126,7 @@ Só no desktop; o celular continua com `FormStepProgress`, rodapé fixo e cabeç
 ## Rascunho local — 2026-10-01
 
 Custos, ganho e etapa são persistidos localmente em pricing-draft:v1, vinculados à conta e ao contexto inicial. Recarregar restaura o rascunho. Trocar de conta ou sair limpa o rascunho. Dados inválidos são descartados; uma edição durante hidratação prevalece. Não há gravação automática no backend.
+
+## Clareza dos rótulos — 2026-10-02
+
+O histórico identifica o acréscimo sobre o custo-base do cálculo, distinguindo-o da margem sobre o preço de venda; não recalcula o percentual armazenado.

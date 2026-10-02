@@ -257,9 +257,9 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Registre suas vendas para acompanhar os gráficos. Sem registros, ainda não há um resultado para analisar.",
     action: "Registrar venda",
     steps: [
-      "Escolha um período que tenha movimentações.",
-      "Compare vendas e itens com os registros do negócio.",
-      "Confira a cobertura dos custos antes de interpretar o lucro. Uma tela vazia não indica prejuízo nem lucro zero.",
+      "Faturamento é o total das vendas não canceladas no período, inclusive o fiado ainda não recebido.",
+      "Recebido é o dinheiro já registrado como pago. Confira os recebimentos em Vendas e o saldo a receber no Fiado.",
+      "Ganho estimado depende dos custos informados na Precificação; faturamento não é lucro. Inclua trabalho, despesas e taxas antes de interpretar o ganho.",
     ],
     next: "Use o resultado para decidir o que repor, revisar ou divulgar.",
   },
