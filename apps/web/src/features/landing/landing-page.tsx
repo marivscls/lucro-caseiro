@@ -49,61 +49,71 @@ const problems = [
   },
 ] as const;
 
-type FeatureTile = {
+const features: readonly {
   readonly title: string;
   readonly text: string;
-  readonly span: "hero" | "shot" | "wide" | "text";
   readonly icon: LucideIcon;
-  readonly plan?: string;
-  readonly image?: {
-    readonly src: string;
-    readonly alt: string;
-    readonly crop: "phone" | "screen";
-  };
-};
-
-const featureTiles: readonly FeatureTile[] = [
+}[] = [
   {
     title: "Vendas organizadas",
     icon: ReceiptText,
-    text: "Registre pedidos, pagamentos e acompanhe o que entrou sem depender do caderno.",
-    span: "text",
+    text: "Registre pedidos e pagamentos e veja o que entrou sem depender do caderno.",
   },
   {
     title: "Agenda de encomendas",
     icon: CalendarDays,
-    text: "Veja prazos e entregas em um só lugar para não perder nenhum pedido.",
-    span: "text",
+    text: "Prazos e entregas em um só lugar para não perder nenhum pedido.",
   },
   {
     title: "Clientes e fiado",
     icon: Users,
-    text: "Guarde contatos, acompanhe valores pendentes e saiba quem ainda precisa pagar.",
-    span: "text",
+    text: "Contatos, valores pendentes e quem ainda precisa pagar, sem anotação solta.",
   },
   {
     title: "Dinheiro mais claro",
     icon: Wallet,
-    text: "Entenda quanto entrou, quanto saiu e quanto realmente sobrou no mês.",
-    image: {
-      src: "/landing/current-finance.png",
-      alt: "Tela financeira do Lucro Caseiro com lucro, entradas e saídas do mês",
-      crop: "phone",
-    },
-    span: "wide",
+    text: "Quanto entrou, quanto saiu e quanto realmente sobrou no mês.",
   },
 ];
 
-const audiences = [
-  { name: "Confeitaria e doces", text: "Bolos, brigadeiros e encomendas de festa." },
+const audiences: readonly {
+  readonly id?: string;
+  readonly name: string;
+  readonly text: string;
+  readonly href?: string;
+}[] = [
+  {
+    name: "Confeitaria e doces",
+    text: "Bolos, brigadeiros e encomendas de festa.",
+    href: "/landing/app-para-confeitaria",
+  },
+  {
+    id: "marmitas",
+    name: "Marmitas e salgados",
+    text: "Gás, embalagem e entrega no preço, e o fiado dos clientes fixos.",
+    href: "/landing/app-para-marmita",
+  },
   {
     id: "revenda-comercio",
     name: "Revenda e comércio",
     text: "Preço de compra, estoque e vendas de roupas, presentes ou papelaria.",
   },
-  { id: "artesanato-costura", name: "Artesanato e costura", text: "Peças com material e horas de trabalho." },
-  { id: "beleza-servicos", name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
-] as const;
+  {
+    id: "artesanato-costura",
+    name: "Artesanato e costura",
+    text: "Peças com material e horas de trabalho.",
+  },
+  {
+    id: "beleza-servicos",
+    name: "Beleza e serviços",
+    text: "Manicure, cabelo e estética com material e tempo na conta.",
+    href: "/landing/app-para-manicure",
+  },
+  {
+    name: "Outros negócios",
+    text: "Quem produz, revende ou atende e quer saber o que sobra.",
+  },
+]
 
 const trialDays = ESSENTIAL_TRIAL_DAYS;
 
@@ -224,13 +234,6 @@ const guides = [
     href: "/landing/guias/como-colocar-mao-de-obra-no-preco",
   },
 ] as const;
-
-const spanClass = {
-  hero: styles.spanHero,
-  shot: styles.spanShot,
-  wide: styles.spanWide,
-  text: styles.spanText,
-} as const;
 
 export function LandingPage() {
   return (
@@ -361,8 +364,6 @@ export function LandingPage() {
 
         <div id="como-funciona" />
 
-        <AppDemo />
-
         <section
           className={styles.journey}
           id="produto"
@@ -371,9 +372,6 @@ export function LandingPage() {
         >
           <div className={styles.journeyStage}>
             <div className={styles.journeyCopy}>
-              <p className={styles.journeyKicker}>
-                Telas reais do aplicativo · capturas de 04/09/2026
-              </p>
               <h2 id="journey-title">
                 Do custo ao pedido.
                 <br />
@@ -417,6 +415,9 @@ export function LandingPage() {
                 <span>Role para acompanhar</span>
                 <ArrowDown aria-hidden="true" size={18} />
               </p>
+              <p className={styles.journeyNote}>
+                Telas reais do aplicativo, capturadas em 04/09/2026 numa conta de testes.
+              </p>
             </div>
             <div className={styles.journeyDeck}>
               {[
@@ -458,46 +459,39 @@ export function LandingPage() {
           </div>
         </section>
 
+        <AppDemo />
+
         <section className={styles.featuresSection} id="recursos">
-          <h2>Depois da venda, mantenha tudo em ordem.</h2>
-          <p className={styles.lede}>
-            Ferramentas práticas para organizar sem transformar seu dia em trabalho de
-            escritório.
-          </p>
-          <p className={styles.captureNote}>
-            Telas atuais do aplicativo no Android, com dados de uma conta de testes.
-          </p>
-          <div className={styles.featureBento}>
-            {featureTiles.map((tile, index) => (
-              <article
-                key={tile.title}
-                data-landing-reveal={(index % 2) * 60}
-                className={`${styles.featureTile} ${spanClass[tile.span]}`}
-              >
-                {tile.image ? (
-                  <div
-                    className={`${styles.featureShot} ${tile.image.crop === "screen" ? styles.cropScreen : ""}`}
-                  >
-                    <Image
-                      src={tile.image.src}
-                      width={1080}
-                      height={2400}
-                      sizes="(max-width: 560px) calc(100vw - 64px), (max-width: 1050px) 45vw, 40vw"
-                      alt={tile.image.alt}
-                    />
+          <div className={styles.featuresCopy}>
+            <h2>Depois da venda, mantenha tudo em ordem.</h2>
+            <p className={styles.lede}>
+              Ferramentas práticas para organizar sem transformar seu dia em trabalho de
+              escritório.
+            </p>
+            <ul className={styles.featureList}>
+              {features.map((feature, index) => (
+                <li key={feature.title} data-landing-reveal={index * 60}>
+                  <span className={styles.featureIcon}>
+                    <feature.icon aria-hidden="true" size={22} strokeWidth={1.8} />
+                  </span>
+                  <div>
+                    <h3>{feature.title}</h3>
+                    <p>{feature.text}</p>
                   </div>
-                ) : null}
-                <div className={styles.featureCopy}>
-                  <tile.icon aria-hidden="true" size={24} strokeWidth={1.7} />
-                  <h3>{tile.title}</h3>
-                  {tile.plan ? (
-                    <p className={styles.featurePlan}>No plano {tile.plan}</p>
-                  ) : null}
-                  <p>{tile.text}</p>
-                </div>
-              </article>
-            ))}
+                </li>
+              ))}
+            </ul>
           </div>
+          <figure className={styles.featuresShot}>
+            <Image
+              src="/landing/current-finance.png"
+              width={1080}
+              height={2400}
+              sizes="(max-width: 899px) 260px, 300px"
+              alt="Tela financeira do Lucro Caseiro com lucro, entradas e saídas do mês"
+            />
+            <figcaption>Tela atual do app no Android, com dados de uma conta de testes.</figcaption>
+          </figure>
         </section>
 
         <section className={styles.audienceSection}>
@@ -506,9 +500,21 @@ export function LandingPage() {
           </h2>
           <ul className={styles.audienceList}>
             {audiences.map((item) => (
-              <li key={item.name} id={"id" in item ? item.id : undefined}>
-                <strong>{item.name}</strong>
-                <span>{item.text}</span>
+              <li key={item.name} id={item.id}>
+                {item.href ? (
+                  <a href={item.href}>
+                    <strong>
+                      {item.name}
+                      <ArrowRight aria-hidden="true" size={18} />
+                    </strong>
+                    <span>{item.text}</span>
+                  </a>
+                ) : (
+                  <>
+                    <strong>{item.name}</strong>
+                    <span>{item.text}</span>
+                  </>
+                )}
               </li>
             ))}
           </ul>

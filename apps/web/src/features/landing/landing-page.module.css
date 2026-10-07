@@ -487,7 +487,6 @@
 .problemList p,
 .problemIntro,
 .flowTrack p,
-.featureCopy p,
 .storyCopy > p,
 .lede,
 .faqIntro > p,
@@ -502,7 +501,7 @@
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
   gap: 80px;
-  padding: 80px 0;
+  padding: 80px 0 16px;
 }
 .problemIntro {
   max-width: 32ch;
@@ -642,88 +641,83 @@
 .pricingSection {
   padding: 48px 0 80px;
 }
-.captureNote {
-  margin: -16px 0 28px;
+.featuresSection {
+  padding-top: 104px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  align-items: center;
+  gap: 80px;
+}
+.featuresCopy .lede {
+  margin-bottom: 0;
+}
+.featureList {
+  display: grid;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.featureList li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 18px;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+.featureList li:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.featureIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--rose-soft);
+  color: var(--rose-fill);
+}
+.featureList h3 {
+  margin: 0;
+  color: var(--wine);
+  font-size: 20px;
+  line-height: 1.3;
+}
+.featureList p {
+  max-width: 48ch;
+  margin: 6px 0 0;
   color: var(--muted);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.6;
 }
-.featureBento {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 16px;
-}
-.featureTile {
-  display: flex;
+.featuresShot {
+  margin: 0;
+  padding: 40px 40px 0;
   overflow: hidden;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--sheet);
-}
-.spanHero,
-.spanShot {
-  grid-column: span 3;
-}
-.spanText {
-  grid-column: span 2;
-}
-.spanWide {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: stretch;
-}
-.featureShot {
-  overflow: hidden;
-  flex: none;
-  height: 520px;
-  padding: 24px 20px 0;
+  border-radius: var(--radius-lg);
   background: var(--rose-soft);
 }
-.featureShot img {
+.featuresShot img {
   display: block;
-  width: min(100%, 240px);
+  width: min(100%, 300px);
   height: auto;
   margin-inline: auto;
   border: 1px solid var(--line);
-  border-radius: 20px 20px 0 0;
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--sheet);
+  aspect-ratio: 300 / 560;
+  object-fit: cover;
+  object-position: top;
 }
-.cropScreen {
-  background: var(--surface);
-}
-.spanWide .featureShot {
-  width: 50%;
-  height: 440px;
-}
-.spanWide .featureCopy {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  padding: 40px;
-}
-.featureCopy {
-  padding: 26px;
-}
-.featureCopy > svg {
-  margin-bottom: 18px;
-  color: var(--rose-fill);
-}
-.featureCopy h3 {
-  margin: 0;
-  font-size: 22px;
-}
-.featureCopy .featurePlan {
-  margin-top: 6px;
-  color: var(--rose-fill);
+.featuresShot figcaption {
+  margin: 0 -40px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--muted);
   font-size: 16px;
-  font-weight: 600;
-}
-.spanWide .featureCopy h3 {
-  font-size: 28px;
-}
-.spanWide .featureCopy p {
-  max-width: 32ch;
+  line-height: 1.5;
+  text-align: center;
 }
 .audienceSection {
   padding: 48px;
@@ -736,22 +730,40 @@
 }
 .audienceList {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 32px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.audienceList li {
+.audienceList li,
+.audienceList a {
   display: grid;
   align-content: start;
   gap: 8px;
-  padding-top: 22px;
+}
+.audienceList li {
+  padding: 22px 0 26px;
   border-top: 1px solid var(--line);
 }
 .audienceList strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--wine);
-  font-size: 18px;
+  font-size: 19px;
+}
+.audienceList strong svg {
+  color: var(--rose-fill);
+  transition: transform 240ms var(--ease-out);
+}
+.audienceList a:hover strong svg {
+  transform: translateX(4px);
+}
+.audienceList a:hover strong {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 .audienceList span {
   color: var(--muted);
@@ -1252,9 +1264,18 @@
   }
   .problemSection,
   .productStory,
+  .featuresSection,
   .faqSection {
     grid-template-columns: 1fr;
     gap: 36px;
+  }
+  .featuresShot {
+    width: min(100%, 420px);
+    margin-inline: auto;
+    padding: 28px 28px 0;
+  }
+  .featuresShot figcaption {
+    margin-inline: -28px;
   }
   .problemSection h2 {
     max-width: 20ch;
@@ -1273,32 +1294,6 @@
   .storyVisual {
     width: min(100%, 520px);
     margin-inline: auto;
-  }
-  .featureBento {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .spanHero,
-  .spanShot,
-  .spanText {
-    grid-column: auto;
-  }
-  .spanWide {
-    grid-column: 1 / -1;
-  }
-  .spanText:nth-last-child(2) {
-    grid-column: 1 / -1;
-  }
-  .featureShot {
-    height: 480px;
-  }
-  .spanWide .featureShot {
-    height: 420px;
-  }
-  .spanWide .featureCopy {
-    padding: 24px;
-  }
-  .spanWide .featureCopy h3 {
-    font-size: 22px;
   }
   .pricingGrid {
     grid-template-columns: 1fr;
@@ -1431,8 +1426,7 @@
     border-radius: 24px;
   }
   .flowTrack,
-  .audienceList,
-  .featureBento {
+  .audienceList {
     grid-template-columns: 1fr;
   }
   .flowTrack li {
@@ -1466,25 +1460,6 @@
   }
   .storyVisual .device:first-child {
     margin-top: 32px;
-  }
-  .spanWide,
-  .spanText:nth-last-child(2) {
-    grid-column: auto;
-  }
-  .spanWide {
-    flex-direction: column;
-  }
-  .featureShot,
-  .spanWide .featureShot {
-    width: 100%;
-    height: 520px;
-  }
-  .featureCopy,
-  .spanWide .featureCopy {
-    padding: 24px;
-  }
-  .featureCopy > svg {
-    margin-bottom: 14px;
   }
   .audienceList {
     gap: 22px;
@@ -1609,11 +1584,12 @@
   border-radius: var(--radius-lg);
   background: var(--rose-soft);
 }
-.journeyKicker {
-  margin: 0 0 18px;
-  color: var(--wine);
+.journeyNote {
+  max-width: 40ch;
+  margin: 20px 0 0;
+  color: var(--muted);
   font-size: 16px;
-  font-weight: 600;
+  line-height: 1.5;
 }
 .journeyCopy h2 {
   margin: 0;
@@ -1789,9 +1765,6 @@
   .journeyCopy h2 {
     font-size: clamp(28px, 5vw, 40px);
   }
-  .journeyKicker {
-    margin-bottom: 10px;
-  }
   .journeyChapters {
     margin-top: 20px;
   }
@@ -1835,9 +1808,6 @@
   }
   .journeyCopy h2 {
     font-size: 28px;
-  }
-  .journeyKicker {
-    font-size: 16px;
   }
   .journeyChapter h3 {
     font-size: 22px;
@@ -1888,10 +1858,17 @@
   .journeyDeck {
     display: contents;
   }
-  .journeyKicker,
-  .journeyCopy h2 {
+  .journeyCopy h2,
+  .journeyNote {
     grid-column: 1 / -1;
     margin: 0;
+  }
+  .journeyCopy h2 {
+    grid-row: 1;
+  }
+  .journeyNote {
+    grid-row: 2;
+    margin-top: -8px;
   }
   .journeyChapter {
     grid-column: 1;
