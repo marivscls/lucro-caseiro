@@ -1,77 +1,266 @@
+/* Demo em vídeo: capítulos clicáveis ao lado do aparelho, sem vazio lateral. */
 .section {
   width: var(--gutter);
   margin: 0 auto;
-  padding: 72px 0;
+  padding: 56px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 390px);
-  align-items: center;
-  gap: 64px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  align-items: start;
+  gap: 72px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--sheet);
 }
 .copy h2 {
+  max-width: 16ch;
+  margin: 0;
   color: var(--wine);
-  font-size: clamp(32px, 4vw, 52px);
-  line-height: 1.1;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.08;
 }
-.copy p,
-.copy li,
-.figure {
-  font-size: 16px;
-  line-height: 1.6;
-}
-.copy ol {
-  padding-left: 24px;
-}
-.copy li {
-  margin: 12px 0;
-}
-.note {
+.lede {
+  max-width: 46ch;
+  margin: 20px 0 0;
   color: var(--muted);
+  font-size: 18px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.chapters {
+  display: grid;
+  gap: 4px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.chapter {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+  min-height: 48px;
+  overflow: hidden;
+  padding: 20px 18px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 240ms var(--ease-out);
+}
+.chapter:hover {
+  background: var(--surface);
+}
+.chapter[aria-current="step"] {
+  background: var(--rose-soft);
+}
+.time {
+  display: inline-grid;
+  place-items: center;
+  min-height: 32px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--wine);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 240ms var(--ease-out),
+    color 240ms var(--ease-out);
+}
+.chapter:hover .time {
+  background: var(--sheet);
+}
+.chapter[aria-current="step"] .time {
+  background: var(--wine);
+  color: var(--on-wine);
+}
+.chapterCopy {
+  display: grid;
+  gap: 4px;
+  padding-top: 3px;
+}
+.chapterCopy strong {
+  color: var(--wine);
+  font-size: 19px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.chapterCopy span {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.chapterProgress {
+  position: absolute;
+  right: 18px;
+  bottom: 0;
+  left: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--rose);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms linear;
 }
 .figure {
+  position: sticky;
+  top: 32px;
   min-width: 0;
   margin: 0;
+}
+.frame {
+  position: relative;
+  padding: 10px;
+  border-radius: 36px;
+  background: var(--wine);
 }
 .video {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 9 / 16;
-  background: var(--sheet);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 26px;
+  background: var(--paper);
 }
 .video:focus-visible {
-  outline: 3px solid var(--wine);
+  outline: 3px solid var(--lime);
   outline-offset: 4px;
 }
-.figure figcaption {
-  margin-top: 16px;
-  color: var(--muted);
+.play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--on-wine);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgb(74 35 50 / 0.28);
+  transform: translate(-50%, -50%);
+  transition: transform 240ms var(--ease-out);
 }
-.figure a {
+.play:hover {
+  transform: translate(-50%, -50%) scale(1.04);
+}
+.play svg {
+  color: var(--lime);
+}
+.figure figcaption {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.figure figcaption > p {
+  margin: 0;
+}
+.captionLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  column-gap: 20px;
+}
+.captionLinks a {
   display: flex;
   align-items: center;
   min-height: 48px;
   color: var(--wine);
+  font-weight: 600;
   text-decoration: underline;
+  text-decoration-thickness: 1px;
   text-underline-offset: 4px;
 }
-.figure summary {
-  cursor: pointer;
-  min-height: 48px;
+.captionLinks details {
+  flex-basis: 100%;
+}
+.captionLinks summary {
   display: list-item;
+  min-height: 48px;
   padding: 12px 0;
   color: var(--wine);
+  font-weight: 600;
+  cursor: pointer;
+}
+.captionLinks details p {
+  margin: 0;
+}
+@media (max-width: 1050px) {
+  .section {
+    gap: 48px;
+    padding: 40px;
+  }
 }
 @media (max-width: 899px) {
   .section {
     width: min(100% - 32px, 640px);
     grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    padding: 48px 0;
+    gap: 0;
+    padding: 28px 20px;
+    border-radius: 24px;
+  }
+  .copy h2 {
+    max-width: 18ch;
+  }
+  .lede {
+    font-size: 17px;
+  }
+  .copy {
+    display: contents;
+  }
+  .copy h2 {
+    order: 1;
+  }
+  .lede {
+    order: 2;
+  }
+  .chapters {
+    order: 4;
+    margin-top: 20px;
+  }
+  .chapter {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 12px;
+  }
+  .chapterProgress {
+    right: 12px;
+    left: 12px;
   }
   .figure {
-    width: min(100%, 390px);
+    display: contents;
+  }
+  .frame {
+    order: 3;
+    width: min(100%, 320px);
+    margin-top: 28px;
     justify-self: center;
+  }
+  .figure figcaption {
+    order: 5;
+    margin-top: 12px;
+    padding: 16px 12px 0;
+    border-top: 1px solid var(--line);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chapter,
+  .time,
+  .play,
+  .chapterProgress {
+    transition: none;
   }
 }
