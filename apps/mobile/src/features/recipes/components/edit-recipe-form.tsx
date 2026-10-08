@@ -9,7 +9,10 @@ import { StandardModal } from "../../../shared/components/standard-modal";
 import { FormActions } from "../../../shared/components/form-layout";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
-import { uploadRecipeImage } from "../../../shared/utils/upload-image";
+import {
+  uploadFailureReason,
+  uploadRecipeImage,
+} from "../../../shared/utils/upload-image";
 import { useDeleteRecipe, useUpdateRecipe } from "../hooks";
 import {
   RECIPE_FORM_STEPS,
@@ -85,11 +88,10 @@ export function EditRecipeForm({
         try {
           setUploading(true);
           photoUrl = await uploadRecipeImage(imageUri);
-        } catch {
+        } catch (error) {
           showAlert({
             title: "Foto não enviada",
-            message:
-              "Não consegui enviar a foto agora. As outras alterações serão salvas.",
+            message: `${uploadFailureReason(error)} As outras alterações serão salvas.`,
           });
         } finally {
           setUploading(false);

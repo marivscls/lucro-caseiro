@@ -95,7 +95,7 @@ import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
 import { AdBanner } from "../shared/components/ad-banner";
 import { useShowAds } from "../shared/hooks/use-show-ads";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
-import { uploadProductImage } from "../shared/utils/upload-image";
+import { uploadFailureReason, uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 import {
   currencyInput,
@@ -378,11 +378,10 @@ function ProductDetailModal({
         try {
           setUploading(true);
           photoUrl = await uploadProductImage(imageUri);
-        } catch {
+        } catch (error) {
           showAlert({
             title: "Foto não enviada",
-            message:
-              "Não consegui enviar a foto agora. As outras alterações serão salvas.",
+            message: `${uploadFailureReason(error)} As outras alterações serão salvas.`,
           });
         } finally {
           setUploading(false);

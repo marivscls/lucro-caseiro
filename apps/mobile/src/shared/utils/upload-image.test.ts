@@ -2,10 +2,21 @@ import type { Session } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "./supabase";
+
+const fileArrayBuffer = vi.hoisted(() => vi.fn());
+vi.mock("expo-file-system", () => ({
+  File: class {
+    constructor(readonly uri: string) {}
+    arrayBuffer() {
+      return fileArrayBuffer(this.uri);
+    }
+  },
+}));
 import {
   supportedImageMimeFromBytes,
   uploadCatalogLogo,
   uploadErrorMessage,
+  uploadProductImage,
 } from "./upload-image";
 
 function session(expiresAt: number): Session {
@@ -23,6 +34,7 @@ beforeEach(() => {
   vi.spyOn(supabase.auth, "getSession").mockReset();
   vi.spyOn(supabase.auth, "refreshSession").mockReset();
   vi.spyOn(supabase.storage, "from").mockReset();
+  fileArrayBuffer.mockReset().mockRejectedValue(new Error("sem FileSystem"));
 });
 
 afterEach(() => {
@@ -116,6 +128,51 @@ describe("uploadImage", () => {
       bytes,
       { contentType: "image/png", upsert: false },
     );
+  });
+});
+
+describe("uploadImage no app nativo", () => {
+  it("lê a foto do picker direto do disco, sem passar pelo fetch", async () => {
+    const active = session(Math.floor(Date.now() / 1000) + 3600);
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: { session: active },
+      error: null,
+    });
+    const upload = vi.fn().mockResolvedValue({ data: { path: "p.jpg" }, error: null });
+    vi.spyOn(supabase.storage, "from").mockReturnValue({
+      upload,
+      getPublicUrl: () => ({ data: { publicUrl: "https://cdn.test/p.jpg" } }),
+    } as never);
+    const bytes = Uint8Array.from([0xff, 0xd8, 0xff]).buffer;
+    fileArrayBuffer.mockResolvedValue(bytes);
+    const fetchMock = vi.fn().mockRejectedValue(new Error("Network request failed"));
+    vi.stubGlobal("fetch", fetchMock);
+    const uri = "file:///data/user/0/app/cache/ImagePicker/foto.jpeg";
+
+    await expect(uploadProductImage(uri)).resolves.toBe("https://cdn.test/p.jpg");
+    expect(fileArrayBuffer).toHaveBeenCalledWith(uri);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(upload).toHaveBeenCalledWith(
+      expect.stringMatching(/^user-123\/\d+\.jpg$/),
+      bytes,
+      { contentType: "image/jpeg", upsert: false },
+    );
+  });
+
+  it("não envia arquivo vazio e avisa para escolher a foto de novo", async () => {
+    const active = session(Math.floor(Date.now() / 1000) + 3600);
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: { session: active },
+      error: null,
+    });
+    const upload = vi.fn();
+    vi.spyOn(supabase.storage, "from").mockReturnValue({ upload } as never);
+    fileArrayBuffer.mockResolvedValue(new ArrayBuffer(0));
+
+    await expect(uploadProductImage("file:///vazia.jpg")).rejects.toThrow(
+      /Selecione o arquivo novamente/,
+    );
+    expect(upload).not.toHaveBeenCalled();
   });
 });
 

@@ -11,7 +11,10 @@ import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { ApiError } from "../../../shared/utils/api-client";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
-import { uploadRecipeImage } from "../../../shared/utils/upload-image";
+import {
+  uploadFailureReason,
+  uploadRecipeImage,
+} from "../../../shared/utils/upload-image";
 import { useCreateRecipe, useRecipes } from "../hooks";
 import { RECIPE_FORM_STEPS, RecipeFormSteps, useRecipeDraft } from "./recipe-form-fields";
 import { alertError } from "../../../shared/utils/alerts";
@@ -89,11 +92,10 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
       try {
         setUploading(true);
         photoUrl = await uploadRecipeImage(imageUri);
-      } catch {
+      } catch (error) {
         showAlert({
           title: "Foto não enviada",
-          message:
-            "Não consegui enviar a foto agora. Vou salvar o cadastro sem ela. Você pode adicionar depois.",
+          message: `${uploadFailureReason(error)} Vou salvar o cadastro sem ela. Você pode adicionar depois.`,
         });
       } finally {
         setUploading(false);

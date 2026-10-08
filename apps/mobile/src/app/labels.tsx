@@ -71,7 +71,7 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopGrid, desktopPageContent } from "../shared/layout/desktop-page";
 import { LabelDesktopCard } from "../features/labels/components/labels-desktop";
 import { alertError, alertValidation } from "../shared/utils/alerts";
-import { uploadLabelLogo } from "../shared/utils/upload-image";
+import { uploadFailureReason, uploadLabelLogo } from "../shared/utils/upload-image";
 import { DesktopEmptyCard } from "../shared/layout/desktop-kit";
 
 function LabelDetailModal({
@@ -177,10 +177,10 @@ function LabelDetailModal({
     try {
       setUploading(true);
       return await uploadLabelLogo(newLogo);
-    } catch {
+    } catch (error) {
       showAlert({
         title: "Logo não enviado",
-        message: "Não consegui enviar o novo logo. Vou manter o anterior.",
+        message: `${uploadFailureReason(error)} Vou manter o logo anterior.`,
       });
       return undefined;
     } finally {
