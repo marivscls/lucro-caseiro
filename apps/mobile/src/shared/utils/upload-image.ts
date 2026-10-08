@@ -1,3 +1,4 @@
+import { File } from "expo-file-system";
 import { Platform } from "react-native";
 
 import { supabase } from "./supabase";
@@ -63,6 +64,13 @@ export function uploadErrorMessage(error: unknown): string {
     : "Não foi possível enviar a imagem. Verifique sua conexão e tente novamente.";
 }
 
+/** Motivo da falha para mostrar no aviso de "salvo sem a foto". */
+export function uploadFailureReason(error: unknown): string {
+  return error instanceof Error && error.message
+    ? error.message
+    : "Não consegui enviar a imagem agora.";
+}
+
 function loadWebImage(blob: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(blob);
@@ -108,6 +116,21 @@ async function shrinkWebImage(blob: Blob): Promise<Blob> {
   }
 }
 
+/**
+ * No app nativo, lê a foto do image picker (file://) direto do disco. O
+ * `fetch(file://)` passa pela ponte de rede do React Native e falha em alguns
+ * aparelhos Android, o que fazia a foto sumir sem aviso. Se o leitor de
+ * arquivos não estiver disponível, cai no `fetch` como antes.
+ */
+async function readNativeImage(localUri: string): Promise<ArrayBuffer> {
+  try {
+    return await new File(localUri).arrayBuffer();
+  } catch (error) {
+    console.warn("[upload-image] leitura pelo FileSystem falhou, tentando fetch", error);
+    return fetch(localUri).then((res) => res.arrayBuffer());
+  }
+}
+
 function isUnauthorizedUpload(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const value = error as { status?: number; statusCode?: string };
@@ -149,9 +172,11 @@ async function uploadImage(
     } else {
       arraybuffer = selectedFile
         ? await selectedFile.arrayBuffer()
-        : await fetch(localUri).then((res) => res.arrayBuffer());
+        : await readNativeImage(localUri);
     }
-  } catch {
+    if (arraybuffer.byteLength === 0) throw new Error("imagem vazia");
+  } catch (error) {
+    console.warn("[upload-image] falha ao ler a imagem", error);
     throw new Error(
       "Não foi possível ler a imagem escolhida. Selecione o arquivo novamente.",
     );
