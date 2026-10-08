@@ -16,7 +16,10 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Image, Pressable, View, TextInput } from "react-native";
 
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
-import { uploadProductImage } from "../../../shared/utils/upload-image";
+import {
+  uploadFailureReason,
+  uploadProductImage,
+} from "../../../shared/utils/upload-image";
 import { useCreateProduct, useProducts } from "../hooks";
 import { useProfile } from "../../subscription/hooks";
 import { businessCopyFor } from "../../subscription/business-copy";
@@ -657,10 +660,10 @@ export function CreateProductForm({
       try {
         setUploading(true);
         photoUrl = await uploadProductImage(imageUri);
-      } catch {
+      } catch (error) {
         showAlert({
           title: "Foto não enviada",
-          message: `Não consegui enviar a foto agora. Vou salvar o ${experienceCopy.productNoun} sem ela. Você pode adicionar depois.`,
+          message: `${uploadFailureReason(error)} Vou salvar o ${experienceCopy.productNoun} sem ela. Você pode adicionar depois.`,
         });
       } finally {
         setUploading(false);

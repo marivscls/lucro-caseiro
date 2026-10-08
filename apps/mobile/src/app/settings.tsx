@@ -67,7 +67,7 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
-import { uploadProfilePhoto } from "../shared/utils/upload-image";
+import { uploadFailureReason, uploadProfilePhoto } from "../shared/utils/upload-image";
 import {
   openSubscriptionManagement,
   subscriptionManagementTarget,
@@ -347,11 +347,10 @@ export default function SettingsScreen() {
       try {
         setSavingAvatar(true);
         newAvatarUrl = await uploadProfilePhoto(pickedAvatar);
-      } catch {
+      } catch (error) {
         showAlert({
           title: "Foto não enviada",
-          message:
-            "Não consegui enviar a foto agora. Vou salvar o resto do perfil. Tente a foto depois.",
+          message: `${uploadFailureReason(error)} Vou salvar o resto do perfil. Tente a foto depois.`,
         });
       } finally {
         setSavingAvatar(false);

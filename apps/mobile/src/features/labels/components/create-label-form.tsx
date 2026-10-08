@@ -19,7 +19,7 @@ import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
-import { uploadLabelLogo } from "../../../shared/utils/upload-image";
+import { uploadFailureReason, uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { publicCatalogProductUrl } from "../../catalog/api";
 import { useCatalogSettings } from "../../catalog/hooks";
 import { useProfile } from "../../subscription/hooks";
@@ -143,11 +143,10 @@ export function CreateLabelForm({
     try {
       setUploading(true);
       return await uploadLabelLogo(logoUri);
-    } catch {
+    } catch (error) {
       showAlert({
         title: "Logo não enviado",
-        message:
-          "Não consegui enviar o logo agora. Vou salvar a etiqueta sem ele. Você pode adicionar depois.",
+        message: `${uploadFailureReason(error)} Vou salvar a etiqueta sem ele. Você pode adicionar depois.`,
       });
       return undefined;
     } finally {
