@@ -166,3 +166,27 @@ describe("supportedImageMimeFromBytes", () => {
     ).toBeNull();
   });
 });
+
+it("uses actual selected MIME over stale URI extension after conversion", async () => {
+  const active = session(Math.floor(Date.now() / 1000) + 3600);
+  vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+    data: { session: active },
+    error: null,
+  });
+  const upload = vi
+    .fn()
+    .mockResolvedValue({ data: { path: "converted.jpg" }, error: null });
+  vi.spyOn(supabase.storage, "from").mockReturnValue({
+    upload,
+    getPublicUrl: () => ({ data: { publicUrl: "https://cdn.test/converted.jpg" } }),
+  } as never);
+  await uploadCatalogLogo(
+    "file:///original.png",
+    new Blob([new Uint8Array([0xff, 0xd8, 0xff])], { type: "image/jpeg" }),
+  );
+  expect(upload).toHaveBeenCalledWith(
+    expect.stringMatching(/\.jpg$/),
+    expect.any(ArrayBuffer),
+    { contentType: "image/jpeg", upsert: false },
+  );
+});

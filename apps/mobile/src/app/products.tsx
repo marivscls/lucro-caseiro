@@ -378,12 +378,13 @@ function ProductDetailModal({
         try {
           setUploading(true);
           photoUrl = await uploadProductImage(imageUri);
-        } catch {
-          showAlert({
-            title: "Foto não enviada",
-            message:
-              "Não consegui enviar a foto agora. As outras alterações serão salvas.",
-          });
+        } catch (error) {
+          alertError(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível enviar a foto. Tente novamente.",
+          );
+          return;
         } finally {
           setUploading(false);
         }
