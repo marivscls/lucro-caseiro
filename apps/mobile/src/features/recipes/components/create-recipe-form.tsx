@@ -83,18 +83,19 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
       if (!shouldContinue) return;
     }
 
-    // Sobe a foto (se houver); se falhar, salva sem ela.
+    // A imagem selecionada precisa ser enviada antes de salvar.
     let photoUrl: string | undefined;
     if (imageUri) {
       try {
         setUploading(true);
         photoUrl = await uploadRecipeImage(imageUri);
-      } catch {
-        showAlert({
-          title: "Foto não enviada",
-          message:
-            "Não consegui enviar a foto agora. Vou salvar o cadastro sem ela. Você pode adicionar depois.",
-        });
+      } catch (error) {
+        alertError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível enviar a imagem. Tente novamente.",
+        );
+        return;
       } finally {
         setUploading(false);
       }

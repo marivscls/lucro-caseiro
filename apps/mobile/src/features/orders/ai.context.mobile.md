@@ -203,3 +203,7 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 ## Linguagem da agenda — 2026-10-01
 
 A ação de adicionar, o vazio e o formulário usam o nome da atividade do segmento. Selecionar serviço usa atendimento; o exemplo vem do segmento ou serviço escolhido. Não muda datas, preços, pagamentos ou notificações.
+
+## Imagem selecionada — 2026-10-09
+
+Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.

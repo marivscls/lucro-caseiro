@@ -535,16 +535,20 @@ export function OrderForm({
     }
 
     let photoUrl: string | null | undefined = savedPhotoUrl;
-    // A foto é opcional: se o envio falhar, a encomenda é salva mesmo assim
-    // (sem trocar a foto que já existia) e o motivo aparece depois.
-    let photoError: string | null = null;
+    // Uma foto selecionada precisa ser enviada antes de salvar.
     if (imageUri && !imageUri.startsWith("http")) {
       try {
         setUploading(true);
         photoUrl = await uploadOrderImage(imageUri);
       } catch (error) {
-        photoError =
-          error instanceof Error ? error.message : "Não consegui enviar a imagem.";
+        showAlert({
+          title: "Foto não enviada",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Não foi possível enviar a imagem. Tente novamente.",
+        });
+        return;
       } finally {
         setUploading(false);
       }
@@ -604,12 +608,6 @@ export function OrderForm({
       }
       requestIdRef.current = createOrderRequestId();
       onSuccess?.();
-      if (photoError) {
-        showAlert({
-          title: isEditing ? "Salvo sem trocar a foto" : "Salvo sem a foto",
-          message: `${photoError} Abra o cadastro e adicione a imagem de novo quando puder.`,
-        });
-      }
     } catch (error) {
       const message =
         error instanceof Error
