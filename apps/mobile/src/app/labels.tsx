@@ -177,12 +177,6 @@ function LabelDetailModal({
     try {
       setUploading(true);
       return await uploadLabelLogo(newLogo);
-    } catch {
-      showAlert({
-        title: "Logo não enviado",
-        message: "Não consegui enviar o novo logo. Vou manter o anterior.",
-      });
-      return undefined;
     } finally {
       setUploading(false);
     }
@@ -206,9 +200,8 @@ function LabelDetailModal({
     }
     const dates = validateDates();
     if (!dates) return;
-    const logoUrl = await resolveLogoUrl();
-
     try {
+      const logoUrl = await resolveLogoUrl();
       await updateLabel.mutateAsync({
         id: labelId,
         data: {

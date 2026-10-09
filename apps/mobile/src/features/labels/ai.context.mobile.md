@@ -229,3 +229,7 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 ## Retomada de cadastro - 2026-10-01
 
 O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.
+
+## Imagem selecionada — 2026-10-09
+
+Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.

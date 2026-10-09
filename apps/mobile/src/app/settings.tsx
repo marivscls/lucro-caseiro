@@ -347,12 +347,13 @@ export default function SettingsScreen() {
       try {
         setSavingAvatar(true);
         newAvatarUrl = await uploadProfilePhoto(pickedAvatar);
-      } catch {
-        showAlert({
-          title: "Foto não enviada",
-          message:
-            "Não consegui enviar a foto agora. Vou salvar o resto do perfil. Tente a foto depois.",
-        });
+      } catch (error) {
+        alertError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível enviar a imagem. Tente novamente.",
+        );
+        return;
       } finally {
         setSavingAvatar(false);
       }

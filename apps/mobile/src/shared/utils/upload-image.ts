@@ -6,6 +6,7 @@ import { supabase } from "./supabase";
 // Caminhos são escopados por usuário (`${userId}/...`) pelas policies do storage.
 const BUCKET = "product-photos";
 const SESSION_EXPIRY_MARGIN_MS = 60_000;
+let uploadSequence = 0;
 
 function sessionExpired(expiresAt?: number): boolean {
   return (
@@ -163,15 +164,13 @@ async function uploadImage(
     selectedFile?.type ||
     selectedMimeType
   )?.toLowerCase();
-  const detectedType = validateImageBytes
-    ? supportedImageMimeFromBytes(arraybuffer)
-    : null;
-  if (validateImageBytes && !detectedType) {
+  const detectedType = supportedImageMimeFromBytes(arraybuffer);
+  if (!detectedType) {
     throw new Error(
       "O arquivo escolhido não contém uma imagem PNG, JPEG ou WebP válida.",
     );
   }
-  if (detectedType && selectedType && detectedType !== selectedType) {
+  if (validateImageBytes && selectedType && detectedType !== selectedType) {
     throw new Error("O conteúdo da imagem não corresponde ao formato informado.");
   }
   const contentMimeType = detectedType ?? selectedType;
@@ -183,7 +182,7 @@ async function uploadImage(
   let contentType = "image/jpeg";
   if (extension === "png") contentType = "image/png";
   if (extension === "webp") contentType = "image/webp";
-  const path = `${userId}/${prefix}${Date.now()}.${extension}`;
+  const path = `${userId}/${prefix}${Date.now()}-${++uploadSequence}-${typeof performance === "undefined" ? 0 : Math.floor(performance.now() * 1000)}.${extension}`;
 
   const bucket = supabase.storage.from(BUCKET);
   let { error } = await bucket.upload(path, arraybuffer, { contentType, upsert: false });
