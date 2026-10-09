@@ -176,8 +176,10 @@ async function uploadImage(
   }
   const contentMimeType = detectedType ?? selectedType;
   let extension = "jpg";
-  if (contentMimeType === "image/png" || rawExt === "png") extension = "png";
-  if (contentMimeType === "image/webp" || rawExt === "webp") extension = "webp";
+  if (contentMimeType === "image/png" || (!contentMimeType && rawExt === "png"))
+    extension = "png";
+  if (contentMimeType === "image/webp" || (!contentMimeType && rawExt === "webp"))
+    extension = "webp";
   let contentType = "image/jpeg";
   if (extension === "png") contentType = "image/png";
   if (extension === "webp") contentType = "image/webp";

@@ -1,3 +1,4 @@
+import { prepareProductPhotos } from "../product-photos";
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
@@ -652,39 +653,26 @@ export function CreateProductForm({
     const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
 
     // Sobe a foto (se houver) e usa a URL pública. Se falhar, salva sem a foto.
-    let photoUrl: string | undefined = initialValues?.photoUrl;
-    if (imageUri) {
-      try {
-        setUploading(true);
-        photoUrl = await uploadProductImage(imageUri);
-      } catch {
-        showAlert({
-          title: "Foto não enviada",
-          message: `Não consegui enviar a foto agora. Vou salvar o ${experienceCopy.productNoun} sem ela. Você pode adicionar depois.`,
-        });
-      } finally {
-        setUploading(false);
-      }
+    let photos: Awaited<ReturnType<typeof prepareProductPhotos>>;
+    try {
+      setUploading(true);
+      photos = await prepareProductPhotos(
+        imageUri,
+        extraUris,
+        initialValues?.photoUrl,
+        uploadProductImage,
+      );
+    } catch (error) {
+      alertError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível enviar as fotos. Tente novamente.",
+      );
+      return;
+    } finally {
+      setUploading(false);
     }
-
-    // Sobe as fotos extras (galeria). Mantém as que subirem; se nenhuma subir,
-    // salva sem elas (o produto fica com a foto principal).
-    let extraPhotos: string[] | undefined;
-    if (extraUris.length > 0) {
-      try {
-        setUploading(true);
-        const settled = await Promise.allSettled(
-          extraUris.map((uri) => uploadProductImage(uri)),
-        );
-        const uploaded = settled
-          .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
-          .map((r) => r.value);
-        extraPhotos = uploaded.length > 0 ? uploaded : undefined;
-      } finally {
-        setUploading(false);
-      }
-    }
-
+    const { photoUrl, extraPhotos } = photos;
     try {
       const product = await createProduct.mutateAsync({
         name: name.trim(),
