@@ -246,3 +246,7 @@ Só no desktop (`useDesktopLayout()`); o celular não muda. Peças em `component
 ## Recuperação de lista — 2026-10-01
 
 O Card compartilhado aceita StyleProp e compõe arrays sem espalhá-los em objeto CSS. Isso preserva o estado de erro e Tentar novamente quando FlatList clona o componente vazio. Validado com GET /products 500 simulado; não indica incidente real de backend.
+
+## Persistência de fotos — 2026-10-09
+
+Cadastro exige envio de toda seleção (principal e extras) antes de mutação; falha interrompe e preserva formulário para retry, nunca salva galeria parcial como sucesso. Edição também interrompe ao falhar foto nova. URLs HTTP(S) existentes não são enviadas novamente. MIME preparado prevalece sobre extensão da URI, inclusive após conversão web. Fotos já enviadas antes de falha posterior podem permanecer órfãs no Storage; nenhum objeto existente é apagado. Não altera bucket/policies/schema/permissões. Storage real requer validação operacional separada.

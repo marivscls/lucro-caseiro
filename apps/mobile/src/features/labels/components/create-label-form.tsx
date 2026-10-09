@@ -143,13 +143,6 @@ export function CreateLabelForm({
     try {
       setUploading(true);
       return await uploadLabelLogo(logoUri);
-    } catch {
-      showAlert({
-        title: "Logo não enviado",
-        message:
-          "Não consegui enviar o logo agora. Vou salvar a etiqueta sem ele. Você pode adicionar depois.",
-      });
-      return undefined;
     } finally {
       setUploading(false);
     }
@@ -201,8 +194,8 @@ export function CreateLabelForm({
       if (!shouldContinue) return;
     }
 
-    const logoUrl = await uploadLogo();
     try {
+      const logoUrl = await uploadLogo();
       await createLabel.mutateAsync({
         name: name.trim(),
         templateId,

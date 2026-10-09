@@ -1,10 +1,23 @@
 import React from "react";
-import { cleanup, fireEvent, render as renderUI, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render as renderUI,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Recipe } from "@lucro-caseiro/contracts";
 import { EditRecipeForm } from "./edit-recipe-form";
 import { RecipeDetail } from "./recipe-detail";
+
+const photoFixture = vi.hoisted(() => ({
+  selected: null as string | null,
+  upload: vi.fn(),
+  save: vi.fn(),
+}));
+import { alertError } from "../../../shared/utils/alerts";
 
 vi.mock("react-native", async () => vi.importActual("react-native-web"));
 vi.mock("../../../../../../packages/ui/src/use-reduced-motion", () => ({
@@ -14,9 +27,15 @@ vi.mock("@lucro-caseiro/ui", async () =>
   vi.importActual("../../../../../../packages/ui/src/index"),
 );
 vi.mock("../../../shared/hooks/use-image-picker", () => ({
-  useImagePicker: () => ({ imageUri: null, showPicker: vi.fn(), setImageUri: vi.fn() }),
+  useImagePicker: () => ({
+    imageUri: photoFixture.selected,
+    showPicker: vi.fn(),
+    setImageUri: vi.fn(),
+  }),
 }));
-vi.mock("../../../shared/utils/upload-image", () => ({ uploadRecipeImage: vi.fn() }));
+vi.mock("../../../shared/utils/upload-image", () => ({
+  uploadRecipeImage: photoFixture.upload,
+}));
 vi.mock("../../../shared/components/standard-modal", () => ({
   StandardModal: ({
     children,
@@ -32,7 +51,7 @@ vi.mock("../../../shared/components/standard-modal", () => ({
   ),
 }));
 vi.mock("../hooks", () => ({
-  useUpdateRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
+  useUpdateRecipe: () => ({ isPending: false, mutateAsync: photoFixture.save }),
   useDeleteRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
   useRecipe: () => ({ data: fractionalRecipe, isLoading: false }),
   useDuplicateRecipe: () => ({ isPending: false, mutateAsync: vi.fn() }),
@@ -74,6 +93,12 @@ const recipe: Recipe = {
 };
 
 afterEach(cleanup);
+beforeEach(() => {
+  photoFixture.selected = null;
+  photoFixture.upload.mockReset();
+  photoFixture.save.mockReset();
+  vi.mocked(alertError).mockClear();
+});
 const fractionalRecipe: Recipe = {
   ...recipe,
   yieldQuantity: 1.5,
@@ -145,4 +170,38 @@ describe("recipe yield step", () => {
     fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
     expect(screen.getByText("Salvar alterações")).toBeTruthy();
   });
+});
+
+it("keeps actual recipe edit open on failed photo upload, retries and reopens saved URL in fixture", async () => {
+  photoFixture.selected = "file:///fixture-selection.png";
+  photoFixture.upload
+    .mockRejectedValueOnce(Error("Storage fixture refused"))
+    .mockResolvedValueOnce("https://cdn.test/recipe-persisted.png");
+  photoFixture.save.mockImplementation((input: { data: { photoUrl?: string } }) => {
+    fractionalRecipe.photoUrl = input.data.photoUrl ?? null;
+    return Promise.resolve({ ...fractionalRecipe });
+  });
+  const first = render(
+    <EditRecipeForm recipe={fractionalRecipe} visible onClose={() => undefined} />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+  fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+  fireEvent.click(screen.getByText("Salvar alterações"));
+  await waitFor(() => expect(alertError).toHaveBeenCalledWith("Storage fixture refused"));
+  expect(photoFixture.save).not.toHaveBeenCalled();
+  expect(screen.getByText("Salvar alterações")).toBeTruthy();
+  fireEvent.click(screen.getByText("Salvar alterações"));
+  await waitFor(() => expect(photoFixture.save).toHaveBeenCalledOnce());
+  expect(photoFixture.save).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({
+        photoUrl: "https://cdn.test/recipe-persisted.png",
+      }),
+    }),
+  );
+  first.unmount();
+  photoFixture.selected = null;
+  const reopened = render(<RecipeDetail recipeId={fractionalRecipe.id} />);
+  expect(reopened.container.innerHTML).toContain("https://cdn.test/recipe-persisted.png");
+  fractionalRecipe.photoUrl = null;
 });

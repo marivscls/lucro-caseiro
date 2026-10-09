@@ -204,3 +204,7 @@ Conta nova chega com `plan = essential`, `planExpiresAt` em 7 dias e `planIsTria
   Essencial durante o teste também comemora.
 - Cadastro e ajuda (assistente) contam que a conta nova ganha 7 dias do Essencial.
 - `planIsTrial` pode faltar em respostas de API antiga: tratado como `false`.
+
+## Imagem selecionada — 2026-10-09
+
+Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.
