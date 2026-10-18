@@ -87,7 +87,19 @@ describe("Web Push persistence and worker with PostgreSQL", () => {
         .rows,
     ).toEqual([{ date: "2026-09-09" }]);
   });
-  it("honors opt-outs and current plan expiry without an open browser", async () => {
+  it("honors opt-outs without an open browser", async () => {
+    await repo.register(userId, "lucro-caseiro", {
+      ...input,
+      prefs: { DELIVERY: false, CLIENT_BIRTHDAY: false },
+    });
+    await pg.exec(
+      `INSERT INTO orders VALUES ('${userId}','pending','2026-09-10'); INSERT INTO clients VALUES ('${userId}','1990-09-09');`,
+    );
+    const send = vi.fn().mockResolvedValue("sent");
+    await repo.runOnce(send);
+    expect(send).not.toHaveBeenCalled();
+  });
+  it("sends birthday reminders on the free plan, even after a paid plan expires", async () => {
     await repo.register(userId, "lucro-caseiro", {
       ...input,
       prefs: { DELIVERY: false },
@@ -97,7 +109,9 @@ describe("Web Push persistence and worker with PostgreSQL", () => {
     );
     const send = vi.fn().mockResolvedValue("sent");
     await repo.runOnce(send);
-    expect(send).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0]?.[1].body).toContain("aniversário");
+    expect(send.mock.calls[0]?.[1].body).not.toContain("entrega");
   });
   it("does not alert stock without a configured threshold", async () => {
     await repo.register(userId, "lucro-caseiro", input);

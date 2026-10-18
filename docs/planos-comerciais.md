@@ -45,6 +45,14 @@ dados salvos (quem passou dos limites do Gratis so consulta; novos cadastros ped
 
 ## Plano Gratis
 
+Decisao de 2026-10-18 (proposta para LUCAS aprovar): para a pessoa usar mais o app, o Gratis
+passa a ter o resumo do mes em PDF (`exportBasic`), orcamentos em PDF (`quotesPdf`), os
+lembretes diarios, resumo semanal e aniversarios de clientes (`premiumNotifications`) e o
+catalogo publico com ate 10 produtos (`FREE_CATALOG_MAX_PRODUCTS`, antes 3). Continuam pagos:
+volume sem limite, catalogo completo/personalizado, mais fotos, relatorios avancados, XLSX,
+compras/fornecedores, gastos recorrentes, rotulos premium e kits. Contas novas tambem veem a
+tela de planos uma vez logo apos o cadastro.
+
 Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limite quando comecar a usar todos os dias.
 
 | Recurso                |                      Limite |
@@ -57,11 +65,14 @@ Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limi
 | Receitas               |                           5 |
 | Embalagens             |                           3 |
 | Fornecedores           |                           3 |
-| Catalogo online        |                      Basico |
+| Catalogo online        |    Basico (ate 10 produtos) |
 | Agenda/encomendas      |                      Basico |
 | Fiado/clientes devendo |                      Basico |
 | Financeiro             |              Resumo simples |
 | Recibos                | Simples, sem personalizacao |
+| Resumo do mes em PDF   |                         Sim |
+| Orcamentos em PDF      |                         Sim |
+| Lembretes e resumos    |                         Sim |
 | Exportar PDF/XLSX      |                         Nao |
 | Relatorios avancados   |                         Nao |
 | Catalogo personalizado |                         Nao |
@@ -87,7 +98,6 @@ Deve incluir:
 - Estoque basico.
 - Catalogo online completo e personalizado.
 - Recibo simples.
-- Exportar resumo mensal em PDF simples (feature `exportBasic`, ver ADR-0005).
 - 1 usuario.
 - Ate 3 fotos por produto (foto principal e 2 adicionais), igual ao Profissional.
 
@@ -107,7 +117,6 @@ Deve incluir tudo do Essencial, mais:
 - Compras.
 - Despesas recorrentes.
 - Estoque completo.
-- Orcamentos em PDF.
 - Rotulos premium.
 - Embalagens.
 - Produtos compostos/kits.
@@ -138,15 +147,15 @@ Usar a logica de 2 meses gratis:
 | Embalagens              | 3              | Ilimitadas               | Ilimitadas                  |
 | Fornecedores            | 3              | Limitado ou nao incluso  | Ilimitados                  |
 | Fotos por produto       | 1              | Ate 3                    | Ate 3                       |
-| Catalogo online         | Basico         | Completo e personalizado | Completo e personalizado    |
+| Catalogo online         | Ate 10 itens   | Completo e personalizado | Completo e personalizado    |
 | Agenda/encomendas       | Basico         | Completo                 | Completo                    |
 | Fiado                   | Basico         | Completo                 | Completo                    |
 | Financeiro              | Resumo simples | Basico                   | Completo                    |
 | Relatorios avancados    | Nao            | Nao                      | Sim                         |
-| Exportacao PDF/XLSX     | Nao            | PDF basico (resumo mes)  | Sim (PDF completo + XLSX)   |
+| Exportacao PDF/XLSX     | PDF basico     | PDF basico (resumo mes)  | Sim (PDF completo + XLSX)   |
 | Recibos                 | Simples        | Simples                  | Personalizados              |
-| Exportar resumo em PDF  | Nao            | Sim (PDF basico do mes)  | Sim (PDF completo)          |
-| Orcamentos em PDF       | Nao            | Nao                      | Sim                         |
+| Exportar resumo em PDF  | Sim (basico)   | Sim (PDF basico do mes)  | Sim (PDF completo)          |
+| Orcamentos em PDF       | Sim            | Sim                      | Sim                         |
 | Rotulos premium         | Nao            | Nao                      | Sim                         |
 | Produtos compostos/kits | Nao            | Nao                      | Sim                         |
 | Despesas recorrentes    | Nao            | Nao                      | Sim                         |

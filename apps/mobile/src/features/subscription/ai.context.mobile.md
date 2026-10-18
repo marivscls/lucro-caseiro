@@ -221,7 +221,8 @@ do primeiro acesso.
 - `app/onboarding.tsx` redireciona para `/welcome-plans` quando
   `shouldShowPlansIntro(userId, plansIntroSeenUserIds)` (`shared/utils/new-account.ts`). A
   tela marca `markPlansIntroSeen(userId)` (`use-onboarding`, persistido por conta no aparelho e
-  preservado no `reset`) ao abrir, então quem sair por qualquer caminho não a vê de novo.
+  preservado no `reset`) quando a pessoa toca na saída. Não marca ao abrir: o aviso "Conta
+  criada" do cadastro recarrega `/` por cima da tela, e marcar cedo pulava os planos.
   Contas antigas nunca passam por `/onboarding` e não veem a tela.
 - Modo boas-vindas: sem voltar, sem abas/menu lateral (`welcome-plans` está nos segmentos sem
   barra e sem moldura de desktop), sem aviso de teste repetido, sem "Seu uso atual" e sem
@@ -229,3 +230,10 @@ do primeiro acesso.
   planos" (Gratuito). Saída sempre visível: `welcomeContinueLabel` → "Continuar com o teste
   grátis" / "Continuar no plano Gratuito" / "Continuar", que volta para `/onboarding`.
 - O checkout é o mesmo da tela de planos (Google Play no Android, Stripe no resto).
+
+## Recursos liberados no Gratuito — 2026-10-18
+
+Proposta para LUCAS aprovar no PR: `exportBasic`, `quotesPdf` e `premiumNotifications` entram
+no Gratuito (matriz em `@lucro-caseiro/contracts`) e o catálogo free mostra até 10 produtos.
+`TIER_BENEFITS` não lista mais PDF do mês, orçamentos em PDF nem lembretes como vantagem paga.
+Em Configurações, o selo "Profissional" das notificações só aparece quando o item está travado.

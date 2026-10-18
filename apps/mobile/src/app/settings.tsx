@@ -950,7 +950,7 @@ export default function SettingsScreen() {
                     />
                     <View style={{ flex: 1 }}>
                       <Typography variant="bodyBold">{item.label}</Typography>
-                      {item.premium ? (
+                      {locked ? (
                         <Typography variant="caption" color={theme.colors.premium}>
                           Profissional
                         </Typography>

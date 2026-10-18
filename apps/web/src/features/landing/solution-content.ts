@@ -1,4 +1,7 @@
-import { ESSENTIAL_TRIAL_DAYS } from "@lucro-caseiro/contracts";
+import {
+  ESSENTIAL_TRIAL_DAYS,
+  FREE_CATALOG_MAX_PRODUCTS,
+} from "@lucro-caseiro/contracts";
 
 /**
  * Páginas por funcionalidade e por tipo de negócio (SEO). Cada uma responde a
@@ -208,8 +211,7 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     faqs: [
       {
         question: "Quantos produtos cabem no catálogo grátis?",
-        answer:
-          "No Gratuito, até 3 produtos publicados. No Essencial e no Profissional, o catálogo é completo e personalizado.",
+        answer: `No Gratuito, até ${FREE_CATALOG_MAX_PRODUCTS} produtos publicados. No Essencial e no Profissional, o catálogo é completo e personalizado.`,
       },
       {
         question: "O cliente precisa baixar algum app?",

@@ -290,3 +290,5 @@ invariants:
 ## Estado público da vitrine — 2026-09-07
 
 O hero usa “Vitrine em preparação” quando as contagens expostas estão vazias e “Consulte disponibilidade” quando há conteúdo. Publicação do link não prova disponibilidade de atendimento/pedidos. Links, filtros de exposição e autorização permanecem sob os contratos existentes.
+
+- 2026-10-18: vitrine do plano free passa de 3 para `FREE_CATALOG_MAX_PRODUCTS` (10, em `@lucro-caseiro/contracts`); o produto focado continua entrando na lista.
