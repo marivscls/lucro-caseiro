@@ -8,7 +8,7 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
     "Clientes e produtos ilimitados",
     "Receitas e embalagens ilimitadas",
     "Catálogo completo e personalizado",
-    "Até 3 fotos por produto",
+    "Até 5 fotos por produto",
     "Agenda, fiado e financeiro básico",
     "Fornecedores: até 3 (ilimitado no Profissional)",
     "Sem anúncios",

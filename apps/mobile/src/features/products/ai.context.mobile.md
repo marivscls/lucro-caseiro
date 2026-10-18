@@ -250,3 +250,5 @@ O Card compartilhado aceita StyleProp e compõe arrays sem espalhá-los em objet
 ## Persistência de fotos — 2026-10-09
 
 Cadastro exige envio de toda seleção (principal e extras) antes de mutação; falha interrompe e preserva formulário para retry, nunca salva galeria parcial como sucesso. Edição também interrompe ao falhar foto nova. URLs HTTP(S) existentes não são enviadas novamente. MIME preparado prevalece sobre extensão da URI, inclusive após conversão web. Fotos já enviadas antes de falha posterior podem permanecer órfãs no Storage; nenhum objeto existente é apagado. Não altera bucket/policies/schema/permissões. Storage real requer validação operacional separada.
+
+- 2026-10-18: galeria dos planos pagos passa a até 5 fotos por produto (principal + `MAX_PRODUCT_EXTRA_PHOTOS` = 4, em `@lucro-caseiro/contracts`; antes 3), a pedido de LUCAS.

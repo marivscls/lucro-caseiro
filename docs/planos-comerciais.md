@@ -99,7 +99,7 @@ Deve incluir:
 - Catalogo online completo e personalizado.
 - Recibo simples.
 - 1 usuario.
-- Ate 3 fotos por produto (foto principal e 2 adicionais), igual ao Profissional.
+- Ate 5 fotos por produto (foto principal e 4 adicionais), igual ao Profissional (antes 3; mudou em 2026-10-18).
 
 Regra comercial: depois que a pessoa paga o Essencial, ela nao deve bater em limite de volume basico como venda, cliente ou produto.
 
@@ -146,7 +146,7 @@ Usar a logica de 2 meses gratis:
 | Receitas                | 5              | Ilimitadas               | Ilimitadas                  |
 | Embalagens              | 3              | Ilimitadas               | Ilimitadas                  |
 | Fornecedores            | 3              | Limitado ou nao incluso  | Ilimitados                  |
-| Fotos por produto       | 1              | Ate 3                    | Ate 3                       |
+| Fotos por produto       | 1              | Ate 5                    | Ate 5                       |
 | Catalogo online         | Ate 10 itens   | Completo e personalizado | Completo e personalizado    |
 | Agenda/encomendas       | Basico         | Completo                 | Completo                    |
 | Fiado                   | Basico         | Completo                 | Completo                    |
