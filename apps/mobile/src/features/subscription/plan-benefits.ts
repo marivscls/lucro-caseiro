@@ -8,9 +8,8 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
     "Clientes e produtos ilimitados",
     "Receitas e embalagens ilimitadas",
     "Catálogo completo e personalizado",
-    "Até 3 fotos por produto",
+    "Até 5 fotos por produto",
     "Agenda, fiado e financeiro básico",
-    "Exporta o resumo do mês em PDF",
     "Fornecedores: até 3 (ilimitado no Profissional)",
     "Sem anúncios",
   ],
@@ -18,8 +17,8 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
     "Tudo do Essencial",
     "Resultados completos + exportar PDF/Excel",
     "Fornecedores, compras e gastos fixos ilimitados",
-    "Etiquetas personalizadas e orçamentos em PDF",
-    "Aniversários, lembretes avançados e suporte prioritário",
+    "Etiquetas personalizadas",
+    "Suporte prioritário",
   ],
 };
 

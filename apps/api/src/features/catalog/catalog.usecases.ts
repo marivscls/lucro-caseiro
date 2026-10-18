@@ -6,7 +6,7 @@ import type {
   StorefrontCustomization,
   UpdateCatalogSettings,
 } from "@lucro-caseiro/contracts";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
+import { FREE_CATALOG_MAX_PRODUCTS, hasActiveFeature } from "@lucro-caseiro/contracts";
 import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
@@ -241,11 +241,11 @@ export class CatalogUseCases {
     const services = hasPublishedItemSnapshot
       ? owner.publishedServices!.filter((service) => visibleServiceIds.has(service.id))
       : liveServices;
-    // O plano gratuito exibe no máximo 3 produtos na vitrine
+    // O plano gratuito exibe no máximo FREE_CATALOG_MAX_PRODUCTS na vitrine
     // (gatilho de conversao; o app mostra "Mostre seu catalogo completo").
     let products = allProducts;
     if (!hasFullCatalog) {
-      products = allProducts.slice(0, 3);
+      products = allProducts.slice(0, FREE_CATALOG_MAX_PRODUCTS);
       const focusedProduct = focusedProductId
         ? allProducts.find((product) => product.id === focusedProductId)
         : undefined;
@@ -253,7 +253,7 @@ export class CatalogUseCases {
         focusedProduct &&
         !products.some((product) => product.id === focusedProduct.id)
       ) {
-        products = [focusedProduct, ...products].slice(0, 3);
+        products = [focusedProduct, ...products].slice(0, FREE_CATALOG_MAX_PRODUCTS);
       }
     }
     return {

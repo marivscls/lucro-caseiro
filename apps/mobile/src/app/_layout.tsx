@@ -80,6 +80,7 @@ function AppContent() {
     rootSegment !== "" &&
     rootSegment !== "(auth)" &&
     rootSegment !== "onboarding" &&
+    rootSegment !== "welcome-plans" &&
     rootSegment !== "reset-password" &&
     rootSegment !== "c";
   const insets = useSafeAreaInsets();
@@ -299,6 +300,7 @@ function AppContent() {
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="reset-password" />
           <Stack.Screen name="onboarding" />
+          <Stack.Screen name="welcome-plans" />
           <Stack.Screen
             name="tabs"
             options={{

@@ -1,3 +1,4 @@
+import { FREE_CATALOG_MAX_PRODUCTS } from "@lucro-caseiro/contracts";
 /**
  * Peças do Catálogo no desktop (web >= 1024px). Estado e regras continuam em
  * `app/catalog.tsx`; aqui só a apresentação da lateral "Sua vitrine":
@@ -200,7 +201,7 @@ export function CatalogDesktopUpsell({ onPress }: Readonly<{ onPress: () => void
       <AppIcon name="diamond-outline" size={24} color={theme.colors.premium} />
       <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
         <Typography variant="desktopBodyStrong">
-          Seu catálogo mostra até 3 produtos
+          Seu catálogo mostra até {FREE_CATALOG_MAX_PRODUCTS} produtos
         </Typography>
         <Typography variant="desktopMeta" color={theme.colors.text}>
           Mostre seu catálogo completo e personalize as cores no Essencial.

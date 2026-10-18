@@ -1,5 +1,5 @@
 import type { CatalogSettings, Product, Service } from "@lucro-caseiro/contracts";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
+import { hasActiveFeature, FREE_CATALOG_MAX_PRODUCTS } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -1437,7 +1437,7 @@ function CatalogForm({
                 <AppIcon name="diamond-outline" size={24} color={theme.colors.premium} />
                 <View style={{ flex: 1 }}>
                   <Typography variant="bodyBold">
-                    Seu catálogo mostra até 3 produtos
+                    Seu catálogo mostra até {FREE_CATALOG_MAX_PRODUCTS} produtos
                   </Typography>
                   <Typography variant="caption">
                     Mostre seu catálogo completo e personalize as cores no Essencial.

@@ -14,6 +14,7 @@ import {
 import Image from "next/image";
 import {
   ESSENTIAL_TRIAL_DAYS,
+  FREE_CATALOG_MAX_PRODUCTS,
   PLAN_LIMITS,
   PLAN_PRICING,
 } from "@lucro-caseiro/contracts";
@@ -113,7 +114,7 @@ const audiences: readonly {
     name: "Outros negócios",
     text: "Quem produz, revende ou atende e quer saber o que sobra.",
   },
-]
+];
 
 const trialDays = ESSENTIAL_TRIAL_DAYS;
 
@@ -128,7 +129,9 @@ const plans: readonly PricingPlan[] = [
       `${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes`,
       "Fiado, agenda de encomendas e financeiro",
       "Cálculo com materiais, trabalho, gastos fixos e taxas",
-      "Catálogo com até 3 produtos publicados",
+      `Catálogo com até ${FREE_CATALOG_MAX_PRODUCTS} produtos publicados`,
+      "Resumo do mês e orçamentos em PDF",
+      "Lembretes diários e resumo da semana",
     ],
     featured: false,
     badge: null,
@@ -143,7 +146,6 @@ const plans: readonly PricingPlan[] = [
       "Clientes e produtos ilimitados",
       "Catálogo completo e personalizado, com mais fotos",
       "Sem anúncios",
-      "Resumo mensal em PDF",
     ],
     featured: true,
     badge: `${trialDays} dias grátis`,
@@ -158,7 +160,7 @@ const plans: readonly PricingPlan[] = [
       "Tudo do Essencial",
       "Rateio por faturamento e perfis salvos de taxas",
       "Relatórios e exportações avançadas",
-      "Compras, gastos recorrentes, rótulos e orçamentos",
+      "Compras, gastos recorrentes e rótulos",
       "Produtos compostos e kits",
     ],
     featured: false,
@@ -175,7 +177,7 @@ export const landingFaqs = [
   },
   {
     question: "O que está incluído no Gratuito?",
-    answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes, anotar o fiado, organizar encomendas e publicar até 3 produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
+    answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes, anotar o fiado, organizar encomendas, gerar orçamentos em PDF e publicar até ${FREE_CATALOG_MAX_PRODUCTS} produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
   },
   {
     question: "Posso testar o Essencial antes de assinar?",
@@ -490,7 +492,9 @@ export function LandingPage() {
               sizes="(max-width: 899px) 260px, 300px"
               alt="Tela financeira do Lucro Caseiro com lucro, entradas e saídas do mês"
             />
-            <figcaption>Tela atual do app no Android, com dados de uma conta de testes.</figcaption>
+            <figcaption>
+              Tela atual do app no Android, com dados de uma conta de testes.
+            </figcaption>
           </figure>
         </section>
 
