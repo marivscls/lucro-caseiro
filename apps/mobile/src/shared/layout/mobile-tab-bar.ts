@@ -3,6 +3,7 @@ export const MOBILE_TAB_BAR_HIDDEN_ROOT_SEGMENTS = [
   "(auth)",
   "auth",
   "onboarding",
+  "welcome-plans",
   "reset-password",
   "c",
 ] as const;

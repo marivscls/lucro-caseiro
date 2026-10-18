@@ -36,6 +36,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 | `trial.ts`                    | Essencial trial helpers (on trial, end notice)    |
 | `components/paywall.tsx`      | Plan selection and CTA UI                         |
 | `components/limit-banner.tsx` | Freemium usage banner                             |
+| `components/plans-view.tsx`   | Plans screen (also the post-signup welcome mode)  |
 | `shared/hooks/use-paywall.ts` | Global paywall visibility state                   |
 
 ## Components
@@ -208,3 +209,23 @@ Conta nova chega com `plan = essential`, `planExpiresAt` em 7 dias e `planIsTria
 ## Imagem selecionada — 2026-10-09
 
 Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.
+
+## Planos logo após o cadastro — 2026-10-18
+
+Pedido de LUCAS (inspirado no Kyte): contas novas veem os planos uma vez, antes do restante
+do primeiro acesso.
+
+- A tela de planos saiu de `app/plans.tsx` para `components/plans-view.tsx` (`PlansView`).
+  `app/plans.tsx` só a renderiza; `app/welcome-plans.tsx` renderiza `PlansView` com
+  `welcome={{ onContinue }}`.
+- `app/onboarding.tsx` redireciona para `/welcome-plans` quando
+  `shouldShowPlansIntro(userId, plansIntroSeenUserIds)` (`shared/utils/new-account.ts`). A
+  tela marca `markPlansIntroSeen(userId)` (`use-onboarding`, persistido por conta no aparelho e
+  preservado no `reset`) ao abrir, então quem sair por qualquer caminho não a vê de novo.
+  Contas antigas nunca passam por `/onboarding` e não veem a tela.
+- Modo boas-vindas: sem voltar, sem abas/menu lateral (`welcome-plans` está nos segmentos sem
+  barra e sem moldura de desktop), sem aviso de teste repetido, sem "Seu uso atual" e sem
+  "Cancelar assinatura". Título: "Seu teste grátis começou" (teste ativo) ou "Conheça os
+  planos" (Gratuito). Saída sempre visível: `welcomeContinueLabel` → "Continuar com o teste
+  grátis" / "Continuar no plano Gratuito" / "Continuar", que volta para `/onboarding`.
+- O checkout é o mesmo da tela de planos (Google Play no Android, Stripe no resto).

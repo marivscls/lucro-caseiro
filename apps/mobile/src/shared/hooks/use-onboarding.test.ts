@@ -13,6 +13,17 @@ afterEach(() => {
     gettingStartedStartedUserIds: [],
     gettingStartedDismissedUserIds: [],
     gettingStartedCompletedUserIds: [],
+    plansIntroSeenUserIds: [],
+  });
+});
+
+describe("plans intro", () => {
+  it("marca a tela de planos como vista por conta, sem duplicar e sem apagar ao sair", () => {
+    useOnboarding.getState().markPlansIntroSeen("user-1");
+    useOnboarding.getState().markPlansIntroSeen("user-1");
+    useOnboarding.getState().reset();
+
+    expect(useOnboarding.getState().plansIntroSeenUserIds).toEqual(["user-1"]);
   });
 });
 

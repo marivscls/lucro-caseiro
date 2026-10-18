@@ -23,6 +23,8 @@ interface OnboardingState {
   gettingStartedStartedUserIds: string[];
   gettingStartedDismissedUserIds: string[];
   gettingStartedCompletedUserIds: string[];
+  // Contas que já viram a tela de planos logo após o cadastro (uma vez só).
+  plansIntroSeenUserIds: string[];
   setStep: (step: number) => void;
   setBusinessType: (type: string) => void;
   setBusinessName: (name: string) => void;
@@ -31,6 +33,7 @@ interface OnboardingState {
   startGettingStarted: (userId: string) => void;
   dismissGettingStarted: (userId: string) => void;
   completeGettingStarted: (userId: string) => void;
+  markPlansIntroSeen: (userId: string) => void;
   reset: () => void;
 }
 
@@ -46,6 +49,7 @@ export const useOnboarding = create<OnboardingState>()(
       gettingStartedStartedUserIds: [],
       gettingStartedDismissedUserIds: [],
       gettingStartedCompletedUserIds: [],
+      plansIntroSeenUserIds: [],
       setStep: (step) => set({ currentStep: step }),
       setBusinessType: (type) => set({ businessType: type }),
       setBusinessName: (name) => set({ businessName: name }),
@@ -95,6 +99,12 @@ export const useOnboarding = create<OnboardingState>()(
           )
             ? state.gettingStartedCompletedUserIds
             : [...state.gettingStartedCompletedUserIds, userId],
+        })),
+      markPlansIntroSeen: (userId) =>
+        set((state) => ({
+          plansIntroSeenUserIds: (state.plansIntroSeenUserIds ?? []).includes(userId)
+            ? state.plansIntroSeenUserIds
+            : [...(state.plansIntroSeenUserIds ?? []), userId],
         })),
       // Zera só o estado de sessão; listas por userId (onboarding e guia) são
       // preservadas de propósito (memória por conta neste aparelho).
