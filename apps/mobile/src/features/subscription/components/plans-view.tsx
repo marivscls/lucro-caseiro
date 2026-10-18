@@ -246,13 +246,36 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
 
       {/* Top bar (no desktop, rola junto com a página) */}
       {isDesktop ? null : (
-        <ScreenHeader title="Planos" hideBack={isDesktop || !!welcome} />
+        <ScreenHeader
+          title="Planos"
+          hideBack={!!welcome}
+          right={
+            welcome ? (
+              <Button
+                title="Agora não"
+                variant="text"
+                disabled={checkoutLoading}
+                onPress={welcome.onContinue}
+              />
+            ) : undefined
+          }
+        />
       )}
 
       <ScrollView
         contentContainerStyle={
           isDesktop
-            ? desktopPageContent(true)
+            ? [
+                desktopPageContent(true),
+                // Sem a moldura do app (boas-vindas), a página centraliza sozinha.
+                welcome
+                  ? {
+                      alignSelf: "center" as const,
+                      paddingHorizontal: spacing["3xl"],
+                      paddingTop: spacing["3xl"],
+                    }
+                  : null,
+              ]
             : [
                 {
                   ...pageGutter(isDesktop),
