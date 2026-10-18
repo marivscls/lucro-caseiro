@@ -255,4 +255,4 @@ GET /api/v1/finance/export/pdf?month=2026-03
   `findGeneratedRecurringIds` no intervalo do mês). Dia 1–28 (`recurringEntryDate` clampa ao mês).
   Tabela freemium do CLAUDE.md atualizada (Recorrência de gastos = Premium).
 
-- 2026-10-18: `exportBasic` (PDF do resumo mensal) passa a valer também no Gratuito. O gate de `GET /export/pdf` continua, mas libera todos os planos; `GET /export/xlsx` segue só no Profissional.
+- 2026-10-18: `exportBasic` (PDF do resumo mensal) passa a valer também no Gratuito. O gate de `GET /export/pdf` continua, mas libera qualquer plano; `GET /export/xlsx` segue só no Profissional.
