@@ -2,11 +2,11 @@
 
 Guia de deploy do backend (`apps/api`). A API e um servidor Express + Postgres (via Supabase). Para assinaturas Android, ela valida compras com a Google Play Developer API.
 
-## Recomendacao
+## Producao atual (Fly.io)
 
-**Railway** — mais simples para esse stack (auto-detecta pnpm monorepo, HTTPS automatico, $5/mes free tier).
+Desde a migracao de novembro de 2026, os manifests de producao ficam em `apps/api/fly.toml`, `apps/web/fly.toml` e `apps/mobile/fly.toml`. Execute os deploys a partir da raiz do repositorio. Consulte [o procedimento atual](./fly-deploy.md) para dominios, secrets, verificacao e rollback.
 
-Alternativas equivalentes: **Fly.io** (free tier maior, exige `flyctl`), **Render** (free tier com sleep apos 15 min ocioso), **VPS** (DigitalOcean/Hetzner, ~$6/mes, controle total).
+As instrucoes de Railway e de configuracao inicial abaixo sao historicas; nao representam o roteamento atual. O banco continua no Supabase.
 
 ---
 
