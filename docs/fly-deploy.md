@@ -11,10 +11,18 @@ Execute os comandos a partir da raiz do repositorio. Os tres apps usam a regiao 
 ## Publicar
 
 ```sh
-fly deploy -c apps/api/fly.toml --ha=false
-fly deploy -c apps/web/fly.toml --ha=false
-fly deploy -c apps/mobile/fly.toml --ha=false
+fly auth docker
+# Compile com Docker usando a raiz como contexto e os build.args do manifest.
+docker build -f apps/api/Dockerfile -t registry.fly.io/lucro-caseiro-api:TAG .
+docker push registry.fly.io/lucro-caseiro-api:TAG
+fly deploy -c apps/api/fly.toml --image registry.fly.io/lucro-caseiro-api:TAG --ha=false
+# Repita para site e app, passando seus argumentos publicos de build.
 ```
+
+No Windows, a versao atual do flyctl resolve o caminho do Dockerfile relativamente ao manifest;
+use a compilacao Docker explicita acima para evitar duplicar `apps/api` no caminho.
+Para site/PWA, todos os `[build.args]` do respectivo manifest devem ser enviados como
+`--build-arg NOME=valor` ao Docker. Use tags unicas por commit.
 
 A API permanece ligada com 1 GB de memoria. Site (512 MB) e PWA (256 MB) param automaticamente quando ociosos e iniciam ao receber requisicoes. Ha uma maquina por app; essa configuracao prioriza custo e nao oferece redundancia.
 
@@ -63,3 +71,27 @@ Build EAS concluido: `6aee9fd0-0e28-452a-b0d8-e73018aec5b3`. O bundle assinado f
 Em 10/11/2026, a versao foi enviada pelo Play Console da ORIONSEVEN SOFTWARE para revisao na faixa de producao, com lancamento de 100% e os mesmos paises/dispositivos da versao 33. O console confirmou "1 mudanca enviada para revisao" e "Alteracoes em analise". A publicacao gerenciada permanece desativada; a disponibilizacao depende da aprovacao do Google. A conta de servico existente permite upload, mas nao autoriza lancar em producao; nenhuma permissao foi ampliada.
 
 Os tres servicos do Lucro Caseiro no Railway foram verificados sem deployments ativos (ultimo deployment `FAILED`). O projeto e os servicos de outros produtos foram preservados.
+
+## Atualizacao de planos — 10/11/2026
+
+PR #9 integrado em `1ac886df`; main publicada em `f26ec337`. Os tres apps Fly usam
+`registry.fly.io/APP:plans-20261110-f26ec337`. A API, o site e a PWA foram publicados
+e os dominios publicos responderam pelo Fly. O bundle PWA contem a rota
+`welcome-plans` e a URL nova da API.
+
+Smoke de producao com conta temporaria: login, produto com cinco fotos, rejeicao
+da sexta foto, precificacao, venda com baixa de estoque, catalogo Gratuito com
+dez produtos e PDF mensal no Gratuito. Conta e dados temporarios excluidos.
+
+Dependencias atualizadas; auditoria sem advisories bloqueantes high/critical.
+O patch CommonJS do decoder inclui a correcao linear 0.5.1, verificada por hash
+e teste com milhares de trechos malformados. Zod 4.6.6 preserva defaults internos
+com prefault. Tipos, lint, testes e builds passaram localmente; o hook de push
+passou integralmente com VITEST_MAX_WORKERS=2 e TURBO_ENV_MODE=loose para reduzir
+o consumo de memoria. O CI do GitHub passou seguranca, lint, tipos, testes e
+sherif, mas continua falhando em knip:full por arquivos/exports sem uso ja existentes;
+nenhum gate foi removido ou desativado. Run: 42871074916.
+
+O Play Console confirmou a versao 34 (1.2.3) publicada as 13:41 de 10/11/2026.
+A versao 35 (1.2.4), com o PR #9, usa o build EAS
+`b9ded2d5-f02c-4daf-80b0-f70514834268`.
