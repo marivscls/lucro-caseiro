@@ -9,7 +9,7 @@ export const PricingChannelFeeDto = z.object({
   name: z.string().trim().min(1).max(60),
   percent: z.number().min(0).max(95),
 });
-export type PricingChannelFee = z.infer<typeof PricingChannelFeeDto>;
+type PricingChannelFee = z.infer<typeof PricingChannelFeeDto>;
 
 export const UpsertPricingPreferencesDto = z.object({
   channelFees: z.array(PricingChannelFeeDto).max(8),

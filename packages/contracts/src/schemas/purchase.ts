@@ -21,7 +21,7 @@ export const PurchaseItemDto = PurchaseItemInputDto.extend({
   subtotal: z.number().min(0).max(MAX_MONEY),
 });
 
-export type PurchaseItem = z.infer<typeof PurchaseItemDto>;
+type PurchaseItem = z.infer<typeof PurchaseItemDto>;
 
 const PurchaseInputDto = z.object({
   supplierId: z.string().uuid().nullable().optional(),

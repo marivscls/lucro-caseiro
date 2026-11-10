@@ -218,7 +218,7 @@ export type ServiceBookingRequest = z.infer<typeof ServiceBookingRequestDto>;
 export const UpdateServiceBookingRequestDto = z.object({
   status: ServiceBookingRequestStatus,
 });
-export type UpdateServiceBookingRequest = z.infer<typeof UpdateServiceBookingRequestDto>;
+type UpdateServiceBookingRequest = z.infer<typeof UpdateServiceBookingRequestDto>;
 
 export const ServiceInsightClientDto = z.object({
   clientId: z.string().uuid().nullable(),

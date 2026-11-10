@@ -89,7 +89,7 @@ export const VideoEditRefinementSchema = z.object({
   instruction: z.string().trim().min(3).max(2_000),
 });
 
-export type VideoEditStatus = z.infer<typeof VideoEditStatusSchema>;
+type VideoEditStatus = z.infer<typeof VideoEditStatusSchema>;
 export type VideoEditJobInput = z.infer<typeof VideoEditJobInputSchema>;
 export type VideoEditAssetInput = z.infer<typeof VideoEditAssetInputSchema>;
 export type VideoEditPlan = z.infer<typeof VideoEditPlanSchema>;

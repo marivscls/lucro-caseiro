@@ -29,9 +29,3 @@ export function BrandProvider({
 export function useBrand(): BrandConfig {
   return useContext(BrandContext);
 }
-
-/** Atalho: a feature flag esta ligada na marca ativa? */
-export function useFeature(flag: string): boolean {
-  const brand = useContext(BrandContext);
-  return brand.features[flag] ?? false;
-}

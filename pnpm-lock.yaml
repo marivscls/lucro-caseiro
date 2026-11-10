@@ -340,9 +340,6 @@ importers:
       jsdom:
         specifier: ^29.0.2
         version: 29.0.2(@noble/hashes@1.8.0)
-      pretty-format:
-        specifier: 29.7.0
-        version: 29.7.0
       react-test-renderer:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
@@ -370,9 +367,6 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.60.0
         version: 5.95.2(react@19.2.7)
-      date-fns:
-        specifier: ^4.1.0
-        version: 4.4.0
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -422,9 +416,6 @@ importers:
 
   packages/brands:
     devDependencies:
-      '@lucro-caseiro/config':
-        specifier: workspace:*
-        version: link:../config
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -3663,9 +3654,6 @@ packages:
   data-urls@7.0.0:
     resolution: {integrity: sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
-
-  date-fns@4.4.0:
-    resolution: {integrity: sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w==}
 
   dayjs@1.11.20:
     resolution: {integrity: sha512-YbwwqR/uYpeoP4pu043q+LTDLFBLApUP6VxRihdfNTqu4ubqMlGDLd6ErXhEgsyvY0K6nCs7nggYumAN+9uEuQ==}
@@ -10625,8 +10613,6 @@ snapshots:
       whatwg-url: 16.0.1(@noble/hashes@1.8.0)
     transitivePeerDependencies:
       - '@noble/hashes'
-
-  date-fns@4.4.0: {}
 
   dayjs@1.11.20: {}
 

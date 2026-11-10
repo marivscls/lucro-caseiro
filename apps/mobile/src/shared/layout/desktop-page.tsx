@@ -103,24 +103,6 @@ export function useDesktopColumns(
 }
 
 /**
- * Página sem rolagem própria (ex.: a rolagem fica nas colunas). Para páginas
- * com ScrollView, prefira `desktopPageContent` no contentContainerStyle.
- */
-export function DesktopPage({
-  children,
-  width = "page",
-  style,
-}: Readonly<{ children: ReactNode; width?: DesktopPageWidth; style?: ViewStyle }>) {
-  const isDesktop = useDesktopLayout();
-  if (!isDesktop) return <>{children}</>;
-  return (
-    <View style={[{ flex: 1, minHeight: 0 }, desktopPageContent(true, width), style]}>
-      {children}
-    </View>
-  );
-}
-
-/**
  * Largura da lateral: `preferred` (360) em telas largas, até 280 quando a
  * área útil é estreita (1024px), para a coluna principal não sumir.
  */
@@ -329,94 +311,6 @@ export function DesktopCard({
   return (
     <View
       style={[desktopCardStyle(theme, { padding, selected }), { gap: spacing.lg }, style]}
-    >
-      {children}
-    </View>
-  );
-}
-
-/**
- * Campos de formulário em colunas (2 por padrão, 1 abaixo de 560px de largura
- * útil). Envolva campos longos em `DesktopField span="full"`.
- */
-export function DesktopFormGrid({
-  children,
-  columns = 2,
-  minColumnWidth = 260,
-  style,
-}: Readonly<{
-  children: ReactNode;
-  columns?: 2 | 3;
-  minColumnWidth?: number;
-  style?: StyleProp<ViewStyle>;
-}>) {
-  const isDesktop = useDesktopLayout();
-  const gap = spacing["2xl"];
-  const grid = useDesktopColumns(minColumnWidth, gap, columns);
-  if (!isDesktop) return <>{children}</>;
-  const items = React.Children.toArray(children).filter(Boolean);
-  return (
-    <View
-      onLayout={grid.onLayout}
-      style={[
-        { flexDirection: "row", flexWrap: "wrap", columnGap: gap, rowGap: spacing.lg },
-        style,
-      ]}
-    >
-      {grid.width > 0
-        ? items.map((child, index) => {
-            const full =
-              React.isValidElement<{ span?: string }>(child) &&
-              child.type === DesktopField &&
-              child.props.span === "full";
-            return (
-              <View
-                key={React.isValidElement(child) && child.key ? child.key : index}
-                style={{ width: full ? "100%" : grid.itemWidth, minWidth: 0 }}
-              >
-                {child}
-              </View>
-            );
-          })
-        : null}
-    </View>
-  );
-}
-
-/** Célula de `DesktopFormGrid`; `span="full"` ocupa a linha inteira. */
-export function DesktopField({
-  children,
-}: Readonly<{ children: ReactNode; span?: "one" | "full" }>) {
-  return <>{children}</>;
-}
-
-/**
- * Ações de formulário/etapa alinhadas à direita, botões com largura do texto
- * (mínimo 160px). A ação principal vem por último.
- */
-export function DesktopFormActions({
-  children,
-  divider = true,
-  style,
-}: Readonly<{ children: ReactNode; divider?: boolean; style?: StyleProp<ViewStyle> }>) {
-  const isDesktop = useDesktopLayout();
-  const { theme } = useTheme();
-  if (!isDesktop) return <>{children}</>;
-  return (
-    <View
-      style={[
-        {
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: spacing.md,
-          paddingTop: divider ? spacing["2xl"] : 0,
-          borderTopWidth: divider ? 1 : 0,
-          borderTopColor: theme.colors.border,
-        },
-        style,
-      ]}
     >
       {children}
     </View>

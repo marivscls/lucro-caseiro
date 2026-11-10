@@ -128,7 +128,7 @@ export const fontSizes = {
 } as const;
 
 /** Alturas de linha canonicas por faixa de tamanho. */
-export const lineHeights = {
+const lineHeights = {
   tight: 1.15,
   snug: 1.3,
   body: 1.5,

@@ -1509,46 +1509,6 @@ export function StorefrontContentPreview({
   );
 }
 
-export function StorefrontCardsPreview({
-  customization,
-  products,
-  services,
-  status,
-}: PreviewData & Readonly<{ status: EditorStatus }>) {
-  const colors = useBrandScreenPalette();
-  const { products: visibleProducts, services: visibleServices } = visibleItems(
-    products,
-    services,
-  );
-  const items: Array<{ item: Product | Service; kind: "product" | "service" }> = [
-    ...visibleProducts.slice(0, 2).map((item) => ({ item, kind: "product" as const })),
-    ...visibleServices.slice(0, 1).map((item) => ({ item, kind: "service" as const })),
-  ].slice(0, 3);
-  return (
-    <PreviewShell title="PRÉVIA DOS CARDS" status={status}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
-      >
-        {items.map(({ item, kind }) => (
-          <StorefrontItemCard
-            key={`${kind}:${item.id}`}
-            item={item}
-            kind={kind}
-            customization={customization}
-          />
-        ))}
-        {items.length === 0 ? (
-          <Typography style={{ color: colors.warmGray, paddingVertical: 16 }}>
-            Cadastre itens para visualizar os cards.
-          </Typography>
-        ) : null}
-      </ScrollView>
-    </PreviewShell>
-  );
-}
-
 export function StorefrontFinalPreview({
   customization,
   products,

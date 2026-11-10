@@ -153,48 +153,6 @@ export function SkeletonSummaryStrip({
   );
 }
 
-/** Linha de tabela desktop (fornecedores / vendas). */
-export function SkeletonTable({
-  rows = 6,
-  columns = 4,
-  style,
-}: Readonly<{ rows?: number; columns?: number; style?: ViewStyle }>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={[
-        styles.table,
-        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
-        style,
-      ]}
-    >
-      <View style={[styles.tableRow, styles.tableHeader]}>
-        {Array.from({ length: columns }, (_, i) => (
-          <Skeleton
-            key={`th-${i}`}
-            width={i === 0 ? "28%" : "18%"}
-            height={12}
-            style={{ flexGrow: i === 0 ? 1.2 : 1 }}
-          />
-        ))}
-      </View>
-      {Array.from({ length: rows }, (_, r) => (
-        <View key={`tr-${r}`} style={styles.tableRow}>
-          {Array.from({ length: columns }, (_, c) => (
-            <Skeleton
-              key={`td-${r}-${c}`}
-              width={c === columns - 1 ? 44 : "70%"}
-              height={c === columns - 1 ? 28 : 14}
-              borderRadius={c === columns - 1 ? radii.full : radii.sm}
-              style={{ flexGrow: c === 0 ? 1.2 : 1 }}
-            />
-          ))}
-        </View>
-      ))}
-    </View>
-  );
-}
-
 export type SkeletonListVariant =
   | "product"
   | "sale"
@@ -546,16 +504,6 @@ export function SkeletonFinanceDashboard({ style }: Readonly<{ style?: ViewStyle
       <SkeletonSummaryStrip tiles={2} />
       <Skeleton width="40%" height={14} />
       <SkeletonList rows={4} variant="amount" />
-    </View>
-  );
-}
-
-/** Home: hero + dois cards de atalho. */
-export function SkeletonHome({ style }: Readonly<{ style?: ViewStyle }>) {
-  return (
-    <View style={[styles.financeDash, style]}>
-      <Skeleton height={140} borderRadius={radii.xl} />
-      <SkeletonSummaryStrip tiles={2} />
     </View>
   );
 }

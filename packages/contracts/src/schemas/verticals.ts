@@ -35,9 +35,7 @@ export const VerticalDocumentItemInputDto = z.object({
   unitPrice: z.number().min(0).max(MAX_MONEY).default(0),
   metadata: z.record(z.string(), z.unknown()).default({}),
 });
-export type VerticalDocumentItemInput = z.infer<
-  typeof VerticalDocumentItemInputDto
->;
+export type VerticalDocumentItemInput = z.infer<typeof VerticalDocumentItemInputDto>;
 
 const money = z.number().min(0).max(MAX_MONEY);
 const shortText = z.string().trim().max(200);
@@ -201,7 +199,7 @@ export function parseVerticalPayload(
   return schema.parse(payload);
 }
 
-export const VerticalKindsByDomain: Record<
+const VerticalKindsByDomain: Record<
   PublishedVerticalDomain,
   readonly VerticalDocumentKind[]
 > = {
@@ -212,13 +210,7 @@ export const VerticalKindsByDomain: Record<
     "return_case",
     "warranty_case",
   ],
-  oficina: [
-    "service_order",
-    "inspection",
-    "quote",
-    "warranty_case",
-    "maintenance_plan",
-  ],
+  oficina: ["service_order", "inspection", "quote", "warranty_case", "maintenance_plan"],
   obra: [
     "estimate",
     "project",

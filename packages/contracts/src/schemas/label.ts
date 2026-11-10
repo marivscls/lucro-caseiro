@@ -6,7 +6,7 @@ export const NutritionValueDto = z.object({
   dailyValue: z.string().optional(),
 });
 
-export type NutritionValue = z.infer<typeof NutritionValueDto>;
+type NutritionValue = z.infer<typeof NutritionValueDto>;
 
 export const NutritionNutrientsDto = z.object({
   energy: NutritionValueDto.optional(),
@@ -21,7 +21,7 @@ export const NutritionNutrientsDto = z.object({
   sodium: NutritionValueDto.optional(),
 });
 
-export type NutritionNutrients = z.infer<typeof NutritionNutrientsDto>;
+type NutritionNutrients = z.infer<typeof NutritionNutrientsDto>;
 
 // Estrutura da tabela da RDC 429/2020 e da IN 75/2020. Os campos legados no
 // final mantem rotulos salvos antes da adocao do modelo oficial legiveis.
@@ -41,7 +41,7 @@ export const NutritionFactsDto = z.object({
   sodium: z.string().optional(),
 });
 
-export type NutritionFacts = z.infer<typeof NutritionFactsDto>;
+type NutritionFacts = z.infer<typeof NutritionFactsDto>;
 
 // Estilo customizado do rotulo (personalizacao Premium; gate no backend).
 // Quando ausente, o template escolhido define o visual.

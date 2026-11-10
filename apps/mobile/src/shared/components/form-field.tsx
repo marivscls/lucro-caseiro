@@ -308,9 +308,6 @@ export function FieldLinkAction({
   );
 }
 
-/** Nome antigo do `TextField`, mantido para as telas antigas. */
-export const TextFieldCard = TextField;
-
 export type SelectFieldProps = Readonly<{
   value?: string;
   placeholder: string;

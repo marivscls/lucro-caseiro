@@ -11,7 +11,7 @@ export const MarketingResourceKindSchema = z.enum([
   "performance",
 ]);
 
-export const MarketingContentStatusSchema = z.enum([
+const MarketingContentStatusSchema = z.enum([
   "idea",
   "planned",
   "producing",
@@ -20,7 +20,7 @@ export const MarketingContentStatusSchema = z.enum([
   "archived",
 ]);
 
-export const MarketingChannelSchema = z.enum([
+const MarketingChannelSchema = z.enum([
   "instagram",
   "tiktok",
   "youtube",
@@ -234,14 +234,14 @@ export const MarketingPromptTelemetrySchema = z.object({
   parseSucceeded: z.boolean(),
 });
 
-export const MarketingCampaignPlanGenerationSchema = z.object({
+const MarketingCampaignPlanGenerationSchema = z.object({
   plan: MarketingCampaignPlanSchema.nullable(),
   raw: z.string(),
   messageId: z.string().uuid(),
   telemetry: MarketingPromptTelemetrySchema,
 });
 
-export const MarketingCampaignCopiesGenerationSchema = z.object({
+const MarketingCampaignCopiesGenerationSchema = z.object({
   bundle: MarketingCreativeBundleSchema.nullable(),
   raw: z.string(),
   messageId: z.string().uuid(),
@@ -352,8 +352,8 @@ export type MarketingResourceInput = z.infer<typeof MarketingResourceInputSchema
 export type MarketingAiResourceDraft = z.infer<typeof MarketingAiResourceDraftSchema>;
 export type MarketingCampaignPlan = z.infer<typeof MarketingCampaignPlanSchema>;
 export type MarketingCreativeBundle = z.infer<typeof MarketingCreativeBundleSchema>;
-export type MarketingCampaignResearch = z.infer<typeof MarketingCampaignResearchSchema>;
-export type MarketingCampaignCreativeStrategy = z.infer<
+type MarketingCampaignResearch = z.infer<typeof MarketingCampaignResearchSchema>;
+type MarketingCampaignCreativeStrategy = z.infer<
   typeof MarketingCampaignCreativeStrategySchema
 >;
 export type MarketingCampaignBriefInput = z.infer<
@@ -365,8 +365,8 @@ export type MarketingCampaignCopiesInput = z.infer<
 export type MarketingCampaignVariantPublishInput = z.infer<
   typeof MarketingCampaignVariantPublishSchema
 >;
-export type MarketingContentIdea = z.infer<typeof MarketingContentIdeaSchema>;
+type MarketingContentIdea = z.infer<typeof MarketingContentIdeaSchema>;
 export type MarketingContentIdeas = z.infer<typeof MarketingContentIdeasSchema>;
-export type MarketingContentIntent = z.infer<typeof MarketingContentIntentSchema>;
+type MarketingContentIntent = z.infer<typeof MarketingContentIntentSchema>;
 export type MarketingDocumentInput = z.infer<typeof MarketingDocumentInputSchema>;
 export type MarketingLearningPolicy = z.infer<typeof MarketingLearningPolicySchema>;

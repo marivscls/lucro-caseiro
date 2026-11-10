@@ -8,7 +8,6 @@ export {
   homeTypography,
   desktopTypography,
   moneyTypography,
-  lineHeights,
   spacing,
   radii,
   controlSizes,
@@ -47,4 +46,3 @@ export { Chip, FilterChipRow } from "./components/chip";
 export type { ChipVariant } from "./components/chip";
 export type { SemanticVariant } from "./components/semantic-variant";
 export { EmptyState } from "./components/empty-state";
-export { ModalHeader } from "./components/modal-header";

@@ -216,16 +216,6 @@ export function nextVerticalStatus(document: VerticalDocument) {
   return NEXT_STATUS[`${document.domain}:${document.kind}:${document.status}`];
 }
 
-export function referenceKindFor(kind: VerticalDocumentKind) {
-  const allKinds = Object.values(VERTICAL_DEFINITIONS).flatMap(
-    (definition) => definition.kinds,
-  );
-  const reference = allKinds.find((item) => item.kind === kind)?.reference;
-  if (reference === "service_order") return "service_order" as const;
-  if (reference === "project") return "project" as const;
-  return undefined;
-}
-
 export function statusLabel(status: string) {
   return (
     (

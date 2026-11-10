@@ -51,7 +51,7 @@ export const RetailDocumentItemInputDto = z.object({
   unitPrice: z.number().min(0).max(MAX_MONEY).default(0),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
-export type RetailDocumentItemInput = z.infer<typeof RetailDocumentItemInputDto>;
+type RetailDocumentItemInput = z.infer<typeof RetailDocumentItemInputDto>;
 
 export const CreateRetailDocumentDto = z.object({
   kind: RetailDocumentKind.exclude(["cash_session", "fiscal_document"]),
@@ -246,7 +246,7 @@ export const RetailCheckoutQuoteDto = RetailCheckoutDto.pick({
   items: true,
   manualDiscount: true,
 });
-export type RetailCheckoutQuote = z.infer<typeof RetailCheckoutQuoteDto>;
+type RetailCheckoutQuote = z.infer<typeof RetailCheckoutQuoteDto>;
 
 export const PublicCatalogOrderDto = z.object({
   slug: z.string().min(3).max(100),

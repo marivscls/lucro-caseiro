@@ -12,7 +12,6 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@lucro-caseiro/config": "workspace:*",
     "typescript": "^5.7.3"
   }
 }

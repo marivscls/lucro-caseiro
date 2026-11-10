@@ -10,7 +10,7 @@ import { z } from "zod";
 export const PixKeyType = z.enum(["cpf_cnpj", "phone", "email", "random"]);
 export type PixKeyType = z.infer<typeof PixKeyType>;
 
-export const PIX_KEY_TYPE_LABELS: Record<PixKeyType, string> = {
+const PIX_KEY_TYPE_LABELS: Record<PixKeyType, string> = {
   cpf_cnpj: "CPF ou CNPJ",
   phone: "Celular",
   email: "E-mail",
