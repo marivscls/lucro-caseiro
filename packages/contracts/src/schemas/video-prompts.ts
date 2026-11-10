@@ -219,7 +219,7 @@ export const SceneMovementPlanSchema = z.object({
   speed: SceneMovementSpeedSchema.default("natural"),
   customSpeed: z.string().trim().max(180).default(""),
   actions: z.array(SceneMovementActionSchema).max(40).default([]),
-  continuity: SceneMovementContinuitySchema.default({}),
+  continuity: SceneMovementContinuitySchema.prefault({}),
   movementPrompt: z.string().trim().max(8000).default(""),
   negativePrompt: z.string().trim().max(4000).default(""),
 });
@@ -243,7 +243,7 @@ export const VideoSceneInputSchema = z
     transition: z.string().trim().max(300).default(""),
     productEvidenceIds: z.array(z.string().trim().min(1).max(500)).max(12).default([]),
     continuityNotes: z.string().trim().max(800).default(""),
-    movementPlan: SceneMovementPlanSchema.default({}),
+    movementPlan: SceneMovementPlanSchema.prefault({}),
   })
   .superRefine((scene, context) => {
     if (scene.endTime <= scene.startTime)

@@ -69,7 +69,7 @@ export function validateSupplierData(data: CreateSupplierData): string[] {
 
 // Validação linear (sem regex com backtracking): exige um "@" no meio e um "."
 // depois dele, sem espaços. Suficiente como guarda de domínio — o formato fino
-// já é validado pelo Zod (`z.string().email()`) na borda da rota.
+// já é validado pelo Zod (`z.email()`) na borda da rota.
 function isValidEmail(email: string): boolean {
   if (/\s/.test(email)) return false;
   const at = email.indexOf("@");

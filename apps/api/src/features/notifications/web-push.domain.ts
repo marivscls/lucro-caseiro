@@ -2,7 +2,6 @@ import { z } from "zod";
 
 // Only browser-operated push services: endpoints are otherwise an SSRF primitive.
 export const PushEndpointDto = z
-  .string()
   .url()
   .max(2048)
   .refine((value) => {

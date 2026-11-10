@@ -37,7 +37,7 @@ export const MarketingResourceInputSchema = z.object({
   summary: z.string().trim().max(600).optional().nullable(),
   status: z.string().trim().min(1).max(40).default("active"),
   scheduledFor: z.string().datetime().optional().nullable(),
-  data: z.record(z.unknown()).default({}),
+  data: z.record(z.string(), z.unknown()).prefault({}),
 });
 
 export const MarketingResourcePatchSchema = MarketingResourceInputSchema.partial().omit({
@@ -45,7 +45,7 @@ export const MarketingResourcePatchSchema = MarketingResourceInputSchema.partial
 });
 
 export const MarketingResourceDataPatchSchema = z.object({
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
 });
 
 export const MarketingResourceQuerySchema = z.object({
@@ -86,7 +86,7 @@ export const MarketingAttachmentInputSchema = z.object({
 export const MarketingAiMessageInputSchema = z.object({
   message: z.string().trim().min(2).max(12_000),
   sessionId: z.string().uuid().optional(),
-  context: z.record(z.unknown()).default({}),
+  context: z.record(z.string(), z.unknown()).prefault({}),
   mode: z.enum(["consult", "generate", "plan", "review"]).default("consult"),
 });
 
@@ -100,7 +100,7 @@ export const MarketingAiResourceDraftInputSchema = z.object({
       summary: z.string().trim().max(600).default(""),
       status: z.string().trim().max(40).default(""),
       scheduledFor: z.string().datetime().nullable().default(null),
-      data: z.record(z.unknown()).default({}),
+      data: z.record(z.string(), z.unknown()).prefault({}),
     })
     .optional(),
 });
@@ -110,7 +110,7 @@ export const MarketingAiResourceDraftSchema = z.object({
   summary: z.string().trim().max(600).default(""),
   status: z.string().trim().min(1).max(40),
   scheduledFor: z.string().datetime().nullable().default(null),
-  data: z.record(z.unknown()).default({}),
+  data: z.record(z.string(), z.unknown()).prefault({}),
 });
 
 export const MarketingCampaignResearchSchema = z
@@ -125,7 +125,7 @@ export const MarketingCampaignResearchSchema = z
     proofs: z.array(z.string().trim().min(1)).default([]),
     saturationNotes: z.string().trim().default(""),
   })
-  .default({});
+  .prefault({});
 
 export const MarketingCampaignCreativeStrategySchema = z
   .object({
@@ -144,7 +144,7 @@ export const MarketingCampaignCreativeStrategySchema = z
     retentionBeats: z.array(z.string().trim().min(1)).default([]),
     productionNotes: z.array(z.string().trim().min(1)).default([]),
   })
-  .default({});
+  .prefault({});
 
 export const MarketingCampaignPlanSchema = z.object({
   name: z.string().trim().min(1),
@@ -155,7 +155,7 @@ export const MarketingCampaignPlanSchema = z.object({
   research: MarketingCampaignResearchSchema,
   creativeStrategy: MarketingCampaignCreativeStrategySchema,
   channels: z.array(z.string().trim().min(1)).default([]),
-  messages: z.record(z.string(), z.string()).default({}),
+  messages: z.record(z.string(), z.string()).prefault({}),
   creativeNeeds: z.array(z.string().trim().min(1)).default([]),
   automation: z.string().trim().optional(),
   kpis: z
@@ -210,12 +210,12 @@ export const MarketingCreativeBundleSchema = z.object({
           evidenceSafety: z.number().int().min(0).max(100).default(0),
           concision: z.number().int().min(0).max(100).default(0),
         })
-        .default({}),
+        .prefault({}),
       strengths: z.array(z.string().trim().min(1)).default([]),
       warnings: z.array(z.string().trim().min(1)).default([]),
       nextTest: z.string().trim().default(""),
     })
-    .default({}),
+    .prefault({}),
 });
 
 export const MarketingCampaignCopiesInputSchema = z.object({
@@ -303,7 +303,7 @@ export const MarketingContentIdeasInputSchema = z.object({
     .object({
       title: z.string().trim().max(180).default(""),
       summary: z.string().trim().max(600).default(""),
-      data: z.record(z.unknown()).default({}),
+      data: z.record(z.string(), z.unknown()).prefault({}),
     })
     .optional(),
 });

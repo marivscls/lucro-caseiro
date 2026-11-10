@@ -45,7 +45,7 @@ const EventPropsDto = z
     z.string().max(PROPS.maxKeyLength).regex(PROP_KEY),
     z.union([
       z.string().min(1).max(PROPS.maxStringLength).regex(PROP_TEXT),
-      z.number().finite().min(-PROPS.maxAbsNumber).max(PROPS.maxAbsNumber),
+      z.number().min(-PROPS.maxAbsNumber).max(PROPS.maxAbsNumber),
       z.boolean(),
     ]),
   )
@@ -56,7 +56,7 @@ const EventPropsDto = z
 
 const RecordOpenDto = z
   .object({
-    installationId: z.string().uuid(),
+    installationId: z.uuid(),
     platform: z.enum(["android", "ios", "web"]),
     appVersion: z.string().trim().min(1).max(32),
     appBuild: z.string().trim().min(1).max(32).optional(),

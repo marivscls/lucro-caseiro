@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { ZodError } from "zod";
+import { ZodError, flattenError } from "zod";
 import { userErrorMessage, USER_ERROR_MESSAGES } from "@lucro-caseiro/contracts";
 
 import {
@@ -32,7 +32,7 @@ export function errorHandler(
     return;
   }
   if (err instanceof ZodError) {
-    const validation = err.flatten((issue) =>
+    const validation = flattenError(err, (issue) =>
       userErrorMessage(issue.message, USER_ERROR_MESSAGES.validation),
     );
     res.status(400).json({

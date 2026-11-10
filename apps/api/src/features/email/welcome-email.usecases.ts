@@ -12,7 +12,7 @@ export class WelcomeEmailUseCases {
   async runOnce(): Promise<"sent" | "retry" | "idle"> {
     await this.repo.activate();
     for (const candidate of await this.repo.candidates()) {
-      if (!z.string().email().safeParse(candidate.email).success) continue;
+      if (!z.email().safeParse(candidate.email).success) continue;
       await this.repo.enqueue(candidate.userId, {
         from: this.from,
         message: {

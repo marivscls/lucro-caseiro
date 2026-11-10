@@ -12,7 +12,7 @@ export class TrialReminderUseCases {
 
   async runOnce(): Promise<"sent" | "retry" | "idle"> {
     for (const candidate of await this.repo.candidates()) {
-      if (!z.string().email().safeParse(candidate.email).success) continue;
+      if (!z.email().safeParse(candidate.email).success) continue;
       await this.repo.enqueue(candidate, {
         from: this.from,
         message: {

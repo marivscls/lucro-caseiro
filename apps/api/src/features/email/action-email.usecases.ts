@@ -14,7 +14,7 @@ export class ActionEmailUseCases {
 
   async runOnce(): Promise<"sent" | "retry" | "cancelled" | "idle"> {
     for (const candidate of await this.repo.candidates()) {
-      if (!z.string().email().safeParse(candidate.email).success) continue;
+      if (!z.email().safeParse(candidate.email).success) continue;
       const unsubscribeUrl = `${this.publicApiUrl.replace(/\/$/, "")}/api/v1/email-preferences/unsubscribe/${candidate.unsubscribeToken}`;
       await this.repo.enqueue(candidate.userId, {
         from: this.from,

@@ -6,7 +6,7 @@ import type { IProductCatalogLookup } from "./products.types";
 const CosmosProductDto = z.object({
   description: z.string().min(1),
   gtin: z.union([z.string(), z.number()]),
-  thumbnail: z.string().url().optional().nullable(),
+  thumbnail: z.url().optional().nullable(),
   brand: z
     .object({ name: z.string().min(1) })
     .optional()

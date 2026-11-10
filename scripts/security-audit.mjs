@@ -31,12 +31,12 @@ export const patches = [
   {
     name: "decode-uri-component",
     version: "0.2.2",
-    advisories: ["GHSA-vcc3-ghjq-m6fr"],
+    advisories: ["GHSA-vcc3-ghjq-m6fr", "GHSA-qr28-fpjm-wq7f"],
     patch: "patches/decode-uri-component@0.2.2.patch",
-    sha256: "9d529ee3aba2ea02bb0e381865454cdd8741a1a86a55707797108c884830413a",
-    lockHash: "3tanumu5odptjjc6gcztesr4ju",
+    sha256: "93b5e6c76e33750b558740e029659c5925c06450ea9a197388f4155fc6c491a2",
+    lockHash: "6jgcno5eltstbzsuvpvjtkg4f4",
     files: {
-      "index.js": "d35494c86958cc1ddea58bf179940c5732954210282e188a4a2e71ce4d11b6bc",
+      "index.js": "4d82a411a1960a0473eeac103372daf7bf7a8c07be6b1fc0a28cff083f95ff5b",
     },
   },
 ];

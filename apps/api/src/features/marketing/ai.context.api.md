@@ -77,6 +77,9 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 
 ## Contracts (Zod/DTO)
 
+- Zod 4.6.6: records declaram chaves string; objetos com defaults parciais usam
+  `prefault({})` para manter o preenchimento dos campos internos (incluindo planos de movimento).
+
 - `MarketingResourceInputSchema` e patch/query para o agregado por `kind`.
 - `MarketingDocumentInputSchema`, patch e metadados de anexo.
 - `MarketingAiMessageInputSchema`, instrução, conhecimento, feedback e avaliação.

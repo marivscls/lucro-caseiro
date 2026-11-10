@@ -7,7 +7,7 @@ const baseEnvSchema = z.object({
   PORT: z.coerce.number().optional(),
   API_PORT: z.coerce.number().default(3001),
   DATABASE_URL: z.string().min(1),
-  SUPABASE_URL: z.string().url(),
+  SUPABASE_URL: z.url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   // Service-role key: necessaria APENAS para exclusao de conta (auth.admin).
   // Opcional para o boot; sem ela, DELETE /account responde 503.
@@ -40,7 +40,7 @@ const baseEnvSchema = z.object({
   EMAIL_REPLY_TO: z.string().default(""),
   WELCOME_EMAIL_ENABLED: z.enum(["true", "false"]).default("false"),
   ACTION_EMAIL_ENABLED: z.enum(["true", "false"]).default("false"),
-  ACTION_EMAIL_PUBLIC_URL: z.union([z.string().url(), z.literal("")]).default(""),
+  ACTION_EMAIL_PUBLIC_URL: z.union([z.url(), z.literal("")]).default(""),
   ACTION_EMAIL_BUSINESS_ADDRESS: z.string().default(""),
   TRIAL_REMINDER_ENABLED: z.enum(["true", "false"]).default("false"),
   WEB_PUSH_PUBLIC_KEY: z.string().default(""),
@@ -74,7 +74,10 @@ const envSchema = baseEnvSchema.superRefine((env, ctx) => {
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("Invalid environment variables:", parsed.error.flatten().fieldErrors);
+  console.error(
+    "Invalid environment variables:",
+    z.flattenError(parsed.error).fieldErrors,
+  );
   process.exit(1);
 }
 

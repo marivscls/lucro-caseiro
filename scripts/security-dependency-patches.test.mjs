@@ -111,3 +111,21 @@ test("CommonJS URI decoder handles long malformed runs without recursive denial 
   `,
   );
 });
+
+test("URI decoder handles many distinct malformed runs in bounded time", () => {
+  runProbe(
+    decoder,
+    `
+    const assert = require('node:assert/strict');
+    const decode = require(process.argv[1]);
+    let input = '';
+    for (let i = 0; i < 32000; i++) {
+      input += '%' + Math.floor(i / 256).toString(16).padStart(2, '0') + '%' + (i % 256).toString(16).padStart(2, '0') + 'x';
+    }
+    input += '%zz';
+    assert.ok(decode(input).endsWith('%zz'));
+    assert.equal(decode('%25C2%zz'), '%C2%zz');
+    assert.equal(decode('%FE%FF%C2%zz'), '\\uFFFD\\uFFFD\\uFFFD%zz');
+    `,
+  );
+});

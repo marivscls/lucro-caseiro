@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const positionalArgsSchema = z.tuple([z.string().email()]);
+const positionalArgsSchema = z.tuple([z.email()]);
 
 export function parseTestEmailArgs(args: string[]): { recipient: string } {
   if (!args.includes("--confirm")) {
