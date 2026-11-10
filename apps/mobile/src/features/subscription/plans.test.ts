@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PlansScreen from "../../app/plans";
+import { PlansView, welcomeContinueLabel } from "./components/plans-view";
 
 const state = vi.hoisted(() => ({
   profileLoading: true,
@@ -230,4 +231,48 @@ describe("single-page checkout", () => {
       ).toHaveBeenCalledWith("essential", "monthly");
     },
   );
+});
+
+describe("welcome plans after signup", () => {
+  const renderWelcome = (onContinue = vi.fn()) => {
+    render(React.createElement(PlansView, { welcome: { onContinue } }));
+    return onContinue;
+  };
+
+  it("opens a trial account with the trial message and a way to keep testing", () => {
+    state.profileLoading = false;
+    state.plan = "essential";
+    state.trialExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const onContinue = renderWelcome();
+    expect(screen.getByText("Seu teste grátis começou")).toBeTruthy();
+    expect(screen.queryByText(/^Seu teste do Essencial termina/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Continuar para pagamento" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Continuar com o teste grátis" }));
+    expect(onContinue).toHaveBeenCalledTimes(1);
+    expect(state.checkout).not.toHaveBeenCalled();
+  });
+
+  it("lets a free account continue on the free plan", () => {
+    state.profileLoading = false;
+    const onContinue = renderWelcome();
+    expect(screen.getByText("Conheça os planos")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Continuar no plano Gratuito" }));
+    expect(onContinue).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the regular plans screen without the welcome exit", () => {
+    state.profileLoading = false;
+    render(React.createElement(PlansScreen));
+    expect(
+      screen.queryByRole("button", { name: "Continuar no plano Gratuito" }),
+    ).toBeNull();
+  });
+});
+
+describe("welcomeContinueLabel", () => {
+  it("names the exit by the account state", () => {
+    expect(welcomeContinueLabel(true, "free")).toBe("Continuar com o teste grátis");
+    expect(welcomeContinueLabel(false, "free")).toBe("Continuar no plano Gratuito");
+    expect(welcomeContinueLabel(false, "professional")).toBe("Continuar");
+  });
 });

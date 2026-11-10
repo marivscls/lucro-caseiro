@@ -309,3 +309,5 @@ POST /api/v1/products  (produto composto / kit / caixinha)
 ## Catálogo completo no Essencial — 2026-09-09
 
 O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.
+
+- 2026-10-18: galeria dos planos pagos passa a até 5 fotos por produto (principal + `MAX_PRODUCT_EXTRA_PHOTOS` = 4, em `@lucro-caseiro/contracts`; antes 3), a pedido de LUCAS.

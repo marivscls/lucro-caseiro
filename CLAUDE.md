@@ -43,9 +43,11 @@
 | Embalagens         | 3             | Ilimitado           |
 | Fornecedores       | 3             | Ilimitado           |
 | Rotulos            | 1 template    | Ilimitado           |
-| Catalogo           | 5 (vitrine)   | Ilimitado + visual  |
+| Catalogo           | 10 (vitrine)  | Ilimitado + visual  |
 | Relatorios         | Basico mensal | Completo + graficos |
-| Exportacao         | Nao           | PDF/Excel           |
+| Exportacao         | PDF do mes    | PDF/Excel           |
+| Orcamentos em PDF  | Sim           | Sim                 |
+| Lembretes/resumos  | Sim           | Sim                 |
 | Gastos recorrentes | Nao           | Ilimitado           |
 
 ## Arquitetura (Boundaries)

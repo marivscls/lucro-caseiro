@@ -32,6 +32,7 @@ describe("shouldShowMobileTabBar", () => {
       "(auth)",
       "auth",
       "onboarding",
+      "welcome-plans",
       "reset-password",
       "c",
       "",

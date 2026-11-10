@@ -2,7 +2,7 @@ import { prepareProductPhotos } from "../product-photos";
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
+import { MAX_PRODUCT_EXTRA_PHOTOS, hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Button,
   Typography,
@@ -317,7 +317,7 @@ function DescriptionField({
 }
 
 /** Fotos extras (galeria) além da principal. Total = principal + MAX_EXTRA_PHOTOS. */
-const MAX_EXTRA_PHOTOS = 2;
+const MAX_EXTRA_PHOTOS = MAX_PRODUCT_EXTRA_PHOTOS;
 
 function ExtraPhotosField({
   uris,

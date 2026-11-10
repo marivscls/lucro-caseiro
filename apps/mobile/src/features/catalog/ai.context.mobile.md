@@ -290,3 +290,5 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
   cabeçalho nem o botão "Ver prévia desta edição"). O cartão de prévia usa título em
   caixa normal (16 px) e selo de status de 14 px. A miniatura da vitrine continua na
   escala do celular, porque reproduz a página pública.
+
+- 2026-10-18: o banner do free usa `FREE_CATALOG_MAX_PRODUCTS` ("Seu catálogo mostra até 10 produtos").

@@ -50,6 +50,9 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
   },
 };
 
+// Produtos que a vitrine pública mostra no Gratuito (sem `catalogPremium`).
+export const FREE_CATALOG_MAX_PRODUCTS = 10;
+
 export type LimitResource =
   | "sales"
   | "clients"
@@ -78,7 +81,7 @@ export function planLimit(plan: PlanType, resource: LimitResource): number | nul
 export type PlanFeature =
   | "exportBasic" // exportar resumo mensal em PDF simples (fechamento do mês)
   | "extraPhotos" // várias fotos por produto
-  | "catalogPremium" // catálogo completo na vitrine (sem teto de 3 produtos)
+  | "catalogPremium" // catálogo completo na vitrine (sem o teto do Gratuito)
   | "catalogCustomization" // capa/cor/logo/frase/banner do catálogo público
   | "advancedReports" // relatórios completos com gráficos (insights)
   | "advancedPricing" // precificação completa com premissas detalhadas
@@ -91,10 +94,18 @@ export type PlanFeature =
   | "prioritySupport" // atendimento prioritário
   | "compositeProducts"; // produtos compostos / kits
 
-// Essencial libera o operacional diário, o catálogo completo com galeria e o
-// PDF básico do resumo mensal (ADR-0005).
-const ESSENTIAL_FEATURES: readonly PlanFeature[] = [
+// Gratuito (2026-10-18, pedido de LUCAS): recursos que fazem a pessoa voltar ao
+// app e divulgam o negócio ficam liberados para todos. O que leva a assinar
+// (sem limites, personalização, relatórios, Excel) continua pago.
+const FREE_FEATURES: readonly PlanFeature[] = [
   "exportBasic",
+  "quotesPdf",
+  "premiumNotifications",
+];
+
+// Essencial libera o operacional diário e o catálogo completo com galeria.
+const ESSENTIAL_FEATURES: readonly PlanFeature[] = [
+  ...FREE_FEATURES,
   "catalogPremium",
   "catalogCustomization",
   "extraPhotos",
@@ -107,14 +118,12 @@ const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
   "purchases",
   "recurringExpenses",
   "labelsPremium",
-  "quotesPdf",
-  "premiumNotifications",
   "prioritySupport",
   "compositeProducts",
 ];
 
 export const PLAN_FEATURES: Record<PlanType, ReadonlySet<PlanFeature>> = {
-  free: new Set<PlanFeature>(),
+  free: new Set<PlanFeature>(FREE_FEATURES),
   essential: new Set<PlanFeature>(ESSENTIAL_FEATURES),
   professional: new Set<PlanFeature>([...ESSENTIAL_FEATURES, ...PROFESSIONAL_FEATURES]),
 };

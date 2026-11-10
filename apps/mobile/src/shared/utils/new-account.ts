@@ -57,3 +57,14 @@ export function onboardingDestination({
   // Conta legada sem metadata: o chamador consulta o perfil antes de liberar.
   return null;
 }
+
+// Tela de planos logo após o cadastro: só para quem está no primeiro acesso
+// (rota /onboarding) e ainda não a viu nesta conta. Lista ausente (estado salvo
+// por versão antiga do app) conta como "ninguém viu".
+export function shouldShowPlansIntro(
+  userId: string | null | undefined,
+  seenUserIds: readonly string[] | undefined,
+): boolean {
+  if (!userId) return false;
+  return !(seenUserIds ?? []).includes(userId);
+}

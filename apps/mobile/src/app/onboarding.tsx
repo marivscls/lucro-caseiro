@@ -13,7 +13,7 @@ import {
   spacing,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../shared/components/app-icon";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -45,6 +45,7 @@ import { brandLogoByMode } from "../shared/brand-logo";
 import { useBrandIllustration } from "../shared/brand-illustrations";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { alertError } from "../shared/utils/alerts";
+import { shouldShowPlansIntro } from "../shared/utils/new-account";
 
 const PROFILE_IMAGES: Record<BusinessProfile, ImageSourcePropType> = {
   crafts: nicheArtesanato,
@@ -757,6 +758,13 @@ function LegacyOnboardingScreen() {
 export default function OnboardingScreen() {
   const brand = useBrand();
   const router = useRouter();
+  const { userId } = useAuth();
+  const plansIntroSeenUserIds = useOnboarding((state) => state.plansIntroSeenUserIds);
+  // Primeiro acesso começa pelos planos (uma vez), como o Kyte; a saída da tela
+  // de planos volta para cá e segue o onboarding normal.
+  if (shouldShowPlansIntro(userId, plansIntroSeenUserIds)) {
+    return <Redirect href="/welcome-plans" />;
+  }
   return brand.id === "lucro-caseiro" ? (
     <BusinessProfileFlow firstAccess onClose={() => router.replace("/tabs")} />
   ) : (

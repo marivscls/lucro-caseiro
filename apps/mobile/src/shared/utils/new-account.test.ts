@@ -5,6 +5,7 @@ import {
   isNewAccount,
   needsOnboarding,
   onboardingDestination,
+  shouldShowPlansIntro,
 } from "./new-account";
 
 describe("isNewAccount", () => {
@@ -138,5 +139,23 @@ describe("onboardingDestination", () => {
         now,
       }),
     ).toBeNull();
+  });
+});
+
+describe("shouldShowPlansIntro", () => {
+  it("mostra para a conta que ainda não viu os planos", () => {
+    expect(shouldShowPlansIntro("user-1", ["user-2"])).toBe(true);
+  });
+
+  it("não repete para quem já viu", () => {
+    expect(shouldShowPlansIntro("user-1", ["user-1"])).toBe(false);
+  });
+
+  it("trata a lista ausente (estado salvo por versão antiga) como não vista", () => {
+    expect(shouldShowPlansIntro("user-1", undefined)).toBe(true);
+  });
+
+  it("não mostra sem conta", () => {
+    expect(shouldShowPlansIntro(null, [])).toBe(false);
   });
 });

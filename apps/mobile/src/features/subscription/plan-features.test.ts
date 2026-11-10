@@ -8,8 +8,6 @@ const PROFESSIONAL_ONLY: readonly PlanFeature[] = [
   "purchases",
   "recurringExpenses",
   "labelsPremium",
-  "quotesPdf",
-  "premiumNotifications",
   "prioritySupport",
   "compositeProducts",
 ];
@@ -24,11 +22,15 @@ describe("plan feature matrix", () => {
     );
   });
 
-  it("keeps the basic monthly PDF available in essential", () => {
-    expect(hasActiveFeature("free", null, "exportBasic")).toBe(false);
-    expect(hasActiveFeature("essential", null, "exportBasic")).toBe(true);
-    expect(hasActiveFeature("professional", null, "exportBasic")).toBe(true);
-  });
+  it.each(["exportBasic", "quotesPdf", "premiumNotifications"] as const)(
+    "releases %s on every plan, including free",
+    (feature) => {
+      expect(hasActiveFeature("free", null, feature)).toBe(true);
+      expect(hasActiveFeature("essential", null, feature)).toBe(true);
+      expect(hasActiveFeature("professional", null, feature)).toBe(true);
+      expect(hasActiveFeature("essential", "2020-01-01T00:00:00Z", feature)).toBe(true);
+    },
+  );
 
   it("keeps the complete and customizable catalog available in essential", () => {
     expect(hasActiveFeature("free", null, "catalogPremium")).toBe(false);

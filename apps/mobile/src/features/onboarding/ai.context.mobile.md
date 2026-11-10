@@ -69,6 +69,8 @@ Artesanato com prioridade de preço destaca a precificação de uma peça. Servi
 
 ## Change log / Decisions
 
+- 2026-10-18: o primeiro acesso começa pela tela de planos (`/welcome-plans`), uma vez por conta neste aparelho (`plansIntroSeenUserIds` em `use-onboarding`). A saída da tela volta para `/onboarding`, que segue o fluxo normal. Detalhes em `features/subscription/ai.context.mobile.md`.
+
 - 2026-09-28: integração preserva o Voltar do Android na escolha da primeira tarefa (dispensa persistida), enquanto o questionário mantém o retorno por etapas implementado no formulário.
 
 - 2026-09-28: no primeiro acesso, `first-task.tsx` permite escolher precificação ou nova venda antes do questionário. Completar o perfil continua opcional em Configurações. A dispensa só é confirmada após salvar na conta; falhas mantêm as opções e permitem nova tentativa. A edição de perfis existentes mantém o formulário completo.

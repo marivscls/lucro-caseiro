@@ -1,6 +1,12 @@
 import { z } from "zod";
 import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
+/**
+ * Fotos adicionais (galeria) além da principal, nos planos pagos. Total por
+ * produto = principal + MAX_PRODUCT_EXTRA_PHOTOS (5 fotos desde 2026-10-18).
+ */
+export const MAX_PRODUCT_EXTRA_PHOTOS = 4;
+
 /** Unidade de venda: por unidade ou por quilo (R$/kg). */
 export const SaleUnit = z.enum(["unit", "kg"]);
 export type SaleUnit = z.infer<typeof SaleUnit>;
@@ -38,8 +44,8 @@ const ProductBaseDto = z.object({
   description: z.string().max(1000).optional(),
   category: z.string().min(1).max(100),
   photoUrl: z.string().url().optional(),
-  // Fotos adicionais (galeria) além da principal. Máx 2 (total 3); só Premium.
-  extraPhotos: z.array(z.string().url()).max(2).optional(),
+  // Fotos adicionais (galeria) além da principal; só planos pagos (extraPhotos).
+  extraPhotos: z.array(z.string().url()).max(MAX_PRODUCT_EXTRA_PHOTOS).optional(),
   // Código/SKU/código de barras (opcional) para buscar/escanear o produto.
   code: z.string().max(100).optional(),
   salePrice: z.number().positive().max(MAX_MONEY),
