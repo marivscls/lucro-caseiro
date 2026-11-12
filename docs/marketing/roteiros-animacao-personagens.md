@@ -46,8 +46,8 @@ Mesmo na ficção, valem os limites de [provas-e-alegacoes.md](provas-e-alegacoe
 
 Mantenha as duas iguais em todos os episódios. Use sempre as folhas de referência abaixo como imagem de entrada em todo quadro gerado.
 
-- [Folha da Dona Cida](personagens/dona-cida-folha.png)
-- [Folha da Bia](personagens/bia-folha.png)
+- **2D em código (versão oficial):** [Dona Cida](personagens/dona-cida-2d.png) · [Bia](personagens/bia-2d.png). Motor no projeto `lucro-caseiro-animacao`; produção pelo [prompt 2D em código](prompt-2d-em-codigo.md).
+- 3D gerado com IA (referência alternativa): [Dona Cida](personagens/dona-cida-folha.png) · [Bia](personagens/bia-folha.png)
 
 |         | Dona Cida                                                                                | Bia                                                                     |
 | ------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |

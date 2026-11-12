@@ -23,6 +23,7 @@ Esta pasta contém as fontes canônicas usadas para planejar marketing, vendas e
 - [editor-autonomo-gpt.md](editor-autonomo-gpt.md): contrato do editor audiovisual autônomo da Selenita, pipeline, estados, segurança e critérios de aceitação.
 - [roteiros-apresentadora-ia.md](roteiros-apresentadora-ia.md): seis roteiros curtos da apresentadora criada com IA (ensina e demonstra, nunca dá depoimento), aviso de IA obrigatório e teste contra outros formatos.
 - [roteiros-animacao-personagens.md](roteiros-animacao-personagens.md): esquetes animadas com as personagens fictícias Dona Cida e Bia e o formato "comida falando" em 3D, com limites de ficção, aviso de IA e teste entre formatos.
+- [prompt-2d-em-codigo.md](prompt-2d-em-codigo.md): prompt de produção das esquetes da Dona Cida e da Bia em 2D feito por código (Remotion), adaptado do prompt "Canal 3D em código" do Genie.
 - [tutorial-influenciadora-com-ia.md](tutorial-influenciadora-com-ia.md): transcrição editorial temporizada do tutorial e método de consistência incorporado à Central.
 
 ## Hierarquia de verdade
