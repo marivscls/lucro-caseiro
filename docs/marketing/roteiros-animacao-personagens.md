@@ -44,7 +44,10 @@ Mesmo na ficção, valem os limites de [provas-e-alegacoes.md](provas-e-alegacoe
 
 ## As personagens (bíblia curta)
 
-Mantenha as duas iguais em todos os episódios. Gere uma folha de referência de cada uma (frente, perfil, 3/4, expressões) antes do primeiro episódio e use sempre a mesma.
+Mantenha as duas iguais em todos os episódios. Use sempre as folhas de referência abaixo como imagem de entrada em todo quadro gerado.
+
+- [Folha da Dona Cida](personagens/dona-cida-folha.png)
+- [Folha da Bia](personagens/bia-folha.png)
 
 |         | Dona Cida                                                                                | Bia                                                                     |
 | ------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
