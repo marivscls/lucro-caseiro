@@ -26,13 +26,14 @@ Um Short de 1080x1920 30 fps em 2D plano, construído inteiramente em código (S
 - Números são objetos: todo número dito aparece numa coisa real (celular, caderninho, etiqueta de preço, bandeja), nunca em rótulo solto.
 - Tela do app: entra como gravação real dentro de um celular grande no quadro ou em tela cheia, com o selo "Exemplo" quando houver valores. Nunca desenhar ou simular a tela do app.
 - Legenda: duas palavras por vez, Montserrat ExtraBold ~100 px, branca com contorno preto grosso, a 70% da altura, sem cobrir rostos.
-- Vozes: uma voz por personagem, fixa entre episódios. Dona Cida: madura e calorosa. Bia: jovem e rápida. Narração (quando houver) curta, sem dizer efeitos sonoros.
+- Vozes: VoiceStudio local (http://127.0.0.1:3900), uma voz por personagem e fixa entre episódios. Dona Cida: madura e calorosa. Bia: jovem e rápida. Os perfis escolhidos ficam em vozes/vozes.json do projeto de animação. Narração (quando houver) curta, sem dizer efeitos sonoros.
+- Jeito de falar brasileiro: escrever como a personagem fala de verdade ("tô", "tá", "pra", "né", "minha filha", "Ih", "Hum"), com a pontuação guiando a entonação. Ponto final faz a voz descer e respirar, vírgula faz uma pausa curta, interrogação sobe no fim e exclamação dá ênfase. Nada de reticências (a voz trava), parênteses, siglas, %, R$ ou número em algarismo: tudo por extenso, como se fala ("sessenta reais", "cinco por cento"). Nenhuma grafia pode puxar sotaque de Portugal.
 Proibido: personagem dizendo que é cliente real ou citando resultado próprio ("meu lucro dobrou", "faturei X"), qualquer número inventado na tela do app, setas e HUDs flutuantes, objeto que surge do nada (tudo é trazido, entregue ou desliza), plano parado sem movimento.
 </direction>
 
 <legal>
-- Selo "Personagens fictícios" nos 3 primeiros segundos. Se a voz for sintética, o selo vira "Personagens fictícios · voz criada com IA", e a legenda do post e o rótulo de IA da plataforma passam a ser obrigatórios.
-- Legenda do post: "Personagens fictícios. As telas são do app real." (+ aviso de voz IA quando houver)
+- Selo "Personagens fictícios · voz criada com IA" nos 3 primeiros segundos (a voz do VoiceStudio é sintética), com o rótulo de IA da plataforma ativado.
+- Legenda do post: "Personagens fictícios com voz criada por inteligência artificial. As telas são do app real."
 - Recurso mostrado precisa estar na versão publicada na Google Play.
 - CTA único no fim: "Calcule seu primeiro produto grátis".
 </legal>
@@ -44,7 +45,7 @@ Câmera em movimento quase sempre: aproximação lenta por padrão, afastamento 
 
 <build>
 1. Ferramentas: Node 20, Remotion (versão fixa no package.json), FFmpeg, faster-whisper (large-v3-turbo, int8 na CPU), fonte Montserrat, efeitos sonoros grátis (Pixabay/Mixkit): panela, colher, notificação de WhatsApp, pop, whoosh.
-2. Roteiro: me mostre as falas antes de gravar ou gerar qualquer voz. Pergunte antes de gastar créditos.
+2. Roteiro e voz: me mostre as falas antes de gravar. Grave no VoiceStudio (abra o app se a API não responder) com POST /generate, profile_id da personagem, language "portuguese (brazil)" e num_step 32 (16 passos dá bugada). Cada fala com até 15 palavras por pedido; frase maior se divide na vírgula, e as partes se juntam com 300 ms de pausa entre frases e 120 ms na vírgula. Siga as regras da skill dublagem-voz-clonada: lint de texto antes, trocas de pronúncia só para a voz (a legenda fica com o texto certo), várias sementes por fala e conferência por whisper. Depois passe o detector-erros-voz e me mande os trechos suspeitos antes de montar. Nunca gravar voz junto com render ou outro whisper.
 3. Tempo: faster-whisper com tempo por palavra na voz final, alinhado ao roteiro com difflib. Todo corte, expressão, gesto e efeito fica preso a uma palavra, nunca a um segundo fixo.
 4. Motor: cada quadro é função pura do tempo (sem Date.now, aleatório só com semente). Cada plano é build(t) e reaproveita o cenário montado.
 5. Animação: antecipação de 2–6 quadros, ação na palavra, 5–15% de passagem e acomodação. Nas pausas, respirar e piscar. Um objeto só se move quando uma mão o move.
