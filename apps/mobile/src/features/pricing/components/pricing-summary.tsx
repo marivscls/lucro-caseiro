@@ -7,9 +7,9 @@ import { MAX_MONEY } from "@lucro-caseiro/contracts";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { currencyInput } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
-import { evaluateSalePrice, pricingQuote } from "../calc";
+import { evaluateSalePrice } from "../calc";
 import { PricingField, PricingSection } from "./pricing-fields";
-import { moneyValue, type PricingDraft } from "../use-pricing-draft";
+import { moneyValue, suggestedUnitPrice, type PricingDraft } from "../use-pricing-draft";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
@@ -35,8 +35,7 @@ export function PricingSummary({
   const resultIllustration = useBrandIllustration("pricingResultHero");
   const alternative = draft.alternative;
   const setAlternative = onAlternativeChange;
-  const quote = pricingQuote(input);
-  const suggested = Math.ceil((quote.finalPrice - 1e-9) * 100) / 100;
+  const suggested = suggestedUnitPrice(input);
   const price = alternative.trim() ? moneyValue(alternative) : suggested;
   const validPrice = Number.isFinite(price) && price > 0 && price <= MAX_MONEY;
   const result = evaluateSalePrice(input, validPrice ? price : 0);

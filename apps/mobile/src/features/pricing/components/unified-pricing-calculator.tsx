@@ -10,7 +10,10 @@ import { useProfile } from "../../subscription/hooks";
 import { useUpdateProduct } from "../../products/hooks";
 import { useCalculatePricing } from "../hooks";
 import { usePricingSources } from "../use-pricing-sources";
+import { trackAnalyticsAction } from "../../analytics/tracker";
 import {
+  breakEvenPrice,
+  chosenUnitPrice,
   draftCalculation,
   decimalValue,
   firstInvalidPricingStep,
@@ -56,7 +59,11 @@ export function UnifiedPricingCalculator({
   initialProduct?: { name?: string; category?: string };
   initialIngredientCost?: number;
   initialProductId?: string;
-  onSave?: () => void;
+  /**
+   * `createProduct` só vem quando o cálculo não está ligado a um produto: é o
+   * próximo passo natural depois de salvar (cálculo → produto sem redigitar).
+   */
+  onSave?: (next: { createProduct?: () => void }) => void;
   onCreateProduct: (
     salePrice: number,
     costPrice: number,
@@ -71,6 +78,7 @@ export function UnifiedPricingCalculator({
   const professional =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedPricing");
   const userId = useAuth((state) => state.userId);
+  const token = useAuth((state) => state.token);
   const sessionKey = JSON.stringify([
     userId,
     initialIngredientCost,
@@ -232,9 +240,16 @@ export function UnifiedPricingCalculator({
   async function saveSuggested() {
     if (!validateAll()) return;
     if (!calculation.input || busy) return;
+    const input = calculation.input;
     try {
-      await save.mutateAsync(calculation.input);
-      onSave?.();
+      await save.mutateAsync(input);
+      const price = chosenUnitPrice(draft, input);
+      onSave?.({
+        createProduct:
+          product || !Number.isFinite(price) || price <= 0
+            ? undefined
+            : () => onCreateProduct(price, input.ingredientCost, initialProduct),
+      });
     } catch (error) {
       alertError(error);
     }
@@ -297,6 +312,27 @@ export function UnifiedPricingCalculator({
   }
   const blocked = busy || save.isPending || apply.isPending;
   useEffect(() => onBusyChange(blocked), [blocked, onBusyChange]);
+
+  // Funil dentro da calculadora: iniciou (passou dos custos) → viu um preço →
+  // salvou (`pricing_completed`, no hook). Uma vez por abertura da tela.
+  const tracked = useRef({ started: false, resultViewed: false });
+  const resultReady = step === 3 && !!calculation.input;
+  useEffect(() => {
+    if (!resultReady || tracked.current.resultViewed) return;
+    tracked.current.resultViewed = true;
+    void trackAnalyticsAction("pricing_result_viewed", token);
+  }, [resultReady, token]);
+  function trackStarted() {
+    if (tracked.current.started) return;
+    tracked.current.started = true;
+    void trackAnalyticsAction("pricing_started", token);
+  }
+
+  // Conta nova não tem cadastros: listas vazias no primeiro passo só confundem.
+  const showProductPicker = !sources.isSuccess || products.length > 0 || !!product;
+  const showPackagingPicker =
+    !sources.isSuccess || packaging.length > 0 || draft.packagingIds.length > 0;
+  const minimumPrice = breakEvenPrice(draft, packaging);
   const result = calculation.input ? (
     <PricingSummary
       key={draft.productId}
@@ -310,17 +346,34 @@ export function UnifiedPricingCalculator({
     />
   ) : (
     <Card style={{ gap: spacing.sm }}>
-      <Typography variant="h3">Seu preço começa pelos custos</Typography>
-      <Typography variant="body" color={theme.colors.textSecondary}>
-        {calculation.error}
-      </Typography>
-      <Button
-        title="Conferir campos"
-        variant="secondary"
-        onPress={() => {
-          validateAll();
-        }}
-      />
+      {minimumPrice == null ? (
+        <>
+          <Typography variant="h3">Seu preço começa pelos custos</Typography>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            {calculation.error}
+          </Typography>
+          <Button
+            title="Conferir campos"
+            variant="secondary"
+            onPress={() => {
+              validateAll();
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <Typography variant="captionBold" color={theme.colors.primaryStrong}>
+            PARA NÃO TER PREJUÍZO
+          </Typography>
+          <Typography variant="moneyHero" numberOfLines={1} adjustsFontSizeToFit>
+            {formatCurrency(minimumPrice)}
+          </Typography>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Este é o mínimo para cobrir os custos que você informou. Diga quanto quer
+            ganhar por unidade para ver o preço sugerido.
+          </Typography>
+        </>
+      )}
     </Card>
   );
 
@@ -395,7 +448,9 @@ export function UnifiedPricingCalculator({
         }
         setAttempted(true);
         formValidation.validate();
-        if (!currentStepError) changeStep((step + 1) as PricingStep);
+        if (currentStepError) return;
+        if (step === 1) trackStarted();
+        changeStep((step + 1) as PricingStep);
       }}
     >
       {[
@@ -439,37 +494,39 @@ export function UnifiedPricingCalculator({
           )}
           {step === 1 ? notice : null}
           <FormBody>
-            <FormSection
-              collapsible={false}
-              title="Produto"
-              subtitle="Selecione um cadastro para preencher os custos automaticamente."
-            >
-              <FormField
-                label="Produto cadastrado"
-                optional
-                hint={
-                  product
-                    ? productSelectionDetail
-                    : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."
-                }
+            {showProductPicker ? (
+              <FormSection
+                collapsible={false}
+                title="Produto"
+                subtitle="Selecione um cadastro para preencher os custos automaticamente."
               >
-                <PricingPicker
-                  title={product ? "Escolher outro produto" : "Produtos cadastrados"}
-                  action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
-                  selectedLabel={product ? displayProductName(product.name) : undefined}
-                  items={productPickerItems}
-                  onSelect={(id) => selectProduct(id)}
-                />
-              </FormField>
-              {product ? (
-                <Button
-                  title="Calcular sem produto"
-                  variant="outline"
-                  style={{ alignSelf: "flex-start" }}
-                  onPress={reset}
-                />
-              ) : null}
-            </FormSection>
+                <FormField
+                  label="Produto cadastrado"
+                  optional
+                  hint={
+                    product
+                      ? productSelectionDetail
+                      : "Ou preencha os valores abaixo para fazer um cálculo sem cadastro."
+                  }
+                >
+                  <PricingPicker
+                    title={product ? "Escolher outro produto" : "Produtos cadastrados"}
+                    action={product ? "Trocar produto" : "Selecionar produto cadastrado"}
+                    selectedLabel={product ? displayProductName(product.name) : undefined}
+                    items={productPickerItems}
+                    onSelect={(id) => selectProduct(id)}
+                  />
+                </FormField>
+                {product ? (
+                  <Button
+                    title="Calcular sem produto"
+                    variant="outline"
+                    style={{ alignSelf: "flex-start" }}
+                    onPress={reset}
+                  />
+                ) : null}
+              </FormSection>
+            ) : null}
             <FormSection
               collapsible={false}
               title="Custos de uma unidade"
@@ -508,30 +565,32 @@ export function UnifiedPricingCalculator({
                   onPress={() => update({ packaging: currencyInput(currentPackaging) })}
                 />
               ) : null}
-              <FormField label="Embalagens cadastradas" optional>
-                <PricingPicker
-                  title="Embalagens cadastradas"
-                  action="Usar embalagem cadastrada"
-                  items={packaging
-                    .filter((item) => !draft.packagingIds.includes(item.id))
-                    .map((item) => ({
-                      id: item.id,
-                      label: displayProductName(item.name),
-                      detail: formatCurrency(item.unitCost),
-                    }))}
-                  onSelect={(id) => {
-                    const ids = [...draft.packagingIds, id];
-                    update({
-                      packagingIds: ids,
-                      packaging: currencyInput(
-                        packaging
-                          .filter((item) => ids.includes(item.id))
-                          .reduce((sum, item) => sum + item.unitCost, 0),
-                      ),
-                    });
-                  }}
-                />
-              </FormField>
+              {showPackagingPicker ? (
+                <FormField label="Embalagens cadastradas" optional>
+                  <PricingPicker
+                    title="Embalagens cadastradas"
+                    action="Usar embalagem cadastrada"
+                    items={packaging
+                      .filter((item) => !draft.packagingIds.includes(item.id))
+                      .map((item) => ({
+                        id: item.id,
+                        label: displayProductName(item.name),
+                        detail: formatCurrency(item.unitCost),
+                      }))}
+                    onSelect={(id) => {
+                      const ids = [...draft.packagingIds, id];
+                      update({
+                        packagingIds: ids,
+                        packaging: currencyInput(
+                          packaging
+                            .filter((item) => ids.includes(item.id))
+                            .reduce((sum, item) => sum + item.unitCost, 0),
+                        ),
+                      });
+                    }}
+                  />
+                </FormField>
+              ) : null}
               {draft.packagingIds.map((id) => (
                 <Button
                   key={id}

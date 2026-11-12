@@ -229,6 +229,32 @@ export function draftCalculation(draft: PricingDraft, packaging: Packaging[]) {
   }
 }
 
+/** Preço sugerido por unidade, arredondado para cima no centavo. */
+export function suggestedUnitPrice(input: CreatePricing): number {
+  return Math.ceil((pricingQuote(input).finalPrice - 1e-9) * 100) / 100;
+}
+
+/** Preço escolhido no resultado: o simulado pela pessoa, se houver, ou o sugerido. */
+export function chosenUnitPrice(draft: PricingDraft, input: CreatePricing): number {
+  return draft.alternative.trim()
+    ? moneyValue(draft.alternative)
+    : suggestedUnitPrice(input);
+}
+
+/**
+ * Menor preço que cobre os custos já informados (ganho zero). Mostrado enquanto
+ * o ganho está vazio, para a pessoa ver um número antes de decidir quanto quer
+ * ganhar. `null` quando o ganho já foi informado ou os custos ainda não fecham.
+ */
+export function breakEvenPrice(
+  draft: PricingDraft,
+  packaging: Packaging[],
+): number | null {
+  if (draft.profit.trim()) return null;
+  const calculation = draftCalculation({ ...draft, profit: "0" }, packaging);
+  return calculation.input ? suggestedUnitPrice(calculation.input) : null;
+}
+
 export type PricingStep = 1 | 2 | 3;
 
 /** Validate only decisions already presented, using the existing calculation rules. */

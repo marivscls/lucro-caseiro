@@ -63,3 +63,22 @@ describe("pricing step validation", () => {
     expect(pricing.firstInvalidPricingStep(draft({ profit: "5" }), [])).toBeNull();
   });
 });
+
+describe("first price shown to new accounts", () => {
+  it("shows the break-even price while the desired profit is empty", () => {
+    expect(pricing.breakEvenPrice(draft({ packaging: "2,00" }), [])).toBe(12);
+  });
+  it("hides the break-even price once a profit is informed", () => {
+    expect(pricing.breakEvenPrice(draft({ profit: "5" }), [])).toBeNull();
+  });
+  it("hides the break-even price while the unit cost is missing", () => {
+    expect(pricing.breakEvenPrice(draft({ ingredient: "" }), [])).toBeNull();
+  });
+  it("uses the simulated price when present, otherwise the suggested one", () => {
+    const filled = draft({ profit: "5" });
+    const { input } = pricing.draftCalculation(filled, []);
+    expect(input).toBeDefined();
+    expect(pricing.chosenUnitPrice(filled, input!)).toBe(15);
+    expect(pricing.chosenUnitPrice({ ...filled, alternative: "18,00" }, input!)).toBe(18);
+  });
+});

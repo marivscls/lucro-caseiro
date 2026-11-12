@@ -110,12 +110,28 @@ export default function SimplePricingScreen() {
             },
           });
         }}
-        onSave={() => {
-          showAlert({
-            title: "Cálculo salvo!",
-            message: "Sua precificação foi salva com sucesso.",
-            buttons: [{ text: "Ver histórico", onPress: () => setShowHistory(true) }],
-          });
+        onSave={({ createProduct }) => {
+          // Sem produto ligado, o próximo passo é transformar o cálculo em produto
+          // (já com preço e custo), e não parar no histórico.
+          showAlert(
+            createProduct
+              ? {
+                  title: "Cálculo salvo!",
+                  message:
+                    "Quer cadastrar este produto agora? O preço e o custo já vão preenchidos.",
+                  buttons: [
+                    { text: "Agora não", style: "cancel" },
+                    { text: "Cadastrar produto", onPress: createProduct },
+                  ],
+                }
+              : {
+                  title: "Cálculo salvo!",
+                  message: "Sua precificação foi salva com sucesso.",
+                  buttons: [
+                    { text: "Ver histórico", onPress: () => setShowHistory(true) },
+                  ],
+                },
+          );
         }}
       />
 

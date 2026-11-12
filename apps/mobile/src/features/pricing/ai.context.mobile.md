@@ -100,6 +100,13 @@ Produto: custo antigo R$ 10, receita atual R$ 12, embalagem antiga R$ 1 e atual 
 
 ## Change log / Decisions
 
+- 2026-11-12: redução de abandono no primeiro cálculo (dados de 04–11/10: 5 pessoas abriram a precificação, 2 salvaram).
+  - Funil medido dentro da calculadora: `pricing_started` ao sair do passo 1 com custo válido e `pricing_result_viewed` quando o passo 3 mostra o preço sugerido, ambos uma vez por abertura da tela. `pricing_completed` continua no salvamento (`useCalculatePricing`). Antes, `pricing_started` existia no contrato e no painel, mas o app nunca enviava.
+  - Passo 1: seletores de produto e de embalagem cadastrados ficam ocultos quando a conta ainda não tem esses cadastros (após a carga com sucesso). Durante a carga, em erro ou com seleção ativa, continuam visíveis.
+  - Passo 3: com o ganho vazio, o resultado mostra o preço mínimo para não ter prejuízo (`breakEvenPrice`, ganho zero, mesmas regras de `draftCalculation`) em vez de apenas o aviso de campo faltando. O salvamento continua exigindo o ganho.
+  - Após salvar um cálculo sem produto ligado, o aviso oferece "Cadastrar produto" com o preço escolhido (`chosenUnitPrice`: o simulado, se houver, ou o sugerido) e o custo, pelo mesmo caminho de "Salvar e criar produto" e sem salvar o cálculo de novo. Com produto ligado, o aviso segue com "Ver histórico".
+  - `suggestedUnitPrice` centraliza o arredondamento para cima no centavo usado pelo resumo.
+
 - 2026-09-09: unificação dos cinco aprimoramentos; snapshot persistido na migration 063; endpoint v2 exige publicação coordenada com a API. Migrações e backend devem preceder o aplicativo atualizado.
 - O histórico preserva a sugestão calculada; o preço comercial escolhido é salvo no produto. Alertas representam revisão dos cálculos, não uma garantia sobre o preço comercial.
 
