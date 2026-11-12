@@ -105,6 +105,7 @@ export function BusinessProfileFlow({
   if (firstTaskVisible) {
     return (
       <FirstTask
+        autoStart
         onConfigure={() => setConfigureProfile(true)}
         onStart={async (route) => {
           if (!(await state.save(null))) return false;

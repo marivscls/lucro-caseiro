@@ -46,3 +46,42 @@ describe("first action before completing the business profile", () => {
     await waitFor(() => expect(attempts).toBe(2));
   });
 });
+
+describe("first access opens pricing without asking", () => {
+  it("starts pricing once and shows no choices while it opens", async () => {
+    const destinations: string[] = [];
+    render(
+      <FirstTask
+        autoStart
+        onStart={(route) => {
+          destinations.push(route);
+          return Promise.resolve(true);
+        }}
+        onConfigure={() => {}}
+      />,
+    );
+    await waitFor(() => expect(destinations).toEqual(["/pricing"]));
+    expect(
+      screen.queryByRole("button", { name: "Registrar minha primeira venda" }),
+    ).toBeNull();
+  });
+  it("shows the choices and a retry when opening pricing fails", async () => {
+    let attempts = 0;
+    render(
+      <FirstTask
+        autoStart
+        onStart={() => {
+          attempts += 1;
+          return Promise.resolve(false);
+        }}
+        onConfigure={() => {}}
+      />,
+    );
+    await screen.findByText(/tente novamente/i);
+    fireEvent.click(screen.getByRole("button", { name: "Calcular meu primeiro preço" }));
+    await waitFor(() => expect(attempts).toBe(2));
+    expect(
+      screen.getByRole("button", { name: "Registrar minha primeira venda" }),
+    ).toBeTruthy();
+  });
+});

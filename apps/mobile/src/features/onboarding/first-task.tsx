@@ -1,14 +1,21 @@
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
-import React, { useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function FirstTask({
   onStart,
   onConfigure,
+  autoStart = false,
 }: Readonly<{
   onStart: (route: "/pricing" | "/tabs/new-sale") => Promise<boolean>;
   onConfigure: () => void;
+  /**
+   * Primeiro acesso: abre a precificação sem perguntar nada. A escolha só
+   * aparece se a gravação falhar, para a pessoa tentar de novo ou seguir por
+   * outro caminho. Menos uma parede antes da primeira vitória.
+   */
+  autoStart?: boolean;
 }>) {
   const { theme } = useTheme();
   const lock = useRef(false);
@@ -28,6 +35,41 @@ export function FirstTask({
       setSaving(false);
     }
   }
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!autoStart || autoStarted.current) return;
+    autoStarted.current = true;
+    void start("/pricing");
+    // O ref acima garante uma única chamada, mesmo se o efeito rodar de novo.
+  }, [autoStart]);
+
+  // Enquanto a abertura automática não falha, nada é perguntado.
+  if (autoStart && !failed)
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme.colors.background,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.md,
+          padding: spacing.lg,
+        }}
+      >
+        <ActivityIndicator
+          color={theme.colors.primary}
+          accessibilityLabel="Abrindo a precificação"
+        />
+        <Typography
+          variant="body"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center" }}
+        >
+          Vamos calcular o preço do seu primeiro produto.
+        </Typography>
+      </SafeAreaView>
+    );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView

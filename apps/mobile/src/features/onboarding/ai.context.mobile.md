@@ -69,6 +69,8 @@ Artesanato com prioridade de preço destaca a precificação de uma peça. Servi
 
 ## Change log / Decisions
 
+- 2026-11-12: no primeiro acesso, `first-task.tsx` recebe `autoStart` e abre a precificação sem perguntar (dispensa do perfil salva na conta, Início por baixo na pilha, Voltar leva ao Início). A escolha entre precificação, primeira venda e configurar perfil só aparece se essa gravação falhar. Motivo: dos 7 cadastros da semana de 04–11/10, só 2 concluíram uma precificação; a meta é tirar uma decisão do caminho até o primeiro preço. Registrar a primeira venda e montar o perfil continuam no Início e em Configurações.
+
 - 2026-10-18: o primeiro acesso começa pela tela de planos (`/welcome-plans`), uma vez por conta neste aparelho (`plansIntroSeenUserIds` em `use-onboarding`). A saída da tela volta para `/onboarding`, que segue o fluxo normal. Detalhes em `features/subscription/ai.context.mobile.md`.
 
 - 2026-09-28: integração preserva o Voltar do Android na escolha da primeira tarefa (dispensa persistida), enquanto o questionário mantém o retorno por etapas implementado no formulário.
