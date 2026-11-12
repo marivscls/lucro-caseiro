@@ -21,6 +21,7 @@ Esta pasta contém as fontes canônicas usadas para planejar marketing, vendas e
 - [briefings-e-qualidade.md](briefings-e-qualidade.md): modelos de pedido e revisão para trabalhos produzidos pela IA.
 - [central-de-marketing-e-selenita.md](central-de-marketing-e-selenita.md): arquitetura operacional, decisões e critérios da simplificação da Central e da Selenita.
 - [editor-autonomo-gpt.md](editor-autonomo-gpt.md): contrato do editor audiovisual autônomo da Selenita, pipeline, estados, segurança e critérios de aceitação.
+- [roteiros-apresentadora-ia.md](roteiros-apresentadora-ia.md): seis roteiros curtos da apresentadora criada com IA (ensina e demonstra, nunca dá depoimento), aviso de IA obrigatório e teste contra outros formatos.
 - [tutorial-influenciadora-com-ia.md](tutorial-influenciadora-com-ia.md): transcrição editorial temporizada do tutorial e método de consistência incorporado à Central.
 
 ## Hierarquia de verdade
