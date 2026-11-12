@@ -53,16 +53,16 @@ Mesmo na ficção, valem os limites de [provas-e-alegacoes.md](provas-e-alegacoe
 
 ## Aviso obrigatório em toda peça
 
-1. **Na tela, nos 3 primeiros segundos:**
-   - Série A (2D feito em código, voz sintética): selo "Personagens fictícios · voz criada com IA".
-   - Série B (3D gerado com IA): selo "Animação criada com IA · personagens fictícios".
+1. **Na tela:** sem selo de IA queimado no vídeo (decisão de 12/11/2026, na A1: o selo poluía a cena). O aviso fica nos itens 2 e 3, que continuam obrigatórios. Textos de aviso por série, para a legenda:
+   - Série A (2D feito em código, voz sintética): "Personagens fictícios · voz criada com IA".
+   - Série B (3D gerado com IA): "Animação criada com IA · personagens fictícios".
 2. **Na legenda do post:** a frase de aviso da série (ver cada série), sempre na última linha.
 3. **Na plataforma:** ativar o rótulo nativo de conteúdo gerado por IA.
 4. **Em anúncio pago:** os três itens acima, mais revisão contra as políticas de anúncio da plataforma.
 
 ## Regras de produção (iguais às da apresentadora)
 
-- **Tela real:** toda demonstração é gravação de tela da versão publicada do app. Nunca gerar a tela do app com IA.
+- **Tela real:** toda demonstração mostra a tela do próprio app, nunca desenhada nem gerada com IA. Vale gravação da versão publicada ou captura do app rodando no modo demonstração (`EXPO_PUBLIC_MOCK_MODE=1`, mesmo código, dados de exemplo). A A1 usa a segunda: `lucro-caseiro-animacao/episodios/a1-preco-no-olho/capturar_tela.mjs`.
 - **Valores:** use a [tabela de dados de gravação](roteiros-apresentadora-ia.md#dados-para-a-gravação-de-tela), com o selo "Exemplo" sempre que um valor aparecer.
 - **Formato:** vertical 9:16, legenda queimada e app na tela até o segundo 10.
 - **Final:** um único CTA, sempre "Calcule seu primeiro produto grátis".
@@ -99,14 +99,14 @@ Mantenha as duas iguais em todos os episódios.
 **Dor:** dar o preço no chute e esquecer o ingrediente que subiu e a embalagem.
 **Recurso:** passo **Produto e custos** e **Preço sugerido por unidade**.
 
-| Tempo   | Imagem                                                                                                                                    | Fala                                                                                                     |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| 0–2 s   | Dona Cida enrolando brigadeiro. O celular vibra com a mensagem grande: "Quanto o cento?". Selo de IA.                                     | Dona Cida: "Ih, deixa eu ver."                                                                           |
-| 2–6 s   | Ela aperta os olhos para a bandeja e escreve "100 = 60" no caderninho.                                                                    | Dona Cida: "Na minha época, preço era no olho." / "Cem brigadeiros? Sessenta reais!"                     |
-| 6–9 s   | Bia entra e põe na bancada a lata de leite condensado e a caixinha.                                                                       | Bia: "Cida, você colocou o leite condensado que subiu?" / "E a caixinha?"                                |
-| 9–19 s  | Tela real: **Produto e custos** com ingredientes e embalagem; depois o custo e o **Preço sugerido por unidade**, grandes. Selo "Exemplo". | Bia: "Olha. Coloca o custo de cada coisa, e ele mostra o preço." / Dona Cida: "Cada um custa isso tudo?" |
-| 19–23 s | Dona Cida de óculos na ponta do nariz. Risca o "100 = 60" do caderninho.                                                                  | Dona Cida: "Hum. O olho tava míope."                                                                     |
-| 23–26 s | As duas. O celular vibra de novo com outra mensagem, igual ao primeiro quadro.                                                            | Bia: "Calcule seu primeiro produto grátis."                                                              |
+| Tempo   | Imagem                                                                                                                                              | Fala                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 0–2 s   | Dona Cida enrolando brigadeiro. O celular vibra com a mensagem grande: "Quanto o cento?".                                                           | Dona Cida: "Ih, deixa eu ver."                                                                           |
+| 2–6 s   | Ela aperta os olhos para a bandeja e escreve "100 = 60" no caderninho.                                                                              | Dona Cida: "Na minha época, preço era no olho." / "Cem brigadeiros? Sessenta reais!"                     |
+| 6–9 s   | Bia entra e põe na bancada a lata de leite condensado e a caixinha.                                                                                 | Bia: "Cida, você colocou o leite condensado que subiu?" / "E a caixinha?"                                |
+| 9–19 s  | Tela real: **Produto e custos** com ingredientes e embalagem; depois **Preço e resultado** com "Para não ter prejuízo" em destaque. Selo "Exemplo". | Bia: "Olha. Coloca o custo de cada coisa, e ele mostra o preço." / Dona Cida: "Cada um custa isso tudo?" |
+| 19–23 s | Dona Cida de óculos na ponta do nariz. Risca o "100 = 60" do caderninho.                                                                            | Dona Cida: "Hum. O olho tava míope."                                                                     |
+| 23–26 s | As duas. O celular vibra de novo com outra mensagem, igual ao primeiro quadro.                                                                      | Bia: "Calcule seu primeiro produto grátis."                                                              |
 
 **Tela a gravar:** brigadeiro gourmet da conta de exemplo, com "leite condensado" entre os ingredientes e "caixinha" na embalagem.
 **Primeira linha do post:** "Quanto o cento?" e você responde no olho?
@@ -119,7 +119,7 @@ Mantenha as duas iguais em todos os episódios.
 
 | Tempo   | Imagem                                                                                                                | Fala                                                                                                    |
 | ------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 0–2 s   | Bia diante de 20 marmitas em fila, contando nos dedos. Na tela: "Quanto custa UMA marmita?". Selo de IA.              | Bia: "Arroz, feijão, frango. Calma que eu tô contando."                                                 |
+| 0–2 s   | Bia diante de 20 marmitas em fila, contando nos dedos. Na tela: "Quanto custa UMA marmita?".                          | Bia: "Arroz, feijão, frango. Calma que eu tô contando."                                                 |
 | 2–7 s   | A cada pergunta ela esbarra no objeto: o botijão, a pilha de sacolas, o relógio da parede. Os dedos acabam.           | Bia: "E o gás? E a sacola?" / "E a hora que eu passei no fogão?"                                        |
 | 7–9 s   | Bia desaba na cadeira. Dona Cida entra, já com o celular na mão.                                                      | Bia: "Perdi a conta." / Dona Cida: "Menina, larga esses dedos."                                         |
 | 9–19 s  | Tela real: **Trabalho e despesas** com o tempo do lote e as despesas do mês; depois o preço sugerido. Selo "Exemplo". | Dona Cida: "Aqui você põe o seu tempo e as contas do mês." / "E ele divide por marmita."                |
@@ -137,7 +137,7 @@ Mantenha as duas iguais em todos os episódios.
 
 | Tempo   | Imagem                                                                                                           | Fala                                                                                               |
 | ------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 0–2 s   | Mensagem grande no celular da Dona Cida: "Faz um descontinho?". Selo de IA.                                      | Dona Cida: "Ai, ela é tão boazinha."                                                               |
+| 0–2 s   | Mensagem grande no celular da Dona Cida: "Faz um descontinho?".                                                  | Dona Cida: "Ai, ela é tão boazinha."                                                               |
 | 2–5 s   | Ela já digita "Claro! Vinte por cento pra você". Bia segura o dedo dela no ar.                                   | Bia: "Pera! Vê quanto sobra antes."                                                                |
 | 5–15 s  | Tela real: resultado; depois **Simular outro preço** com o preço com desconto e o ganho mudando. Selo "Exemplo". | Bia: "Põe o preço com desconto, e ele mostra quanto sobra pra você." / Dona Cida: "Sobra só isso?" |
 | 15–21 s | Dona Cida apaga a mensagem e digita de novo, decidida.                                                           | Dona Cida: "Te faço cinco por cento." / "E um brigadeiro de brinde."                               |
@@ -155,7 +155,7 @@ Mantenha as duas iguais em todos os episódios.
 
 | Tempo   | Imagem                                                                                                                        | Fala                                                                                               |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 0–2 s   | Bia com o celular para o alto, comemorando. A cozinha atrás dela está coberta de bilhetes colados. Selo de IA.                | Bia: "Calculei o preço da marmita fit!"                                                            |
+| 0–2 s   | Bia com o celular para o alto, comemorando. A cozinha atrás dela está coberta de bilhetes colados.                            | Bia: "Calculei o preço da marmita fit!"                                                            |
 | 2–6 s   | Ela procura onde anotar e cola um bilhete na testa da Dona Cida.                                                              | Bia: "E agora eu anoto onde? No caderno? Na planilha?" / Dona Cida: "Na minha testa não."          |
 | 6–16 s  | Tela real: **Salvar cálculo** → "Cálculo salvo!" → **Cadastrar produto** → formulário com preço e custo preenchidos → salvar. | Bia: "Salvou o cálculo, já cadastra o produto." / "Preço e custo vão juntos, sem digitar de novo." |
 | 16–21 s | Bia amassa o bilhete, joga de longe e acerta o lixo.                                                                          | Bia: "Cesta!" / Dona Cida: "Agora cata os outros."                                                 |
@@ -186,7 +186,7 @@ Nesta série, a comida **fala direto com quem vende** ("Ei, você que me vende")
 
 | Tempo   | Imagem                                                                                                            | Fala                                                                                                |
 | ------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| 0–2 s   | Brigadeiro de braços cruzados na forminha, olhando para a câmera. Selo de IA.                                     | Brigadeiro: "Ei, você que me vende. Sabe quanto eu custo?"                                          |
+| 0–2 s   | Brigadeiro de braços cruzados na forminha, olhando para a câmera.                                                 | Brigadeiro: "Ei, você que me vende. Sabe quanto eu custo?"                                          |
 | 2–7 s   | A cada item, o ingrediente cai na bancada atrás dele: lata, chocolate, granulado, forminha. Por último, a panela. | Brigadeiro: "Leite condensado, chocolate, granulado, forminha." / "E meia hora de braço na panela!" |
 | 7–16 s  | Tela real: custos preenchidos e o preço sugerido, grande. Selo "Exemplo".                                         | Narração: "Coloca tudo no Lucro Caseiro e vê quanto ele vale de verdade."                           |
 | 16–20 s | Brigadeiro põe óculos escuros. O texto do CTA entra ao lado dele.                                                 | Brigadeiro: "Agora sim. Me respeita." / Texto: "Calcule seu primeiro produto grátis."               |
@@ -201,7 +201,7 @@ Nesta série, a comida **fala direto com quem vende** ("Ei, você que me vende")
 
 | Tempo   | Imagem                                                                                     | Fala                                                                            |
 | ------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| 0–2 s   | Marmita aberta, suando, ao lado do botijão. Selo de IA.                                    | Marmita: "Ninguém lembra do gás. Ninguém!"                                      |
+| 0–2 s   | Marmita aberta, suando, ao lado do botijão.                                                | Marmita: "Ninguém lembra do gás. Ninguém!"                                      |
 | 2–6 s   | O botijão concorda com a cabeça, triste.                                                   | Botijão: "Eu queimo o dia inteiro e não entro no preço."                        |
 | 6–15 s  | Tela real: **Despesas do mês** divididas pela produção e o preço sugerido. Selo "Exemplo". | Narração: "No Lucro Caseiro, as contas do mês entram no preço de cada marmita." |
 | 15–18 s | Marmita e botijão batem as mãos. A lâmpada do teto pisca.                                  | Os dois: "Entramos!" / Lâmpada: "E eu?"                                         |
@@ -217,7 +217,7 @@ Nesta série, a comida **fala direto com quem vende** ("Ei, você que me vende")
 
 | Tempo   | Imagem                                                             | Fala                                                                                          |
 | ------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| 0–2 s   | Caixinha de presente com laço, sozinha num canto. Selo de IA.      | Caixinha: "Todo mundo elogia o bolo. E eu?"                                                   |
+| 0–2 s   | Caixinha de presente com laço, sozinha num canto.                  | Caixinha: "Todo mundo elogia o bolo. E eu?"                                                   |
 | 2–6 s   | O bolo de pote dá de ombros. A caixinha fica de boca aberta.       | Caixinha: "Eu também custo, tá?" / Bolo de pote: "Ela nem te colocou na conta."               |
 | 6–14 s  | Tela real: campo **Embalagem** e o preço sugerido. Selo "Exemplo". | Narração: "A embalagem tem campo próprio, e o custo dela entra no preço."                     |
 | 14–18 s | Caixinha fazendo pose, ajeitando o laço. Texto na tela.            | Caixinha: "Entrei na conta. Com laço e tudo." / Texto: "Calcule seu primeiro produto grátis." |
@@ -232,7 +232,7 @@ Nesta série, a comida **fala direto com quem vende** ("Ei, você que me vende")
 
 | Tempo   | Imagem                                                                                          | Fala                                                                                      |
 | ------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 0–2 s   | Bolo de pote tremendo numa vitrine. A plaquinha de preço dele está em branco. Selo de IA.       | Bolo de pote: "Por menos de quanto eu dou prejuízo?"                                      |
+| 0–2 s   | Bolo de pote tremendo numa vitrine. A plaquinha de preço dele está em branco.                   | Bolo de pote: "Por menos de quanto eu dou prejuízo?"                                      |
 | 2–6 s   | Ele olha para os lados. Os outros doces da vitrine fazem que não sabem.                         | Bolo de pote: "Ninguém sabe? Nem ela?"                                                    |
 | 6–15 s  | Tela real: passo **Preço e resultado** com "Para não ter prejuízo" em destaque. Selo "Exemplo". | Narração: "O Lucro Caseiro mostra o mínimo antes de você escolher quanto quer ganhar."    |
 | 15–20 s | Bolo de pote aliviado, enxugando a testa. Texto na tela.                                        | Bolo de pote: "Ufa. Agora eu tenho piso." / Texto: "Calcule seu primeiro produto grátis." |
@@ -268,7 +268,7 @@ Completa o teste do documento da [apresentadora IA](roteiros-apresentadora-ia.md
 
 ## Checklist antes de publicar
 
-- [ ] Selo de IA da série nos 3 primeiros segundos
+- [ ] Aviso de IA da série na última linha da legenda e rótulo de IA da plataforma ativado
 - [ ] Rótulo de IA da plataforma ativado e aviso na última linha da legenda
 - [ ] A dor aparece no quadro 0 e a tela do app entra até o segundo 10
 - [ ] Uma dor e um recurso por vídeo
