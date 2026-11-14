@@ -68,6 +68,11 @@ export const ANALYTICS_ACTION_NAMES = [
   "purchase_result",
   "ad_impression",
   "app_crashed",
+  "discovery_step_shown",
+  "discovery_step_opened",
+  "paid_preview_viewed",
+  "paid_preview_unlock",
+  "trial_checklist_opened",
   ...GUIDANCE_ACTION_NAMES,
   ...GUIDANCE_VALIDATION_ACTIONS,
 ] as const;
