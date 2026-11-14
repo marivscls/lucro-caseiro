@@ -266,3 +266,8 @@ vazias = desligado. Falha no Telegram só é logada (`ops_alert_failed`), nunca 
 - O mesmo `dedupeKey` sai no máximo 1 vez por hora (memória do processo).
 - Privacidade: a mensagem leva só id da conta, plano, produto e validade. Nunca e-mail, nome ou
   purchase token.
+- Analytics do ciclo de assinatura (`subscription_completed`/`subscription_cancelled`) é
+  best-effort (`recordLifecycleAnalytics`): falha ao gravar só loga
+  `subscription_lifecycle_analytics_failed` e segue para e-mail e alerta. Antes, a lista antiga de
+  eventos no banco fazia `activatePlan` lançar depois de gravar o plano: `/sync-plan` devolvia 500,
+  o app não confirmava a compra e o e-mail de ativação nunca saía.

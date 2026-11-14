@@ -754,4 +754,39 @@ describe("SubscriptionUseCases", () => {
       expect(messages.join(" ")).not.toContain("@");
     });
   });
+
+  describe("lifecycle analytics", () => {
+    it("still activates the plan, sends the email and alerts when analytics fails", async () => {
+      const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+      const recordLifecycleEvent = vi.fn(() =>
+        Promise.reject(new Error("analytics_events_check")),
+      );
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const alertOps = vi.fn<OpsAlert>(() => Promise.resolve());
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(makeProfile({ plan: "free" })) },
+        makeStatusProvider(),
+        recordLifecycleEvent,
+        notifyLifecycle,
+        undefined,
+        alertOps,
+      );
+
+      const result = await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
+
+      expect(result.plan).toBe("professional");
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "activated" }),
+      );
+      expect(alertOps).toHaveBeenCalledWith(
+        expect.stringContaining("Nova assinatura"),
+        undefined,
+      );
+      expect(errorLog).toHaveBeenCalledWith(
+        "subscription_lifecycle_analytics_failed",
+        expect.objectContaining({ action: "subscription_completed" }),
+      );
+      errorLog.mockRestore();
+    });
+  });
 });

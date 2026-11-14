@@ -137,7 +137,7 @@ export class SubscriptionUseCases {
     const activePlan = resolvePlan(updated.plan, updated.planExpiresAt);
 
     if (previous && previousPlan === "free" && isPaidPlan(activePlan)) {
-      await this.recordLifecycleEvent?.(userId, "subscription_completed");
+      await this.recordLifecycleAnalytics(userId, "subscription_completed");
       await this.sendOpsAlert(
         `Nova assinatura: ${planLabel(activePlan)}. Conta ${userId}. Vale ate ${updated.planExpiresAt ?? "sem data"}.`,
       );
@@ -183,7 +183,7 @@ export class SubscriptionUseCases {
       throw new NotFoundError("Perfil não encontrado");
     }
     if (previous && resolvePlan(previous.plan, previous.planExpiresAt) !== "free") {
-      await this.recordLifecycleEvent?.(userId, "subscription_cancelled");
+      await this.recordLifecycleAnalytics(userId, "subscription_cancelled");
       const previousPlan = resolvePlan(previous.plan, previous.planExpiresAt);
       await this.sendOpsAlert(
         `Assinatura encerrada: ${planLabel(previousPlan)}. Conta ${userId}.`,
@@ -281,6 +281,23 @@ export class SubscriptionUseCases {
     }
 
     return this.getProfile(userId);
+  }
+
+  /** Analytics é best-effort: falhar ao gravar o evento nunca desfaz nem interrompe a mudança de plano. */
+  private async recordLifecycleAnalytics(
+    userId: string,
+    action: AnalyticsActionName,
+  ): Promise<void> {
+    if (!this.recordLifecycleEvent) return;
+    try {
+      await this.recordLifecycleEvent(userId, action);
+    } catch (error) {
+      console.error("subscription_lifecycle_analytics_failed", {
+        userId,
+        action,
+        error: errorMessage(error),
+      });
+    }
   }
 
   private async sendOpsAlert(message: string, dedupeKey?: string): Promise<void> {
