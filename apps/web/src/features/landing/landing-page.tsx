@@ -158,6 +158,7 @@ const plans: readonly PricingPlan[] = [
     annual: PLAN_PRICING.essential.annual,
     description: "Para usar no dia a dia sem limites de volume.",
     features: [
+      "Tudo do Gratuito",
       "Clientes e produtos ilimitados",
       "Catálogo completo e personalizado, com mais fotos",
       "Sem anúncios",
