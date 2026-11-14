@@ -1,7 +1,6 @@
 import { hasActiveFeature, type Purchase } from "@lucro-caseiro/contracts";
 import {
   FilterChipRow,
-  Badge,
   Button,
   EmptyState,
   Typography,
@@ -60,6 +59,7 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 import { DesktopTag } from "../shared/layout/desktop-kit";
+import { PaidPreview } from "../features/discovery/components/paid-preview";
 
 type Filter = "all" | "pending" | "paid";
 
@@ -718,49 +718,5 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
     );
   }
 
-  return (
-    <View
-      style={{
-        backgroundColor: pal.white,
-        borderColor: theme.colors.premium,
-        borderWidth: 1,
-        borderRadius: radii.xl,
-        gap: spacing.md,
-        padding: spacing.xl,
-      }}
-    >
-      <Badge label="Recurso Profissional" variant="premium" />
-      <Typography variant="h3" color={pal.ink}>
-        Compras de fornecedor organizadas
-      </Typography>
-      <Typography variant="body" color={pal.muted}>
-        Registre o que você compra dos fornecedores e acompanhe contas a pagar e caixa
-        automaticamente.
-      </Typography>
-      {benefits.map((benefit) => (
-        <View
-          key={benefit}
-          style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm }}
-        >
-          <AppIcon name="checkmark-circle" size={20} color={theme.colors.premium} />
-          <Typography variant="body" color={pal.ink} style={{ flex: 1, lineHeight: 20 }}>
-            {benefit}
-          </Typography>
-        </View>
-      ))}
-      <Button
-        title="Desbloquear no Profissional"
-        variant="premium"
-        icon={
-          <AppIcon
-            name="lock-open-outline"
-            size={20}
-            color={theme.colors.textOnPrimary}
-          />
-        }
-        onPress={onUnlock}
-        style={{ backgroundColor: pal.rose }}
-      />
-    </View>
-  );
+  return <PaidPreview screen="purchases" onUnlock={onUnlock} />;
 }

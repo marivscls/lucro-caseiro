@@ -76,6 +76,7 @@ import { ApiError } from "../shared/utils/api-client";
 import { alertError } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 import { formatCurrency } from "../shared/utils/format";
+import { PaidPreview } from "../features/discovery/components/paid-preview";
 
 const CATEGORIES: {
   key: ExpenseCategory;
@@ -361,7 +362,10 @@ export default function RecurringExpensesScreen() {
               />
 
               {!canUseRecurringExpenses ? (
-                <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
+                <PaidPreview
+                  screen="recurring_expenses"
+                  onUnlock={() => showPaywall("recurring")}
+                />
               ) : (
                 <>
                   <View style={styles.listHeadingCopy}>
@@ -984,55 +988,6 @@ function DetailItem({
         <Typography variant="caption">{label}</Typography>
         <Typography variant="bodyBold">{value}</Typography>
       </View>
-    </View>
-  );
-}
-
-function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
-  const { theme, styles } = useRecurringTheme();
-  const benefits = GATE_BENEFITS;
-
-  return (
-    <View style={styles.gateCard}>
-      <View style={styles.gateBadge}>
-        <AppIcon
-          name="diamond-outline"
-          size={iconSizes.xs}
-          color={theme.colors.premium}
-        />
-        <Typography variant="captionBold" color={theme.colors.premium}>
-          Recurso Profissional
-        </Typography>
-      </View>
-      <Typography variant="h3">Gastos fixos no automático</Typography>
-      <Typography variant="caption">
-        Cadastre uma vez e deixe o app lançar seus custos mensais sozinho, sempre na data
-        certa.
-      </Typography>
-      {benefits.map((benefit) => (
-        <View key={benefit} style={styles.gateBullet}>
-          <AppIcon
-            name="checkmark-circle"
-            size={iconSizes.sm}
-            color={theme.colors.premium}
-          />
-          <Typography variant="caption" color={theme.colors.text} style={styles.gateText}>
-            {benefit}
-          </Typography>
-        </View>
-      ))}
-      <Button
-        icon={
-          <AppIcon
-            name="lock-open-outline"
-            size={iconSizes.sm}
-            color={theme.colors.textOnPrimary}
-          />
-        }
-        onPress={onUnlock}
-        size="lg"
-        title="Desbloquear no Profissional"
-      />
     </View>
   );
 }

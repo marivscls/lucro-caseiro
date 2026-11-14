@@ -63,6 +63,7 @@ import {
   InsightsQuestionsDesktop,
   InsightsTeaserDesktop,
 } from "../features/insights/components/insights-desktop";
+import { PaidPreview } from "../features/discovery/components/paid-preview";
 
 function MiniStatCard({
   label,
@@ -156,30 +157,6 @@ function SectionTitle({
         {title}
       </Typography>
     </View>
-  );
-}
-
-function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>) {
-  const { theme } = useTheme();
-  return (
-    <Card variant="surface" padding="xl" onPress={onUpgrade} style={{ gap: spacing.md }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <AppIcon name="bar-chart" size={22} color={theme.colors.premium} />
-        <Typography variant="h3" color={theme.colors.premium}>
-          Resultados completos
-        </Typography>
-      </View>
-      <Typography variant="body" color={theme.colors.textSecondary}>
-        Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores
-        clientes.
-      </Typography>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <AppIcon name="diamond-outline" size={18} color={theme.colors.premium} />
-        <Typography variant="bodyBold" color={theme.colors.premium}>
-          Desbloquear no Profissional
-        </Typography>
-      </View>
-    </Card>
   );
 }
 
@@ -596,7 +573,7 @@ function InsightsContent({
           </Card>
         </>
       ) : (
-        <ReportsPremiumTeaser onUpgrade={onUpgrade} />
+        <PaidPreview screen="insights" onUnlock={onUpgrade} />
       )}
     </>
   );
