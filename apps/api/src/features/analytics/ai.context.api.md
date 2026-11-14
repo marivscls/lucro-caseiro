@@ -200,3 +200,19 @@ Ações novas no contrato e em "Funcionalidades mais usadas": `business_profile_
 `failure` ou `cancel`, `provider`, `plan`, `period`), `ad_impression` e `app_crashed` (props
 `error` = tipo do erro e `screen`). São emitidas pelo app; a
 API só valida e persiste.
+
+## Lista antiga de eventos que sobrou em produção — 2026-11-14
+
+Os logs do Fly mostraram `POST /api/v1/analytics/events/identify` com 500 por
+`analytics_events_check` (evento `guidance_products_presented`, app 1.2.4). Em produção a lista
+fechada antiga de nomes ficou com o nome automático `analytics_events_check`: a 037 nunca rodou lá
+e a `20260923100000` só removia `analytics_events_event_name_check`. O banco recusava qualquer evento
+fora dessa lista velha (`app_crashed`, `purchase_result`, `subscription_completed`,
+`subscription_cancelled`, `plan_limit_reached`, `pricing_started`, orientação, cadastros de apoio e
+a tela `services`), o lote inteiro do app voltava 500 e esses dados nunca entraram nos relatórios.
+
+`20261114100000_analytics_drop_stale_event_whitelist.sql` (lista de boot em
+`security-migrations.ts`) remove `analytics_events_check`/`analytics_events_event_name_check` só
+quando a definição ainda é uma lista de `event_name` (não a de formato). Os nomes continuam
+fechados na API (zod + `ANALYTICS_*_NAMES`) e o formato no banco. Dados anteriores não são
+recuperáveis.

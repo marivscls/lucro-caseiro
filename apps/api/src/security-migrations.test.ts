@@ -26,6 +26,7 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/20260928220100_referrals.sql",
       "../../../packages/database/src/migrations/20260928220200_mei_settings.sql",
       "../../../packages/database/src/migrations/20260928220300_assistant_usage.sql",
+      "../../../packages/database/src/migrations/20261114100000_analytics_drop_stale_event_whitelist.sql",
     ]);
   });
   it("installs supplier management fields before startup", () => {

@@ -14,6 +14,7 @@ const MIGRATIONS = [
   "20260923100000_analytics_event_name_format.sql",
   "20260923100100_analytics_installation_acquisition.sql",
   "20260923100200_analytics_event_props.sql",
+  "20261114100000_analytics_drop_stale_event_whitelist.sql",
 ];
 
 const INSTALLATION = "0cbd1c3e-1755-4f3f-a1bf-40c12b267ac3";
@@ -82,6 +83,44 @@ describe("Analytics persistence in PostgreSQL", () => {
       "service_created",
       "services",
     ]);
+  });
+
+  it("remove a lista antiga que sobrou em produção com o nome analytics_events_check", async () => {
+    // Arrange: estado de produção, onde a 037 nunca rodou
+    await pg.exec(`ALTER TABLE analytics_events ADD CONSTRAINT analytics_events_check CHECK (
+      (event_type = 'screen_view' AND event_name IN ('home'))
+      OR (event_type = 'action' AND event_name IN ('signup_completed', 'sale_completed'))
+    );`);
+
+    // Act
+    await pg.exec(
+      readFileSync(
+        "../../packages/database/src/migrations/20261114100000_analytics_drop_stale_event_whitelist.sql",
+        "utf8",
+      ),
+    );
+    await repo.recordEvents(USER, {
+      ...ENVELOPE,
+      occurredAt: new Date("2026-11-14T12:00:00.000Z"),
+      activityDate: "2026-11-14",
+      events: [
+        { type: "action", name: "app_crashed" },
+        { type: "action", name: "purchase_result", props: { result: "success" } },
+      ],
+    });
+
+    // Assert
+    const { rows } = await pg.query<{ conname: string }>(
+      `SELECT conname FROM pg_constraint
+       WHERE conrelid = 'analytics_events'::regclass AND contype = 'c' ORDER BY conname`,
+    );
+    const names = rows.map((row) => row.conname);
+    expect(names).not.toContain("analytics_events_check");
+    expect(names).toContain("analytics_events_event_name_format_check");
+    const events = await pg.query<{ event_name: string }>(
+      "SELECT event_name FROM analytics_events WHERE event_name IN ('app_crashed', 'purchase_result')",
+    );
+    expect(events.rows).toHaveLength(2);
   });
 
   it("continua recusando nomes fora do formato canônico no banco", async () => {
