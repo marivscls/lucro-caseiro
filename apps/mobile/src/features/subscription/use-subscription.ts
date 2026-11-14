@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import type {
   ProductSubscription,
@@ -19,6 +19,7 @@ import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import {
   ALL_PRODUCT_IDS,
+  isPurchaseActivated,
   isSyncablePaidPurchase,
   productIdFor,
   purchaseErrorResult,
@@ -28,6 +29,19 @@ import {
 
 const SUBSCRIPTION_PROFILE_KEY = ["subscription", "profile"] as const;
 const SUBSCRIPTION_LIMITS_KEY = ["subscription", "limits"] as const;
+
+/** Novas tentativas depois da compra (~2 min no total), para pagamento pendente. */
+export const PURCHASE_RETRY_DELAYS_MS = [5_000, 15_000, 30_000, 60_000];
+
+export const PURCHASE_PENDING_ALERT = {
+  title: "Pagamento em confirmação",
+  message:
+    "O Google ainda está confirmando seu pagamento. Assim que for aprovado, seu plano é liberado sozinho. Se não liberar em alguns minutos, toque em Restaurar compras ou fale com o suporte. Você não paga nada se o plano não for liberado.",
+};
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 type IapHookArgs = {
   onPurchaseSuccess: (purchase: Purchase) => void;
@@ -137,8 +151,21 @@ export function useSubscription() {
     ((args: { purchase: Purchase; isConsumable?: boolean }) => Promise<void>) | null
   >(null);
 
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  /**
+   * Envia a compra ao servidor e só a confirma no Google quando o plano foi
+   * liberado de verdade. Compra não confirmada é devolvida pelo Google em 3
+   * dias, então nunca confirmamos um pagamento que não liberou o plano.
+   */
   const verifyPurchase = useCallback(
-    async (purchase: Purchase) => {
+    async (purchase: Purchase): Promise<boolean> => {
       const productId = resolvePaidProductId(purchase);
       if (!token || Platform.OS !== "android" || !productId) {
         return false;
@@ -155,6 +182,9 @@ export function useSubscription() {
       queryClient.setQueryData([...SUBSCRIPTION_PROFILE_KEY, profile.id], profile);
       await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
+
+      if (!isPurchaseActivated(profile, productId)) return false;
+
       await finishTransactionRef.current?.({ purchase, isConsumable: false });
 
       // A comemoracao (tela + confete) e disparada pelo watcher global de plano
@@ -173,11 +203,43 @@ export function useSubscription() {
       if (paidPurchases.length === 0) return false;
 
       const synced = await Promise.all(
-        paidPurchases.map((purchase) => verifyPurchase(purchase)),
+        paidPurchases.map((purchase) => verifyPurchase(purchase).catch(() => false)),
       );
       return synced.some(Boolean);
     },
     [verifyPurchase],
+  );
+
+  /**
+   * Compra recém-feita: o Google pode deixar o pagamento "pendente" por alguns
+   * minutos. Tenta de novo em segundo plano e avisa a pessoa se não liberou
+   * na primeira tentativa, em vez de ficar em silêncio.
+   */
+  const activateNewPurchase = useCallback(
+    async (purchase: Purchase) => {
+      let warned = false;
+      for (let attempt = 0; attempt <= PURCHASE_RETRY_DELAYS_MS.length; attempt += 1) {
+        if (attempt > 0) {
+          await wait(PURCHASE_RETRY_DELAYS_MS[attempt - 1]);
+          if (!mounted.current) return;
+        }
+
+        const activated = await verifyPurchase(purchase).catch(() => false);
+        if (activated) {
+          reportPurchase("success");
+          setLoading(false);
+          return;
+        }
+
+        if (!warned) {
+          warned = true;
+          setLoading(false);
+          showAlert(PURCHASE_PENDING_ALERT);
+        }
+      }
+      reportPurchase("failure");
+    },
+    [reportPurchase, verifyPurchase],
   );
 
   const {
@@ -190,12 +252,7 @@ export function useSubscription() {
     getAvailablePurchases,
   } = useSafeIAP({
     onPurchaseSuccess: (purchase) => {
-      void verifyPurchase(purchase)
-        .then(
-          (verified) => reportPurchase(verified ? "success" : "failure"),
-          () => reportPurchase("failure"),
-        )
-        .finally(() => setLoading(false));
+      void activateNewPurchase(purchase);
     },
     onPurchaseError: (error) => {
       reportPurchase(purchaseErrorResult(error));
@@ -229,6 +286,19 @@ export function useSubscription() {
 
     void syncPaidPurchases(availablePurchases);
   }, [availablePurchases, token, syncPaidPurchases]);
+
+  // Pagamento aprovado depois (pendente → aprovado): ao voltar para o app,
+  // sincroniza de novo para liberar o plano sem a pessoa precisar fazer nada.
+  useEffect(() => {
+    if (!token || Platform.OS !== "android") return;
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active") return;
+      void fetchAvailablePurchases({ includeSuspendedAndroid: false })
+        .then(syncPaidPurchases)
+        .catch(() => {});
+    });
+    return () => subscription.remove();
+  }, [token, syncPaidPurchases]);
 
   const subscribe = useCallback(
     async (tier: PaidPlan, period: BillingPeriod) => {
@@ -333,6 +403,8 @@ export function useSubscription() {
           title: "Restaurado!",
           message: "Sua assinatura foi restaurada.",
         });
+      } else {
+        showAlert(PURCHASE_PENDING_ALERT);
       }
     } catch {
       alertError("Não foi possível restaurar compras. Tente novamente.");

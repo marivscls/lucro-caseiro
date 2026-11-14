@@ -1,5 +1,10 @@
 import type { BillingPeriod, PaidPlan, StoreProductId } from "@lucro-caseiro/contracts";
-import { planFromProductId, STORE_PRODUCT_IDS } from "@lucro-caseiro/contracts";
+import {
+  isActiveTrial,
+  planFromProductId,
+  resolveActivePlan,
+  STORE_PRODUCT_IDS,
+} from "@lucro-caseiro/contracts";
 import type { Purchase } from "react-native-iap";
 
 // Product ids aceitos pelo backend (4 novos SKUs + os legados do Premium).
@@ -74,6 +79,35 @@ export function isSyncablePaidPurchase(purchase: Purchase): boolean {
   if (!isPurchasedState(purchase as AndroidPurchaseState)) return false;
   if ("isSuspendedAndroid" in purchase && purchase.isSuspendedAndroid) return false;
   return resolvePaidProductId(purchase) !== null;
+}
+
+type ActivationProfile = {
+  plan: string;
+  planExpiresAt: string | null;
+  planIsTrial?: boolean;
+};
+
+const PLAN_RANK: Record<PaidPlan, number> = { essential: 1, professional: 2 };
+
+/**
+ * A compra só conta como liberada quando o perfil devolvido pelo servidor já
+ * está num plano pago (não o teste grátis) igual ou acima do que foi comprado.
+ * Enquanto o Google deixa o pagamento "pendente", o servidor devolve o plano
+ * anterior; nesse caso a compra não é confirmada e a pessoa é avisada.
+ */
+export function isPurchaseActivated(
+  profile: ActivationProfile,
+  productId: AcceptedProductId,
+  now: Date = new Date(),
+): boolean {
+  const purchased = planFromProductId(productId);
+  if (!purchased) return false;
+  if (isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial, now)) {
+    return false;
+  }
+  const active = resolveActivePlan(profile.plan, profile.planExpiresAt, now);
+  if (active === "free") return false;
+  return PLAN_RANK[active] >= PLAN_RANK[purchased];
 }
 
 export type PurchaseResult = "success" | "failure" | "cancel";

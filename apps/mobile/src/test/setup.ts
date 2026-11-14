@@ -15,6 +15,10 @@ vi.mock("react-native", () => ({
     State: { currentlyFocusedInput: vi.fn() },
   }),
   Alert: { alert: vi.fn() },
+  AppState: {
+    currentState: "active",
+    addEventListener: vi.fn().mockReturnValue({ remove: vi.fn() }),
+  },
   View: ({ children }: { children?: React.ReactNode }) => children,
   Text: ({ children }: { children?: React.ReactNode }) => children,
   ScrollView: ({ children }: { children?: React.ReactNode }) => children,

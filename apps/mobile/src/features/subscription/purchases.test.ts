@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ALL_PRODUCT_IDS,
+  isPurchaseActivated,
   isSyncablePaidPurchase,
   productIdFor,
   purchaseErrorResult,
@@ -118,5 +119,65 @@ describe("purchaseErrorResult", () => {
     expect(purchaseErrorResult({ code: "network-error" })).toBe("failure");
     expect(purchaseErrorResult(new Error("x"))).toBe("failure");
     expect(purchaseErrorResult(undefined)).toBe("failure");
+  });
+});
+
+describe("isPurchaseActivated", () => {
+  const now = new Date("2026-11-14T12:00:00.000Z");
+  const nextMonth = "2026-12-14T12:00:00.000Z";
+  const yesterday = "2026-11-13T12:00:00.000Z";
+
+  it("is activated when the profile is on the purchased paid plan", () => {
+    const profile = {
+      plan: "professional",
+      planExpiresAt: nextMonth,
+      planIsTrial: false,
+    };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_professional_monthly", now)).toBe(
+      true,
+    );
+  });
+
+  it("is not activated while the server still returns the free plan (pending payment)", () => {
+    const profile = { plan: "free", planExpiresAt: null, planIsTrial: false };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_professional_monthly", now)).toBe(
+      false,
+    );
+  });
+
+  it("does not count the free Essencial trial as an activated purchase", () => {
+    const profile = { plan: "essential", planExpiresAt: nextMonth, planIsTrial: true };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_essential_monthly", now)).toBe(
+      false,
+    );
+  });
+
+  it("is not activated when a lower tier is still active after buying Profissional", () => {
+    const profile = { plan: "essential", planExpiresAt: nextMonth, planIsTrial: false };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_professional_annual", now)).toBe(
+      false,
+    );
+  });
+
+  it("is not activated when the paid plan already expired", () => {
+    const profile = {
+      plan: "professional",
+      planExpiresAt: yesterday,
+      planIsTrial: false,
+    };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_professional_monthly", now)).toBe(
+      false,
+    );
+  });
+
+  it("accepts the legacy premium product as Profissional", () => {
+    const profile = { plan: "professional", planExpiresAt: null, planIsTrial: false };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_premium_monthly", now)).toBe(true);
   });
 });

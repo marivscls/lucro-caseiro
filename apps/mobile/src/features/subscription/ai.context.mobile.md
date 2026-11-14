@@ -237,3 +237,21 @@ Proposta para LUCAS aprovar no PR: `exportBasic`, `quotesPdf` e `premiumNotifica
 no Gratuito (matriz em `@lucro-caseiro/contracts`) e o catálogo free mostra até 10 produtos.
 `TIER_BENEFITS` não lista mais PDF do mês, orçamentos em PDF nem lembretes como vantagem paga.
 Em Configurações, o selo "Profissional" das notificações só aparece quando o item está travado.
+
+## Compra do Google Play só é confirmada quando libera o plano — 2026-11-14
+
+Incidente: um assinante pagou o Profissional, o Google deixou o pagamento "pendente" por ~2 min,
+o `/sync-plan` devolveu o plano Gratuito sem erro e o app confirmou a compra em silêncio. A
+pessoa pagou e nada mudou.
+
+- `isPurchaseActivated(profile, productId)` (`purchases.ts`): só conta como liberada quando o
+  perfil devolvido está num plano pago, fora do teste grátis, igual ou acima do tier comprado.
+- `verifyPurchase` só chama `finishTransaction` quando a compra foi liberada. Compra não
+  confirmada é devolvida pelo Google em 3 dias, então ninguém paga por plano que não liberou.
+- Compra nova (`activateNewPurchase`): se não liberou na primeira tentativa, mostra
+  `PURCHASE_PENDING_ALERT` ("Pagamento em confirmação") e tenta de novo em segundo plano após
+  5s, 15s, 30s e 60s (`PURCHASE_RETRY_DELAYS_MS`). Liberou → `purchase_result: success` e a
+  comemoração do watcher global de plano.
+- Ao voltar para o app (`AppState` → `active`), as compras disponíveis são sincronizadas de novo.
+- "Restaurar compras" com compra encontrada mas não liberada mostra o mesmo aviso em vez de
+  fechar sem mensagem.
