@@ -13,6 +13,7 @@ import { usePricingSources } from "../use-pricing-sources";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import {
   breakEvenPrice,
+  markupShortcutPrices,
   chosenUnitPrice,
   draftCalculation,
   decimalValue,
@@ -29,8 +30,18 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import { PricingField, PricingPicker, PricingSection } from "./pricing-fields";
-import { PricingFees, PricingLabor, PricingOverhead } from "./pricing-cost-details";
+import {
+  PricingChoice,
+  PricingField,
+  PricingPicker,
+  PricingSection,
+} from "./pricing-fields";
+import {
+  PricingFees,
+  PricingIngredientBatch,
+  PricingLabor,
+  PricingOverhead,
+} from "./pricing-cost-details";
 import { PricingSummary } from "./pricing-summary";
 import { PricingStepLayout } from "./pricing-step-layout";
 import { displayProductName } from "../../products/display";
@@ -330,9 +341,13 @@ export function UnifiedPricingCalculator({
 
   // Conta nova não tem cadastros: listas vazias no primeiro passo só confundem.
   const showProductPicker = !sources.isSuccess || products.length > 0 || !!product;
+  const costsIntro = showProductPicker
+    ? "Escolha um produto ou informe o custo de uma unidade e sua embalagem."
+    : "Informe quanto custa produzir uma unidade e a embalagem.";
   const showPackagingPicker =
     !sources.isSuccess || packaging.length > 0 || draft.packagingIds.length > 0;
   const minimumPrice = breakEvenPrice(draft, packaging);
+  const shortcuts = markupShortcutPrices(draft, packaging);
   const result = calculation.input ? (
     <PricingSummary
       key={draft.productId}
@@ -461,9 +476,7 @@ export function UnifiedPricingCalculator({
                 <Typography variant="desktopSection" accessibilityRole="header">
                   Produto e custos
                 </Typography>
-                <Typography variant="desktopBody">
-                  Escolha um produto ou informe o custo de uma unidade e sua embalagem.
-                </Typography>
+                <Typography variant="desktopBody">{costsIntro}</Typography>
               </View>
               <Image
                 source={pricingIllustration}
@@ -488,7 +501,7 @@ export function UnifiedPricingCalculator({
                 />
               </View>
               <Typography variant="body" color={theme.colors.textSecondary}>
-                Escolha um produto ou informe o custo de uma unidade e sua embalagem.
+                {costsIntro}
               </Typography>
             </View>
           )}
@@ -556,6 +569,11 @@ export function UnifiedPricingCalculator({
                   }
                 />
               </FormGrid>
+              <PricingIngredientBatch
+                onUse={(ingredient) =>
+                  update({ ingredient, source: "manual", recipeId: undefined })
+                }
+              />
               {costChanged && importedCost != null && desktop ? costChangedButton : null}
               {packagingChanged ? (
                 <Button
@@ -702,7 +720,29 @@ export function UnifiedPricingCalculator({
           </View>
           {step === 3 ? notice : null}
           <FormSection collapsible={false} title="Quanto você quer ganhar?">
-            <FormField label="Como informar o ganho">
+            {shortcuts.length ? (
+              <FormField
+                label="Sugestões rápidas"
+                hint="Toque para somar um acréscimo comum ao custo e ver o preço."
+              >
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  {shortcuts.map(({ percent, price }) => (
+                    <PricingChoice
+                      key={percent}
+                      label={`+${percent}% · ${formatCurrency(price)}`}
+                      selected={
+                        draft.profitMode === "markup" &&
+                        decimalValue(draft.profit) === percent
+                      }
+                      onPress={() =>
+                        update({ profitMode: "markup", profit: String(percent) })
+                      }
+                    />
+                  ))}
+                </View>
+              </FormField>
+            ) : null}
+            <FormField label="Ou informe do seu jeito">
               <ChoiceField
                 accessibilityLabel="Como informar o ganho"
                 value={draft.profitMode}

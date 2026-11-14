@@ -11,7 +11,7 @@ import {
   usePricingRevenueHistory,
   useUpdatePricingPreferences,
 } from "../hooks";
-import { laborCostPerUnit } from "../calc";
+import { batchUnitCost, laborCostPerUnit } from "../calc";
 import { currencyInput } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { alertError } from "../../../shared/utils/alerts";
@@ -99,6 +99,60 @@ export function PricingLabor({ draft, update }: Omit<DetailsProps, "professional
           onPress={handleUseLabor}
         />
       </PricingSection>
+    </PricingSection>
+  );
+}
+
+/**
+ * Ajuda para quem pensa no lote ("gastei R$ 40 e rendeu 20"): converte o gasto
+ * do lote em custo de uma unidade e preenche o campo de ingredientes.
+ */
+export function PricingIngredientBatch({
+  onUse,
+}: Readonly<{ onUse: (unitCost: string) => void }>) {
+  const [total, setTotal] = useState("");
+  const [units, setUnits] = useState("");
+  const cost = batchUnitCost(moneyValue(total), decimalValue(units));
+  const formValidation = useFormValidation({
+    total:
+      (!Number.isFinite(moneyValue(total)) || moneyValue(total) <= 0) &&
+      "Informe quanto gastou no lote.",
+    units:
+      (!Number.isFinite(decimalValue(units)) || decimalValue(units) <= 0) &&
+      "Informe quantas unidades o lote rendeu.",
+  });
+
+  function handleUse() {
+    if (!formValidation.validate()) return;
+    onUse(currencyInput(cost));
+  }
+
+  return (
+    <PricingSection
+      title="Calcular ingredientes pelo lote"
+      summary="Não sabe o custo de uma unidade? Use o gasto e o rendimento"
+    >
+      <FormGrid>
+        <PricingField
+          label="Quanto gastou no lote"
+          value={total}
+          onChange={setTotal}
+          hint="Some ingredientes ou materiais usados na receita inteira."
+          validation={formValidation.field("total")}
+        />
+        <PricingField
+          label="Quantas unidades rendeu"
+          money={false}
+          value={units}
+          onChange={setUnits}
+          validation={formValidation.field("units")}
+        />
+      </FormGrid>
+      <Button
+        title={`Usar ${formatCurrency(Number.isFinite(cost) ? cost : 0)} por unidade`}
+        variant="secondary"
+        onPress={handleUse}
+      />
     </PricingSection>
   );
 }

@@ -43,3 +43,13 @@ export function profitMarkupPercent(cost: number, desiredProfit: number): number
   if (cost <= 0 || desiredProfit <= 0) return 0;
   return (desiredProfit / cost) * 100;
 }
+
+/**
+ * Custo de uma unidade a partir do lote: quanto gastou e quantas unidades rendeu.
+ * `NaN` quando o gasto ou o rendimento não é um número positivo.
+ */
+export function batchUnitCost(batchTotal: number, unitsPerBatch: number): number {
+  if (!Number.isFinite(batchTotal) || batchTotal <= 0) return Number.NaN;
+  if (!Number.isFinite(unitsPerBatch) || unitsPerBatch <= 0) return Number.NaN;
+  return batchTotal / unitsPerBatch;
+}

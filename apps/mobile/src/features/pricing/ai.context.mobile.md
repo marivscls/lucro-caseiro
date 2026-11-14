@@ -133,3 +133,19 @@ Só no desktop; o celular continua com `FormStepProgress`, rodapé fixo e cabeç
 ## Rascunho local — 2026-10-01
 
 Custos, ganho e etapa são persistidos localmente em pricing-draft:v1, vinculados à conta e ao contexto inicial. Recarregar restaura o rascunho. Trocar de conta ou sair limpa o rascunho. Dados inválidos são descartados; uma edição durante hidratação prevalece. Não há gravação automática no backend.
+
+## Ajuda no primeiro cálculo — 2026-11-14
+
+Dados de 16/09–14/11: 56 pessoas abriram a precificação e 41 (73%) saíram sem salvar, em mediana
+1,2 min. Uma avaliação de 1 estrela citou a precificação como frustrante.
+
+- Passo 1, "Calcular pelo lote" (`PricingIngredientBatch`, recolhido abaixo de "Ingredientes ou
+  material"): "Quanto gastou no lote" (R$) e "Quantas unidades rendeu". `batchUnitCost(total,
+  unidades)` (`calc.ts`) divide e o botão "Usar R$ X por unidade" preenche o campo como origem
+  manual (mesmo efeito de digitar o valor). Valores inválidos mostram erro e não alteram o campo.
+- Passo 1, texto: sem produtos cadastrados (seletor oculto), a introdução diz "Informe quanto
+  custa produzir uma unidade e a embalagem." em vez de pedir para escolher um produto.
+- Passo 3, atalhos de ganho (`MARKUP_SHORTCUTS` = 50, 100, 150): pílulas "+50%", "+100%",
+  "+150%" com o preço que cada uma dá (`markupShortcutPrices`, mesmas regras de
+  `draftCalculation` e `suggestedUnitPrice`). Tocar troca para "Acréscimo sobre o custo" e
+  preenche o percentual; o campo continua editável. Sem custos válidos, as pílulas não aparecem.

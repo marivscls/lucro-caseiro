@@ -255,6 +255,29 @@ export function breakEvenPrice(
   return calculation.input ? suggestedUnitPrice(calculation.input) : null;
 }
 
+/** Acréscimos sobre o custo oferecidos como atalho no passo do ganho. */
+export const MARKUP_SHORTCUTS = [50, 100, 150] as const;
+
+/**
+ * Preço sugerido para cada atalho de acréscimo, com os custos já informados e
+ * as mesmas regras do cálculo. Vazio enquanto os custos ainda não fecham.
+ */
+export function markupShortcutPrices(
+  draft: PricingDraft,
+  packaging: Packaging[],
+): { percent: number; price: number }[] {
+  const prices: { percent: number; price: number }[] = [];
+  for (const percent of MARKUP_SHORTCUTS) {
+    const calculation = draftCalculation(
+      { ...draft, profitMode: "markup", profit: String(percent) },
+      packaging,
+    );
+    if (!calculation.input) return [];
+    prices.push({ percent, price: suggestedUnitPrice(calculation.input) });
+  }
+  return prices;
+}
+
 export type PricingStep = 1 | 2 | 3;
 
 /** Validate only decisions already presented, using the existing calculation rules. */

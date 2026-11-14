@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  batchUnitCost,
   finalPriceWithFees,
   fixedCostShare,
   laborCost,
@@ -120,5 +121,17 @@ describe("finalPriceWithFees", () => {
   it("nao aplica gross-up para taxa >= 100 (evita divisao por zero/negativo)", () => {
     expect(finalPriceWithFees(100, 100)).toEqual({ finalPrice: 100, feesAmount: 0 });
     expect(finalPriceWithFees(100, 150)).toEqual({ finalPrice: 100, feesAmount: 0 });
+  });
+});
+
+describe("batchUnitCost", () => {
+  it("divides what the batch cost by the units it yielded", () => {
+    expect(batchUnitCost(40, 20)).toBe(2);
+    expect(batchUnitCost(25, 8)).toBeCloseTo(3.125);
+  });
+  it("is not a number when the batch cost or the yield is missing", () => {
+    expect(batchUnitCost(0, 20)).toBeNaN();
+    expect(batchUnitCost(40, 0)).toBeNaN();
+    expect(batchUnitCost(Number.NaN, 10)).toBeNaN();
   });
 });

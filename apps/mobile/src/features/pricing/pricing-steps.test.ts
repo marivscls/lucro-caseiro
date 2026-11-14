@@ -82,3 +82,20 @@ describe("first price shown to new accounts", () => {
     expect(pricing.chosenUnitPrice({ ...filled, alternative: "18,00" }, input!)).toBe(18);
   });
 });
+
+describe("markup shortcuts", () => {
+  it("shows the price each shortcut gives with the informed costs", () => {
+    expect(pricing.markupShortcutPrices(draft({ packaging: "2,00" }), [])).toEqual([
+      { percent: 50, price: 18 },
+      { percent: 100, price: 24 },
+      { percent: 150, price: 30 },
+    ]);
+  });
+  it("includes card fees in the shortcut price", () => {
+    const [half] = pricing.markupShortcutPrices(draft({ fees: "10" }), []);
+    expect(half).toEqual({ percent: 50, price: 16.67 });
+  });
+  it("offers no shortcuts while the unit cost is missing", () => {
+    expect(pricing.markupShortcutPrices(draft({ ingredient: "" }), [])).toEqual([]);
+  });
+});
