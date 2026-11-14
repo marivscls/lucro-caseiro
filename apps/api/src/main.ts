@@ -161,6 +161,7 @@ import { VerticalsUseCases } from "./features/verticals/verticals.usecases";
 import { createResendEmailSender } from "./features/email/resend-email";
 import { buildProfessionalTrialEmail } from "./features/email/professional-trial-email";
 import { createSubscriptionEmailNotifier } from "./features/email/subscription-lifecycle-email";
+import { createTelegramOpsAlert } from "./shared/ops-alert";
 import { WelcomeEmailRepoPg } from "./features/email/welcome-email.repo.pg";
 import { WelcomeEmailUseCases } from "./features/email/welcome-email.usecases";
 import { startWelcomeEmailWorker } from "./features/email/welcome-email.worker";
@@ -283,6 +284,10 @@ const accountUseCases = new AccountUseCases(accountRepo, {
 const analyticsUseCases = new AnalyticsUseCases(
   new AnalyticsRepoPg(db, config.adminUserIds),
 );
+const opsAlert = createTelegramOpsAlert(
+  config.opsAlertTelegram.botToken,
+  config.opsAlertTelegram.chatId,
+);
 const emailSender = config.resendApiKey
   ? createResendEmailSender(config.resendApiKey, config.emailFrom)
   : undefined;
@@ -400,6 +405,7 @@ const subscriptionUseCases = new SubscriptionUseCases(
   (userId, action) => analyticsUseCases.recordUserAction(userId, action),
   subscriptionEmailNotifier,
   professionalTrialCampaignNotifier,
+  opsAlert,
 );
 const goalsUseCases = new GoalsUseCases(
   goalsRepo,

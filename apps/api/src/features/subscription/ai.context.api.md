@@ -250,3 +250,19 @@ Problema: o plano Play so era sincronizado quando o app chamava `POST /sync-plan
 Decisão do dono do produto: toda conta nova ganha 7 dias do Essencial, sem cartão, e volta sozinha para o Gratuito. Migration `20260924100000_essential_trial_signup.sql` (roda no boot, depois da 062): adiciona `users.plan_is_trial boolean NOT NULL DEFAULT false` e redefine `handle_new_user` para inserir `plan = 'essential'`, `plan_expires_at = now() + 7 days`, `plan_is_trial = true` só no INSERT. `newAccountTrialPlan()` (contracts) faz o mesmo no insert do `upsertProfile` e do fallback do `authMiddleware`. Os gates continuam usando `plan` + `planExpiresAt`. Não há evento de analytics `trial_started` (o teste nasce no trigger do banco, sem ponto único na API); dá para medir por `users.plan_is_trial`. Excluir a conta e recriar com o mesmo e-mail gera uma conta nova e, portanto, um novo teste.
 
 - 2026-10-18: **Gratuito ganha recursos de uso diário** (pedido de LUCAS, aguardando aprovação no PR). `FREE_FEATURES` em `plans.ts` = `exportBasic`, `quotesPdf`, `premiumNotifications`; Essencial e Profissional herdam essa lista. `quotesPdf` e `premiumNotifications` deixam de ser exclusivos do Profissional. A vitrine pública do Gratuito passa de 3 para `FREE_CATALOG_MAX_PRODUCTS = 10` produtos (`catalog.usecases.ts`). Os guards (`requireFeature`) continuam no lugar; só a matriz mudou.
+
+## Alertas da equipe (Telegram) — 2026-11-14
+
+Incidente: compra do Play paga e não liberada só foi descoberta por uma avaliação de 1 estrela.
+`SubscriptionUseCases` recebe um 6º argumento opcional `alertOps` (`shared/ops-alert.ts`,
+`createTelegramOpsAlert`). Env vars `OPS_ALERT_TELEGRAM_BOT_TOKEN` e `OPS_ALERT_TELEGRAM_CHAT_ID`;
+vazias = desligado. Falha no Telegram só é logada (`ops_alert_failed`), nunca derruba a rota.
+
+- `syncPlanFromProvider`: Google não confirma a assinatura como ativa e a conta não tem outro
+  plano pago (fora do teste) → alerta "ainda nao liberou" (`sync-inactive:<userId>`); erro ao
+  consultar o Google → alerta + relança (`sync-error:<userId>`); compra de outra conta ou token já
+  vinculado → alerta + 403 (`sync-owner:<userId>` / `sync-claimed:<userId>`).
+- `activatePlan` Free→pago → "Nova assinatura"; `deactivatePlan` pago→Free → "Assinatura encerrada".
+- O mesmo `dedupeKey` sai no máximo 1 vez por hora (memória do processo).
+- Privacidade: a mensagem leva só id da conta, plano, produto e validade. Nunca e-mail, nome ou
+  purchase token.

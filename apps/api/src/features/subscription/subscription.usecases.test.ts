@@ -6,6 +6,7 @@ import type {
 import { describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError, NotFoundError } from "../../shared/errors";
+import type { OpsAlert } from "../../shared/ops-alert";
 import { SubscriptionUseCases } from "./subscription.usecases";
 import type {
   ISubscriptionRepo,
@@ -90,6 +91,7 @@ function makeSut(
   recordLifecycleEvent?: (userId: string, action: AnalyticsActionName) => Promise<void>,
   notifyLifecycle?: SubscriptionLifecycleNotifier,
   notifyProfessionalTrialCampaign?: ProfessionalTrialCampaignNotifier,
+  alertOps?: OpsAlert,
 ) {
   const repo = makeRepo(repoOverrides);
   return {
@@ -99,6 +101,7 @@ function makeSut(
       recordLifecycleEvent,
       notifyLifecycle,
       notifyProfessionalTrialCampaign,
+      alertOps,
     ),
     repo,
   };
@@ -634,6 +637,121 @@ describe("SubscriptionUseCases", () => {
       await expect(sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE)).rejects.toThrow(
         "Verificacao de assinatura Android não configurada",
       );
+    });
+  });
+
+  describe("ops alerts", () => {
+    const freeState = () =>
+      makeStatusProvider({
+        getPlanState: () =>
+          Promise.resolve({ plan: "free", expiresAt: null, purchaseOwnerId: null }),
+      });
+
+    it("alerts the team when a paid Play purchase is not active yet for a Free account", async () => {
+      const alertOps = vi.fn<OpsAlert>(() => Promise.resolve());
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(makeProfile({ plan: "free" })) },
+        freeState(),
+        undefined,
+        undefined,
+        undefined,
+        alertOps,
+      );
+
+      const result = await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
+
+      expect(result.plan).toBe("free");
+      expect(alertOps).toHaveBeenCalledWith(
+        expect.stringContaining("ainda nao liberou"),
+        { dedupeKey: `sync-inactive:${USER_ID}` },
+      );
+      expect(alertOps.mock.calls[0]![0]).toContain(USER_ID);
+    });
+
+    it("does not alert when the account already has a paid plan from another channel", async () => {
+      const alertOps = vi.fn<OpsAlert>(() => Promise.resolve());
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(makeProfile({ plan: "professional" })) },
+        freeState(),
+        undefined,
+        undefined,
+        undefined,
+        alertOps,
+      );
+
+      await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
+
+      expect(alertOps).not.toHaveBeenCalled();
+    });
+
+    it("alerts and rethrows when Google Play cannot be reached", async () => {
+      const alertOps = vi.fn<OpsAlert>(() => Promise.resolve());
+      const { sut } = makeSut(
+        {},
+        makeStatusProvider({
+          getPlanState: () => Promise.reject(new Error("Google fora do ar")),
+        }),
+        undefined,
+        undefined,
+        undefined,
+        alertOps,
+      );
+
+      await expect(sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE)).rejects.toThrow(
+        "Google fora do ar",
+      );
+      expect(alertOps).toHaveBeenCalledWith(
+        expect.stringContaining("Google fora do ar"),
+        {
+          dedupeKey: `sync-error:${USER_ID}`,
+        },
+      );
+    });
+
+    it("alerts on a purchase that belongs to another account", async () => {
+      const alertOps = vi.fn<OpsAlert>(() => Promise.resolve());
+      const { sut } = makeSut(
+        {},
+        makeStatusProvider({
+          getPlanState: () =>
+            Promise.resolve({
+              plan: "professional",
+              expiresAt: null,
+              purchaseOwnerId: "other-user",
+            }),
+        }),
+        undefined,
+        undefined,
+        undefined,
+        alertOps,
+      );
+
+      await expect(sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE)).rejects.toThrow(
+        ForbiddenError,
+      );
+      expect(alertOps).toHaveBeenCalledWith(expect.stringContaining("outra conta"), {
+        dedupeKey: `sync-owner:${USER_ID}`,
+      });
+    });
+
+    it("announces a new subscription without the customer email", async () => {
+      const alertOps = vi.fn<OpsAlert>(() => Promise.resolve());
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(makeProfile({ plan: "free" })) },
+        makeStatusProvider(),
+        undefined,
+        undefined,
+        undefined,
+        alertOps,
+      );
+
+      await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
+
+      const messages = alertOps.mock.calls.map(([message]) => message);
+      expect(messages).toEqual([
+        expect.stringContaining("Nova assinatura: Profissional"),
+      ]);
+      expect(messages.join(" ")).not.toContain("@");
     });
   });
 });

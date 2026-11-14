@@ -13,6 +13,7 @@ import {
   NotFoundError,
   ServiceUnavailableError,
 } from "../../shared/errors";
+import type { OpsAlert } from "../../shared/ops-alert";
 import {
   buildFreemiumLimits,
   hashPurchaseToken,
@@ -32,6 +33,16 @@ function isPaidPlan(plan: PlanType): plan is PaidPlan {
   return plan === "essential" || plan === "professional";
 }
 
+function planLabel(plan: PlanType): string {
+  if (plan === "essential") return "Essencial";
+  if (plan === "professional") return "Profissional";
+  return plan;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function isLaterExpiration(previous: string | null, updated: string | null): boolean {
   if (!updated) return false;
   if (!previous) return true;
@@ -48,6 +59,7 @@ export class SubscriptionUseCases {
     ) => Promise<void>,
     private notifyLifecycle?: SubscriptionLifecycleNotifier,
     private notifyProfessionalTrialCampaign?: ProfessionalTrialCampaignNotifier,
+    private alertOps?: OpsAlert,
   ) {}
 
   async getProfile(userId: string): Promise<UserProfile> {
@@ -126,6 +138,9 @@ export class SubscriptionUseCases {
 
     if (previous && previousPlan === "free" && isPaidPlan(activePlan)) {
       await this.recordLifecycleEvent?.(userId, "subscription_completed");
+      await this.sendOpsAlert(
+        `Nova assinatura: ${planLabel(activePlan)}. Conta ${userId}. Vale ate ${updated.planExpiresAt ?? "sem data"}.`,
+      );
       await this.sendLifecycleNotification({
         kind: "activated",
         userId,
@@ -170,6 +185,9 @@ export class SubscriptionUseCases {
     if (previous && resolvePlan(previous.plan, previous.planExpiresAt) !== "free") {
       await this.recordLifecycleEvent?.(userId, "subscription_cancelled");
       const previousPlan = resolvePlan(previous.plan, previous.planExpiresAt);
+      await this.sendOpsAlert(
+        `Assinatura encerrada: ${planLabel(previousPlan)}. Conta ${userId}.`,
+      );
       if (isPaidPlan(previousPlan)) {
         await this.sendLifecycleNotification({
           kind: "cancelled",
@@ -210,10 +228,36 @@ export class SubscriptionUseCases {
       );
     }
 
-    const state = await this.statusProvider.getPlanState(userId, purchase);
+    let state: Awaited<ReturnType<ISubscriptionStatusProvider["getPlanState"]>>;
+    try {
+      state = await this.statusProvider.getPlanState(userId, purchase);
+    } catch (error) {
+      await this.sendOpsAlert(
+        `Compra Google Play nao liberou: erro ao consultar o Google (${errorMessage(error)}). Conta ${userId}, produto ${purchase.productId}. O app tenta de novo; se repetir, conferir credencial do Play.`,
+        `sync-error:${userId}`,
+      );
+      throw error;
+    }
+
+    if (state.plan === "free") {
+      const current = await this.getProfile(userId);
+      const alreadyPaid =
+        !this.isTrial(current) &&
+        isPaidPlan(resolvePlan(current.plan, current.planExpiresAt));
+      // Quem já tem plano pago (ex.: Stripe) não perdeu nada: sem alerta.
+      if (alreadyPaid) return current;
+      await this.sendOpsAlert(
+        `Compra Google Play ainda nao liberou: o Google nao confirma a assinatura como ativa (pagamento pendente ou cancelado). Conta ${userId}, produto ${purchase.productId}. O app tenta de novo sozinho; se em 10 min nao virar "Nova assinatura", conferir no Play Console > Gestao de pedidos.`,
+        `sync-inactive:${userId}`,
+      );
+    }
 
     if (state.plan !== "free") {
       if (state.purchaseOwnerId !== userId) {
+        await this.sendOpsAlert(
+          `Compra Google Play bloqueada: a compra pertence a outra conta. Conta ${userId}, produto ${purchase.productId}.`,
+          `sync-owner:${userId}`,
+        );
         throw new ForbiddenError("Esta compra do Google Play nao pertence a esta conta.");
       }
 
@@ -224,6 +268,10 @@ export class SubscriptionUseCases {
         tokenHash,
       );
       if (!claimed) {
+        await this.sendOpsAlert(
+          `Compra Google Play bloqueada: o token ja esta ligado a outra conta. Conta ${userId}, produto ${purchase.productId}.`,
+          `sync-claimed:${userId}`,
+        );
         throw new ForbiddenError(
           "Esta compra do Google Play ja esta vinculada a outra conta.",
         );
@@ -233,6 +281,11 @@ export class SubscriptionUseCases {
     }
 
     return this.getProfile(userId);
+  }
+
+  private async sendOpsAlert(message: string, dedupeKey?: string): Promise<void> {
+    if (!this.alertOps) return;
+    await this.alertOps(message, dedupeKey ? { dedupeKey } : undefined);
   }
 
   private isTrial(profile: UserProfile): boolean {
