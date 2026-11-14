@@ -1,6 +1,6 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { ChevronDown, Play } from "lucide-react";
 import { useRef, useState } from "react";
 
 import styles from "./app-demo.module.css";
@@ -58,11 +58,17 @@ export function AppDemo() {
     if (!element) return;
     element.currentTime = start + 0.05;
     setTime(start + 0.05);
+    // Libera os controles nativos mesmo se o navegador recusar o play.
+    setStarted(true);
     void element.play().catch(() => undefined);
   }
 
   return (
-    <section className={styles.section} aria-labelledby="app-demo-title" id="demonstracao">
+    <section
+      className={styles.section}
+      aria-labelledby="app-demo-title"
+      id="demonstracao"
+    >
       <div className={styles.copy}>
         <h2 id="app-demo-title">Veja o app funcionando em um minuto.</h2>
         <p className={styles.lede}>
@@ -73,7 +79,10 @@ export function AppDemo() {
           {chapters.map((chapter, index) => {
             const isCurrent = started && index === current;
             const progress = isCurrent
-              ? Math.min(1, Math.max(0, (time - chapter.start) / (chapter.end - chapter.start)))
+              ? Math.min(
+                  1,
+                  Math.max(0, (time - chapter.start) / (chapter.end - chapter.start)),
+                )
               : 0;
             return (
               <li key={chapter.title}>
@@ -107,7 +116,8 @@ export function AppDemo() {
             id="app-demo-video"
             ref={video}
             className={styles.video}
-            controls
+            // Controles nativos só depois do primeiro play: antes, o botão Assistir é o único.
+            controls={started}
             playsInline
             muted
             preload="none"
@@ -149,14 +159,17 @@ export function AppDemo() {
           <div className={styles.captionLinks}>
             <a href="/landing/demo/app-demo.mp4">Baixar o vídeo (2,6 MB)</a>
             <details>
-              <summary>Ler a demonstração</summary>
+              <summary>
+                Ler a demonstração
+                <ChevronDown aria-hidden="true" size={20} strokeWidth={2} />
+              </summary>
               <p>
                 O exemplo cadastra Brigadeiro DEMO com 24 unidades. Com material,
                 embalagem, trabalho, despesas e taxa de venda informados, o app sugere R$
-                7,90. Esse preço é aplicado ao produto. Uma unidade é registrada como venda
-                paga, com Pix como forma de pagamento; não há cobrança ou transferência
-                real. A lista mostra uma venda de R$ 7,90. O catálogo exibe o produto com o
-                link público desativado.
+                7,90. Esse preço é aplicado ao produto. Uma unidade é registrada como
+                venda paga, com Pix como forma de pagamento; não há cobrança ou
+                transferência real. A lista mostra uma venda de R$ 7,90. O catálogo exibe
+                o produto com o link público desativado.
               </p>
             </details>
           </div>

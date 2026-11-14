@@ -149,7 +149,6 @@
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: 0 10px 30px rgb(74 35 50 / 0.28);
   transform: translate(-50%, -50%);
   transition: transform 240ms var(--ease-out);
 }
@@ -188,12 +187,26 @@
   flex-basis: 100%;
 }
 .captionLinks summary {
-  display: list-item;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-height: 48px;
   padding: 12px 0;
   color: var(--wine);
   font-weight: 600;
   cursor: pointer;
+  list-style: none;
+}
+.captionLinks summary::-webkit-details-marker {
+  display: none;
+}
+.captionLinks summary svg {
+  flex: none;
+  color: var(--rose-fill);
+  transition: transform 180ms var(--ease-out);
+}
+.captionLinks details[open] summary svg {
+  transform: rotate(180deg);
 }
 .captionLinks details p {
   margin: 0;
@@ -206,7 +219,7 @@
 }
 @media (max-width: 899px) {
   .section {
-    width: min(100% - 32px, 640px);
+    width: var(--gutter);
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
     padding: 28px 20px;
