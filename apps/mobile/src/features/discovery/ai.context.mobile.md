@@ -13,7 +13,7 @@ Motivo (2026-11-14): em 60 dias, 50 pessoas abriram Vendas e 56 a Precificação
 ## Non-goals
 
 - Não decide acesso: os bloqueios continuam pelo plano devolvido pela API (`hasActiveFeature`) e pelos guards do backend. A prévia é ilustrativa e não chama endpoints pagos.
-- Não mostra dados reais da pessoa na prévia nem números inventados como se fossem dela: todo exemplo é rotulado como exemplo.
+- Não mostra dados reais da pessoa na prévia nem números inventados como se fossem dela: cada exemplo aparece com o selo "Exemplo".
 - Não interrompe fluxos: o próximo passo não é modal e some sozinho.
 - Não substitui o cartão de orientação de cada tela (`shared/guidance`).
 
