@@ -1,15 +1,11 @@
 import {
   ArrowRight,
-  ArrowDown,
   Calculator,
-  CalendarDays,
   Check,
   ChevronDown,
   ReceiptText,
   Store,
-  Users,
   Wallet,
-  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -50,32 +46,51 @@ const problems = [
   },
 ] as const;
 
-const features: readonly {
-  readonly title: string;
-  readonly text: string;
-  readonly icon: LucideIcon;
-}[] = [
+const features = [
   {
     title: "Vendas organizadas",
-    icon: ReceiptText,
     text: "Registre pedidos e pagamentos e veja o que entrou sem depender do caderno.",
   },
   {
     title: "Agenda de encomendas",
-    icon: CalendarDays,
     text: "Prazos e entregas em um só lugar para não perder nenhum pedido.",
   },
   {
     title: "Clientes e fiado",
-    icon: Users,
     text: "Contatos, valores pendentes e quem ainda precisa pagar, sem anotação solta.",
   },
   {
     title: "Dinheiro mais claro",
-    icon: Wallet,
     text: "Quanto entrou, quanto saiu e quanto realmente sobrou no mês.",
   },
-];
+] as const;
+
+const steps = [
+  {
+    label: "Calcular",
+    title: "Comece pelo que sobra.",
+    text: "Inclua os materiais, seu tempo e os gastos do negócio. Veja o preço sugerido e o lucro por unidade.",
+    src: "/landing/current-pricing.png",
+    alt: "Precificação atual do app com preço e lucro",
+    caption: "Preço definido",
+  },
+  {
+    label: "Cadastrar",
+    title: "Transforme a conta em produto.",
+    text: "Aproveite a precificação para cadastrar o produto com preço, custo e estoque. Sem digitar tudo de novo.",
+    src: "/landing/current-products.png",
+    alt: "Lista de produtos da conta de testes, com preço e estoque",
+    caption: "Produto organizado",
+  },
+  {
+    label: "Compartilhar",
+    title: "Mostre. Compartilhe. Venda.",
+    text: "Leve seus produtos para o catálogo e compartilhe o link. O cliente escolhe e inicia o pedido pelo WhatsApp.",
+    src: "/landing/current-catalog.png",
+    alt: "Tela de catálogo da conta de testes, com link e botão para compartilhar",
+    caption: "Vitrine pronta",
+  },
+] as const;
 
 const audiences: readonly {
   readonly id?: string;
@@ -276,20 +291,25 @@ export function LandingPage() {
                 ou registrando uma venda. Organize produtos, clientes e recebimentos
                 conforme precisar.
               </p>
-              <HeroActions />
-              <p className={styles.heroNote}>
-                <Check aria-hidden="true" size={18} />
-                Grátis para sempre, e {trialDays} dias do Essencial para testar, sem
-                cartão
-              </p>
-              <a
-                className={styles.heroCalculatorLink}
-                href="/landing/calculadora"
-                data-analytics="calculator_from_hero"
-              >
-                Testar a calculadora sem criar conta
-                <ArrowRight aria-hidden="true" size={18} />
-              </a>
+              <HeroActions
+                beside={
+                  <p className={styles.heroNote}>
+                    <Check aria-hidden="true" size={18} />
+                    Grátis para sempre, e {trialDays} dias do Essencial para testar, sem
+                    cartão
+                  </p>
+                }
+                trailing={
+                  <a
+                    className={styles.heroCalculatorLink}
+                    href="/landing/calculadora"
+                    data-analytics="calculator_from_hero"
+                  >
+                    Testar a calculadora sem criar conta
+                    <ArrowRight aria-hidden="true" size={18} />
+                  </a>
+                }
+              />
             </div>
 
             <aside className={styles.card} aria-label="Exemplo de conta de um produto">
@@ -329,19 +349,18 @@ export function LandingPage() {
               </p>
             </aside>
           </div>
+          <ul className={styles.benefitStrip} aria-label="O que você pode fazer no app">
+            <li>
+              <Calculator aria-hidden="true" size={22} /> Calcular seu preço
+            </li>
+            <li>
+              <Store aria-hidden="true" size={22} /> Compartilhar seu catálogo
+            </li>
+            <li>
+              <Wallet aria-hidden="true" size={22} /> Acompanhar o que sobra
+            </li>
+          </ul>
         </section>
-
-        <div className={styles.benefitStrip} aria-label="O que você pode fazer no app">
-          <span>
-            <Calculator aria-hidden="true" size={22} /> Calcular seu preço
-          </span>
-          <span>
-            <Store aria-hidden="true" size={22} /> Compartilhar seu catálogo
-          </span>
-          <span>
-            <Wallet aria-hidden="true" size={22} /> Acompanhar o que sobra
-          </span>
-        </div>
 
         <section className={styles.problemSection}>
           <div>
@@ -372,157 +391,47 @@ export function LandingPage() {
           data-product-journey
           aria-labelledby="journey-title"
         >
-          <div className={styles.journeyStage}>
-            <div className={styles.journeyCopy}>
-              <h2 id="journey-title">
-                Do custo ao pedido.
-                <br />
-                No mesmo aplicativo.
-              </h2>
-              <div className={styles.journeyChapters}>
-                {[
-                  {
-                    title: "Comece pelo que sobra.",
-                    text: "Inclua os materiais, seu tempo e os gastos do negócio. Veja o preço sugerido e o lucro por unidade.",
-                    label: "Calcular",
-                  },
-                  {
-                    title: "Transforme a conta em produto.",
-                    text: "Aproveite a precificação para cadastrar o produto com preço, custo e estoque. Sem digitar tudo de novo.",
-                    label: "Cadastrar",
-                  },
-                  {
-                    title: "Mostre. Compartilhe. Venda.",
-                    text: "Leve seus produtos para o catálogo e compartilhe o link. O cliente escolhe e inicia o pedido pelo WhatsApp.",
-                    label: "Compartilhar",
-                  },
-                ].map((chapter, index) => (
-                  <article
-                    className={styles.journeyChapter}
-                    data-journey-chapter
-                    key={chapter.label}
-                  >
-                    <p className={styles.journeyIndex}>
-                      0{index + 1} / {chapter.label}
-                    </p>
-                    <h3>{chapter.title}</h3>
-                    <p>{chapter.text}</p>
-                  </article>
-                ))}
-              </div>
-              <div className={styles.journeyProgress} aria-hidden="true">
-                <span data-journey-progress />
-              </div>
-              <p className={styles.journeyHint}>
-                <span>Role para acompanhar</span>
-                <ArrowDown aria-hidden="true" size={18} />
-              </p>
-              <p className={styles.journeyNote}>
-                Telas reais do aplicativo, capturadas em 04/09/2026 numa conta de testes.
-              </p>
+          <div className={styles.journeyHead}>
+            <h2 id="journey-title">
+              Do custo ao pedido.
+              <br />
+              No mesmo aplicativo.
+            </h2>
+            <p className={styles.journeyNote}>
+              Telas reais do aplicativo, capturadas em 04/09/2026 numa conta de testes.
+            </p>
+          </div>
+          <div className={styles.journeyTrack}>
+            <div className={styles.journeyLine} aria-hidden="true">
+              <span data-journey-progress />
             </div>
-            <div className={styles.journeyDeck}>
-              {[
-                {
-                  src: "/landing/current-pricing.png",
-                  alt: "Precificação atual do app com preço e lucro",
-                  label: "Preço definido",
-                },
-                {
-                  src: "/landing/current-products.png",
-                  alt: "Lista de produtos da conta de testes, com preço e estoque",
-                  label: "Produto organizado",
-                },
-                {
-                  src: "/landing/current-catalog.png",
-                  alt: "Tela de catálogo da conta de testes, com link e botão para compartilhar",
-                  label: "Vitrine pronta",
-                },
-              ].map((screen, index) => (
-                <figure
-                  className={styles.journeyScreen}
-                  data-journey-screen
-                  key={screen.src}
-                >
-                  <figcaption>
-                    <span>0{index + 1}</span>
-                    {screen.label}
-                  </figcaption>
-                  <Image
-                    src={screen.src}
-                    alt={screen.alt}
-                    width={1080}
-                    height={2400}
-                    sizes="(max-width: 900px) 230px, 300px"
-                  />
-                </figure>
+            <ol className={styles.journeySteps}>
+              {steps.map((step, index) => (
+                <li className={styles.journeyStep} key={step.label}>
+                  <p className={styles.journeyIndex}>
+                    <span data-journey-mark>{index + 1}</span>
+                    {step.label}
+                  </p>
+                  <h3>{step.title}</h3>
+                  <p className={styles.journeyText}>{step.text}</p>
+                  <figure className={styles.journeyScreen}>
+                    <Image
+                      data-journey-screen
+                      src={step.src}
+                      alt={step.alt}
+                      width={1080}
+                      height={2400}
+                      sizes="(max-width: 899px) 200px, 260px"
+                    />
+                    <figcaption>{step.caption}</figcaption>
+                  </figure>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
 
         <AppDemo />
-
-        <section className={styles.featuresSection} id="recursos">
-          <div className={styles.featuresCopy}>
-            <h2>Depois da venda, mantenha tudo em ordem.</h2>
-            <p className={styles.lede}>
-              Ferramentas práticas para organizar sem transformar seu dia em trabalho de
-              escritório.
-            </p>
-            <ul className={styles.featureList}>
-              {features.map((feature, index) => (
-                <li key={feature.title} data-landing-reveal={index * 60}>
-                  <span className={styles.featureIcon}>
-                    <feature.icon aria-hidden="true" size={22} strokeWidth={1.8} />
-                  </span>
-                  <div>
-                    <h3>{feature.title}</h3>
-                    <p>{feature.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <figure className={styles.featuresShot}>
-            <Image
-              src="/landing/current-finance.png"
-              width={1080}
-              height={2400}
-              sizes="(max-width: 899px) 260px, 300px"
-              alt="Tela financeira do Lucro Caseiro com lucro, entradas e saídas do mês"
-            />
-            <figcaption>
-              Tela atual do app no Android, com dados de uma conta de testes.
-            </figcaption>
-          </figure>
-        </section>
-
-        <section className={styles.audienceSection}>
-          <h2>
-            Seu talento é produzir, vender ou cuidar. A organização fica mais fácil.
-          </h2>
-          <ul className={styles.audienceList}>
-            {audiences.map((item) => (
-              <li key={item.name} id={item.id}>
-                {item.href ? (
-                  <a href={item.href}>
-                    <strong>
-                      {item.name}
-                      <ArrowRight aria-hidden="true" size={18} />
-                    </strong>
-                    <span>{item.text}</span>
-                  </a>
-                ) : (
-                  <>
-                    <strong>{item.name}</strong>
-                    <span>{item.text}</span>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
 
         {TESTIMONIALS.length > 0 ? (
           <section className={styles.testimonialSection} aria-labelledby="depoimentos">
@@ -565,22 +474,65 @@ export function LandingPage() {
           </p>
         </section>
 
-        <section className={styles.learningSection}>
-          <h2>Uma ajuda para a sua próxima conta.</h2>
-          <p className={styles.lede}>
-            Guias curtos para consultar quando surgir uma dúvida no seu negócio.
-          </p>
-          <div className={styles.guidesList}>
-            {guides.map((guide, index) => (
-              <a href={guide.href} key={guide.href} data-landing-reveal={index * 60}>
-                <h3>{guide.title}</h3>
-                <p>{guide.text}</p>
-                <strong>
-                  Continuar lendo
-                  <ArrowRight aria-hidden="true" size={17} strokeWidth={2} />
-                </strong>
-              </a>
-            ))}
+        <section className={styles.indexSection} id="recursos">
+          <div className={styles.indexHead}>
+            <h2>Depois da venda, mantenha tudo em ordem.</h2>
+            <p className={styles.lede}>
+              Ferramentas práticas para organizar sem transformar seu dia em trabalho de
+              escritório.
+            </p>
+          </div>
+          <div className={styles.indexColumns}>
+            <div>
+              <h3>No app</h3>
+              <ul>
+                {features.map((feature) => (
+                  <li key={feature.title}>
+                    <strong>{feature.title}</strong>
+                    <span>{feature.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3>Para quem</h3>
+              <ul>
+                {audiences.map((item) => (
+                  <li key={item.name} id={item.id}>
+                    {item.href ? (
+                      <a href={item.href}>
+                        <strong>
+                          {item.name}
+                          <ArrowRight aria-hidden="true" size={18} />
+                        </strong>
+                        <span>{item.text}</span>
+                      </a>
+                    ) : (
+                      <>
+                        <strong>{item.name}</strong>
+                        <span>{item.text}</span>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3>Guias</h3>
+              <ul>
+                {guides.map((guide) => (
+                  <li key={guide.href}>
+                    <a href={guide.href}>
+                      <strong>
+                        {guide.title}
+                        <ArrowRight aria-hidden="true" size={18} />
+                      </strong>
+                      <span>{guide.text}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
 

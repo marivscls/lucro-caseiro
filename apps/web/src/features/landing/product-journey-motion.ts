@@ -1,7 +1,11 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-/** A native sticky scene; ScrollTrigger scrubs the story without capturing scroll. */
+/**
+ * A linha que liga os três passos se desenha com a rolagem e cada captura sobe
+ * dentro do seu painel. Rolagem nativa, sem palco fixo; sem JavaScript ou com
+ * movimento reduzido, tudo já aparece no estado final.
+ */
 export function createProductJourney(root: HTMLElement) {
   gsap.registerPlugin(ScrollTrigger);
   const media = gsap.matchMedia();
@@ -9,94 +13,70 @@ export function createProductJourney(root: HTMLElement) {
   if (!journey) return () => media.revert();
 
   media.add(
-    "(min-width: 900px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)",
-    () => {
+    {
+      motion: "(prefers-reduced-motion: no-preference)",
+      // Lado a lado a linha é horizontal; empilhados, vira um trilho vertical.
+      wide: "(min-width: 900px)",
+    },
+    (context) => {
+      if (!context.conditions?.motion) return;
+      const wide = Boolean(context.conditions.wide);
       const screens = Array.from(
         journey.querySelectorAll<HTMLElement>("[data-journey-screen]"),
       );
-      const chapters = Array.from(
-        journey.querySelectorAll<HTMLElement>("[data-journey-chapter]"),
+      const marks = Array.from(
+        journey.querySelectorAll<HTMLElement>("[data-journey-mark]"),
       );
-      if (screens.length !== 3 || chapters.length !== 3) return;
-      journey.dataset.journeyReady = "true";
-      const progress = journey.querySelector("[data-journey-progress]");
-      const captions = screens.map((screen) => screen.querySelector("figcaption"));
-      gsap.set(captions.slice(1), { opacity: 0 });
-      gsap.set(screens[0]!, { transform: "translate3d(0, 0, 0) rotate(-6deg)" });
-      gsap.set(screens[1]!, {
-        transform: "translate3d(18%, 8%, 0) rotate(8deg) scale(0.95)",
+      if (screens.length !== 3 || marks.length !== 3) return;
+
+      const styles = getComputedStyle(journey);
+      const lit = {
+        backgroundColor: styles.getPropertyValue("--wine").trim(),
+        color: styles.getPropertyValue("--on-wine").trim(),
+      };
+      const dim = {
+        backgroundColor: styles.getPropertyValue("--line").trim(),
+        color: styles.getPropertyValue("--wine").trim(),
+      };
+
+      // Posição (0 a 2) em que a linha alcança cada passo.
+      const line = journey.querySelector<HTMLElement>(
+        "[data-journey-progress]",
+      )?.parentElement;
+      const reach = (target: HTMLElement) => {
+        if (wide || !line) return null;
+        const rail = line.getBoundingClientRect();
+        if (rail.height === 0) return null;
+        const offset = target.getBoundingClientRect().top - rail.top;
+        return Math.min(2, Math.max(0, (2 * offset) / rail.height));
+      };
+      const markAt = [0, reach(marks[1]!) ?? 0.95, reach(marks[2]!) ?? 1.9];
+      const screenAt = screens.map((screen, index) => {
+        const stacked = reach(screen);
+        return stacked === null ? 0.5 + index * 0.3 : Math.max(0, stacked - 0.45);
       });
-      gsap.set(screens[2]!, {
-        transform: "translate3d(35%, 15%, 0) rotate(15deg) scale(0.9)",
-      });
-      gsap.set(chapters.slice(1), { opacity: 0, transform: "translateY(32px)" });
-      gsap.set(progress, { scaleX: 0.04, transformOrigin: "left center" });
+
+      gsap.set(journey, { "--journey-progress": 0 });
+      gsap.set(marks.slice(1), dim);
+      gsap.set(screens, { y: 40 });
 
       const story = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: journey,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 1.6,
+          start: wide ? "top 70%" : "top 55%",
+          end: wide ? "bottom 85%" : "bottom 70%",
+          scrub: 0.8,
           invalidateOnRefresh: true,
         },
       });
+      story.to(journey, { "--journey-progress": 1, duration: 2 }, 0);
+      screens.forEach((screen, index) => {
+        story.to(screen, { y: 0, duration: 0.6, ease: "power2.out" }, screenAt[index]);
+      });
       story
-        .to(progress, { scaleX: 1, duration: 5 }, 0)
-        .to(captions[0]!, { opacity: 0, duration: 0.35 }, 1)
-        .to(captions[1]!, { opacity: 1, duration: 0.6 }, 1.35)
-        .to(captions[1]!, { opacity: 0, duration: 0.35 }, 3)
-        .to(captions[2]!, { opacity: 1, duration: 0.6 }, 3.35)
-        .to(
-          screens[0]!,
-          {
-            transform: "translate3d(-65%, -12%, 0) rotate(-18deg) scale(0.88)",
-            opacity: 0,
-            duration: 1,
-          },
-          1,
-        )
-        .to(
-          screens[1]!,
-          { transform: "translate3d(0, 0, 0) rotate(0deg) scale(1)", duration: 1 },
-          1,
-        )
-        .to(
-          chapters[0]!,
-          { opacity: 0, transform: "translateY(-32px)", duration: 0.35 },
-          1,
-        )
-        .to(chapters[1]!, { opacity: 1, transform: "translateY(0)", duration: 0.6 }, 1.35)
-        .to(screens[0]!, { opacity: 0, duration: 0.5 }, 3)
-        .to(
-          screens[1]!,
-          {
-            transform: "translate3d(-65%, -12%, 0) rotate(-18deg) scale(0.88)",
-            opacity: 0,
-            duration: 1,
-          },
-          3,
-        )
-        .to(
-          screens[2]!,
-          { transform: "translate3d(0, 0, 0) rotate(0deg) scale(1)", duration: 1 },
-          3,
-        )
-        .to(
-          chapters[1]!,
-          { opacity: 0, transform: "translateY(-32px)", duration: 0.35 },
-          3,
-        )
-        .to(
-          chapters[2]!,
-          { opacity: 1, transform: "translateY(0)", duration: 0.6 },
-          3.35,
-        );
-
-      return () => {
-        delete journey.dataset.journeyReady;
-      };
+        .to(marks[1]!, { ...lit, duration: 0.12 }, markAt[1])
+        .to(marks[2]!, { ...lit, duration: 0.12 }, markAt[2]);
     },
     root,
   );

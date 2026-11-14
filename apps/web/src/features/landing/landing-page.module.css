@@ -15,7 +15,7 @@
   --rose-soft: #f5e5e8;
   --lime: #dce86a;
   --mint-bg: #e3f2ea;
-  --mint-text: #2f7a56;
+  --mint-text: #2a7050;
   --gold: #d4a054;
   --line: #e9e5e2;
   --on-wine: #faf8f6;
@@ -243,8 +243,7 @@
   }
   .header .nav a:hover,
   .footerLinks a:hover,
-  .textLink:hover,
-  .guidesList > a:hover h3 {
+  .textLink:hover {
     color: var(--rose-fill);
   }
   .planCard:not(.planFeatured) > a:hover {
@@ -264,7 +263,7 @@
   gap: 64px;
   width: var(--gutter);
   margin: 0 auto;
-  padding: 48px 0 80px;
+  padding: 40px 0 56px;
 }
 .eyebrow,
 .eyebrowWine {
@@ -289,7 +288,7 @@
   margin: 24px 0 0;
   font-size: clamp(40px, 4.6vw, 68px);
   line-height: 1.09;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
 }
 .hero h1 em {
   color: var(--lime);
@@ -407,7 +406,7 @@
   font-size: clamp(32px, 3vw, 44px);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -433,36 +432,13 @@
   font-size: 16px;
   line-height: 1.5;
 }
-.benefitStrip {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  width: var(--gutter);
-  margin: 0 auto;
-  padding: 30px 0;
-  border-bottom: 1px solid var(--line);
-  color: var(--wine);
-  font-weight: 600;
-}
-.benefitStrip span {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.benefitStrip svg {
-  flex: none;
-  color: var(--rose-fill);
-}
 
 /* Narrative rhythm: quieter explanations around the product screens. */
 .problemSection,
 .flowSection,
-.featuresSection,
 .pricingSection,
-.learningSection,
 .faqSection,
 .productStory,
-.audienceSection,
 .testimonialSection,
 .finalCta,
 .footer {
@@ -471,11 +447,8 @@
 }
 .problemSection h2,
 .flowSection h2,
-.featuresSection h2,
 .pricingSection h2,
-.learningSection h2,
 .storyCopy h2,
-.audienceSection h2,
 .faqIntro h2,
 .finalCta h2 {
   max-width: 23ch;
@@ -637,137 +610,8 @@
 .deviceFront {
   flex: 1.15;
 }
-.featuresSection,
 .pricingSection {
   padding: 48px 0 80px;
-}
-.featuresSection {
-  padding-top: 104px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-  align-items: center;
-  gap: 80px;
-}
-.featuresCopy .lede {
-  margin-bottom: 0;
-}
-.featureList {
-  display: grid;
-  margin: 36px 0 0;
-  padding: 0;
-  list-style: none;
-}
-.featureList li {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 18px;
-  padding: 22px 0;
-  border-top: 1px solid var(--line);
-}
-.featureList li:last-child {
-  border-bottom: 1px solid var(--line);
-}
-.featureIcon {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: var(--rose-soft);
-  color: var(--rose-fill);
-}
-.featureList h3 {
-  margin: 0;
-  color: var(--wine);
-  font-size: 20px;
-  line-height: 1.3;
-}
-.featureList p {
-  max-width: 48ch;
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 17px;
-  line-height: 1.6;
-}
-.featuresShot {
-  margin: 0;
-  padding: 40px 40px 0;
-  overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--rose-soft);
-}
-.featuresShot img {
-  display: block;
-  width: min(100%, 300px);
-  height: auto;
-  margin-inline: auto;
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 24px 24px 0 0;
-  background: var(--sheet);
-  aspect-ratio: 300 / 560;
-  object-fit: cover;
-  object-position: top;
-}
-.featuresShot figcaption {
-  margin: 0 -40px;
-  padding: 16px 24px;
-  border-top: 1px solid var(--line);
-  background: var(--sheet);
-  color: var(--muted);
-  font-size: 16px;
-  line-height: 1.5;
-  text-align: center;
-}
-.audienceSection {
-  padding: 48px;
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-}
-.audienceSection h2 {
-  max-width: 31ch;
-  margin-bottom: 36px;
-}
-.audienceList {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 32px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.audienceList li,
-.audienceList a {
-  display: grid;
-  align-content: start;
-  gap: 8px;
-}
-.audienceList li {
-  padding: 22px 0 26px;
-  border-top: 1px solid var(--line);
-}
-.audienceList strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--wine);
-  font-size: 19px;
-}
-.audienceList strong svg {
-  color: var(--rose-fill);
-  transition: transform 240ms var(--ease-out);
-}
-.audienceList a:hover strong svg {
-  transform: translateX(4px);
-}
-.audienceList a:hover strong {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-}
-.audienceList span {
-  color: var(--muted);
-  line-height: 1.6;
 }
 
 /* Plans keep their names, descriptions and prices on matching baselines. */
@@ -883,41 +727,6 @@
   text-align: center;
   line-height: 1.6;
 }
-.learningSection {
-  padding: 32px 0;
-}
-.guidesList {
-  display: grid;
-}
-.guidesList > a {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 32px;
-  padding: 28px 0;
-  border-top: 1px solid var(--line);
-}
-.guidesList > a:last-child {
-  border-bottom: 1px solid var(--line);
-}
-.guidesList h3 {
-  margin: 0;
-  font-size: 22px;
-  line-height: 1.3;
-}
-.guidesList p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
-}
-.guidesList strong {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--rose-fill);
-  font-size: 16px;
-  white-space: nowrap;
-}
 .faqSection {
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
@@ -1014,6 +823,7 @@
   font-size: 16px;
 }
 .footerBrand {
+  align-self: flex-start;
   font-size: 16px;
   font-weight: 400;
 }
@@ -1049,7 +859,7 @@
   height: 0.2em;
   overflow: visible;
   pointer-events: none;
-  animation: drawStroke 1800ms var(--ease-out) 1200ms both;
+  animation: drawStroke 900ms var(--ease-out) 520ms both;
 }
 @keyframes drawStroke {
   from {
@@ -1074,57 +884,48 @@
   animation: drawStroke 1000ms var(--ease-out) 180ms both;
 }
 
-/* Initial entrance; lower-page reveals are observed once by LandingMotion. */
+/* Entrada curta a partir de um estado já legível: o primeiro quadro mostra o texto. */
 .heroCopy > :not(h1),
 .card {
-  animation: rise 1600ms var(--ease-out) both;
+  animation: rise 800ms var(--ease-out) both;
 }
 .heroLine {
   display: block;
-  overflow: clip;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
 }
 .heroLine > span {
   display: block;
-  animation: headlineEntrance 1600ms var(--ease-out) both;
+  animation: headlineEntrance 800ms var(--ease-out) both;
 }
 .heroLine:nth-child(2) > span {
-  animation-delay: 240ms;
+  animation-delay: 80ms;
 }
 .heroCopy .markedHeadline {
-  animation: headlineEntrance 1600ms var(--ease-out) 480ms both;
+  animation: headlineEntrance 800ms var(--ease-out) 160ms both;
 }
 @keyframes headlineEntrance {
   from {
-    transform: translateY(105%) rotateX(-12deg);
-    opacity: 0;
+    transform: translateY(16px);
+    opacity: 0.4;
   }
   to {
-    transform: translateY(0) rotateX(0);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 .heroCopy > :nth-child(2) {
-  animation-delay: 60ms;
+  animation-delay: 120ms;
 }
 .heroCopy > :nth-child(3) {
-  animation-delay: 120ms;
-}
-.heroCopy > :nth-child(4) {
   animation-delay: 180ms;
 }
-.heroCopy > :nth-child(5) {
-  animation-delay: 220ms;
-}
 .card {
-  animation-delay: 120ms;
+  animation-delay: 100ms;
 }
 .cardRows div,
 .cardSubtotal,
 .cardResult {
-  animation: rise 1100ms var(--ease-out) both;
-  animation-delay: calc(700ms + var(--i, 0) * 120ms);
+  animation: rise 600ms var(--ease-out) both;
+  animation-delay: calc(320ms + var(--i, 0) * 70ms);
 }
 .cardRows div:nth-child(2) {
   --i: 1;
@@ -1143,7 +944,7 @@
 }
 @keyframes rise {
   from {
-    opacity: 0;
+    opacity: 0.4;
     transform: translateY(12px);
   }
   to {
@@ -1154,18 +955,11 @@
 
 /* Pointer feedback stays on actionable elements, without moving prices or copy. */
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .pageWineTop .guidesList > a {
-    transition: transform 160ms var(--ease-out);
-  }
-  .pageWineTop .guidesList > a:hover:not(:focus-visible) {
-    transform: translateY(-3px);
-  }
-  .pageWineTop :is(.ctaGlyph, .secondaryCta, .textLink, .guidesList strong) > svg {
+  .pageWineTop :is(.ctaGlyph, .secondaryCta, .textLink) > svg {
     transition: transform 160ms var(--ease-out);
   }
   .pageWineTop a:hover:not(:focus-visible) .ctaGlyph > svg,
-  .pageWineTop :is(.secondaryCta, .textLink):hover:not(:focus-visible) > svg,
-  .pageWineTop .guidesList > a:hover:not(:focus-visible) strong > svg {
+  .pageWineTop :is(.secondaryCta, .textLink):hover:not(:focus-visible) > svg {
     transform: translateX(3px);
   }
   .pageWineTop :is(.primaryCta, .finalButton):hover:not(:active):not(:focus-visible) {
@@ -1202,31 +996,18 @@
   .nav {
     display: none;
   }
-  .flowTrack,
-  .audienceList {
+  .flowTrack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 32px;
   }
   .flowTrack li:nth-child(2)::after {
     display: none;
   }
-  .benefitStrip {
-    gap: 16px;
-  }
-  .benefitStrip span {
-    gap: 8px;
-  }
   .planHeading {
     min-height: 80px;
   }
   .planDescription {
     min-height: 80px;
-  }
-  .guidesList > a {
-    grid-template-columns: 1fr 1fr;
-  }
-  .guidesList strong {
-    grid-column: 1 / -1;
   }
 }
 @media (max-width: 880px) {
@@ -1252,30 +1033,16 @@
   }
   .card {
     width: 100%;
-    max-width: 520px;
   }
   .cardPrice {
     font-size: 44px;
   }
-  .benefitStrip {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 18px 32px;
-  }
+
   .problemSection,
   .productStory,
-  .featuresSection,
   .faqSection {
     grid-template-columns: 1fr;
     gap: 36px;
-  }
-  .featuresShot {
-    width: min(100%, 420px);
-    margin-inline: auto;
-    padding: 28px 28px 0;
-  }
-  .featuresShot figcaption {
-    margin-inline: -28px;
   }
   .problemSection h2 {
     max-width: 20ch;
@@ -1287,8 +1054,7 @@
   .productStory {
     padding: 64px 0;
   }
-  .flowSection,
-  .audienceSection {
+  .flowSection {
     padding: 32px;
   }
   .storyVisual {
@@ -1297,8 +1063,6 @@
   }
   .pricingGrid {
     grid-template-columns: 1fr;
-    max-width: 520px;
-    margin-inline: auto;
   }
   .planHeading {
     min-height: 0;
@@ -1402,31 +1166,20 @@
   .cardChip {
     padding: 12px;
   }
-  .cardChip span {
-    max-width: 10ch;
-  }
   .cardChip strong {
     font-size: 26px;
   }
-  .benefitStrip {
-    display: grid;
-    gap: 18px;
-    padding-block: 24px;
-  }
   .problemSection,
   .productStory,
-  .featuresSection,
   .pricingSection,
   .faqSection {
     padding-block: 56px;
   }
-  .flowSection,
-  .audienceSection {
+  .flowSection {
     padding: 28px 24px;
     border-radius: 24px;
   }
-  .flowTrack,
-  .audienceList {
+  .flowTrack {
     grid-template-columns: 1fr;
   }
   .flowTrack li {
@@ -1461,22 +1214,8 @@
   .storyVisual .device:first-child {
     margin-top: 32px;
   }
-  .audienceList {
-    gap: 22px;
-  }
   .planCard {
     padding: 24px;
-  }
-  .guidesList > a {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding-block: 24px;
-  }
-  .guidesList strong {
-    margin-top: 6px;
-  }
-  .learningSection {
-    padding-top: 8px;
   }
   .faqSection {
     gap: 28px;
@@ -1574,257 +1313,6 @@
   }
 }
 
-/* Product story inspired by React Bits Scroll Stack, driven by GSAP ScrollTrigger. */
-.journey {
-  width: var(--gutter);
-  margin: 88px auto;
-}
-.journeyStage {
-  padding: 48px;
-  border-radius: var(--radius-lg);
-  background: var(--rose-soft);
-}
-.journeyNote {
-  max-width: 40ch;
-  margin: 20px 0 0;
-  color: var(--muted);
-  font-size: 16px;
-  line-height: 1.5;
-}
-.journeyCopy h2 {
-  margin: 0;
-  color: var(--wine);
-  font-size: clamp(34px, 4vw, 54px);
-  line-height: 1.12;
-}
-.journeyChapters {
-  margin-top: 36px;
-}
-.journeyChapter {
-  margin: 28px 0;
-}
-.journeyIndex {
-  margin: 0 0 12px;
-  color: var(--rose-fill);
-  font-size: 16px;
-  font-weight: 700;
-}
-.journeyChapter h3 {
-  margin: 0 0 14px;
-  color: var(--wine);
-  font-size: clamp(24px, 2.6vw, 34px);
-  line-height: 1.2;
-}
-.journeyChapter > p:last-child {
-  max-width: 38ch;
-  margin: 0;
-  color: var(--muted);
-  font-size: 17px;
-  line-height: 1.65;
-}
-.journeyDeck {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 32px;
-}
-.journeyScreen {
-  width: min(30%, 260px);
-  min-width: 0;
-  margin: 0;
-}
-.journeyScreen img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: var(--sheet);
-}
-.journeyScreen figcaption {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
-  color: var(--wine);
-  font-size: 16px;
-  font-weight: 600;
-}
-.journeyScreen figcaption span {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--wine);
-  color: var(--lime);
-  font-size: 14px;
-}
-.journeyProgress,
-.journeyHint {
-  display: none;
-}
-.journey[data-journey-ready] {
-  height: 240svh;
-}
-.journey[data-journey-ready] .journeyStage {
-  position: sticky;
-  top: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: center;
-  height: calc(100svh - 48px);
-  overflow: clip;
-}
-.journey[data-journey-ready] .journeyChapters {
-  display: grid;
-}
-.journey[data-journey-ready] .journeyChapter {
-  grid-area: 1 / 1;
-  margin: 0;
-  pointer-events: none;
-}
-.journey[data-journey-ready] .journeyDeck {
-  position: relative;
-  display: block;
-  margin: 0;
-  height: min(72svh, 720px);
-  perspective: 1600px;
-  clip-path: inset(-10% -30% -10% -8%);
-}
-.journey[data-journey-ready] .journeyScreen {
-  position: absolute;
-  inset: 0 auto auto 50%;
-  width: auto;
-  height: 100%;
-  aspect-ratio: 0.47;
-  margin-left: -27%;
-  transform-origin: center 75%;
-}
-.journey[data-journey-ready] .journeyScreen:nth-child(1) {
-  z-index: 3;
-}
-.journey[data-journey-ready] .journeyScreen:nth-child(2) {
-  z-index: 2;
-}
-.journey[data-journey-ready] .journeyScreen:nth-child(3) {
-  z-index: 1;
-}
-.journey[data-journey-ready] .journeyScreen img {
-  height: calc(100% - 42px);
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
-}
-.journey[data-journey-ready] .journeyScreen figcaption {
-  white-space: nowrap;
-}
-.journey[data-journey-ready] .journeyProgress {
-  display: block;
-  width: min(100%, 300px);
-  height: 3px;
-  margin-top: 32px;
-  background: var(--sheet);
-  overflow: hidden;
-}
-.journeyProgress span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: var(--rose-fill);
-}
-.journey[data-journey-ready] .journeyHint {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 300px;
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 16px;
-}
-@media (max-width: 900px) {
-  .journey {
-    margin-block: 48px;
-  }
-  .journeyStage {
-    padding: 28px;
-  }
-  .journey[data-journey-ready] {
-    height: 240svh;
-  }
-  .journey[data-journey-ready] .journeyStage {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-    gap: 16px;
-    padding: 24px;
-    top: 12px;
-    height: calc(100svh - 24px);
-  }
-  .journeyCopy h2 {
-    font-size: clamp(28px, 5vw, 40px);
-  }
-  .journeyChapters {
-    margin-top: 20px;
-  }
-  .journeyIndex {
-    margin-bottom: 6px;
-  }
-  .journeyChapter h3 {
-    margin-bottom: 8px;
-    font-size: 24px;
-  }
-  .journeyChapter > p:last-child {
-    max-width: 52ch;
-    font-size: 16px;
-    line-height: 1.5;
-  }
-  .journey[data-journey-ready] .journeyProgress {
-    width: 100%;
-    max-width: none;
-    margin-top: 16px;
-  }
-  .journey[data-journey-ready] .journeyHint {
-    max-width: none;
-    margin-top: 8px;
-  }
-  .journey[data-journey-ready] .journeyDeck {
-    align-self: center;
-    height: min(40svh, 440px);
-    width: 100%;
-  }
-  .journey[data-journey-ready] .journeyScreen {
-    left: 50%;
-    margin-left: -80px;
-  }
-}
-@media (max-width: 560px) {
-  .journeyStage {
-    padding: 24px 20px;
-  }
-  .journey[data-journey-ready] .journeyStage {
-    padding: 22px 18px;
-  }
-  .journeyCopy h2 {
-    font-size: 28px;
-  }
-  .journeyChapter h3 {
-    font-size: 22px;
-  }
-  .journey[data-journey-ready] .journeyDeck {
-    height: min(42svh, 400px);
-  }
-  .journeyDeck {
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
-  }
-  .journeyScreen {
-    width: min(100%, 240px);
-  }
-}
-
 .planAnnual {
   margin: 0 0 24px;
   color: var(--muted);
@@ -1843,84 +1331,6 @@
 .planFeatured .planAndroid {
   color: var(--on-wine);
   border-color: rgb(255 255 255 / 45%);
-}
-
-/* Pair each explanation with its capture when the scroll scene is disabled. */
-@media (max-width: 899px) {
-  .journeyStage {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 180px;
-    gap: 24px;
-    align-items: center;
-  }
-  .journeyCopy,
-  .journeyChapters,
-  .journeyDeck {
-    display: contents;
-  }
-  .journeyCopy h2,
-  .journeyNote {
-    grid-column: 1 / -1;
-    margin: 0;
-  }
-  .journeyCopy h2 {
-    grid-row: 1;
-  }
-  .journeyNote {
-    grid-row: 2;
-    margin-top: -8px;
-  }
-  .journeyChapter {
-    grid-column: 1;
-    margin: 0;
-  }
-  .journeyScreen {
-    grid-column: 2;
-    width: 100%;
-  }
-  .journeyChapter:nth-child(1),
-  .journeyScreen:nth-child(1) {
-    grid-row: 3;
-  }
-  .journeyChapter:nth-child(2),
-  .journeyScreen:nth-child(2) {
-    grid-row: 4;
-  }
-  .journeyChapter:nth-child(3),
-  .journeyScreen:nth-child(3) {
-    grid-row: 5;
-  }
-}
-@media (max-width: 560px) {
-  .journeyStage {
-    grid-template-columns: 1fr;
-  }
-  .journeyChapter,
-  .journeyScreen {
-    grid-column: 1;
-  }
-  .journeyScreen {
-    width: min(100%, 180px);
-    justify-self: center;
-  }
-  .journeyChapter:nth-child(1) {
-    grid-row: 3;
-  }
-  .journeyScreen:nth-child(1) {
-    grid-row: 4;
-  }
-  .journeyChapter:nth-child(2) {
-    grid-row: 5;
-  }
-  .journeyScreen:nth-child(2) {
-    grid-row: 6;
-  }
-  .journeyChapter:nth-child(3) {
-    grid-row: 7;
-  }
-  .journeyScreen:nth-child(3) {
-    grid-row: 8;
-  }
 }
 
 /* Botão único "Começar grátis" com o caminho alternativo discreto. */
@@ -1980,7 +1390,7 @@
   border-radius: 999px;
   background: var(--lime);
   color: var(--wine);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2114,7 +1524,7 @@
 .footerColumns a {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 48px;
   padding: 6px 0;
   line-height: 1.35;
   color: var(--muted);
@@ -2173,5 +1583,421 @@
   .heroActions > a:first-child,
   .startCta > a:first-child {
     width: 100%;
+  }
+}
+
+/* Página de decisão: ação do hero em duas linhas, sem pilha de links. */
+.hero .heroActions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 22px;
+  margin-top: 32px;
+}
+.hero .heroNote {
+  align-items: flex-start;
+  max-width: 30ch;
+  margin: 0;
+  color: var(--on-wine);
+  line-height: 1.45;
+}
+.hero .heroNote svg {
+  margin-top: 3px;
+  color: var(--on-wine-muted);
+}
+.hero .heroCalculatorLink {
+  margin-top: 0;
+}
+.benefitStrip {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  width: var(--gutter);
+  margin: 0 auto;
+  padding: 22px 0 26px;
+  border-top: 1px solid rgb(250 248 246 / 16%);
+  list-style: none;
+  font-weight: 600;
+}
+.benefitStrip li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.benefitStrip svg {
+  flex: none;
+  color: var(--on-wine-muted);
+}
+
+/* Três passos ligados por uma linha que se desenha com a rolagem. */
+.journey {
+  width: var(--gutter);
+  margin: 88px auto 72px;
+}
+.journeyHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 48px;
+}
+.journeyHead h2 {
+  margin: 0;
+  color: var(--wine);
+  font-size: clamp(32px, 3.6vw, 52px);
+  line-height: 1.12;
+}
+.journeyNote {
+  max-width: 36ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.journeyTrack {
+  position: relative;
+  margin-top: 52px;
+}
+.journeyLine {
+  position: absolute;
+  top: 19px;
+  right: calc((100% - 64px) / 3 - 40px);
+  left: 0;
+  height: 2px;
+  background: var(--line);
+}
+.journeyLine span {
+  display: block;
+  height: 100%;
+  background: var(--rose-fill);
+  transform: scaleX(var(--journey-progress, 1));
+  transform-origin: left center;
+}
+.journeySteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, auto);
+  gap: 0 32px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.journeyStep {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+}
+.journeyIndex {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 12px;
+  margin: 0 0 24px;
+  padding-right: 16px;
+  background: var(--paper);
+  color: var(--wine);
+  font-size: 17px;
+  font-weight: 700;
+}
+.journeyIndex span {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--wine);
+  color: var(--on-wine);
+  font-variant-numeric: tabular-nums;
+}
+.journeyStep h3 {
+  margin: 0;
+  color: var(--wine);
+  font-size: clamp(22px, 2vw, 28px);
+  line-height: 1.2;
+}
+.journeyText {
+  max-width: 36ch;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.journeyScreen {
+  position: relative;
+  overflow: hidden;
+  height: 420px;
+  margin: 28px 0 0;
+  padding: 32px 32px 0;
+  border-radius: var(--radius-lg);
+  background: var(--rose-soft);
+}
+.journeyScreen img {
+  display: block;
+  width: min(100%, 260px);
+  height: auto;
+  margin-inline: auto;
+  border: 1px solid var(--line);
+  border-radius: 24px 24px 0 0;
+  background: var(--sheet);
+}
+/* O passo 3 mostra o trecho da tela com o link e o botão de compartilhar. */
+.journeyStep:nth-child(3) .journeyScreen img {
+  aspect-ratio: 1080 / 1800;
+  object-fit: cover;
+  object-position: 0 80%;
+}
+.journeyScreen figcaption {
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 0;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--sheet);
+  color: var(--wine);
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Índice compacto: recursos, públicos e guias numa só passada. */
+.indexSection {
+  width: var(--gutter);
+  margin-inline: auto;
+  padding: 24px 0 88px;
+}
+.indexSection h2 {
+  max-width: 23ch;
+  margin: 0;
+  color: var(--wine);
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.16;
+}
+.indexHead .lede {
+  margin-bottom: 0;
+}
+.indexColumns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px 48px;
+  margin-top: 44px;
+}
+.indexColumns h3 {
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--wine);
+  color: var(--wine);
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+.indexColumns ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.indexColumns li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 32px;
+}
+.indexColumns li,
+.indexColumns li > a {
+  display: grid;
+  gap: 4px;
+}
+.indexColumns strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.35;
+}
+.indexColumns strong svg {
+  flex: none;
+  color: var(--rose-fill);
+  transition: transform 200ms var(--ease-out);
+}
+.indexColumns span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+.indexColumns a:hover strong {
+  color: var(--rose-fill);
+}
+.indexColumns a:hover strong svg {
+  transform: translateX(4px);
+}
+
+@media (max-width: 899px) {
+  .journey {
+    margin-block: 64px 48px;
+  }
+  .journeyTrack {
+    margin-top: 28px;
+  }
+  .journeyLine {
+    top: 20px;
+    right: auto;
+    bottom: 0;
+    left: 19px;
+    width: 2px;
+    height: auto;
+  }
+  .journeyLine span {
+    transform: scaleY(var(--journey-progress, 1));
+    transform-origin: center top;
+  }
+  .journeySteps {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+  .journeyStep {
+    grid-row: auto;
+    position: relative;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    grid-template-rows: auto auto 1fr;
+    column-gap: 32px;
+    padding: 0 0 48px 60px;
+  }
+  .journeyStep:last-child {
+    padding-bottom: 0;
+  }
+  /* O trilho termina no terceiro número. */
+  .journeyStep:last-child::before {
+    position: absolute;
+    top: 40px;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    background: var(--paper);
+    content: "";
+  }
+  .journeyIndex {
+    gap: 20px;
+    min-height: 40px;
+    margin: 0 0 12px -60px;
+    padding-right: 0;
+    background: none;
+  }
+  .journeyScreen {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    height: 320px;
+    margin: 0;
+    padding: 20px 20px 0;
+    border-radius: var(--radius);
+  }
+  .journeyScreen img {
+    border-radius: 16px 16px 0 0;
+  }
+  .journeyScreen figcaption {
+    padding: 10px 12px;
+  }
+}
+@media (max-width: 880px) {
+  .benefitStrip {
+    display: grid;
+    gap: 14px;
+  }
+  .indexColumns {
+    grid-template-columns: 1fr;
+  }
+  .indexSection {
+    padding-bottom: 64px;
+  }
+}
+@media (max-width: 560px) {
+  .hero .heroActions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .hero .heroNote {
+    justify-content: flex-start;
+    max-width: none;
+    margin: 12px 0 0;
+    text-align: left;
+  }
+  .heroInner {
+    gap: 0;
+  }
+  .heroCopy,
+  .hero .heroActions {
+    display: contents;
+  }
+  .hero h1 {
+    margin-top: 8px;
+  }
+  .heroText {
+    margin-top: 16px;
+  }
+  .hero .heroActions > a:first-child {
+    margin-top: 20px;
+  }
+  .hero .card {
+    display: flex;
+    flex-direction: column;
+    order: 1;
+    margin-top: 24px;
+    padding-top: 18px;
+  }
+  .hero .startAlternative {
+    order: 2;
+    margin-top: 16px;
+  }
+  .hero .heroCalculatorLink {
+    order: 3;
+  }
+  .cardHeading {
+    padding-bottom: 14px;
+  }
+  .cardProduct {
+    margin: 14px 0 0;
+  }
+  .cardRows {
+    order: 1;
+  }
+  .cardSubtotal {
+    order: 2;
+    border-bottom: 0;
+  }
+  .cardResult {
+    padding: 14px 0 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cardRows div:first-child {
+    padding-top: 16px;
+  }
+  .cardFootnote {
+    order: 3;
+    margin-top: 4px;
+  }
+  .benefitStrip {
+    padding: 20px 0 24px;
+  }
+  .journeyStep {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    padding-left: 56px;
+  }
+  .journeyIndex {
+    gap: 16px;
+    margin-left: -56px;
+  }
+  .journeyScreen {
+    grid-column: 1;
+    grid-row: auto;
+    height: 300px;
+    margin-top: 20px;
+    padding: 24px 24px 0;
+  }
+  .journeyScreen img {
+    width: min(100%, 220px);
+  }
+  .indexSection {
+    padding-top: 0;
   }
 }

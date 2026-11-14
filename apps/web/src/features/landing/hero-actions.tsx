@@ -48,6 +48,10 @@ type StartCtaProps = {
   readonly className?: string;
   readonly showAlternative?: boolean;
   readonly children?: ReactNode;
+  /** Conteúdo ao lado do botão principal (ex.: nota de gratuidade). */
+  readonly beside?: ReactNode;
+  /** Conteúdo depois do link alternativo (ex.: atalho da calculadora). */
+  readonly trailing?: ReactNode;
 };
 
 /**
@@ -62,6 +66,8 @@ export function StartCta({
   className = styles.startCta,
   showAlternative = true,
   children,
+  beside,
+  trailing,
 }: StartCtaProps) {
   const { primary, alternative } = startDestinations(placement, useBrowserFirst());
   return (
@@ -75,6 +81,7 @@ export function StartCta({
         {label ?? primary.primaryLabel}
         {children === undefined ? <ArrowRight aria-hidden="true" size={18} /> : children}
       </a>
+      {beside}
       {showAlternative ? (
         <a
           className={alternativeClassName}
@@ -84,10 +91,21 @@ export function StartCta({
           {alternative.label}
         </a>
       ) : null}
+      {trailing}
     </div>
   );
 }
 
-export function HeroActions() {
-  return <StartCta placement="hero" className={styles.heroActions} />;
+export function HeroActions({
+  beside,
+  trailing,
+}: Pick<StartCtaProps, "beside" | "trailing">) {
+  return (
+    <StartCta
+      placement="hero"
+      className={styles.heroActions}
+      beside={beside}
+      trailing={trailing}
+    />
+  );
 }
