@@ -11,6 +11,7 @@ import {
 } from "../features/pricing/components/pricing-history-modal";
 import { UnifiedPricingCalculator } from "../features/pricing/components/unified-pricing-calculator";
 import { showAlert } from "../shared/components/alert-store";
+import { useOfferNextStep } from "../features/discovery/use-next-step";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopToolbarButton } from "../shared/layout/desktop-page";
@@ -19,6 +20,7 @@ export default function SimplePricingScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
+  const offerNextStep = useOfferNextStep();
   const { recipeCost, name, category, productId } = useLocalSearchParams<{
     productId?: string;
     recipeCost?: string;
@@ -132,6 +134,7 @@ export default function SimplePricingScreen() {
                   ],
                 },
           );
+          offerNextStep("pricing_saved");
         }}
       />
 

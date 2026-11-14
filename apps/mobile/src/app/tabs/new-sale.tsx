@@ -81,6 +81,7 @@ import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
 import { showAlert } from "../../shared/components/alert-store";
+import { useOfferNextStep } from "../../features/discovery/use-next-step";
 import { QuantityPulse } from "../../shared/components/motion-feedback";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { SkeletonList } from "../../shared/components/skeleton";
@@ -485,6 +486,7 @@ export default function NewSaleScreen() {
   const navigationBottomPadding = floatingTabBarContentPadding(insets.bottom);
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const showPaywall = usePaywall((s) => s.show);
+  const offerNextStep = useOfferNextStep();
   const [step, setStep] = useState<Step>(FIRST_SALE_STEP);
 
   // Voltar do Android volta uma etapa da venda em vez de sair do fluxo.
@@ -783,6 +785,8 @@ export default function NewSaleScreen() {
             ]
           : [{ text: "Nova venda", onPress: resetForm }, receiptButton],
       });
+      // Primeira venda guiada já leva de volta ao início; o resto ganha o próximo passo.
+      if (!guidedFirstSale) offerNextStep("sale_completed");
       // Depois da primeira venda os lembretes fazem sentido: libera o pedido
       // de permissao de notificacao.
       useNotificationAsk.getState().markReady();

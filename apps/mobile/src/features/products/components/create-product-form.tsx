@@ -57,6 +57,7 @@ import { FormStepProgress } from "../../../shared/components/form-step-progress"
 import { VariationEditor } from "./variation-editor";
 import { validateVariations } from "../variations";
 import { trackAnalyticsAction } from "../../analytics/tracker";
+import { useOfferNextStep } from "../../discovery/use-next-step";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { createInternalProductCode } from "../barcode";
 
@@ -516,6 +517,7 @@ export function CreateProductForm({
   const createProduct = useCreateProduct();
   const { checkAndBlock: checkProductLimit } = useLimitCheck("products");
   const showPaywall = usePaywall((s) => s.show);
+  const offerNextStep = useOfferNextStep();
   const { data: productsData } = useProducts();
 
   const categories = useMemo(() => {
@@ -707,6 +709,8 @@ export function CreateProductForm({
               ]
             : undefined,
         });
+      // O convite para precificar tem prioridade; o catálogo fica para o próximo cadastro.
+      if (!onPriceInvite) offerNextStep("product_created");
       if (analyticsSource === "pricing") {
         void trackAnalyticsAction(
           "product_created_from_pricing",

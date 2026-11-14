@@ -2,6 +2,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("../../discovery/use-next-step", () => ({ useOfferNextStep: () => vi.fn() }));
 vi.mock("@lucro-caseiro/ui", async (original) => ({
   ...(await original<object>()),
   Button: ({ title, onPress }: { title: string; onPress: () => void }) => (

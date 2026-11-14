@@ -15,6 +15,7 @@ import {
 import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
+import { useOfferNextStep } from "../../discovery/use-next-step";
 import { alertError } from "../../../shared/utils/alerts";
 import { useBusinessCopy } from "../../subscription/business-copy";
 import { StandardModal } from "../../../shared/components/standard-modal";
@@ -87,6 +88,7 @@ export function CreateFinanceEntry({
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [categoryNotice, setCategoryNotice] = useState(false);
   const createEntry = useCreateFinanceEntry();
+  const offerNextStep = useOfferNextStep();
 
   const categories: readonly CategoryOption[] =
     type === "income"
@@ -148,6 +150,7 @@ export function CreateFinanceEntry({
       });
 
       showToast(`${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva!`);
+      if (type === "expense") offerNextStep("expense_created");
       onSuccess?.();
     } catch {
       alertError("Não foi possível registrar o lançamento. Tente novamente.");

@@ -10,6 +10,7 @@ const navigation = vi.hoisted(() => ({
   replace: vi.fn(),
 }));
 
+vi.mock("../discovery/use-next-step", () => ({ useOfferNextStep: () => vi.fn() }));
 vi.mock("expo-router", () => ({
   Stack: { Screen: () => null },
   useFocusEffect: () => undefined,
