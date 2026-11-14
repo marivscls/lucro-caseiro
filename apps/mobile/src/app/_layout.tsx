@@ -42,6 +42,7 @@ import { MobileFloatingTabBar } from "../shared/components/mobile-floating-tab-b
 import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
+import { NextStepHost } from "../features/discovery/components/next-step-host";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
 import { setupAutoSync, useOfflineQueue } from "../shared/hooks/use-offline-queue";
@@ -271,6 +272,7 @@ function AppContent() {
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
       <OfflineBanner />
       <ToastHost />
+      <NextStepHost />
       <AlertHost />
       <PremiumSuccess visible={successVisible} onClose={hidePremiumSuccess} />
       {paywallVisible ? (
