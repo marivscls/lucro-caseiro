@@ -86,6 +86,8 @@ import {
 import { useHomeProducts, useHomeSalesHistory } from "../../features/home/hooks";
 import { useOrders } from "../../features/orders/hooks";
 import { useBusinessCopy } from "../../features/subscription/business-copy";
+import { TrialChecklist } from "../../features/discovery/components/trial-checklist";
+import { isProfileOnTrial, trialEndLabel } from "../../features/subscription/trial";
 
 function formattedDate(date: Date, desktop: boolean): string {
   const text = capitalize(
@@ -184,6 +186,7 @@ export default function HomeScreen() {
   const ordersQuery = useOrders(undefined, hasScheduling);
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
+  const onTrial = isProfileOnTrial(profile);
   const showPaywall = usePaywall((state) => state.show);
 
   const goalQuery = useProlaboreStatus();
@@ -395,6 +398,14 @@ export default function HomeScreen() {
         />
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
+
+        {/* Depois dos primeiros passos, o teste grátis leva aos recursos liberados. */}
+        {onTrial && (phase === "ready" || phase === "month") ? (
+          <TrialChecklist
+            recipes={limits?.currentRecipes ?? 0}
+            trialEndLabel={trialEndLabel(profile?.planExpiresAt ?? null)}
+          />
+        ) : null}
 
         {phase === null ? pendingPhase : null}
 
