@@ -160,7 +160,10 @@ describe("single-page checkout", () => {
       expect(payment).toHaveBeenLastCalledWith("essential", "monthly");
       fireEvent.click(screen.getByRole("button", { name: "Anual" }));
       expect(screen.getByText("R$ 299,00 cobrados uma vez por ano.")).toBeTruthy();
-      expect(screen.getByText("R$ 299,00")).toBeTruthy();
+      // Os dois planos mudam juntos de período e comparam o valor por mês.
+      expect(screen.getByText("R$ 24,92")).toBeTruthy();
+      expect(screen.getByText("R$ 58,25")).toBeTruthy();
+      expect(screen.getByText("R$ 699,00 cobrados uma vez por ano")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(payment).toHaveBeenLastCalledWith("essential", "annual");
       fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));

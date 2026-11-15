@@ -3,7 +3,6 @@ import type { BillingPeriod, PaidPlan, PlanType } from "@lucro-caseiro/contracts
 import {
   ESSENTIAL_TRIAL_DAYS,
   PLAN_LABELS,
-  PLAN_PRICING,
   isPaidPlan,
   normalizePlan,
 } from "@lucro-caseiro/contracts";
@@ -15,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../hooks";
 import { tierBenefitsFor } from "../plan-benefits";
+import { annualSavings, formatMoney, planPriceDisplay } from "../plan-pricing";
 import { isProfileOnTrial, trialNotice } from "../trial";
 import { businessCopyFor } from "../business-copy";
 import { ScreenHeader } from "../../../shared/components/screen-header";
@@ -28,6 +28,7 @@ import {
   DesktopPageHeader,
 } from "../../../shared/layout/desktop-page";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { PeriodToggle } from "./period-toggle";
 import { PlansDesktop } from "./plans-desktop";
 import {
   desktopAction,
@@ -77,13 +78,20 @@ function expiryWarning(planLabel: string, expiresAt: string): ExpiryWarning | nu
 
 const RANK: Record<PlanType, number> = { free: 0, essential: 1, professional: 2 };
 
-function moneyLabel(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
+/** Linha sob o seletor: o valor cobrado do plano escolhido, por extenso. */
+function chargeLine(plan: PaidPlan, period: BillingPeriod): string {
+  const { perMonth, charge } = planPriceDisplay(plan, period);
+  return period === "annual" ? `${charge}.` : `${perMonth} cobrados a cada mês.`;
 }
 
-function priceLabel(plan: PaidPlan, period: BillingPeriod): string {
-  return moneyLabel(PLAN_PRICING[plan][period]);
+function chargeHint(plan: PaidPlan, period: BillingPeriod): string {
+  return period === "annual"
+    ? `Economia de ${formatMoney(annualSavings(plan))} no ano. Sem fidelidade: cancele quando quiser.`
+    : "Sem fidelidade: cancele quando quiser. No anual, saem 2 meses grátis.";
 }
+
+/** Plano sugerido para quem ainda não assina: o que tira os limites do dia a dia. */
+const RECOMMENDED_PLAN: PaidPlan = "essential";
 
 /**
  * Modo boas-vindas: a mesma tela de planos, aberta uma vez logo após o cadastro
@@ -123,7 +131,7 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
   const selectedPlan = current === "professional" ? current : (choice ?? defaultPlan);
   const isUpgrade = RANK[selectedPlan] > RANK[current];
   const displayPeriod = isUpgrade ? period : "monthly";
-  const pricing = PLAN_PRICING[selectedPlan];
+  const showRecommended = current === "free";
 
   function continueToPayment() {
     if (checkoutLoading || !isUpgrade) return;
@@ -328,11 +336,10 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
             cards={visiblePlans.map((plan) => ({
               plan,
               label: PLAN_LABELS[plan],
-              price: priceLabel(plan, plan === selectedPlan ? displayPeriod : "monthly"),
-              periodLabel:
-                plan === selectedPlan && displayPeriod === "annual"
-                  ? "por ano"
-                  : "por mês",
+              price: planPriceDisplay(plan, displayPeriod).perMonth,
+              periodLabel: "por mês",
+              chargeNote: planPriceDisplay(plan, displayPeriod).charge,
+              recommended: showRecommended && plan === RECOMMENDED_PLAN,
               heading:
                 plan === "professional"
                   ? "Tudo do Essencial, mais:"
@@ -347,16 +354,8 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
             isUpgrade={isUpgrade}
             period={period}
             onPeriodChange={setPeriod}
-            chargeLine={
-              period === "annual"
-                ? `${moneyLabel(pricing.annual)} cobrados uma vez por ano.`
-                : `${moneyLabel(pricing.monthly)} cobrados a cada mês.`
-            }
-            chargeHint={
-              period === "annual"
-                ? `Equivale a ${moneyLabel(pricing.annual / 12)}/mês. Economia de ${moneyLabel(pricing.monthly * 12 - pricing.annual)} no ano.`
-                : "No anual, você paga o equivalente a 10 mensalidades."
-            }
+            chargeLine={chargeLine(selectedPlan, period)}
+            chargeHint={chargeHint(selectedPlan, period)}
             checkoutLoading={checkoutLoading}
             onContinue={continueToPayment}
             usage={showUsage ? usageItems : null}
@@ -364,6 +363,14 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
               current === "free" || welcome
                 ? null
                 : () => void openSubscriptionManagement()
+            }
+            skip={
+              welcome
+                ? {
+                    label: welcomeContinueLabel(onTrial, current),
+                    onPress: welcome.onContinue,
+                  }
+                : null
             }
           />
         ) : (
@@ -384,10 +391,19 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                 gap: spacing["3xl"],
               }}
             >
-              <View style={{ ...(isDesktop ? { flex: 1 } : {}), gap: spacing["2xl"] }}>
+              <View style={{ ...(isDesktop ? { flex: 1 } : {}), gap: spacing.xl }}>
+                {isUpgrade ? (
+                  <PeriodToggle
+                    period={period}
+                    disabled={checkoutLoading}
+                    onChange={setPeriod}
+                  />
+                ) : null}
                 <View style={{ flexDirection: "row", gap: spacing.lg }}>
                   {visiblePlans.map((plan) => {
                     const selected = plan === selectedPlan;
+                    const price = planPriceDisplay(plan, displayPeriod);
+                    const recommended = showRecommended && plan === RECOMMENDED_PLAN;
                     return (
                       <Pressable
                         key={plan}
@@ -399,13 +415,16 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                         style={({ pressed }) => ({
                           flex: 1,
                           minWidth: 0,
-                          paddingTop: spacing.md,
-                          paddingBottom: spacing.lg,
-                          gap: spacing.sm,
-                          borderBottomWidth: 2,
-                          borderBottomColor: selected
-                            ? theme.colors.text
+                          padding: spacing.md,
+                          gap: spacing.xs,
+                          borderRadius: radii.md,
+                          borderWidth: selected ? 2 : 1,
+                          borderColor: selected
+                            ? theme.colors.primaryStrong
                             : theme.colors.border,
+                          backgroundColor: selected
+                            ? theme.colors.primaryBg
+                            : "transparent",
                           opacity: pressed ? 0.65 : 1,
                         })}
                       >
@@ -416,34 +435,35 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                             gap: spacing.sm,
                           }}
                         >
-                          <View
-                            style={{
-                              width: 14,
-                              height: 14,
-                              borderRadius: radii.full,
-                              borderWidth: selected ? 4 : 1,
-                              borderColor: selected
-                                ? theme.colors.text
-                                : theme.colors.textSecondary,
-                            }}
-                          />
-                          <Typography
-                            variant="bodyBold"
+                          <AppIcon
+                            name={selected ? "checkmark-circle" : "ellipse-outline"}
+                            size={20}
                             color={
-                              selected ? theme.colors.text : theme.colors.textSecondary
+                              selected
+                                ? theme.colors.primaryStrong
+                                : theme.colors.textSecondary
                             }
-                          >
+                          />
+                          <Typography variant="bodyBold" color={theme.colors.text}>
                             {PLAN_LABELS[plan]}
                           </Typography>
                         </View>
+                        {recommended ? (
+                          <Typography variant="captionBold" color={theme.colors.success}>
+                            Recomendado
+                          </Typography>
+                        ) : null}
                         <Typography
                           variant="h2"
-                          style={{ fontVariant: ["tabular-nums"] }}
+                          style={{ fontVariant: ["tabular-nums"], marginTop: spacing.xs }}
                         >
-                          {priceLabel(plan, displayPeriod)}
+                          {price.perMonth}
                         </Typography>
-                        <Typography variant="caption">
-                          {displayPeriod === "annual" ? "por ano" : "por mês"}
+                        <Typography variant="body" color={theme.colors.text}>
+                          por mês
+                        </Typography>
+                        <Typography variant="body" color={theme.colors.textSecondary}>
+                          {price.charge}
                         </Typography>
                       </Pressable>
                     );
@@ -451,67 +471,13 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                 </View>
 
                 {isUpgrade && (
-                  <View style={{ gap: spacing.md }}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        padding: spacing.xs,
-                        backgroundColor: theme.colors.surface,
-                        borderRadius: radii.sm,
-                      }}
-                    >
-                      {(["monthly", "annual"] as const).map((option) => (
-                        <Pressable
-                          key={option}
-                          accessibilityRole="button"
-                          accessibilityLabel={option === "annual" ? "Anual" : "Mensal"}
-                          accessibilityState={{
-                            selected: period === option,
-                            disabled: checkoutLoading,
-                          }}
-                          disabled={checkoutLoading}
-                          onPress={() => setPeriod(option)}
-                          style={({ pressed }) => ({
-                            flex: 1,
-                            minHeight: 44,
-                            alignItems: "center",
-                            justifyContent: "center",
-                            borderRadius: radii.sm,
-                            backgroundColor:
-                              period === option
-                                ? theme.colors.surfaceElevated
-                                : "transparent",
-                            borderWidth: 1,
-                            borderColor:
-                              period === option ? theme.colors.border : "transparent",
-                            opacity: pressed ? 0.65 : 1,
-                          })}
-                        >
-                          <Typography
-                            variant="bodyBold"
-                            color={
-                              period === option
-                                ? theme.colors.text
-                                : theme.colors.textSecondary
-                            }
-                          >
-                            {option === "annual" ? "Anual" : "Mensal"}
-                          </Typography>
-                        </Pressable>
-                      ))}
-                    </View>
-                    <View style={{ gap: spacing.xs }} accessibilityLiveRegion="polite">
-                      <Typography variant="bodyBold">
-                        {period === "annual"
-                          ? `${moneyLabel(pricing.annual)} cobrados uma vez por ano.`
-                          : `${moneyLabel(pricing.monthly)} cobrados a cada mês.`}
-                      </Typography>
-                      <Typography variant="caption">
-                        {period === "annual"
-                          ? `Equivale a ${moneyLabel(pricing.annual / 12)}/mês. Economia de ${moneyLabel(pricing.monthly * 12 - pricing.annual)} no ano.`
-                          : "No anual, você paga o equivalente a 10 mensalidades."}
-                      </Typography>
-                    </View>
+                  <View style={{ gap: spacing.xs }} accessibilityLiveRegion="polite">
+                    <Typography variant="bodyBold">
+                      {chargeLine(selectedPlan, period)}
+                    </Typography>
+                    <Typography variant="body" color={theme.colors.textSecondary}>
+                      {chargeHint(selectedPlan, period)}
+                    </Typography>
                   </View>
                 )}
 
@@ -667,7 +633,8 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
             )}
           </>
         )}
-        {continueButton}
+        {/* No desktop a saída fica na lateral, junto do botão de pagamento. */}
+        {isDesktop ? null : continueButton}
       </ScrollView>
     </SafeAreaView>
   );

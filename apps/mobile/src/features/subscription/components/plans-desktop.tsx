@@ -9,6 +9,7 @@ import React from "react";
 import { Pressable, View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
+import { PeriodToggle } from "./period-toggle";
 import {
   DesktopGrid,
   DesktopSplit,
@@ -20,6 +21,9 @@ export type PlanCardData = Readonly<{
   label: string;
   price: string;
   periodLabel: string;
+  /** O que é cobrado de fato, sob o valor por mês. */
+  chargeNote: string;
+  recommended: boolean;
   heading: string;
   features: readonly string[];
   current: boolean;
@@ -70,6 +74,24 @@ function PlanCard({
         <Typography variant="desktopCardTitle" style={{ flex: 1 }}>
           {data.label}
         </Typography>
+        {data.recommended ? (
+          <View
+            style={{
+              paddingHorizontal: spacing.md,
+              paddingVertical: 2,
+              borderRadius: radii.full,
+              backgroundColor: theme.colors.successBg,
+            }}
+          >
+            <Typography
+              variant="desktopMeta"
+              color={theme.colors.success}
+              style={{ fontFamily: fonts.bold }}
+            >
+              Recomendado
+            </Typography>
+          </View>
+        ) : null}
         {data.current ? (
           <View
             style={{
@@ -95,8 +117,11 @@ function PlanCard({
         />
       </View>
       <View style={{ gap: 2 }}>
-        <Typography variant="desktopTotal">{data.price}</Typography>
-        <Typography variant="desktopMeta">{data.periodLabel}</Typography>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.sm }}>
+          <Typography variant="desktopTotal">{data.price}</Typography>
+          <Typography variant="desktopBodyStrong">{data.periodLabel}</Typography>
+        </View>
+        <Typography variant="desktopBody">{data.chargeNote}</Typography>
       </View>
       <View
         style={{
@@ -132,60 +157,6 @@ function PlanCard({
         </FeatureList>
       </View>
     </Pressable>
-  );
-}
-
-function PeriodToggle({
-  period,
-  disabled,
-  onChange,
-}: Readonly<{
-  period: BillingPeriod;
-  disabled: boolean;
-  onChange: (period: BillingPeriod) => void;
-}>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        padding: 4,
-        gap: 4,
-        backgroundColor: theme.colors.surface,
-        borderRadius: radii.md,
-      }}
-    >
-      {(["monthly", "annual"] as const).map((option) => {
-        const selected = period === option;
-        return (
-          <Pressable
-            key={option}
-            accessibilityRole="button"
-            accessibilityLabel={option === "annual" ? "Anual" : "Mensal"}
-            accessibilityState={{ selected, disabled }}
-            disabled={disabled}
-            onPress={() => onChange(option)}
-            style={{
-              flex: 1,
-              minHeight: 44,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: radii.sm,
-              backgroundColor: selected ? theme.colors.surfaceElevated : "transparent",
-              borderWidth: 1,
-              borderColor: selected ? theme.colors.border : "transparent",
-            }}
-          >
-            <Typography
-              variant="desktopBodyStrong"
-              color={selected ? theme.colors.text : theme.colors.textSecondary}
-            >
-              {option === "annual" ? "Anual" : "Mensal"}
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
 
@@ -259,6 +230,7 @@ export function PlansDesktop({
   onContinue,
   usage,
   onCancel,
+  skip,
 }: Readonly<{
   cards: readonly PlanCardData[];
   selectedPlan: PaidPlan;
@@ -272,6 +244,8 @@ export function PlansDesktop({
   onContinue: () => void;
   usage: readonly UsageItem[] | null;
   onCancel: (() => void) | null;
+  /** Saída das boas-vindas ("Continuar no plano Gratuito"), junto do pagamento. */
+  skip: Readonly<{ label: string; onPress: () => void }> | null;
 }>) {
   const { theme } = useTheme();
   const selected = cards.find((card) => card.plan === selectedPlan);
@@ -285,14 +259,9 @@ export function PlansDesktop({
       </View>
       {isUpgrade ? (
         <>
-          <PeriodToggle
-            period={period}
-            disabled={checkoutLoading}
-            onChange={onPeriodChange}
-          />
           <View style={{ gap: spacing.xs }} accessibilityLiveRegion="polite">
             <Typography variant="desktopBodyStrong">{chargeLine}</Typography>
-            <Typography variant="desktopMeta">{chargeHint}</Typography>
+            <Typography variant="desktopBody">{chargeHint}</Typography>
           </View>
           <Button
             title={checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"}
@@ -328,11 +297,30 @@ export function PlansDesktop({
           style={{ width: "100%", minHeight: 48 }}
         />
       ) : null}
+      {skip ? (
+        <Button
+          title={skip.label}
+          variant="text"
+          disabled={checkoutLoading}
+          onPress={skip.onPress}
+          style={{ width: "100%", minHeight: 48 }}
+        />
+      ) : null}
     </View>
   );
 
   return (
     <DesktopSplit aside={aside}>
+      {isUpgrade ? (
+        <View style={{ maxWidth: 420 }}>
+          <PeriodToggle
+            period={period}
+            disabled={checkoutLoading}
+            desktop
+            onChange={onPeriodChange}
+          />
+        </View>
+      ) : null}
       <DesktopGrid
         minColumnWidth={260}
         maxColumns={cards.length > 1 ? 2 : 1}
