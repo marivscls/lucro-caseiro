@@ -6,6 +6,8 @@ vi.mock("../../features/analytics/metadata", () => ({
 
 import {
   SUPPORT_WHATSAPP,
+  hasWhatsAppSupport,
+  supportWhatsAppAppUrl,
   supportWhatsAppMessage,
   supportWhatsAppUrl,
 } from "./support-contact";
@@ -37,5 +39,52 @@ describe("supportWhatsAppUrl", () => {
 
     expect(url.startsWith(`https://wa.me/${SUPPORT_WHATSAPP}?text=`)).toBe(true);
     expect(decodeURIComponent(url.split("?text=")[1] ?? "")).toContain("preço");
+  });
+});
+
+describe("supportWhatsAppAppUrl", () => {
+  it("opens the support chat straight in the WhatsApp app", () => {
+    const url = supportWhatsAppAppUrl("Lucro Caseiro", "preço");
+
+    expect(url.startsWith(`whatsapp://send?phone=${SUPPORT_WHATSAPP}&text=`)).toBe(true);
+  });
+});
+
+describe("hasWhatsAppSupport", () => {
+  const inDays = (days: number) =>
+    new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+  it("is a benefit of paying accounts", () => {
+    expect(
+      hasWhatsAppSupport({
+        plan: "professional",
+        planExpiresAt: inDays(20),
+        planIsTrial: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("is not offered on the free plan, during the trial or without a profile", () => {
+    expect(
+      hasWhatsAppSupport({ plan: "free", planExpiresAt: null, planIsTrial: false }),
+    ).toBe(false);
+    expect(
+      hasWhatsAppSupport({
+        plan: "essential",
+        planExpiresAt: inDays(5),
+        planIsTrial: true,
+      }),
+    ).toBe(false);
+    expect(hasWhatsAppSupport(null)).toBe(false);
+  });
+
+  it("is not offered after the paid plan expires", () => {
+    expect(
+      hasWhatsAppSupport({
+        plan: "professional",
+        planExpiresAt: inDays(-1),
+        planIsTrial: false,
+      }),
+    ).toBe(false);
   });
 });

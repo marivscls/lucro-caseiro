@@ -29,9 +29,11 @@ import {
   SUPPORT_EMAIL,
   SUPPORT_RESPONSE_TIME,
   SUPPORT_WHATSAPP_LABEL,
+  hasWhatsAppSupport,
   openSupportEmail,
   openSupportWhatsApp,
 } from "../shared/utils/support-contact";
+import { useProfile } from "../features/subscription/hooks";
 import { TutorialVideoModal } from "../shared/guidance/tutorial-video-modal";
 import {
   getTutorialVideoUrl,
@@ -39,11 +41,18 @@ import {
   type TutorialVideoSpec,
 } from "../shared/guidance/tutorial-videos";
 
-const STATIC_FAQ: { question: string; answer: string }[] = [
-  {
+const WHATSAPP_PAID_HINT = "Quem assina também fala com a gente pelo WhatsApp.";
+
+function contactFaq(whatsapp: boolean): { question: string; answer: string } {
+  return {
     question: "Como falo com vocês?",
-    answer: `Chame a gente no WhatsApp ${SUPPORT_WHATSAPP_LABEL} ou escreva para ${SUPPORT_EMAIL}. ${SUPPORT_RESPONSE_TIME} O suporte vale para todos os planos.`,
-  },
+    answer: whatsapp
+      ? `Chame a gente no WhatsApp ${SUPPORT_WHATSAPP_LABEL} ou escreva para ${SUPPORT_EMAIL}. ${SUPPORT_RESPONSE_TIME}`
+      : `Escreva para ${SUPPORT_EMAIL} contando em qual tela teve dificuldade. ${SUPPORT_RESPONSE_TIME} ${WHATSAPP_PAID_HINT}`,
+  };
+}
+
+const STATIC_FAQ: { question: string; answer: string }[] = [
   {
     question: "Como cancelo minha assinatura?",
     answer:
@@ -62,6 +71,12 @@ export default function SupportScreen() {
   const experienceCopy = useBusinessCopy();
   const brandName = getBrandDisplayName(useBrand());
   const isDesktop = useDesktopLayout();
+  const { data: profile } = useProfile();
+  const whatsapp = hasWhatsAppSupport(profile);
+  const contactSupport = (question = "") =>
+    whatsapp
+      ? openSupportWhatsApp(brandName, question)
+      : openSupportEmail(brandName, question);
   const [selectedVideo, setSelectedVideo] = useState<{
     video: TutorialVideoSpec;
     url: string;
@@ -112,12 +127,13 @@ export default function SupportScreen() {
       </View>
     ) : null;
   const faq = [
-    ...STATIC_FAQ.slice(0, 2),
+    contactFaq(whatsapp),
+    ...STATIC_FAQ.slice(0, 1),
     {
       question: "Troquei de celular. E os meus dados?",
       answer: `Nada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e ${experienceCopy.formulaNounPlural} voltam automaticamente.`,
     },
-    ...STATIC_FAQ.slice(2),
+    ...STATIC_FAQ.slice(1),
   ];
 
   return (
@@ -146,8 +162,9 @@ export default function SupportScreen() {
             aside={
               <SupportContactDesktop
                 email={SUPPORT_EMAIL}
-                whatsapp={SUPPORT_WHATSAPP_LABEL}
+                whatsapp={whatsapp ? SUPPORT_WHATSAPP_LABEL : null}
                 responseTime={SUPPORT_RESPONSE_TIME}
+                paidHint={WHATSAPP_PAID_HINT}
                 onWhatsApp={() => openSupportWhatsApp(brandName)}
                 onEmail={() => openSupportEmail(brandName)}
               />
@@ -157,7 +174,7 @@ export default function SupportScreen() {
               desktop
               profile={experienceCopy.profile}
               onNavigate={(route) => router.push(route)}
-              onContactSupport={(question) => openSupportWhatsApp(brandName, question)}
+              onContactSupport={contactSupport}
             />
             {videosSection}
             <SupportFaqDesktop items={faq} />
@@ -180,7 +197,7 @@ export default function SupportScreen() {
           <HelpAssistant
             profile={experienceCopy.profile}
             onNavigate={(route) => router.push(route)}
-            onContactSupport={(question) => openSupportWhatsApp(brandName, question)}
+            onContactSupport={contactSupport}
           />
           {videosSection}
           <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
@@ -196,35 +213,49 @@ export default function SupportScreen() {
               O suporte está disponível para todos, em qualquer plano. Conte em qual etapa
               teve dificuldade para a gente ajudar. {SUPPORT_RESPONSE_TIME}
             </Typography>
-            <Button
-              title="Chamar no WhatsApp"
-              size="lg"
-              icon={
-                <AppIcon
-                  name="logo-whatsapp"
-                  size={20}
-                  color={theme.colors.textOnPrimary}
-                />
-              }
-              onPress={() => openSupportWhatsApp(brandName)}
-              style={desktopAction(isDesktop, 240)}
-            />
+            {whatsapp ? (
+              <Button
+                title="Chamar no WhatsApp"
+                size="lg"
+                icon={
+                  <AppIcon
+                    name="logo-whatsapp"
+                    size={20}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
+                onPress={() => openSupportWhatsApp(brandName)}
+                style={desktopAction(isDesktop, 240)}
+              />
+            ) : null}
             <Button
               title="Enviar e-mail"
-              variant="outline"
+              size={whatsapp ? "md" : "lg"}
+              variant={whatsapp ? "outline" : "primary"}
               icon={
-                <AppIcon name="mail-outline" size={20} color={theme.colors.primary} />
+                <AppIcon
+                  name="mail-outline"
+                  size={20}
+                  color={whatsapp ? theme.colors.primary : theme.colors.textOnPrimary}
+                />
               }
               onPress={() => openSupportEmail(brandName)}
               style={desktopAction(isDesktop, 240)}
             />
             <View style={{ gap: 2 }}>
-              <Typography variant="caption" selectable>
-                WhatsApp: {SUPPORT_WHATSAPP_LABEL}
-              </Typography>
+              {whatsapp ? (
+                <Typography variant="caption" selectable>
+                  WhatsApp: {SUPPORT_WHATSAPP_LABEL}
+                </Typography>
+              ) : null}
               <Typography variant="caption" selectable>
                 E-mail: {SUPPORT_EMAIL}
               </Typography>
+              {whatsapp ? null : (
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {WHATSAPP_PAID_HINT}
+                </Typography>
+              )}
             </View>
           </Card>
 

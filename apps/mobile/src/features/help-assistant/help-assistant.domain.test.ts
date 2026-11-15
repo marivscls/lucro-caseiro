@@ -61,7 +61,7 @@ describe("help assistant", () => {
   it("directs reports of failures to human support", () => {
     const answer = answerHelpQuestion("O app dá erro quando salvo o produto", "food");
     expect(answer.kind).toBe("handoff");
-    expect(answer.text).toContain("WhatsApp");
+    expect(answer.text).toContain("Falar com a equipe");
   });
   it("does not invent an answer outside the app's instructions", () => {
     const answer = answerHelpQuestion("qual a temperatura ideal para assar pão?", "food");

@@ -81,7 +81,7 @@ describe("HelpAssistant", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Perguntar" }));
     expect(contact).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Falar no WhatsApp" }));
+    fireEvent.click(screen.getByRole("button", { name: "Falar com a equipe" }));
     expect(contact).toHaveBeenCalledWith("Minha tela travou");
   });
   it("keeps the same questions and actions in the desktop layout", () => {
@@ -99,7 +99,7 @@ describe("HelpAssistant", () => {
     fireEvent.change(screen.getByLabelText("Sua pergunta"), {
       target: { value: "Minha tela travou" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Falar no WhatsApp" }));
+    fireEvent.click(screen.getByRole("button", { name: "Falar com a equipe" }));
     expect(contact).toHaveBeenCalledWith("Minha tela travou");
   });
   it("disables sending an empty question", () => {

@@ -18,12 +18,15 @@ export function SupportContactDesktop({
   email,
   whatsapp,
   responseTime,
+  paidHint,
   onWhatsApp,
   onEmail,
 }: Readonly<{
   email: string;
-  whatsapp: string;
+  /** Número do WhatsApp; null quando o plano não inclui (só quem paga). */
+  whatsapp: string | null;
   responseTime: string;
+  paidHint: string;
   onWhatsApp: () => void;
   onEmail: () => void;
 }>) {
@@ -44,29 +47,45 @@ export function SupportContactDesktop({
         O suporte está disponível para todos, em qualquer plano. Conte em qual etapa teve
         dificuldade para a gente ajudar. {responseTime}
       </Typography>
-      <Button
-        title="Chamar no WhatsApp"
-        size="lg"
-        icon={
-          <AppIcon name="logo-whatsapp" size={20} color={theme.colors.textOnPrimary} />
-        }
-        onPress={onWhatsApp}
-        style={{ width: "100%", minHeight: 48 }}
-      />
+      {whatsapp ? (
+        <Button
+          title="Chamar no WhatsApp"
+          size="lg"
+          icon={
+            <AppIcon name="logo-whatsapp" size={20} color={theme.colors.textOnPrimary} />
+          }
+          onPress={onWhatsApp}
+          style={{ width: "100%", minHeight: 48 }}
+        />
+      ) : null}
       <Button
         title="Enviar e-mail"
-        variant="outline"
-        icon={<AppIcon name="mail-outline" size={20} color={theme.colors.primary} />}
+        size={whatsapp ? "md" : "lg"}
+        variant={whatsapp ? "outline" : "primary"}
+        icon={
+          <AppIcon
+            name="mail-outline"
+            size={20}
+            color={whatsapp ? theme.colors.primary : theme.colors.textOnPrimary}
+          />
+        }
         onPress={onEmail}
         style={{ width: "100%", minHeight: 48 }}
       />
       <View style={{ gap: 2 }}>
-        <Typography variant="desktopMeta" selectable>
-          WhatsApp: {whatsapp}
-        </Typography>
+        {whatsapp ? (
+          <Typography variant="desktopMeta" selectable>
+            WhatsApp: {whatsapp}
+          </Typography>
+        ) : null}
         <Typography variant="desktopMeta" selectable>
           E-mail: {email}
         </Typography>
+        {whatsapp ? null : (
+          <Typography variant="desktopMeta" color={theme.colors.textSecondary}>
+            {paidHint}
+          </Typography>
+        )}
       </View>
     </View>
   );
