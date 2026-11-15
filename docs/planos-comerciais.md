@@ -5,6 +5,43 @@ Data: 2026-06-30
 
 Este documento registra o modelo de planos desejado para o Lucro Caseiro, inspirado na logica de planos do Kyte, mas simplificado para apenas dois planos pagos.
 
+## Decisao 2026-11-15 (2): Gratuito mais enxuto
+
+Comparado ao Kyte (FREE sem fiado, estoque, relatorios e caixa completo; PRO a R$ 49,90), o
+Gratuito dava quase tudo e sobrava pouco motivo para assinar. Regras novas (matriz em
+`@lucro-caseiro/contracts`, `plans.ts`):
+
+| Recurso                                           | Gratuito          | Premium          |
+| ------------------------------------------------- | ----------------- | ---------------- |
+| Vendas                                            | Ilimitadas        | Ilimitadas       |
+| Calculo de preco completo                         | Sim               | Sim              |
+| Produtos / clientes                               | 15 / 30           | Sem limite       |
+| Fiado (venda nova a prazo, link de cobranca, Pix) | Nao               | Sim              |
+| Encomendas novas na agenda                        | 5 por mes         | Sem limite       |
+| Financeiro (tela)                                 | So a semana atual | Qualquer periodo |
+| Catalogo publico                                  | 5 produtos        | Completo         |
+| Resumo do mes e orcamentos em PDF                 | Nao               | Sim              |
+| Lembretes, resumo da semana, aniversarios         | Sim               | Sim              |
+
+Regras de comportamento:
+
+- **Fiado** (`fiado`): no Gratuito nao da para registrar venda nova com pagamento pendente
+  (forma "fiado"/credit ou valor recebido menor que o total) nem gerar link de cobranca/Pix
+  do fiado. Dar baixa (marcar como pago, receber parte) e ver o que ja estava pendente
+  continua livre: receber dinheiro nunca e bloqueado.
+- **Agenda** (`maxOrdersPerMonth` = 5): conta as encomendas criadas no mes corrente. O limite
+  vale para criar pelo app (nova encomenda, converter orcamento). Pedidos que chegam pelo
+  catalogo publico ou por pedido de agendamento sempre entram, para ninguem perder cliente.
+- **Financeiro** (`financeHistory`): a tela Financeiro do Gratuito mostra e lista so a semana
+  atual (segunda a domingo, horario de Brasilia). O resumo do mes corrente continua liberado,
+  porque o Inicio mostra "quanto sobrou no mes" (a promessa principal do app). Meses
+  anteriores e outros periodos sao Premium.
+- **PDFs** (`exportBasic`, `quotesPdf`): resumo do mes e orcamento em PDF passam para o Premium.
+- Quem ja passou dos novos limites nao perde nada: continua vendo e editando tudo, so nao cria
+  novos itens alem do limite. Teste gratis e qualquer plano pago liberam tudo.
+- A liberacao de 2026-10-18 (PDFs e catalogo com 10 no Gratuito, proposta de LUCAS) foi
+  revista por esta decisao.
+
 ## Decisao 2026-11-15: um plano pago so (Premium)
 
 Substitui o modelo de dois planos pagos descrito abaixo, que fica como historico.

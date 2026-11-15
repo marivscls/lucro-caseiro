@@ -4,10 +4,14 @@ import type {
   RecurringExpense,
 } from "@lucro-caseiro/contracts";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import {
   calculateProfit,
+  clampToWeek,
+  currentWeekRange,
+  FINANCE_HISTORY_PREMIUM_MESSAGE,
+  isCurrentBrazilMonth,
   recurringEntryDate,
   validateFinanceEntry,
   validateRecurringExpense,
@@ -21,7 +25,51 @@ import type {
 } from "./finance.types";
 
 export class FinanceUseCases {
-  constructor(private repo: IFinanceRepo) {}
+  /**
+   * `hasFinanceHistory` (opcional): o plano libera o Financeiro além da semana
+   * atual (feature `financeHistory`). Sem ele (testes e rotinas internas como
+   * metas, MEI e PDF), nada é limitado.
+   */
+  constructor(
+    private repo: IFinanceRepo,
+    private hasFinanceHistory?: (userId: string) => Promise<boolean>,
+  ) {}
+
+  private async limitedToCurrentPeriod(userId: string): Promise<boolean> {
+    if (!this.hasFinanceHistory) return false;
+    return !(await this.hasFinanceHistory(userId));
+  }
+
+  /**
+   * Lista da tela Financeiro. No Gratuito o período é preso à semana atual
+   * (horário de Brasília); no Premium segue o período pedido.
+   */
+  async listForPlan(userId: string, opts: FindAllOpts, now: Date = new Date()) {
+    if (!(await this.limitedToCurrentPeriod(userId))) {
+      return this.list(userId, opts);
+    }
+    const week = clampToWeek(opts, currentWeekRange(now));
+    return this.list(userId, { ...opts, ...week });
+  }
+
+  /**
+   * Resumo da tela Financeiro/Início. No Gratuito só o mês corrente (o Início
+   * mostra quanto sobrou no mês); outros meses → LimitExceededError (403).
+   */
+  async getMonthlySummaryForPlan(
+    userId: string,
+    month: number,
+    year: number,
+    now: Date = new Date(),
+  ): Promise<FinanceSummary> {
+    if (
+      !isCurrentBrazilMonth(month, year, now) &&
+      (await this.limitedToCurrentPeriod(userId))
+    ) {
+      throw new LimitExceededError(FINANCE_HISTORY_PREMIUM_MESSAGE);
+    }
+    return this.getMonthlySummary(userId, month, year);
+  }
 
   async create(userId: string, data: CreateFinanceEntryData): Promise<FinanceEntry> {
     const errors = validateFinanceEntry(data);

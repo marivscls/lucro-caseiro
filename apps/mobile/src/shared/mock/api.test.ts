@@ -157,8 +157,9 @@ describe("mock api — dados da confeitaria de exemplo", () => {
 
     // Assert
     expect(limits).toMatchObject({
-      maxProducts: 30,
-      maxClients: 50,
+      maxProducts: 15,
+      maxClients: 30,
+      maxOrdersPerMonth: 5,
       currentProducts: 6,
       currentClients: 6,
     });

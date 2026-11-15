@@ -326,7 +326,7 @@ describe("CatalogUseCases.updateSettings", () => {
 });
 
 describe("CatalogUseCases.getPublicCatalog", () => {
-  it("plano free exibe no maximo 10 produtos, com totalProducts real", async () => {
+  it("plano free exibe no maximo 5 produtos, com totalProducts real", async () => {
     const many = Array.from({ length: 14 }, () => makeProduct());
     const sut = new CatalogUseCases(
       makeRepo({ listPublicProducts: () => Promise.resolve(many) }),
@@ -334,7 +334,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
 
     const catalog = await sut.getPublicCatalog("doces-da-maria");
 
-    expect(catalog.products).toHaveLength(10);
+    expect(catalog.products).toHaveLength(5);
     expect(catalog.totalProducts).toBe(14);
   });
 
@@ -351,7 +351,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
 
     const catalog = await sut.getPublicCatalog("doces-da-maria", focusedProduct.id);
 
-    expect(catalog.products).toHaveLength(10);
+    expect(catalog.products).toHaveLength(5);
     expect(catalog.products[0]?.id).toBe(focusedProduct.id);
     expect(catalog.totalProducts).toBe(12);
   });

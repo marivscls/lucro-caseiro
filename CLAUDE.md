@@ -34,21 +34,27 @@
 
 ### Limites Freemium
 
-| Recurso            | Free          | Premium             |
-| ------------------ | ------------- | ------------------- |
-| Vendas/mes         | Ilimitado     | Ilimitado           |
-| Clientes           | 50            | Ilimitado           |
-| Produtos           | 30            | Ilimitado           |
-| Receitas           | 5             | Ilimitado           |
-| Embalagens         | 3             | Ilimitado           |
-| Fornecedores       | 3             | Ilimitado           |
-| Rotulos            | 1 template    | Ilimitado           |
-| Catalogo           | 10 (vitrine)  | Ilimitado + visual  |
-| Relatorios         | Basico mensal | Completo + graficos |
-| Exportacao         | PDF do mes    | PDF/Excel           |
-| Orcamentos em PDF  | Sim           | Sim                 |
-| Lembretes/resumos  | Sim           | Sim                 |
-| Gastos recorrentes | Nao           | Ilimitado           |
+| Recurso              | Free                | Premium             |
+| -------------------- | ------------------- | ------------------- |
+| Vendas/mes           | Ilimitado           | Ilimitado           |
+| Calculo de preco     | Completo            | Completo + avancado |
+| Clientes             | 30                  | Ilimitado           |
+| Produtos             | 15                  | Ilimitado           |
+| Receitas             | 5                   | Ilimitado           |
+| Embalagens           | 3                   | Ilimitado           |
+| Fornecedores         | 3                   | Ilimitado           |
+| Encomendas novas/mes | 5                   | Ilimitado           |
+| Fiado (venda nova)   | Nao (baixa e livre) | Sim                 |
+| Financeiro (tela)    | Semana atual        | Qualquer periodo    |
+| Rotulos              | 1 template          | Ilimitado           |
+| Catalogo             | 5 (vitrine)         | Ilimitado + visual  |
+| Relatorios           | Basico mensal       | Completo + graficos |
+| Exportacao           | Nao                 | PDF/Excel           |
+| Orcamentos em PDF    | Nao                 | Sim                 |
+| Lembretes/resumos    | Sim                 | Sim                 |
+| Gastos recorrentes   | Nao                 | Ilimitado           |
+
+Regras detalhadas: `docs/planos-comerciais.md` (decisoes de 2026-11-15).
 
 ## Arquitetura (Boundaries)
 

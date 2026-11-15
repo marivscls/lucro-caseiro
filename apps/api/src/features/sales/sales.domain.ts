@@ -13,9 +13,11 @@ function discountAmount(
 }
 
 export function calculateSaleTotal(items: SaleItemData[]): number {
-  return Math.round(
-    items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) * 100,
-  ) / 100;
+  return (
+    Math.round(
+      items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) * 100,
+    ) / 100
+  );
 }
 
 export function calculateSalePricing(
@@ -67,6 +69,22 @@ export function canCancelSale(status: SaleStatus): boolean {
  */
 export function initialSaleStatus(paymentMethod: string): SaleStatus {
   return paymentMethod === "credit" ? "pending" : "paid";
+}
+
+export const FIADO_PREMIUM_MESSAGE =
+  "Registrar venda no fiado faz parte do plano Premium. Você ainda pode dar baixa no que já está pendente.";
+
+/**
+ * Venda nova que nasce com saldo em aberto (vai para o Fiado): forma "credit"
+ * ou valor recebido menor que o total.
+ */
+export function createsPendingSale(sale: {
+  paymentMethod?: string;
+  total: number;
+  amountReceived?: number;
+}): boolean {
+  if (sale.paymentMethod === "credit") return true;
+  return sale.amountReceived !== undefined && sale.amountReceived < sale.total;
 }
 
 export function buildDaySummary(totalSales: number, totalAmount: number): DaySummary {

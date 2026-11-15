@@ -4,6 +4,10 @@ import type { FinanceEntry } from "@lucro-caseiro/contracts";
 
 import {
   calculateProfit,
+  clampToWeek,
+  currentBrazilMonth,
+  currentWeekRange,
+  isCurrentBrazilMonth,
   formatCurrency,
   groupByCategory,
   recurringEntryDate,
@@ -187,5 +191,88 @@ describe("groupByCategory", () => {
 
     expect(Object.keys(grouped)).toHaveLength(1);
     expect(grouped["fee"]).toHaveLength(2);
+  });
+});
+
+describe("currentWeekRange (horário de Brasília)", () => {
+  it("returns Monday to Sunday for a mid-week day", () => {
+    // Arrange: quarta-feira, 11/11/2026, 15:00 em Brasília
+    const now = new Date("2026-11-11T18:00:00Z");
+
+    // Act
+    const week = currentWeekRange(now);
+
+    // Assert
+    expect(week).toEqual({ startDate: "2026-11-09", endDate: "2026-11-15" });
+  });
+
+  it("keeps Sunday late evening in Brasília inside the same week", () => {
+    // Arrange: domingo 15/11 23:30 em Brasília = segunda 16/11 02:30 UTC
+    const now = new Date("2026-11-16T02:30:00Z");
+
+    // Act
+    const week = currentWeekRange(now);
+
+    // Assert
+    expect(week).toEqual({ startDate: "2026-11-09", endDate: "2026-11-15" });
+  });
+
+  it("starts a new week on Monday 00:00 in Brasília", () => {
+    // Arrange: segunda 16/11 00:00 em Brasília
+    const now = new Date("2026-11-16T03:00:00Z");
+
+    // Act
+    const week = currentWeekRange(now);
+
+    // Assert
+    expect(week).toEqual({ startDate: "2026-11-16", endDate: "2026-11-22" });
+  });
+
+  it("crosses month and year boundaries", () => {
+    // Arrange: quinta 31/12/2026
+    const now = new Date("2026-12-31T15:00:00Z");
+
+    // Act
+    const week = currentWeekRange(now);
+
+    // Assert
+    expect(week).toEqual({ startDate: "2026-12-28", endDate: "2027-01-03" });
+  });
+});
+
+describe("clampToWeek", () => {
+  const week = { startDate: "2026-11-09", endDate: "2026-11-15" };
+
+  it("uses the whole week when no period is given", () => {
+    expect(clampToWeek({}, week)).toEqual(week);
+  });
+
+  it("raises the start and lowers the end to the week limits", () => {
+    expect(clampToWeek({ startDate: "2026-11-01", endDate: "2026-11-30" }, week)).toEqual(
+      week,
+    );
+  });
+
+  it("keeps a period that is already inside the week", () => {
+    expect(clampToWeek({ startDate: "2026-11-10", endDate: "2026-11-12" }, week)).toEqual(
+      { startDate: "2026-11-10", endDate: "2026-11-12" },
+    );
+  });
+
+  it("turns a period entirely before the week into an empty range", () => {
+    const range = clampToWeek({ startDate: "2026-10-01", endDate: "2026-10-31" }, week);
+    expect(range.startDate > range.endDate).toBe(true);
+  });
+});
+
+describe("currentBrazilMonth / isCurrentBrazilMonth", () => {
+  it("uses the Brasília month at the UTC month turn", () => {
+    // Arrange: 30/11 22:00 em Brasília = 01/12 01:00 UTC
+    const now = new Date("2026-12-01T01:00:00Z");
+
+    // Act / Assert
+    expect(currentBrazilMonth(now)).toEqual({ month: 11, year: 2026 });
+    expect(isCurrentBrazilMonth(11, 2026, now)).toBe(true);
+    expect(isCurrentBrazilMonth(12, 2026, now)).toBe(false);
   });
 });

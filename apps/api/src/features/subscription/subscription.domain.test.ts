@@ -18,6 +18,7 @@ function makeCounts(overrides: Partial<ResourceCounts> = {}): ResourceCounts {
     packaging: 0,
     products: 0,
     suppliers: 0,
+    ordersThisMonth: 0,
     ...overrides,
   };
 }
@@ -26,9 +27,28 @@ describe("buildFreemiumLimits", () => {
   it("returns free limits for free plan", () => {
     const result = buildFreemiumLimits(makeCounts({ salesThisMonth: 5 }), "free");
     expect(result.maxSalesPerMonth).toBeNull();
-    expect(result.maxClients).toBe(50);
-    expect(result.maxProducts).toBe(30);
+    expect(result.maxClients).toBe(30);
+    expect(result.maxProducts).toBe(15);
     expect(result.currentSalesThisMonth).toBe(5);
+  });
+
+  it("returns the monthly orders limit and the current orders count on free", () => {
+    // Arrange
+    const counts = makeCounts({ ordersThisMonth: 3 });
+
+    // Act
+    const result = buildFreemiumLimits(counts, "free");
+
+    // Assert
+    expect(result.maxOrdersPerMonth).toBe(5);
+    expect(result.currentOrdersThisMonth).toBe(3);
+  });
+
+  it("returns unlimited orders on paid plans", () => {
+    expect(buildFreemiumLimits(makeCounts(), "essential").maxOrdersPerMonth).toBeNull();
+    expect(
+      buildFreemiumLimits(makeCounts(), "professional").maxOrdersPerMonth,
+    ).toBeNull();
   });
 
   it("returns null volume limits for essential but keeps suppliers capped", () => {
@@ -64,12 +84,12 @@ describe("isLimitExceeded", () => {
   });
 
   it("returns false just below the new clients and products limits", () => {
-    expect(isLimitExceeded("clients", makeCounts({ clients: 49 }), "free")).toBe(false);
-    expect(isLimitExceeded("products", makeCounts({ products: 29 }), "free")).toBe(false);
+    expect(isLimitExceeded("clients", makeCounts({ clients: 29 }), "free")).toBe(false);
+    expect(isLimitExceeded("products", makeCounts({ products: 14 }), "free")).toBe(false);
   });
 
   it("returns true when at clients limit", () => {
-    expect(isLimitExceeded("clients", makeCounts({ clients: 50 }), "free")).toBe(true);
+    expect(isLimitExceeded("clients", makeCounts({ clients: 30 }), "free")).toBe(true);
   });
 
   it("returns true when at recipes limit", () => {
@@ -81,7 +101,22 @@ describe("isLimitExceeded", () => {
   });
 
   it("returns true when at products limit", () => {
-    expect(isLimitExceeded("products", makeCounts({ products: 30 }), "free")).toBe(true);
+    expect(isLimitExceeded("products", makeCounts({ products: 15 }), "free")).toBe(true);
+  });
+
+  it("blocks the 6th order of the month on free", () => {
+    expect(isLimitExceeded("orders", makeCounts({ ordersThisMonth: 4 }), "free")).toBe(
+      false,
+    );
+    expect(isLimitExceeded("orders", makeCounts({ ordersThisMonth: 5 }), "free")).toBe(
+      true,
+    );
+  });
+
+  it("never blocks orders on paid plans", () => {
+    const heavy = makeCounts({ ordersThisMonth: 9999 });
+    expect(isLimitExceeded("orders", heavy, "essential")).toBe(false);
+    expect(isLimitExceeded("orders", heavy, "professional")).toBe(false);
   });
 
   it("returns true when at suppliers limit", () => {
@@ -125,6 +160,13 @@ describe("getLimitMessage", () => {
     expect(getLimitMessage("packaging")).toContain("embalagens");
     expect(getLimitMessage("products")).toContain("produtos");
     expect(getLimitMessage("suppliers")).toContain("fornecedores");
+    expect(getLimitMessage("orders")).toContain("encomendas");
+  });
+
+  it("uses the new free numbers in the messages", () => {
+    expect(getLimitMessage("clients")).toContain("30 clientes");
+    expect(getLimitMessage("products")).toContain("15 produtos");
+    expect(getLimitMessage("orders")).toContain("5 encomendas do mês");
   });
 
   it("upsells every resource to Premium", () => {
@@ -135,6 +177,7 @@ describe("getLimitMessage", () => {
       "recipes",
       "packaging",
       "suppliers",
+      "orders",
     ] as const) {
       expect(getLimitMessage(resource)).toContain("Premium");
       expect(getLimitMessage(resource)).not.toMatch(/Essencial|Profissional/);

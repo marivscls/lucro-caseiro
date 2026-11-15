@@ -222,7 +222,18 @@ const productsUseCases = new ProductsUseCases(
 const clientsUseCases = new ClientsUseCases(clientsRepo);
 const suppliersUseCases = new SuppliersUseCases(suppliersRepo);
 const materialsUseCases = new MaterialsUseCases(materialsRepo);
-const financeUseCases = new FinanceUseCases(financeRepo);
+// Gate de plano por feature (usado onde o gate vive no usecase, não em middleware).
+const userHasFeature =
+  (feature: PlanFeature) =>
+  async (userId: string): Promise<boolean> => {
+    const profile = await subscriptionRepo.getProfile(userId);
+    return !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, feature);
+  };
+// Gratuito: tela Financeiro só na semana atual e resumo só do mês corrente.
+const financeUseCases = new FinanceUseCases(
+  financeRepo,
+  userHasFeature("financeHistory"),
+);
 const referralsUseCases = new ReferralsUseCases(new ReferralsRepoPg(db));
 const salesUseCases = new SalesUseCases(
   salesRepo,
@@ -250,6 +261,8 @@ const salesUseCases = new SalesUseCases(
   financeUseCases,
   // Indicação premiada: a 3ª venda da conta indicada libera o prêmio das duas.
   { onSaleCreated: (userId) => referralsUseCases.checkReward(userId) },
+  // Venda nova no fiado (pendente) só no Premium; dar baixa segue livre.
+  { canCreatePendingSale: userHasFeature("fiado") },
 );
 const retailUseCases = new RetailUseCases(
   new RetailRepoPg(db),
@@ -391,13 +404,6 @@ const purchasesUseCases = new PurchasesUseCases(
   productsRepo,
 );
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
-// Gate de plano por feature (usado onde o gate vive no usecase, não em middleware).
-const userHasFeature =
-  (feature: PlanFeature) =>
-  async (userId: string): Promise<boolean> => {
-    const profile = await subscriptionRepo.getProfile(userId);
-    return !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, feature);
-  };
 const labelsUseCases = new LabelsUseCases(labelsRepo, userHasFeature("labelsPremium"));
 const packagingUseCases = new PackagingUseCases(packagingRepo);
 const pricingUseCases = new PricingUseCases(pricingRepo);
@@ -610,10 +616,18 @@ app.use(
   ),
 );
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
-app.use("/api/v1/fiado", createFiadoRouter(fiadoUseCases));
+app.use(
+  "/api/v1/fiado",
+  createFiadoRouter(fiadoUseCases, requireFeature(subscriptionRepo, "fiado")),
+);
 app.use("/api/v1/referrals", createReferralsRouter(referralsUseCases));
 app.use("/api/v1/mei", createMeiRouter(meiUseCases));
-app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
+// Limite mensal de encomendas do Gratuito só na criação pelo app (catálogo,
+// agendamentos, pacotes e repetições entram por outros caminhos).
+app.use(
+  "/api/v1/orders",
+  createOrdersRouter(ordersUseCases, freemiumGuard(subscriptionRepo, "orders")),
+);
 app.use("/api/v1/production", createProductionRouter(productionUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
 app.use(
@@ -639,7 +653,10 @@ app.use(
 );
 app.use(
   "/api/v1/quotes",
-  createQuotesRouter(new QuotesUseCases(new QuotesRepoPg(db), ordersUseCases)),
+  createQuotesRouter(
+    new QuotesUseCases(new QuotesRepoPg(db), ordersUseCases),
+    freemiumGuard(subscriptionRepo, "orders"),
+  ),
 );
 app.use("/api/v1/catalog", createCatalogRouter(catalogUseCases));
 app.use("/api/v1/retail", createRetailRouter(retailUseCases));

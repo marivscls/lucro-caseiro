@@ -116,3 +116,5 @@ db:
 ## Change log / Decisions
 
 - 2026-09-28: criado (aposta 1). Pix estático para não depender de banco nem cobrar taxa.
+
+- 2026-11-15: Gratuito mais enxuto (feature `fiado`). `PUT /api/v1/fiado/pix` e `POST /api/v1/fiado/links` passam por `requireFeature(subscriptionRepo, "fiado")` (2º argumento opcional de `createFiadoRouter`): no Gratuito, 403 `LIMIT_EXCEEDED` com "Cobrar o fiado por link ou Pix faz parte do plano Premium. Você ainda pode dar baixa no que já está pendente.". `GET /api/v1/fiado/pix` e o extrato público `/f/:token` continuam livres, então links já criados seguem abrindo. Dar baixa nas vendas pendentes é da feature sales e nunca é barrado.

@@ -151,6 +151,10 @@ function limits(data: DemoData, now: number) {
     currentPackaging: 0,
     currentProducts: data.products.length,
     currentSuppliers: 0,
+    // Encomendas criadas no mês pelo app (as do catálogo não contam).
+    currentOrdersThisMonth: data.orders.filter(
+      (order) => order.createdAt.startsWith(month) && order.source !== "catalog",
+    ).length,
   };
 }
 

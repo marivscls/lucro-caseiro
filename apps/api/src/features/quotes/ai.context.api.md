@@ -140,3 +140,5 @@ invariants:
 - 2026-06-10: criação. Conversão gera **encomenda** (não venda) porque o fluxo real é
   produzir antes de entregar; a venda nasce na entrega da encomenda. Orçamentos não
   contam no limite freemium de vendas.
+
+- 2026-11-15: Gratuito mais enxuto. `POST /api/v1/quotes/:id/convert` cria uma encomenda, então passa por `freemiumGuard(subscriptionRepo, "orders")` (2º argumento opcional de `createQuotesRouter`): no Gratuito, com 5 encomendas criadas no mês, responde 403 `LIMIT_EXCEEDED`. Criar, editar e ver orçamentos continuam livres. Orçamento em PDF (`quotesPdf`) virou Premium na matriz, mas o PDF é gerado no app; a API não tem rota de PDF de orçamento para barrar.

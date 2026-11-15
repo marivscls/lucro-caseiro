@@ -9,12 +9,21 @@ import {
   UpdateOrderDto,
   UpdateServiceDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { OrdersUseCases } from "./orders.usecases";
 
-export function createOrdersRouter(useCases: OrdersUseCases): Router {
+/**
+ * `createGuard` (opcional): limite mensal de encomendas do Gratuito
+ * (`freemiumGuard(..., "orders")`). Vale só para a encomenda criada pelo app;
+ * pedidos do catálogo, pedidos de agendamento, pacotes e a próxima ocorrência de
+ * uma encomenda que se repete são criados por outros caminhos e nunca travam.
+ */
+export function createOrdersRouter(
+  useCases: OrdersUseCases,
+  createGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
@@ -125,7 +134,7 @@ export function createOrdersRouter(useCases: OrdersUseCases): Router {
     }
   });
 
-  router.post("/", async (req, res, next) => {
+  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreateOrderDto.parse(req.body);

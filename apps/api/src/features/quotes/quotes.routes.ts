@@ -5,12 +5,19 @@ import {
   UpdateQuoteDto,
   UpdateQuoteStatusDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { QuotesUseCases } from "./quotes.usecases";
 
-export function createQuotesRouter(useCases: QuotesUseCases): Router {
+/**
+ * `convertGuard` (opcional): converter orçamento cria uma encomenda nova, então
+ * respeita o limite mensal de encomendas do Gratuito (`freemiumGuard(..., "orders")`).
+ */
+export function createQuotesRouter(
+  useCases: QuotesUseCases,
+  convertGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
@@ -66,14 +73,18 @@ export function createQuotesRouter(useCases: QuotesUseCases): Router {
     }
   });
 
-  router.post("/:id/convert", async (req, res, next) => {
-    try {
-      const data = ConvertQuoteDto.parse(req.body);
-      res.json(await useCases.convertToOrder(getUserId(req), req.params.id, data));
-    } catch (err) {
-      next(err);
-    }
-  });
+  router.post<{ id: string }>(
+    "/:id/convert",
+    ...(convertGuard ? [convertGuard] : []),
+    async (req, res, next) => {
+      try {
+        const data = ConvertQuoteDto.parse(req.body);
+        res.json(await useCases.convertToOrder(getUserId(req), req.params.id, data));
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   router.delete("/:id", async (req, res, next) => {
     try {

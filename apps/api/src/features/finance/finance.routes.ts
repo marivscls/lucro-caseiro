@@ -10,6 +10,7 @@ import { Router, type Request, type RequestHandler } from "express";
 
 import { ValidationError } from "../../shared/errors";
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { currentBrazilMonth } from "./finance.domain";
 import { generateFinanceExcel, generateFinancePdf } from "./finance.export";
 import type { FinanceUseCases } from "./finance.usecases";
 
@@ -30,9 +31,9 @@ export function createFinanceRouter(
 ): Router {
   const router = Router();
   router.use(authMiddleware);
-  // PDF do resumo mensal vale em todos os planos (ADR-0005: feature `exportBasic`).
-  // Excel e relatórios avançados seguem exclusivos do Premium (`export`). Guards
-  // opcionais (testes sem eles).
+  // PDF do resumo mensal (feature `exportBasic`) faz parte do plano Premium desde
+  // 2026-11-15; Excel e relatórios avançados também (`export`). Guards opcionais
+  // (testes sem eles).
   const basicGuards = exportBasicGuard ? [exportBasicGuard] : [];
   const guards = exportGuard ? [exportGuard] : [];
 
@@ -111,7 +112,8 @@ export function createFinanceRouter(
       const fixedParam = req.query.fixed as string | undefined;
       const isFixed = fixedParam === undefined ? undefined : fixedParam === "true";
 
-      const result = await useCases.list(userId, {
+      // Gratuito: preso à semana atual (feature `financeHistory`, no usecase).
+      const result = await useCases.listForPlan(userId, {
         page,
         limit,
         type,
@@ -130,11 +132,13 @@ export function createFinanceRouter(
   router.get("/summary", async (req, res, next) => {
     try {
       const userId = getUserId(req);
-      const now = new Date();
-      const month = req.query.month ? Number(req.query.month) : now.getMonth() + 1;
-      const year = req.query.year ? Number(req.query.year) : now.getFullYear();
+      // Padrão: mês corrente no horário de Brasília (o servidor roda em UTC).
+      const current = currentBrazilMonth();
+      const month = req.query.month ? Number(req.query.month) : current.month;
+      const year = req.query.year ? Number(req.query.year) : current.year;
 
-      const summary = await useCases.getMonthlySummary(userId, month, year);
+      // Gratuito: só o mês corrente; outros meses → 403 LIMIT_EXCEEDED.
+      const summary = await useCases.getMonthlySummaryForPlan(userId, month, year);
       res.json(summary);
     } catch (err) {
       next(err);

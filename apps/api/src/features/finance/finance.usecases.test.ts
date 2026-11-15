@@ -1,9 +1,9 @@
 import type { FinanceEntry, RecurringExpense } from "@lucro-caseiro/contracts";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { FinanceUseCases } from "./finance.usecases";
-import type { CreateFinanceEntryData, IFinanceRepo } from "./finance.types";
+import type { CreateFinanceEntryData, FindAllOpts, IFinanceRepo } from "./finance.types";
 
 const USER_ID = "user-123";
 
@@ -369,5 +369,129 @@ describe("FinanceUseCases", () => {
 
       expect(createCalls).toBe(0);
     });
+  });
+});
+
+describe("Financeiro por plano (financeHistory, 2026-11-15)", () => {
+  // Quarta-feira, 11/11/2026, 15:00 em Brasília → semana 09/11 a 15/11.
+  const NOW = new Date("2026-11-11T18:00:00Z");
+
+  function makePlanSut(hasHistory: boolean) {
+    const findAll = vi.fn((_userId: string, _opts: FindAllOpts) =>
+      Promise.resolve({ items: [makeEntry()], total: 1 }),
+    );
+    const getSummary = vi.fn(() =>
+      Promise.resolve({
+        totalIncome: 1000,
+        totalExpenses: 600,
+        fixedExpenses: 200,
+        variableExpenses: 400,
+        profit: 400,
+      }),
+    );
+    const repo = makeRepo({ findAll, getSummary });
+    const sut = new FinanceUseCases(repo, () => Promise.resolve(hasHistory));
+    return { sut, findAll, getSummary };
+  }
+
+  it("clamps the free list to the current week", async () => {
+    // Arrange
+    const { sut, findAll } = makePlanSut(false);
+
+    // Act
+    await sut.listForPlan(
+      USER_ID,
+      { page: 1, limit: 20, startDate: "2026-01-01", endDate: "2026-12-31" },
+      NOW,
+    );
+
+    // Assert
+    expect(findAll).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ startDate: "2026-11-09", endDate: "2026-11-15" }),
+    );
+  });
+
+  it("uses the current week when a free user asks for no period", async () => {
+    // Arrange
+    const { sut, findAll } = makePlanSut(false);
+
+    // Act
+    await sut.listForPlan(USER_ID, { page: 1, limit: 20 }, NOW);
+
+    // Assert
+    expect(findAll).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ startDate: "2026-11-09", endDate: "2026-11-15" }),
+    );
+  });
+
+  it("keeps the requested period for Premium", async () => {
+    // Arrange
+    const { sut, findAll } = makePlanSut(true);
+
+    // Act
+    await sut.listForPlan(
+      USER_ID,
+      { page: 1, limit: 20, startDate: "2026-01-01", endDate: "2026-12-31" },
+      NOW,
+    );
+
+    // Assert
+    expect(findAll).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ startDate: "2026-01-01", endDate: "2026-12-31" }),
+    );
+  });
+
+  it("does not limit the plain list used by internal callers (PDF, metas, MEI)", async () => {
+    // Arrange
+    const { sut, findAll } = makePlanSut(false);
+
+    // Act
+    await sut.list(USER_ID, { page: 1, limit: 20, startDate: "2026-01-01" });
+
+    // Assert
+    expect(findAll).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({ startDate: "2026-01-01" }),
+    );
+  });
+
+  it("allows the current month summary on free", async () => {
+    // Arrange
+    const { sut } = makePlanSut(false);
+
+    // Act
+    const summary = await sut.getMonthlySummaryForPlan(USER_ID, 11, 2026, NOW);
+
+    // Assert
+    expect(summary.period).toBe("2026-11");
+  });
+
+  it("blocks another month summary on free with LIMIT_EXCEEDED", async () => {
+    // Arrange
+    const { sut, getSummary } = makePlanSut(false);
+
+    // Act
+    const act = sut.getMonthlySummaryForPlan(USER_ID, 10, 2026, NOW);
+
+    // Assert
+    await expect(act).rejects.toThrow(LimitExceededError);
+    await expect(act).rejects.toThrow(
+      "Ver meses anteriores do financeiro faz parte do plano Premium.",
+    );
+    expect(getSummary).not.toHaveBeenCalled();
+  });
+
+  it("allows any month summary on Premium", async () => {
+    // Arrange
+    const { sut } = makePlanSut(true);
+
+    // Act
+    const summary = await sut.getMonthlySummaryForPlan(USER_ID, 3, 2025, NOW);
+
+    // Assert
+    expect(summary.period).toBe("2025-03");
   });
 });

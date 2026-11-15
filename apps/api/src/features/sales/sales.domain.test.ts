@@ -5,6 +5,7 @@ import {
   calculateSalePricing,
   calculateSaleTotal,
   canCancelSale,
+  createsPendingSale,
   initialSaleStatus,
   validateSaleItems,
 } from "./sales.domain";
@@ -155,5 +156,20 @@ describe("initialSaleStatus", () => {
     expect(initialSaleStatus("cash")).toBe("paid");
     expect(initialSaleStatus("card")).toBe("paid");
     expect(initialSaleStatus("transfer")).toBe("paid");
+  });
+});
+
+describe("createsPendingSale", () => {
+  it("treats a credit (fiado) sale as pending", () => {
+    expect(createsPendingSale({ paymentMethod: "credit", total: 30 })).toBe(true);
+  });
+
+  it("treats a sale received for less than the total as pending", () => {
+    expect(createsPendingSale({ total: 30, amountReceived: 10 })).toBe(true);
+  });
+
+  it("does not treat a fully paid sale as pending", () => {
+    expect(createsPendingSale({ paymentMethod: "pix", total: 30 })).toBe(false);
+    expect(createsPendingSale({ total: 30, amountReceived: 30 })).toBe(false);
   });
 });

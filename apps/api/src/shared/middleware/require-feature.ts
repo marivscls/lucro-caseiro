@@ -8,7 +8,12 @@ import type { ISubscriptionRepo } from "../../features/subscription/subscription
 import { getUserId } from "./auth";
 
 const FEATURE_MESSAGE: Partial<Record<PlanFeature, string>> = {
-  exportBasic: "A exportação do resumo mensal em PDF faz parte do plano Premium.",
+  // 2026-11-15: o resumo do mês em PDF saiu do Gratuito.
+  exportBasic: "O resumo do mês em PDF faz parte do plano Premium.",
+  quotesPdf: "Orçamento em PDF faz parte do plano Premium.",
+  fiado:
+    "Cobrar o fiado por link ou Pix faz parte do plano Premium. Você ainda pode dar baixa no que já está pendente.",
+  financeHistory: "Ver meses anteriores do financeiro faz parte do plano Premium.",
   export: "A exportação em Excel e os relatórios avançados fazem parte do plano Premium.",
   advancedReports: "Os relatórios completos fazem parte do plano Premium.",
   extraPhotos: "Fotos adicionais do produto fazem parte do plano Premium.",

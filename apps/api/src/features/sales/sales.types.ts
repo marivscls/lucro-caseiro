@@ -75,6 +75,14 @@ export interface ISaleFinancePoster {
 }
 
 /** Avisado depois de cada venda registrada (ex.: indicação premiada na 3ª venda). */
+/**
+ * Plano da conta para o fiado (2026-11-15): só o Premium registra venda nova
+ * com pagamento pendente. Dar baixa no que já está pendente é sempre livre.
+ */
+export interface IFiadoPlanChecker {
+  canCreatePendingSale(userId: string): Promise<boolean>;
+}
+
 export interface ISaleCreatedListener {
   onSaleCreated(userId: string): Promise<unknown>;
 }

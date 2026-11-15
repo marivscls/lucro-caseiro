@@ -48,6 +48,7 @@ function makeCounts(overrides: Partial<ResourceCounts> = {}): ResourceCounts {
     packaging: 1,
     products: 8,
     suppliers: 1,
+    ordersThisMonth: 2,
     ...overrides,
   };
 }
@@ -244,6 +245,8 @@ describe("SubscriptionUseCases", () => {
       expect(result.maxSalesPerMonth).toBeNull();
       expect(result.currentSalesThisMonth).toBe(10);
       expect(result.currentClients).toBe(5);
+      expect(result.maxOrdersPerMonth).toBe(5);
+      expect(result.currentOrdersThisMonth).toBe(2);
     });
 
     it("returns null limits for essential (same as Premium)", async () => {

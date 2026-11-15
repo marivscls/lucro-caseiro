@@ -1,11 +1,13 @@
 import type { Sale, SaleStatus, StockMovementType } from "@lucro-caseiro/contracts";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import type { IProductsRepo } from "../products/products.types";
 import {
   calculateSalePricing,
   canCancelSale,
+  createsPendingSale,
+  FIADO_PREMIUM_MESSAGE,
   initialSaleStatus,
   validateSaleItems,
 } from "./sales.domain";
@@ -13,6 +15,7 @@ import type {
   CreateSaleData,
   DaySummary,
   FindAllSalesOpts,
+  IFiadoPlanChecker,
   IMaterialStockAdjuster,
   IRecipeConsumptionProvider,
   ISaleCreatedListener,
@@ -30,7 +33,21 @@ export class SalesUseCases {
     private materialStock?: IMaterialStockAdjuster,
     private financePoster?: ISaleFinancePoster,
     private saleCreatedListener?: ISaleCreatedListener,
+    private fiadoPlan?: IFiadoPlanChecker,
   ) {}
+
+  /**
+   * Venda nova no fiado só no Premium (LimitExceededError → 403 LIMIT_EXCEEDED).
+   * Sem verificador injetado (testes/rotinas internas), segue liberado.
+   */
+  private async assertCanCreatePendingSale(
+    userId: string,
+    sale: { paymentMethod?: string; total: number; amountReceived?: number },
+  ): Promise<void> {
+    if (!this.fiadoPlan || !createsPendingSale(sale)) return;
+    if (await this.fiadoPlan.canCreatePendingSale(userId)) return;
+    throw new LimitExceededError(FIADO_PREMIUM_MESSAGE);
+  }
 
   /** Best-effort: quem escuta a venda nunca derruba o registro. */
   private async notifySaleCreated(userId: string): Promise<void> {
@@ -256,6 +273,11 @@ export class SalesUseCases {
     if (pricing.total <= 0) {
       throw new ValidationError(["O desconto deve ser menor que o subtotal"]);
     }
+    await this.assertCanCreatePendingSale(userId, {
+      paymentMethod: data.paymentMethod,
+      total: pricing.total,
+      amountReceived: data.paidAmount,
+    });
 
     const stockChanges = await this.collectStockChanges(userId, data.items, -1);
     await this.validateStockChanges(userId, stockChanges);
@@ -433,6 +455,10 @@ export class SalesUseCases {
     if (data.amountReceived > 0 && !data.paymentMethod) {
       throw new ValidationError(["Informe a forma de pagamento"]);
     }
+    await this.assertCanCreatePendingSale(userId, {
+      total: data.total,
+      amountReceived: data.amountReceived,
+    });
 
     const status: SaleStatus = data.amountReceived >= data.total ? "paid" : "pending";
     const sale = await this.repo.create(

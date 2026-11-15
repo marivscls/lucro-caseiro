@@ -204,3 +204,5 @@ Services coexist with products and are persisted in the `services` table.
   semântica de **pagamento**: `received` = Σ `deposit`; `toReceive` = Σ (`amount − deposit`)
   das não canceladas (o repo agora soma `deposit` também). Antes o resumo ignorava o sinal
   e mostrava o valor cheio da entregue como "Recebido"; agora casa com o "Falta" do card.
+
+- 2026-11-15: Gratuito mais enxuto. `POST /api/v1/orders` passa por `freemiumGuard(subscriptionRepo, "orders")` (2º argumento opcional de `createOrdersRouter`): no Gratuito, com 5 encomendas criadas no mês corrente (sem contar as de `source = 'catalog'`), responde 403 `LIMIT_EXCEEDED` com "Você já criou as 5 encomendas do mês no plano gratuito. Assine o Premium para encomendas sem limite.". Premium (inclui o teste grátis) não tem limite. Não passam pelo limite: pedidos da vitrine (`CatalogRepoPg.createCatalogOrder`), pedidos de agendamento, compra de pacote e a próxima ocorrência de uma encomenda que se repete (`scheduleNextOccurrence` usa o repo direto). Editar, entregar e excluir seguem livres.

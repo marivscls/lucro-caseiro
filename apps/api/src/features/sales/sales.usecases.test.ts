@@ -1,10 +1,15 @@
 import type { Product, Sale, StockMovement } from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import type { IProductsRepo } from "../products/products.types";
 import { SalesUseCases } from "./sales.usecases";
-import type { CreateSaleData, ISalesRepo, UpdateSaleData } from "./sales.types";
+import type {
+  CreateSaleData,
+  IFiadoPlanChecker,
+  ISalesRepo,
+  UpdateSaleData,
+} from "./sales.types";
 
 const USER_ID = "user-123";
 
@@ -700,5 +705,117 @@ describe("SalesUseCases", () => {
       await sut.updateStatus(USER_ID, "sale-1", "cancelled");
       expect(finance.removed).toEqual(["sale-1"]);
     });
+  });
+});
+
+describe("fiado no plano (2026-11-15)", () => {
+  function makeFiadoSut(allowed: boolean, repoOverrides: Partial<ISalesRepo> = {}) {
+    const repo = makeRepo(repoOverrides);
+    const canCreatePendingSale = vi.fn(() => Promise.resolve(allowed));
+    const fiadoPlan: IFiadoPlanChecker = { canCreatePendingSale };
+    const sut = new SalesUseCases(
+      repo,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      fiadoPlan,
+    );
+    return { sut, repo, canCreatePendingSale };
+  }
+
+  it("blocks a new credit sale on the free plan with LIMIT_EXCEEDED", async () => {
+    // Arrange
+    const create = vi.fn();
+    const { sut } = makeFiadoSut(false, { create });
+
+    // Act
+    const act = sut.createSale(USER_ID, {
+      paymentMethod: "credit",
+      items: [{ productId: "prod-1", quantity: 1, unitPrice: 30 }],
+    });
+
+    // Assert
+    await expect(act).rejects.toThrow(LimitExceededError);
+    await expect(act).rejects.toThrow(/fiado faz parte do plano Premium/);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("allows a new credit sale on a paid plan (essential or professional)", async () => {
+    // Arrange
+    const { sut } = makeFiadoSut(true);
+
+    // Act
+    const sale = await sut.createSale(USER_ID, {
+      paymentMethod: "credit",
+      items: [{ productId: "prod-1", quantity: 1, unitPrice: 30 }],
+    });
+
+    // Assert
+    expect(sale.status).toBe("pending");
+  });
+
+  it("does not check the plan for a paid sale on free", async () => {
+    // Arrange
+    const { sut, canCreatePendingSale } = makeFiadoSut(false);
+
+    // Act
+    const sale = await sut.createSale(USER_ID, {
+      paymentMethod: "pix",
+      items: [{ productId: "prod-1", quantity: 1, unitPrice: 30 }],
+    });
+
+    // Assert
+    expect(sale.status).toBe("paid");
+    expect(canCreatePendingSale).not.toHaveBeenCalled();
+  });
+
+  it("blocks a service sale received for less than the total on free", async () => {
+    // Arrange
+    const { sut } = makeFiadoSut(false);
+
+    // Act
+    const act = sut.createServiceSale(USER_ID, {
+      serviceId: "svc-1",
+      itemName: "Escova",
+      total: 80,
+      amountReceived: 30,
+      paymentMethod: "pix",
+    });
+
+    // Assert
+    await expect(act).rejects.toThrow(LimitExceededError);
+  });
+
+  it("allows a fully paid service sale on free", async () => {
+    // Arrange
+    const { sut } = makeFiadoSut(false);
+
+    // Act
+    const sale = await sut.createServiceSale(USER_ID, {
+      serviceId: "svc-1",
+      itemName: "Escova",
+      total: 80,
+      amountReceived: 80,
+      paymentMethod: "pix",
+    });
+
+    // Assert
+    expect(sale.status).toBe("paid");
+  });
+
+  it("still marks an existing pending sale as paid on free", async () => {
+    // Arrange
+    const { sut, canCreatePendingSale } = makeFiadoSut(false, {
+      findById: () => Promise.resolve(makeSale({ status: "pending", paidAmount: 0 })),
+    });
+
+    // Act
+    const sale = await sut.updateStatus(USER_ID, "sale-1", "paid");
+
+    // Assert
+    expect(sale.status).toBe("paid");
+    expect(canCreatePendingSale).not.toHaveBeenCalled();
   });
 });

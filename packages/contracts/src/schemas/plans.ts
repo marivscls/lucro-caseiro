@@ -18,6 +18,8 @@ export interface PlanLimits {
   readonly maxRecipes: number | null;
   readonly maxPackaging: number | null;
   readonly maxSuppliers: number | null;
+  /** Encomendas novas por mês criadas no app (as que chegam pelo catálogo não contam). */
+  readonly maxOrdersPerMonth: number | null;
 }
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
@@ -25,11 +27,13 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     // Registrar vendas é o hábito diário do app: nunca trava no grátis.
     // O grátis limita o que cresce com o negócio (clientes, produtos...).
     maxSalesPerMonth: null,
-    maxClients: 50,
-    maxProducts: 30,
+    // 2026-11-15: apertado para o Premium valer a pena (ver docs/planos-comerciais.md).
+    maxClients: 30,
+    maxProducts: 15,
     maxRecipes: 5,
     maxPackaging: 3,
     maxSuppliers: 3,
+    maxOrdersPerMonth: 5,
   },
   // Mesmo Premium (teste grátis e assinaturas antigas do Essencial).
   essential: {
@@ -39,6 +43,7 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxRecipes: null,
     maxPackaging: null,
     maxSuppliers: null,
+    maxOrdersPerMonth: null,
   },
   professional: {
     maxSalesPerMonth: null,
@@ -47,11 +52,12 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxRecipes: null,
     maxPackaging: null,
     maxSuppliers: null,
+    maxOrdersPerMonth: null,
   },
 };
 
 // Produtos que a vitrine pública mostra no Gratuito (sem `catalogPremium`).
-export const FREE_CATALOG_MAX_PRODUCTS = 10;
+export const FREE_CATALOG_MAX_PRODUCTS = 5;
 
 export type LimitResource =
   | "sales"
@@ -59,7 +65,8 @@ export type LimitResource =
   | "products"
   | "recipes"
   | "packaging"
-  | "suppliers";
+  | "suppliers"
+  | "orders";
 
 const LIMIT_KEY: Record<LimitResource, keyof PlanLimits> = {
   sales: "maxSalesPerMonth",
@@ -68,6 +75,7 @@ const LIMIT_KEY: Record<LimitResource, keyof PlanLimits> = {
   recipes: "maxRecipes",
   packaging: "maxPackaging",
   suppliers: "maxSuppliers",
+  orders: "maxOrdersPerMonth",
 };
 
 export function planLimit(plan: PlanType, resource: LimitResource): number | null {
@@ -92,16 +100,14 @@ export type PlanFeature =
   | "quotesPdf" // orçamentos em PDF
   | "premiumNotifications" // aniversários, lembretes diários e resumo semanal
   | "prioritySupport" // atendimento prioritário
-  | "compositeProducts"; // produtos compostos / kits
+  | "compositeProducts" // produtos compostos / kits
+  | "fiado" // registrar venda nova no fiado, cobrar por link/Pix (dar baixa é sempre livre)
+  | "financeHistory"; // Financeiro além da semana atual (meses e períodos anteriores)
 
-// Gratuito (2026-10-18, pedido de LUCAS): recursos que fazem a pessoa voltar ao
-// app e divulgam o negócio ficam liberados para todos. O que leva a assinar
-// (sem limites, personalização, relatórios, Excel) continua pago.
-const FREE_FEATURES: readonly PlanFeature[] = [
-  "exportBasic",
-  "quotesPdf",
-  "premiumNotifications",
-];
+// Gratuito (2026-11-15, revisão contra o Kyte): fica de graça o que faz a pessoa
+// voltar todo dia (vendas, cálculo de preço, lembretes). PDFs, fiado, histórico
+// do financeiro e agenda sem limite passam para o Premium.
+const FREE_FEATURES: readonly PlanFeature[] = ["premiumNotifications"];
 
 // Premium libera tudo: o que o Gratuito tem e o resto abaixo.
 const PREMIUM_FEATURES: readonly PlanFeature[] = [
@@ -117,6 +123,10 @@ const PREMIUM_FEATURES: readonly PlanFeature[] = [
   "labelsPremium",
   "prioritySupport",
   "compositeProducts",
+  "exportBasic",
+  "quotesPdf",
+  "fiado",
+  "financeHistory",
 ];
 
 export const PLAN_FEATURES: Record<PlanType, ReadonlySet<PlanFeature>> = {

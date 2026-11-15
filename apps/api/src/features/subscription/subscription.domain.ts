@@ -33,12 +33,14 @@ export function buildFreemiumLimits(
     maxPackaging: limits.maxPackaging,
     maxProducts: limits.maxProducts,
     maxSuppliers: limits.maxSuppliers,
+    maxOrdersPerMonth: limits.maxOrdersPerMonth,
     currentSalesThisMonth: counts.salesThisMonth,
     currentClients: counts.clients,
     currentRecipes: counts.recipes,
     currentPackaging: counts.packaging,
     currentProducts: counts.products,
     currentSuppliers: counts.suppliers,
+    currentOrdersThisMonth: counts.ordersThisMonth,
   };
 }
 
@@ -68,6 +70,8 @@ function currentCount(resource: ResourceType, counts: ResourceCounts): number {
       return counts.products;
     case "suppliers":
       return counts.suppliers;
+    case "orders":
+      return counts.ordersThisMonth;
   }
 }
 
@@ -83,6 +87,7 @@ const LIMIT_MESSAGES: Record<ResourceType, string> = {
   packaging: `📦 Você atingiu as ${FREE.maxPackaging} embalagens do plano gratuito. Assine o Premium para embalagens ilimitadas.`,
   products: `🎉 Sua loja está crescendo! Você usou os ${FREE.maxProducts} produtos do plano gratuito. Assine o Premium e expanda seu catálogo sem limites.`,
   suppliers: `🤝 Você atingiu os ${FREE.maxSuppliers} fornecedores do plano gratuito. Assine o Premium para fornecedores ilimitados e controle de compras.`,
+  orders: `📅 Você já criou as ${FREE.maxOrdersPerMonth} encomendas do mês no plano gratuito. Assine o Premium para encomendas sem limite.`,
 };
 
 export function getLimitMessage(resourceType: ResourceType): string {

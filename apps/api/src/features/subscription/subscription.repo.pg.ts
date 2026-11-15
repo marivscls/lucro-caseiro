@@ -2,6 +2,7 @@ import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
 import { newAccountTrialPlan, normalizePlan } from "@lucro-caseiro/contracts";
 import {
   clients,
+  orders,
   packaging,
   professionalTrialCampaignGrants,
   products,
@@ -229,6 +230,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       packagingCount,
       productsCount,
       suppliersCount,
+      ordersCount,
     ] = await Promise.all([
       this.db
         .select({ value: count() })
@@ -248,6 +250,18 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
         .select({ value: count() })
         .from(suppliers)
         .where(eq(suppliers.userId, userId)),
+      // Mesma janela do salesThisMonth. Pedidos da vitrine (source "catalog")
+      // ficam de fora: nunca travam nem contam no limite do Gratuito.
+      this.db
+        .select({ value: count() })
+        .from(orders)
+        .where(
+          and(
+            eq(orders.userId, userId),
+            gte(orders.createdAt, startOfMonth),
+            or(isNull(orders.source), sql`${orders.source} <> 'catalog'`),
+          ),
+        ),
     ]);
 
     return {
@@ -257,6 +271,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       packaging: packagingCount[0]?.value ?? 0,
       products: productsCount[0]?.value ?? 0,
       suppliers: suppliersCount[0]?.value ?? 0,
+      ordersThisMonth: ordersCount[0]?.value ?? 0,
     };
   }
 

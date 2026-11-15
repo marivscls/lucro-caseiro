@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 import { CreateFiadoLinkDto, UpdatePixSettingsDto } from "@lucro-caseiro/contracts";
-import { Router, type Response } from "express";
+import { Router, type RequestHandler, type Response } from "express";
 
 import { NotFoundError } from "../../shared/errors";
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
@@ -12,9 +12,18 @@ import {
 } from "./fiado-statement.renderer";
 import type { FiadoUseCases } from "./fiado.usecases";
 
-export function createFiadoRouter(useCases: FiadoUseCases): Router {
+/**
+ * `fiadoGuard` (opcional, `requireFeature(..., "fiado")`): configurar o Pix e
+ * gerar link de cobrança são Premium. Ler o Pix e o extrato público (/f/:token)
+ * seguem livres, então links já criados continuam valendo.
+ */
+export function createFiadoRouter(
+  useCases: FiadoUseCases,
+  fiadoGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
+  const writeGuards = fiadoGuard ? [fiadoGuard] : [];
 
   router.get("/pix", async (req, res, next) => {
     try {
@@ -24,7 +33,7 @@ export function createFiadoRouter(useCases: FiadoUseCases): Router {
     }
   });
 
-  router.put("/pix", async (req, res, next) => {
+  router.put("/pix", ...writeGuards, async (req, res, next) => {
     try {
       const data = UpdatePixSettingsDto.parse(req.body);
       res.json(await useCases.updatePixSettings(getUserId(req), data));
@@ -33,7 +42,7 @@ export function createFiadoRouter(useCases: FiadoUseCases): Router {
     }
   });
 
-  router.post("/links", async (req, res, next) => {
+  router.post("/links", ...writeGuards, async (req, res, next) => {
     try {
       const { clientId } = CreateFiadoLinkDto.parse(req.body);
       const link = await useCases.getOrCreateLink(

@@ -82,6 +82,8 @@ export interface ResourceCounts {
   packaging: number;
   products: number;
   suppliers: number;
+  /** Encomendas criadas no mês corrente pelo app (pedidos do catálogo não contam). */
+  ordersThisMonth: number;
 }
 
 export interface AndroidPurchaseData {

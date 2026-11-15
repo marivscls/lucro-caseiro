@@ -36,12 +36,15 @@ export const FreemiumLimitsDto = z.object({
   maxPackaging: z.number().nullable(),
   maxProducts: z.number().nullable(),
   maxSuppliers: z.number().nullable(),
+  // Opcional para aceitar respostas de uma API anterior a 2026-11-15.
+  maxOrdersPerMonth: z.number().nullable().optional(),
   currentSalesThisMonth: z.number(),
   currentClients: z.number(),
   currentRecipes: z.number(),
   currentPackaging: z.number(),
   currentProducts: z.number(),
   currentSuppliers: z.number(),
+  currentOrdersThisMonth: z.number().optional(),
 });
 
 export type FreemiumLimits = z.infer<typeof FreemiumLimitsDto>;

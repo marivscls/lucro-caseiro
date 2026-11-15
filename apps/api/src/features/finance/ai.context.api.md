@@ -117,7 +117,7 @@ api:
     - method: GET
       path: /export/pdf
       query: month (YYYY-MM)
-      response: application/pdf (binary)  # feature exportBasic (Essencial+)
+      response: application/pdf (binary)  # feature exportBasic (Premium)
     - method: GET
       path: /export/xlsx
       query: month (YYYY-MM)
@@ -258,3 +258,5 @@ GET /api/v1/finance/export/pdf?month=2026-03
 - 2026-10-18: `exportBasic` (PDF do resumo mensal) passa a valer também no Gratuito. O gate de `GET /export/pdf` continua, mas libera qualquer plano; `GET /export/xlsx` segue só no Profissional.
 
 - 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). `GET /export/xlsx` e relatórios avançados (`export`) passam a ser descritos como do Premium; mensagens de bloqueio vêm de `require-feature.ts`, que agora citam o plano Premium.
+
+- 2026-11-15: Gratuito mais enxuto (feature `financeHistory`). `GET /api/v1/finance` chama `listForPlan`: no Gratuito o período é preso à semana atual, segunda 00:00 a domingo 23:59:59 em America/Sao_Paulo (`currentWeekRange` e `clampToWeek` em `finance.domain.ts`, funções puras): `startDate` sobe até a segunda e `endDate` desce até o domingo; período inteiro fora da semana volta vazio. `GET /api/v1/finance/summary` chama `getMonthlySummaryForPlan`: no Gratuito só o mês corrente em Brasília (o Início mostra quanto sobrou no mês); outro mês → 403 `LIMIT_EXCEEDED`, "Ver meses anteriores do financeiro faz parte do plano Premium.". O mês padrão da rota passa a ser o de Brasília (`currentBrazilMonth`), não o do servidor em UTC. O plano chega por `hasFinanceHistory` injetado no construtor (`userHasFeature("financeHistory")` em `main.ts`). `list` e `getMonthlySummary` continuam sem limite para os usos internos (metas, MEI, PDF). `exportBasic` (PDF do resumo do mês) saiu do Gratuito: `GET /export/pdf` agora só no Premium, mensagem "O resumo do mês em PDF faz parte do plano Premium.".

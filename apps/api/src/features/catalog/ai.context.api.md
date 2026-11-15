@@ -302,3 +302,5 @@ O hero usa “Vitrine em preparação” quando as contagens expostas estão vaz
 - 2026-10-18: vitrine do plano free passa de 3 para `FREE_CATALOG_MAX_PRODUCTS` (10, em `@lucro-caseiro/contracts`); o produto focado continua entrando na lista.
 
 - 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). Mensagem de bloqueio da personalização do catálogo passa a citar o plano Premium (antes Essencial). Regra inalterada: `catalogCustomization`/`catalogPremium` valem nos dois níveis pagos.
+
+- 2026-11-15: Gratuito mais enxuto. `FREE_CATALOG_MAX_PRODUCTS` passa de 10 para 5 (em `@lucro-caseiro/contracts`; `catalog.usecases.ts` só corta a lista). Pedido de produto pela vitrine de uma conta Gratuita só aceita os 5 produtos visíveis (fora deles, 400 "Algum produto não está mais disponível"). Pedidos da vitrine (`source = 'catalog'`) não contam nem são barrados pelo limite mensal de encomendas do Gratuito.

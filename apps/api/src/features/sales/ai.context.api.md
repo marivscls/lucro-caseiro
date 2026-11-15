@@ -246,3 +246,5 @@ PATCH /api/v1/sales/sale-1/status
   Produto com variações no cadastro deixa de bloquear a venda; a baixa usa o estoque
   do produto. `variationId` inválido continua recusado.
 - 2026-09-29: `createOpeningFiado` removido junto com a importação do caderno no assistente.
+
+- 2026-11-15: Gratuito mais enxuto (feature `fiado`). Venda nova que nasce pendente (forma `credit` ou valor recebido menor que o total, `createsPendingSale` no domínio) só no Premium: `createSale` (usado por `POST /api/v1/sales` e pelo caixa do varejo) e `createServiceSale` (concluir atendimento ou vender pacote recebendo menos que o total) consultam o `IFiadoPlanChecker` injetado (7º argumento do construtor; em `main.ts`, `userHasFeature("fiado")`) antes de mexer em estoque ou gravar. No Gratuito lançam `LimitExceededError` → 403 `LIMIT_EXCEEDED`, "Registrar venda no fiado faz parte do plano Premium. Você ainda pode dar baixa no que já está pendente.". Marcar como paga, cancelar, editar e listar vendas pendentes seguem livres em qualquer plano. Sem verificador injetado (testes), nada é barrado.
