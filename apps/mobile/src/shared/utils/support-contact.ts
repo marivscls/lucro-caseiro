@@ -69,18 +69,88 @@ export function openSupportWhatsApp(brandName: string, question = ""): void {
     .catch(warnWhatsAppFailed);
 }
 
+function supportEmailParts(brandName: string, question: string, app: string) {
+  return {
+    subject: `Suporte ${brandName}`,
+    body: `Oi! Preciso de ajuda com:\n\n${question.slice(0, QUESTION_MAX)}\n\n---\n(Conte em qual tela aconteceu e o que você tentou fazer.)\n(App ${app})`,
+  };
+}
+
+/** Rascunho no programa de e-mail do aparelho (precisa de um app de e-mail configurado). */
+export function supportMailtoUrl(brandName: string, question = "", app = appLabel()) {
+  const { subject, body } = supportEmailParts(brandName, question, app);
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+/** Rascunho no Gmail pelo navegador: funciona sem programa de e-mail instalado. */
+export function supportGmailUrl(brandName: string, question = "", app = appLabel()) {
+  const { subject, body } = supportEmailParts(brandName, question, app);
+  const params = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: SUPPORT_EMAIL,
+    su: subject,
+    body,
+  });
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
+function warnEmailFailed() {
+  showAlert({
+    title: "Envie sua dúvida por e-mail",
+    message: `Não foi possível abrir o aplicativo de e-mail. Escreva para ${SUPPORT_EMAIL} e informe em qual tela aconteceu.`,
+  });
+}
+
+/**
+ * No navegador o mailto não avisa quando falha: sem programa de e-mail
+ * configurado (comum no Windows e no app instalado) o clique não faz nada.
+ * Por isso a web pergunta como enviar: Gmail, programa de e-mail ou copiar.
+ */
 export function openSupportEmail(brandName: string, question = ""): void {
-  const subject = encodeURIComponent(`Suporte ${brandName}`);
-  const body = encodeURIComponent(
-    `Oi! Preciso de ajuda com:\n\n${question.slice(0, QUESTION_MAX)}\n\n---\n(Conte em qual tela aconteceu e o que você tentou fazer.)\n(App ${appLabel()})`,
-  );
-  void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(
-    () =>
-      showAlert({
-        title: "Envie sua dúvida por e-mail",
-        message: `Não foi possível abrir o aplicativo de e-mail. Escreva para ${SUPPORT_EMAIL} e informe em qual tela aconteceu.`,
-      }),
-  );
+  const mailto = supportMailtoUrl(brandName, question);
+  if (Platform.OS !== "web") {
+    void Linking.openURL(mailto).catch(warnEmailFailed);
+    return;
+  }
+  showAlert({
+    title: "Como prefere enviar o e-mail?",
+    message: `Nosso e-mail é ${SUPPORT_EMAIL}. Conte em qual tela aconteceu.`,
+    buttons: [
+      {
+        text: "Abrir no Gmail",
+        onPress: () => {
+          // Com "noopener" o window.open sempre devolve null; não dá para checar.
+          window.open(supportGmailUrl(brandName, question), "_blank", "noopener");
+        },
+      },
+      {
+        text: "Programa de e-mail",
+        onPress: () => {
+          window.location.href = mailto;
+        },
+      },
+      {
+        text: "Copiar o e-mail",
+        onPress: () => {
+          if (!navigator.clipboard) {
+            warnEmailFailed();
+            return;
+          }
+          void navigator.clipboard
+            .writeText(SUPPORT_EMAIL)
+            .then(() =>
+              showAlert({
+                title: "E-mail copiado",
+                message: `Cole ${SUPPORT_EMAIL} no seu e-mail e conte em qual tela aconteceu.`,
+              }),
+            )
+            .catch(warnEmailFailed);
+        },
+      },
+      { text: "Cancelar", style: "cancel" },
+    ],
+  });
 }
 
 type SupportProfile = Pick<UserProfile, "plan" | "planExpiresAt"> & {

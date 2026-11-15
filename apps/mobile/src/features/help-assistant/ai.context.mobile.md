@@ -16,7 +16,7 @@ Offer immediate answers to free-text questions about using the app, plus a revie
 - `help-assistant.domain.ts` contains reviewed answers and intent matching. Pricing adapts to service/beauty businesses; unsupported questions offer human support.
 - Subscription questions show all three plans with prices and free limits from the shared contracts, plus navigation to `/plans`. This intent precedes product pricing and feature guides; incident and cancellation guidance keep priority.
 - Users type up to 400 characters or select a suggested question. Keep at most four question/answer pairs in component memory. No analytics or persistence of question text.
-- `onNavigate` accepts only a fixed set of app routes. `onContactSupport` passes the latest question (or unfinished draft) to the support screen. Paying accounts (`hasWhatsAppSupport`: active paid plan, not on trial) go to `openSupportWhatsApp`, which opens the WhatsApp app straight in the support chat (+55 48 99212-4950, `whatsapp://send?phone=`; falls back to `wa.me`) with a prefilled message containing the question and the app platform/version. Free and trial accounts go to the mailto composer. The user reviews and sends the draft.
+- `onNavigate` accepts only a fixed set of app routes. `onContactSupport` passes the latest question (or unfinished draft) to the support screen. Paying accounts (`hasWhatsAppSupport`: active paid plan, not on trial) go to `openSupportWhatsApp`, which opens the WhatsApp app straight in the support chat (+55 48 99212-4950, `whatsapp://send?phone=`; falls back to `wa.me`) with a prefilled message containing the question and the app platform/version. Free and trial accounts go to the email composer (on the web, a popup offers Gmail, the mail program or copying the address). The user reviews and sends the draft.
 
 ## Boundaries & Ownership
 
@@ -91,3 +91,5 @@ de 2 colunas abaixo do assistente. Mesmas respostas, ações e rótulos; o celul
   agenda sem limite, Financeiro de qualquer mês e PDFs. Nova resposta para fiado (rota `/fiado`):
   venda nova no fiado e cobrança com link/Pix são Premium; dar baixa é liberado. A resposta do
   Financeiro avisa que o Gratuito mostra a semana atual.
+
+- 2026-11-15: "Enviar e-mail" na web. O `mailto:` (via `Linking.openURL` do react-native-web, que é um `window.open`) não avisa quando falha: sem programa de e-mail configurado (comum no Windows e no app instalado) o clique não fazia nada e o alerta de reserva nunca aparecia. Na web o botão abre um popup "Como prefere enviar o e-mail?" com Abrir no Gmail (`supportGmailUrl`, rascunho com assunto e texto), Programa de e-mail (`supportMailtoUrl` na mesma aba) e Copiar o e-mail. Celular segue com o `mailto:` e o alerta de reserva.

@@ -1,11 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("react-native", () => ({
+  Platform: { OS: "web" },
+  Linking: { openURL: vi.fn(() => Promise.resolve()) },
+}));
 vi.mock("../../features/analytics/metadata", () => ({
   appMetadata: () => ({ platform: "android", appVersion: "1.2.6", appBuild: "37" }),
 }));
 
+import { useAppAlert } from "../components/alert-store";
 import {
+  SUPPORT_EMAIL,
   SUPPORT_WHATSAPP,
+  openSupportEmail,
+  supportGmailUrl,
+  supportMailtoUrl,
   hasWhatsAppSupport,
   supportWhatsAppAppUrl,
   supportWhatsAppMessage,
@@ -86,5 +95,42 @@ describe("hasWhatsAppSupport", () => {
         planIsTrial: false,
       }),
     ).toBe(false);
+  });
+});
+
+describe("support email", () => {
+  it("drafts the email with the question in the mail app", () => {
+    const url = supportMailtoUrl("Lucro Caseiro", "preço", "web 1.2.8");
+
+    expect(url.startsWith(`mailto:${SUPPORT_EMAIL}?subject=`)).toBe(true);
+    expect(decodeURIComponent(url)).toContain("Preciso de ajuda com:\n\npreço");
+  });
+
+  it("drafts the same email in Gmail, which works without a mail app", () => {
+    const url = new URL(supportGmailUrl("Lucro Caseiro", "preço", "web 1.2.8"));
+
+    expect(url.origin).toBe("https://mail.google.com");
+    expect(url.searchParams.get("view")).toBe("cm");
+    expect(url.searchParams.get("to")).toBe(SUPPORT_EMAIL);
+    expect(url.searchParams.get("su")).toBe("Suporte Lucro Caseiro");
+    expect(url.searchParams.get("body")).toContain("preço");
+  });
+
+  it("on the web asks how to send, since a mailto link fails silently", () => {
+    // Arrange
+    useAppAlert.getState().hide();
+
+    // Act
+    openSupportEmail("Lucro Caseiro", "preço");
+
+    // Assert
+    const options = useAppAlert.getState().options;
+    expect(options?.message).toContain(SUPPORT_EMAIL);
+    expect(options?.buttons?.map((button) => button.text)).toEqual([
+      "Abrir no Gmail",
+      "Programa de e-mail",
+      "Copiar o e-mail",
+      "Cancelar",
+    ]);
   });
 });
