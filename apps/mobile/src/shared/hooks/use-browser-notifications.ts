@@ -10,6 +10,10 @@ import { useAuth } from "./use-auth";
 import { useNotificationPrefs } from "./notification-prefs";
 import type { NotificationType } from "./notification-types";
 import { isMockMode } from "../mock/mode";
+import {
+  NOTIFICATIONS_BLOCKED_MESSAGE,
+  notificationUnblockSteps,
+} from "./notification-unblock-steps";
 
 type BrowserPushState = {
   supported: boolean;
@@ -17,6 +21,8 @@ type BrowserPushState = {
   busy: boolean;
   publicKey: string | null;
   message: string;
+  /** Passo a passo para liberar quando o navegador bloqueou; null fora disso. */
+  unblockSteps: string[] | null;
   refresh: () => Promise<void>;
   toggle: () => Promise<void>;
   test: () => Promise<void>;
@@ -27,6 +33,15 @@ const errorMessage = (error: unknown) =>
   error instanceof Error
     ? error.message
     : "Não foi possível atualizar as notificações. Tente novamente.";
+function blockedState() {
+  const installed =
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  return {
+    message: NOTIFICATIONS_BLOCKED_MESSAGE,
+    unblockSteps: notificationUnblockSteps(navigator.userAgent, installed),
+  };
+}
 const activeMessage =
   "Ativadas neste navegador. Avisos às 9h e lembrete diário às 19h, conforme suas preferências.";
 
@@ -36,9 +51,11 @@ export const useBrowserNotifications = create<BrowserPushState>((set, get) => ({
   busy: false,
   publicKey: null,
   message: "Verificando notificações…",
+  unblockSteps: null,
   refresh: async () => {
     const { token, userId } = useAuth.getState();
     if (!token || !userId || get().busy) return;
+    set({ unblockSteps: null });
     if (isMockMode) {
       set({
         supported: false,
@@ -92,13 +109,14 @@ export const useBrowserNotifications = create<BrowserPushState>((set, get) => ({
         );
       }
       if (useAuth.getState().userId !== userId) return;
-      let message =
-        "Receba lembretes mesmo com a página fechada. Ative e permita as notificações do navegador.";
-      if (Notification.permission === "denied")
-        message =
-          "Notificações bloqueadas. Permita as notificações nas configurações deste site no navegador.";
-      if (enabled) message = activeMessage;
-      set({ enabled, message });
+      if (enabled) set({ enabled, message: activeMessage });
+      else if (Notification.permission === "denied") set({ enabled, ...blockedState() });
+      else
+        set({
+          enabled,
+          message:
+            "Receba lembretes mesmo com a página fechada. Ative e permita as notificações do navegador.",
+        });
     } catch (error) {
       set({ message: errorMessage(error) });
     } finally {
@@ -109,7 +127,12 @@ export const useBrowserNotifications = create<BrowserPushState>((set, get) => ({
     const { token, userId } = useAuth.getState();
     const { busy, enabled, publicKey } = get();
     if (!token || !userId || busy || !publicKey) return;
-    set({ busy: true });
+    // Bloqueado: o navegador não mostra o pedido de novo, então só explicamos.
+    if (!enabled && browserPushSupported() && Notification.permission === "denied") {
+      set(blockedState());
+      return;
+    }
+    set({ busy: true, unblockSteps: null });
     try {
       if (enabled) {
         await stopBrowserPush(token);
@@ -125,10 +148,13 @@ export const useBrowserNotifications = create<BrowserPushState>((set, get) => ({
       }
     } catch (error) {
       const subscription = await browserPush.subscription().catch(() => null);
-      set({
-        enabled: !!subscription && localStorage.getItem(BROWSER_PUSH_OWNER) === userId,
-        message: errorMessage(error),
-      });
+      const enabled =
+        !!subscription && localStorage.getItem(BROWSER_PUSH_OWNER) === userId;
+      set(
+        !enabled && Notification.permission === "denied"
+          ? { enabled, ...blockedState() }
+          : { enabled, message: errorMessage(error) },
+      );
     } finally {
       set({ busy: false });
     }

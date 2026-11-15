@@ -844,6 +844,22 @@ export default function SettingsScreen() {
                 >
                   {browserNotifications.message}
                 </Typography>
+                {browserNotifications.unblockSteps ? (
+                  <View
+                    accessibilityRole="list"
+                    style={{ gap: spacing.xs, marginTop: spacing.xs }}
+                  >
+                    {browserNotifications.unblockSteps.map((step, index) => (
+                      <Typography
+                        key={step}
+                        variant={isDesktop ? "desktopBody" : "body"}
+                        accessibilityRole="text"
+                      >
+                        {`${index + 1}. ${step}`}
+                      </Typography>
+                    ))}
+                  </View>
+                ) : null}
                 {browserNotifications.supported ? (
                   <View
                     style={{
@@ -853,18 +869,22 @@ export default function SettingsScreen() {
                       marginTop: spacing.sm,
                     }}
                   >
-                    <Button
-                      title={
-                        browserNotifications.enabled ? "Desativar" : "Ativar notificações"
-                      }
-                      loading={browserNotifications.busy}
-                      size="sm"
-                      variant={browserNotifications.enabled ? "outline" : "primary"}
-                      disabled={
-                        browserNotifications.busy || !browserNotifications.publicKey
-                      }
-                      onPress={() => void browserNotifications.toggle()}
-                    />
+                    {browserNotifications.unblockSteps ? null : (
+                      <Button
+                        title={
+                          browserNotifications.enabled
+                            ? "Desativar"
+                            : "Ativar notificações"
+                        }
+                        loading={browserNotifications.busy}
+                        size="sm"
+                        variant={browserNotifications.enabled ? "outline" : "primary"}
+                        disabled={
+                          browserNotifications.busy || !browserNotifications.publicKey
+                        }
+                        onPress={() => void browserNotifications.toggle()}
+                      />
+                    )}
                     {browserNotifications.enabled ? (
                       <Button
                         title="Enviar teste"
@@ -877,7 +897,9 @@ export default function SettingsScreen() {
                       <Button
                         title="Verificar novamente"
                         size="sm"
-                        variant="outline"
+                        variant={
+                          browserNotifications.unblockSteps ? "primary" : "outline"
+                        }
                         disabled={browserNotifications.busy}
                         onPress={() => void browserNotifications.refresh()}
                       />
