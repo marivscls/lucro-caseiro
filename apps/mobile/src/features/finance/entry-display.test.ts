@@ -35,6 +35,8 @@ describe("textos dos lançamentos", () => {
 
   it("formata a data como dia/mês", () => {
     expect(formatEntryDate("2026-09-05T12:00:00")).toBe("05/09");
+    // Data sem hora é o dia do calendário, em qualquer fuso.
+    expect(formatEntryDate("2026-11-09")).toBe("09/11");
     expect(formatEntryDate("sem data")).toBe("sem data");
   });
 });

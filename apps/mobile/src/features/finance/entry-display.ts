@@ -44,6 +44,10 @@ export function entryDisplayDescription(entry: DisplayEntry, isIncome: boolean):
 
 /** "dd/mm" do lançamento; devolve o texto original se a data for inválida. */
 export function formatEntryDate(value: string): string {
+  // "AAAA-MM-DD" (coluna date do banco) é um dia do calendário, não um instante:
+  // com `new Date` ele vira meia-noite UTC e, no Brasil, aparecia um dia antes.
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (dateOnly) return `${dateOnly[3]}/${dateOnly[2]}`;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
