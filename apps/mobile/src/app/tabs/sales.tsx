@@ -1,5 +1,8 @@
 import { ScreenHeader } from "../../shared/components/screen-header";
-import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
+import {
+  ScreenGuidance,
+  useGuidanceTakeover,
+} from "../../shared/guidance/screen-guidance";
 import type { Sale } from "@lucro-caseiro/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -503,6 +506,7 @@ export default function SalesScreen() {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("sales");
   const router = useRouter();
   const { saleId } = useLocalSearchParams<{ saleId?: string }>();
   const insets = useSafeAreaInsets();
@@ -839,6 +843,8 @@ export default function SalesScreen() {
           flex: 1,
           minHeight: 0,
           backgroundColor: palette.background,
+          // Lista vazia com tutorial: o guia ocupa a tela no lugar deste bloco.
+          display: guidanceTakeover ? "none" : "flex",
         }}
       >
         <View

@@ -48,6 +48,13 @@
     "patchedDependencies": {
       "image-size@1.2.1": "patches/image-size@1.2.1.patch",
       "decode-uri-component@0.2.2": "patches/decode-uri-component@0.2.2.patch"
+    },
+    "packageExtensions": {
+      "@expo/metro-runtime@5": {
+        "dependencies": {
+          "pretty-format": "^29.7.0"
+        }
+      }
     }
   },
   "scripts": {

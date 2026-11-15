@@ -73,3 +73,13 @@ No navegador, rolagem de formulário não pode dispensar foco como se fosse arra
 Publicar a API com a allowlist de analytics antes ou junto do app; uma API antiga pode rejeitar novos eventos, sem impedir as operações principais. Não há migração de dados de orientação: progresso local versionado por conta. A disponibilidade do suporte é o e-mail já usado pelo produto; o texto não promete horário ou prazo.
 
 Após o lançamento, comparar contas novas por objetivo e período elegível: tempo até o primeiro resultado, erro por campo, retomada após pré-requisito, conclusão após ajuda e repetição de uma tarefa útil. Guardar versão do app e data de exposição. Usar registros de negócio para conferir eventos perdidos; não interpretar ausência de telemetria como ausência de uso nem atribuir a mudança de retenção à personalização recente.
+
+## Tutorial em vídeo no guia — 2026-11-14
+
+- Áreas com vídeo (`shared/guidance/tutorial-videos.ts`) mostram a capa do tutorial (`tutorial-video-thumb.tsx`) dentro da explicação, não mais entre os botões. Sem `EXPO_PUBLIC_TUTORIAL_VIDEOS_URL` (ou em outras marcas) nada disso aparece e o cartão fica só com texto e ações.
+- Celular, lista ainda vazia (vendas, fiado, agenda, financeiro, catálogo, materiais e receitas): o guia ocupa a tela, com a capa no meio, título e texto abaixo e a ação principal no rodapé. A tela esconde o próprio conteúdo enquanto isso, lendo `useGuidanceTakeover(area)`. "Agora não" devolve a tela normal e continua valendo por conta.
+- Nova venda mantém o cartão enxuto (`compact`), com a capa pequena ao lado do texto. No computador a faixa não mudou.
+- O toque na capa pequena é atalho de ponteiro; para leitor de tela e teclado o botão é o link "Ver como funciona" ao lado.
+- No app instalado (Android e iPhone) o vídeo toca dentro do modal com `expo-video` (`native-tutorial-player.tsx`, controles nativos e tela cheia). O módulo só é carregado quando `ExpoVideo` existe no binário: builds anteriores, ou um erro do player, caem na capa grande e no botão "Assistir vídeo", que abre uma aba do navegador com as cores do app (Custom Tab no Android). Exige novo build no EAS; atualização OTA não traz o player.
+- Desktop: a faixa ganhou a capa pequena no lugar da lâmpada e o link "Ver como funciona" abaixo do texto; os botões ficam só com "Agora não", a ação secundária e a principal.
+- Ajuda (modal): o atalho do vídeo virou uma linha com capa, título do tutorial e seta.

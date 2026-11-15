@@ -5,6 +5,7 @@ declare const process: {
     EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
     EXPO_PUBLIC_AUTH_REDIRECT_URL?: string;
     EXPO_PUBLIC_WEB_APP_URL?: string;
+    EXPO_PUBLIC_TUTORIAL_VIDEOS_URL?: string;
     [key: string]: string | undefined;
   };
 };

@@ -74,11 +74,18 @@ vi.mock("expo-router", () => ({
     Screen: () => null,
   },
   useLocalSearchParams: () => ({}),
+  useSegments: () => [],
   maybeCompleteAuthSession: vi.fn(),
   openAuthSessionAsync: vi.fn(),
   getInitialURL: vi.fn().mockResolvedValue(null),
   addEventListener: vi.fn().mockReturnValue({ remove: vi.fn() }),
   createURL: vi.fn().mockReturnValue("lucrocaseiro://"),
+}));
+
+// Player nativo do tutorial: depende do pacote "expo", que não roda no jsdom.
+vi.mock("../shared/guidance/native-tutorial-player", () => ({
+  hasNativeVideoPlayer: false,
+  NativeTutorialPlayer: () => null,
 }));
 
 // Mock react-native-safe-area-context

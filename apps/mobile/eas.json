@@ -28,7 +28,8 @@
       "extends": "development-base",
       "env": {
         "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
-        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback"
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback",
+        "EXPO_PUBLIC_TUTORIAL_VIDEOS_URL": "https://ujwxvpceqigvyxcqolch.supabase.co/storage/v1/object/public/tutorials"
       }
     },
     "preview-base": {
@@ -44,7 +45,8 @@
       "extends": "preview-base",
       "env": {
         "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
-        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback"
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback",
+        "EXPO_PUBLIC_TUTORIAL_VIDEOS_URL": "https://ujwxvpceqigvyxcqolch.supabase.co/storage/v1/object/public/tutorials"
       }
     },
     "production-base": {
@@ -59,7 +61,8 @@
       "extends": "production-base",
       "env": {
         "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
-        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback"
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback",
+        "EXPO_PUBLIC_TUTORIAL_VIDEOS_URL": "https://ujwxvpceqigvyxcqolch.supabase.co/storage/v1/object/public/tutorials"
       }
     },
     "papelaria-development": {

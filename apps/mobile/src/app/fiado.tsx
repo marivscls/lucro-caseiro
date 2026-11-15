@@ -63,7 +63,7 @@ import {
 import { desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { DesktopFiadoPage } from "../features/sales/components/fiado-desktop";
-import { ScreenGuidance } from "../shared/guidance/screen-guidance";
+import { ScreenGuidance, useGuidanceTakeover } from "../shared/guidance/screen-guidance";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
@@ -507,6 +507,7 @@ function EmptyMessage({
 export default function FiadoScreen() {
   const { colors, styles } = useFiadoScreen();
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("fiado");
   const { width } = useWindowDimensions();
   const isNarrow = width < 370;
   const router = useRouter();
@@ -1035,7 +1036,7 @@ export default function FiadoScreen() {
         </View>
       ) : null}
 
-      <View style={styles.body}>{renderBody()}</View>
+      {guidanceTakeover ? null : <View style={styles.body}>{renderBody()}</View>}
 
       {!isLoading && !error && pendingSales.length > 0 ? (
         <ScreenCreateBar

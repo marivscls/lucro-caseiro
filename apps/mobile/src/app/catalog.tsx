@@ -64,6 +64,7 @@ import {
   CatalogDesktopUpsell,
 } from "../features/catalog/components/catalog-desktop";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { useGuidanceTakeover } from "../shared/guidance/screen-guidance";
 import { useAllProducts, useUpdateProduct } from "../features/products/hooks";
 import { useServices, useUpdateService } from "../features/services/hooks";
 import { formatCurrency } from "../shared/utils/format";
@@ -1601,6 +1602,7 @@ export default function CatalogScreen() {
   const colors = useBrandScreenPalette();
   const { width: viewportWidth } = useWindowDimensions();
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("catalog");
   const editorParams = useLocalSearchParams<{ editor?: string }>();
   const editorOpen = editorParams.editor === "1";
   const referencePwaLayout = viewportWidth >= 768 && !isDesktop;
@@ -1745,7 +1747,7 @@ export default function CatalogScreen() {
           right={headerRight}
         />
       )}
-      {content}
+      {guidanceTakeover && !editorOpen ? null : content}
     </SafeAreaView>
   );
 }

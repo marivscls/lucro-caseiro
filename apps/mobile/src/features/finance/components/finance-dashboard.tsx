@@ -66,6 +66,7 @@ import {
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ScreenHeader } from "../../../shared/components/screen-header";
+import { useGuidanceTakeover } from "../../../shared/guidance/screen-guidance";
 import { FAB } from "../../../shared/components/fab";
 import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SkeletonFinanceDashboard } from "../../../shared/components/skeleton";
@@ -140,6 +141,7 @@ export function FinanceDashboard({
   const mobileHeroImageHeight = mobileHeroImageWidth * (1103 / 1426);
   const mobileHeroTextWidth = Math.max(0, viewportWidth - 80 - mobileHeroImageWidth);
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("finance");
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const { data: profile } = useProfile();
@@ -876,7 +878,7 @@ export function FinanceDashboard({
 
       <ScrollView
         ref={scrollViewRef}
-        style={{ flex: 1 }}
+        style={{ flex: 1, display: guidanceTakeover ? "none" : "flex" }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,

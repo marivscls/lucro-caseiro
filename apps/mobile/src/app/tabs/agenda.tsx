@@ -14,6 +14,7 @@ import {
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
 import { ScreenHeader } from "../../shared/components/screen-header";
+import { useGuidanceTakeover } from "../../shared/guidance/screen-guidance";
 import { FAB } from "../../shared/components/fab";
 import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { SelectionUnderline } from "../../shared/components/feature-motion";
@@ -1301,6 +1302,7 @@ function AgendaContent() {
   }>();
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("agenda");
   const nativeMobile = !isDesktop && Platform.OS !== "web";
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error, refetch } = useOrders();
@@ -1440,7 +1442,7 @@ function AgendaContent() {
         }
       />
 
-      <View style={{ flex: 1 }}>{renderContent()}</View>
+      {guidanceTakeover ? null : <View style={{ flex: 1 }}>{renderContent()}</View>}
 
       {!isDesktop && !isLoading && !error && (orders?.length ?? 0) > 0 ? (
         <ScreenCreateBar title={createOrderLabel} onPress={() => setShowCreate(true)} />

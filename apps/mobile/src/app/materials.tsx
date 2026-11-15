@@ -41,6 +41,7 @@ import { FAB } from "../shared/components/fab";
 import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { useGuidanceTakeover } from "../shared/guidance/screen-guidance";
 import { Skeleton } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { ChipChoiceField, ChoiceField, FormField } from "../shared/components/form-field";
@@ -475,6 +476,7 @@ function MaterialsScreenContent() {
   const palette = brandScreenPalette(theme);
   const router = useRouter();
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("materials");
   const { width } = useWindowDimensions();
   const searchRef = useRef<TextInput>(null);
   const { data, isLoading, error, refetch } = useAllMaterials();
@@ -923,7 +925,7 @@ function MaterialsScreenContent() {
         }
       />
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1, display: guidanceTakeover ? "none" : "flex" }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={

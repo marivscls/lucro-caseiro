@@ -65,11 +65,18 @@ vi.mock("@lucro-caseiro/ui", async (importOriginal) => ({
   }) => React.createElement("button", { onClick: onPress, "data-size": size }, title),
 }));
 vi.mock("../layout/use-desktop-layout", () => ({ useDesktopLayout: () => false }));
+vi.mock("../layout/floating-tab-bar", () => ({
+  screenCreateBarBottomPadding: () => 16,
+}));
 vi.mock("../hooks/use-auth", () => ({
   useAuth: (selector: (state: { userId: string }) => unknown) =>
     selector({ userId: "guidance-user" }),
 }));
 vi.mock("./guidance-events", () => ({ guidanceEvent: () => {} }));
+vi.mock("./native-tutorial-player", () => ({
+  hasNativeVideoPlayer: false,
+  NativeTutorialPlayer: () => null,
+}));
 vi.mock("../components/standard-modal", () => ({
   StandardModal: ({
     visible,
@@ -225,5 +232,31 @@ describe("ScreenGuidance dismissal", () => {
     });
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(help);
+  });
+
+  it("opens the tutorial video modal on demand when a video base URL is configured", () => {
+    vi.stubEnv("EXPO_PUBLIC_TUTORIAL_VIDEOS_URL", "http://localhost:8788");
+    try {
+      const onStart = vi.fn();
+      render(
+        React.createElement(ScreenGuidance, {
+          area: "pricing",
+          onStart,
+          renderHeader,
+        }),
+      );
+      expect(document.querySelector("video")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: /Ver como funciona/i }));
+      const dialog = screen.getByRole("dialog", { name: "Precificação na prática" });
+      const video = dialog.querySelector("video");
+      expect(video?.getAttribute("src")).toBe(
+        "http://localhost:8788/tutorial-precificacao.mp4",
+      );
+      fireEvent.click(within(dialog).getByRole("button", { name: "Começar cálculo" }));
+      expect(onStart).toHaveBeenCalledOnce();
+      expect(screen.queryByRole("dialog")).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 });

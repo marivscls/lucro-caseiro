@@ -18,6 +18,7 @@ import { AppIcon } from "../shared/components/app-icon";
 import { FAB } from "../shared/components/fab";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { useGuidanceTakeover } from "../shared/guidance/screen-guidance";
 import { StandardModal } from "../shared/components/standard-modal";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { displayIngredientName } from "../shared/ingredient-image/resolve";
@@ -42,6 +43,7 @@ function RecipesContent() {
   const pal = useBrandScreenPalette();
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+  const guidanceTakeover = useGuidanceTakeover("recipes");
   const [modal, setModal] = useState<ModalState>({ type: "none" });
   const showPaywall = usePaywall((s) => s.show);
 
@@ -128,7 +130,7 @@ function RecipesContent() {
       <View style={{ flex: 1, width: "100%", ...pageFrame }}>
         {isDesktop ? null : recipesHeader}
 
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, display: guidanceTakeover ? "none" : "flex" }}>
           {isDesktop ? null : (
             <LimitBanner
               resource="recipes"

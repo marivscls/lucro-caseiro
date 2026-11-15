@@ -70,6 +70,7 @@ export default function SimplePricingScreen() {
       {isDesktop ? null : (
         <ScreenHeader
           title="Precificação"
+          guidance={{ area: "pricing", onStart: () => setStep(1), hasRecords: true }}
           hideBack={isDesktop}
           onBack={leavePricing}
           right={<PricingHistoryButton onPress={() => setShowHistory(true)} />}
@@ -89,6 +90,7 @@ export default function SimplePricingScreen() {
             <ScreenHeader
               title="Precificação"
               subtitle="Some os custos, defina seu ganho e descubra quanto cobrar."
+              guidance={{ area: "pricing", onStart: () => setStep(1), hasRecords: true }}
               hideBack
               right={
                 <DesktopToolbarButton
