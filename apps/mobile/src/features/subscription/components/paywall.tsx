@@ -434,13 +434,6 @@ export function Paywall({
                 </Typography>
               </View>
             ) : null}
-            <Typography
-              variant="body"
-              color={theme.colors.textSecondary}
-              style={{ textAlign: "center" }}
-            >
-              Sem fidelidade: cancele quando quiser.
-            </Typography>
           </View>
 
           <View style={[styles.footer, { marginTop: compact ? spacing.lg : spacing.xl }]}>

@@ -100,7 +100,8 @@ describe("paywall contextual", () => {
     render(React.createElement(Paywall, {}));
     expect(screen.getByText("R$ 37,42")).toBeTruthy();
     expect(screen.getByText("R$ 449,00 cobrados uma vez por ano.")).toBeTruthy();
-    expect(screen.getByText("Sem fidelidade: cancele quando quiser.")).toBeTruthy();
+    // O pagamento é no cartão: nada de prometer cancelamento a qualquer hora.
+    expect(screen.queryByText(/cancele quando quiser/i)).toBeNull();
     fireEvent.click(screen.getByLabelText("Selecionar cobrança mensal"));
     expect(screen.getByText("R$ 49,90")).toBeTruthy();
     expect(screen.getByText("Cobrado todo mês.")).toBeTruthy();

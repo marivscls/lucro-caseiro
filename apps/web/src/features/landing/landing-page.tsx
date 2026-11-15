@@ -193,7 +193,7 @@ export const landingFaqs = [
   },
   {
     question: "Quanto custa o Premium?",
-    answer: `${formatBrl(premiumPrice.monthly)} por mês, ou ${formatBrl(premiumPrice.annual)} por ano, cobrados de uma vez. No anual, sai por ${formatBrl(annualMonthlyEquivalent(premiumPrice.annual))} por mês, uma economia de ${formatBrl(annualSavings(premiumPrice.monthly, premiumPrice.annual))} no ano. Sem fidelidade: cancele quando quiser.`,
+    answer: `${formatBrl(premiumPrice.monthly)} por mês, ou ${formatBrl(premiumPrice.annual)} por ano, cobrados de uma vez. No anual, sai por ${formatBrl(annualMonthlyEquivalent(premiumPrice.annual))} por mês, uma economia de ${formatBrl(annualSavings(premiumPrice.monthly, premiumPrice.annual))} no ano.`,
   },
   {
     question: "Tem alguma cobrança quando o teste acabar?",
@@ -468,7 +468,7 @@ export function LandingPage() {
           <p className={styles.pricingNote}>
             Toda conta nova ganha {trialDays} dias do {premiumName}, sem cartão. Nada é
             cobrado no fim do teste: a conta volta para o Gratuito, com seus dados
-            salvos. Se quiser assinar, é no app. Cancele quando quiser.
+            salvos. Se quiser assinar, é no app.
           </p>
         </section>
 

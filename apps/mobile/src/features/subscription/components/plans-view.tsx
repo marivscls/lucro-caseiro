@@ -85,8 +85,8 @@ function chargeLine(plan: PaidPlan, period: BillingPeriod): string {
 
 function chargeHint(plan: PaidPlan, period: BillingPeriod): string {
   return period === "annual"
-    ? `Economia de ${formatMoney(annualSavings(plan))} no ano. Sem fidelidade: cancele quando quiser.`
-    : `Sem fidelidade: cancele quando quiser. No anual, você economiza ${formatMoney(annualSavings(plan))}.`;
+    ? `Economia de ${formatMoney(annualSavings(plan))} no ano.`
+    : `No anual, você economiza ${formatMoney(annualSavings(plan))}.`;
 }
 
 /**
