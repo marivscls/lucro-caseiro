@@ -30,8 +30,15 @@ export function BusinessProfileFlow({
   const state = useBusinessOnboarding();
   const router = useRouter();
   const colors = useBrandScreenPalette();
-  const [configureProfile, setConfigureProfile] = useState(!firstAccess);
-  const firstTaskVisible = firstAccess && !configureProfile && !state.record;
+  // Primeiro acesso: questionário do negócio e, depois dele, a boas-vindas
+  // com o atalho para a precificação. Quem pula o questionário ("Agora não",
+  // fechar ou Voltar na primeira pergunta) também chega à boas-vindas.
+  const [welcome, setWelcome] = useState(false);
+  // Respostas que montam a boas-vindas; null quando o questionário foi pulado.
+  const [welcomeProfile, setWelcomeProfile] = useState<BusinessProfileAnswers | null>(
+    null,
+  );
+  const firstTaskVisible = firstAccess && welcome;
   useEffect(() => {
     if (closeRequest)
       closeRequest.current = () => {
@@ -47,13 +54,22 @@ export function BusinessProfileFlow({
   useEffect(() => {
     if (!blockBack && !firstTaskVisible) return;
     const listener = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (!blockBack) void close();
+      // Na boas-vindas, Voltar devolve ao questionário se ele foi pulado;
+      // depois de respondido, vai para o Início.
+      if (firstTaskVisible && !state.record) setWelcome(false);
+      else if (firstTaskVisible) onClose();
+      else if (!blockBack) void close();
       return true;
     });
     return () => listener.remove();
   });
   async function finish(profile: BusinessProfileAnswers, start = false) {
     if (!(await state.save(profile))) return;
+    if (firstAccess && !start) {
+      setWelcomeProfile(profile);
+      setWelcome(true);
+      return;
+    }
     onClose();
     const next = profileRecommendation(profile);
     if (start && next) router.push(next.route);
@@ -62,6 +78,10 @@ export function BusinessProfileFlow({
     if (state.saving) return;
     if (state.loading || state.loadError) {
       if (!firstAccess) onClose();
+      return;
+    }
+    if (firstAccess && !state.record) {
+      setWelcome(true);
       return;
     }
     if (!state.record && !(await state.save(null))) return;
@@ -105,12 +125,18 @@ export function BusinessProfileFlow({
   if (firstTaskVisible) {
     return (
       <FirstTask
-        autoStart
-        onConfigure={() => setConfigureProfile(true)}
+        name={state.answers.name}
+        profile={welcomeProfile}
         onStart={async (route) => {
-          if (!(await state.save(null))) return false;
+          // Quem respondeu o questionário já tem a decisão salva.
+          if (!state.record && !(await state.save(null))) return false;
           onClose();
           router.push(route);
+          return true;
+        }}
+        onExplore={async () => {
+          if (!state.record && !(await state.save(null))) return false;
+          onClose();
           return true;
         }}
       />

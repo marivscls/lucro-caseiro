@@ -8,12 +8,48 @@ vi.mock("../../../../../packages/ui/src/use-reduced-motion", () => ({
 vi.mock("@lucro-caseiro/ui", async () =>
   vi.importActual("../../../../../packages/ui/src/index"),
 );
+vi.mock("expo-status-bar", () => ({ StatusBar: () => null }));
+vi.mock("../../shared/guidance/tutorial-video-modal", () => ({
+  TutorialVideoModal: ({
+    visible,
+    video,
+    actionLabel,
+    onAction,
+  }: {
+    visible: boolean;
+    video: { title: string };
+    actionLabel: string;
+    onAction: () => void;
+  }) =>
+    visible ? (
+      <div role="dialog" aria-label={video.title}>
+        <button onClick={onAction}>{actionLabel}</button>
+      </div>
+    ) : null,
+}));
 import { FirstTask } from "./first-task";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllEnvs();
+});
 
-describe("first action before completing the business profile", () => {
-  it("opens the chosen goal without collecting business details first", async () => {
+const START = "Calcular meu primeiro preço";
+
+describe("first-access welcome before pricing", () => {
+  it("greets by first name and waits for the person to start", () => {
+    const onStart = vi.fn(() => Promise.resolve(true));
+    render(
+      <FirstTask
+        name="Mariana Souza"
+        onStart={onStart}
+        onExplore={() => Promise.resolve(true)}
+      />,
+    );
+    expect(screen.getByRole("heading").textContent).toContain("Conta criada, Mariana.");
+    expect(onStart).not.toHaveBeenCalled();
+  });
+  it("opens pricing from the main action", async () => {
     let destination = "";
     render(
       <FirstTask
@@ -21,15 +57,21 @@ describe("first action before completing the business profile", () => {
           destination = route;
           return Promise.resolve(true);
         }}
-        onConfigure={() => {}}
+        onExplore={() => Promise.resolve(true)}
       />,
     );
-    fireEvent.click(
-      screen.getByRole("button", { name: "Registrar minha primeira venda" }),
-    );
-    await waitFor(() => expect(destination).toBe("/tabs/new-sale"));
+    fireEvent.click(screen.getByRole("button", { name: START }));
+    await waitFor(() => expect(destination).toBe("/pricing"));
   });
-  it("keeps the choices and allows retry when completing onboarding fails", async () => {
+  it("lets the person explore the app instead of pricing", async () => {
+    const onStart = vi.fn(() => Promise.resolve(true));
+    const onExplore = vi.fn(() => Promise.resolve(true));
+    render(<FirstTask onStart={onStart} onExplore={onExplore} />);
+    fireEvent.click(screen.getByRole("button", { name: "Conhecer o app primeiro" }));
+    await waitFor(() => expect(onExplore).toHaveBeenCalledOnce());
+    expect(onStart).not.toHaveBeenCalled();
+  });
+  it("keeps the actions and allows retry when saving the decision fails", async () => {
     let attempts = 0;
     render(
       <FirstTask
@@ -37,51 +79,50 @@ describe("first action before completing the business profile", () => {
           attempts += 1;
           return Promise.resolve(false);
         }}
-        onConfigure={() => {}}
+        onExplore={() => Promise.resolve(true)}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Calcular meu primeiro preço" }));
+    fireEvent.click(screen.getByRole("button", { name: START }));
     await screen.findByText(/tente novamente/i);
-    fireEvent.click(screen.getByRole("button", { name: "Calcular meu primeiro preço" }));
+    fireEvent.click(screen.getByRole("button", { name: START }));
     await waitFor(() => expect(attempts).toBe(2));
+    expect(screen.getByRole("button", { name: "Conhecer o app primeiro" })).toBeTruthy();
   });
-});
+  it("follows the priority chosen in the questionnaire", async () => {
+    const onStart = vi.fn((_route: string) => Promise.resolve(true));
+    render(
+      <FirstTask
+        name="Ana"
+        profile={{
+          name: "Ana",
+          business: "",
+          segment: "sweets",
+          stage: "starting",
+          channels: ["whatsapp"],
+          goal: "catalog",
+        }}
+        onStart={onStart}
+        onExplore={() => Promise.resolve(true)}
+      />,
+    );
+    expect(screen.getByRole("heading").textContent).toContain("vitrine");
+    fireEvent.click(screen.getByRole("button", { name: "Montar meu catálogo" }));
+    await waitFor(() => expect(onStart).toHaveBeenCalledWith("/catalog"));
+  });
+  it("offers the pricing video only when videos are configured", async () => {
+    const onStart = vi.fn(() => Promise.resolve(true));
+    const view = render(
+      <FirstTask onStart={onStart} onExplore={() => Promise.resolve(true)} />,
+    );
+    expect(screen.queryByRole("button", { name: /Ver como funciona/ })).toBeNull();
+    view.unmount();
 
-describe("first access opens pricing without asking", () => {
-  it("starts pricing once and shows no choices while it opens", async () => {
-    const destinations: string[] = [];
-    render(
-      <FirstTask
-        autoStart
-        onStart={(route) => {
-          destinations.push(route);
-          return Promise.resolve(true);
-        }}
-        onConfigure={() => {}}
-      />,
-    );
-    await waitFor(() => expect(destinations).toEqual(["/pricing"]));
-    expect(
-      screen.queryByRole("button", { name: "Registrar minha primeira venda" }),
-    ).toBeNull();
-  });
-  it("shows the choices and a retry when opening pricing fails", async () => {
-    let attempts = 0;
-    render(
-      <FirstTask
-        autoStart
-        onStart={() => {
-          attempts += 1;
-          return Promise.resolve(false);
-        }}
-        onConfigure={() => {}}
-      />,
-    );
-    await screen.findByText(/tente novamente/i);
-    fireEvent.click(screen.getByRole("button", { name: "Calcular meu primeiro preço" }));
-    await waitFor(() => expect(attempts).toBe(2));
-    expect(
-      screen.getByRole("button", { name: "Registrar minha primeira venda" }),
-    ).toBeTruthy();
+    vi.stubEnv("EXPO_PUBLIC_TUTORIAL_VIDEOS_URL", "http://localhost:8788");
+    render(<FirstTask onStart={onStart} onExplore={() => Promise.resolve(true)} />);
+    fireEvent.click(screen.getByRole("button", { name: /Ver como funciona/ }));
+    const dialog = screen.getByRole("dialog", { name: "Precificação na prática" });
+    fireEvent.click(dialog.querySelector("button")!);
+    await waitFor(() => expect(onStart).toHaveBeenCalledWith("/pricing"));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
