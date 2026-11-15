@@ -252,7 +252,7 @@ Revisão de design das telas de Planos e do checkout (modal). Nenhuma regra come
   de 2026-09-09): a pessoa paga o ano de uma vez e o valor por mês fica menor. O Anual leva o
   selo "Mais vantajoso", também no checkout. Não usamos "Mais vendido": afirma um dado de
   vendas que não temos. Conta gratuita vê "Recomendado" no
-  Essencial. Sob o botão: economia no ano e "Sem fidelidade: cancele quando quiser". No
+  Essencial. Sob o botão: só a economia no ano. Não prometemos cancelamento a qualquer hora: o pagamento é no cartão e o anual é cobrado de uma vez. No
   desktop, a saída das boas-vindas vai para a lateral, abaixo do pagamento (`skip`).
 - Checkout (`Paywall`): sem cabeçalho de marca (só o X); título maior que a explicação e
   sem emoji (`getPaywallCopy` remove o emoji inicial; os banners de limite mantêm);
