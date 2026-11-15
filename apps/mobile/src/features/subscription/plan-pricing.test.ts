@@ -42,6 +42,18 @@ describe("benefitsLeadingWith", () => {
     expect(result.benefits[0]).toBe("Fornecedores, compras e gastos fixos ilimitados");
   });
 
+  it.each(["fiado", "orders", "financeHistory"])(
+    "leads %s triggers with the fiado/agenda/financeiro benefit",
+    (resource) => {
+      const result = benefitsLeadingWith(TIER_BENEFITS.professional, resource);
+      expect(result.benefits[0]).toBe("Fiado, agenda e financeiro completos");
+    },
+  );
+
+  it("keeps the Premium list short", () => {
+    expect(TIER_BENEFITS.professional.length).toBeLessThanOrEqual(10);
+  });
+
   it("gives both paid tiers the same Premium benefits", () => {
     expect(TIER_BENEFITS.essential).toEqual(TIER_BENEFITS.professional);
   });

@@ -1,7 +1,12 @@
 import type { FreemiumLimits, UserProfile } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { getLimitBannerState, getLimitUsage, isLimitBlocked } from "./limits";
+import {
+  getLimitBannerState,
+  getLimitUsage,
+  isFeatureLocked,
+  isLimitBlocked,
+} from "./limits";
 
 function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
   return {
@@ -120,6 +125,84 @@ describe("subscription limits", () => {
       max: 20,
       remaining: 2,
       percentage: 90,
+    });
+  });
+
+  describe("encomendas do mês (orders)", () => {
+    it("bloqueia a 6ª encomenda do mês no Gratuito", () => {
+      // Arrange
+      const profile = makeProfile({ plan: "free" });
+      const limits = makeLimits({ maxOrdersPerMonth: 5, currentOrdersThisMonth: 5 });
+
+      // Act / Assert
+      expect(getLimitUsage(limits, "orders")).toEqual({ current: 5, max: 5 });
+      expect(isLimitBlocked(limits, profile, "orders")).toBe(true);
+    });
+
+    it("mostra o banner a partir de 2 encomendas restantes", () => {
+      const profile = makeProfile({ plan: "free" });
+
+      expect(
+        getLimitBannerState(
+          makeLimits({ maxOrdersPerMonth: 5, currentOrdersThisMonth: 2 }),
+          profile,
+          "orders",
+        ),
+      ).toBeNull();
+      expect(
+        getLimitBannerState(
+          makeLimits({ maxOrdersPerMonth: 5, currentOrdersThisMonth: 3 }),
+          profile,
+          "orders",
+        ),
+      ).toMatchObject({ remaining: 2, isAtLimit: false });
+    });
+
+    it("não bloqueia quando a API ainda não manda o limite de encomendas", () => {
+      const profile = makeProfile({ plan: "free" });
+
+      expect(isLimitBlocked(makeLimits(), profile, "orders")).toBe(false);
+      expect(getLimitBannerState(makeLimits(), profile, "orders")).toBeNull();
+    });
+
+    it("libera encomendas sem limite no Premium e no teste", () => {
+      const limits = makeLimits({ maxOrdersPerMonth: 5, currentOrdersThisMonth: 9 });
+
+      expect(
+        isLimitBlocked(limits, makeProfile({ plan: "professional" }), "orders"),
+      ).toBe(false);
+      expect(
+        isLimitBlocked(
+          limits,
+          makeProfile({ plan: "essential", planIsTrial: true }),
+          "orders",
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe("isFeatureLocked", () => {
+    it("trava fiado e histórico do financeiro no Gratuito", () => {
+      const free = makeProfile({ plan: "free" });
+
+      expect(isFeatureLocked(free, "fiado")).toBe(true);
+      expect(isFeatureLocked(free, "financeHistory")).toBe(true);
+      expect(isFeatureLocked(free, "quotesPdf")).toBe(true);
+      expect(isFeatureLocked(free, "exportBasic")).toBe(true);
+    });
+
+    it("libera tudo no Premium e volta a travar quando a assinatura expira", () => {
+      expect(isFeatureLocked(makeProfile({ plan: "professional" }), "fiado")).toBe(false);
+      expect(
+        isFeatureLocked(
+          makeProfile({ plan: "essential", planExpiresAt: "2020-01-01T00:00:00Z" }),
+          "financeHistory",
+        ),
+      ).toBe(true);
+    });
+
+    it("não trava sem perfil carregado (o backend decide)", () => {
+      expect(isFeatureLocked(undefined, "fiado")).toBe(false);
     });
   });
 });

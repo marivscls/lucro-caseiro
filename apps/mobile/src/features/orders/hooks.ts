@@ -57,6 +57,8 @@ export function useCreateOrder() {
     onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
       void queryClient.invalidateQueries({ queryKey: ["services"] });
+      // Encomendas do mês contam no limite do Gratuito.
+      void queryClient.invalidateQueries({ queryKey: ["subscription", "limits"] });
       void scheduleOrderReminder(order);
       void trackAnalyticsAction("order_created", token);
     },

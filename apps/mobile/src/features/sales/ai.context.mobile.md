@@ -278,3 +278,18 @@ A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida n
   do fiado com Pix copia e cola e link do extrato); `buildReceiptMessage(sale, pixCode)` põe o
   Pix só em venda pendente. `DesktopFiadoPage` ganhou `notice` (aviso de cadastrar a chave Pix).
 - 2026-11-15: plano único Premium. A prévia do recibo em PDF tem o botão "Desbloquear com o Premium" (antes Profissional).
+
+## Fiado no Premium — 2026-11-15
+
+Feature `fiado` (`docs/planos-comerciais.md`, "Decisao 2026-11-15 (2)").
+
+- `createsFiado(methods, received?, total?)` em `fiado.ts` (pura, com teste): venda nova com
+  forma "credit" ou recebido menor que o total.
+- Nova venda (`app/tabs/new-sale.tsx`, celular e desktop): no Gratuito a opção "Fiado" mostra
+  `PremiumLockTag` (cadeado + "Premium") e o toque abre `showPaywall("fiado")` sem selecionar.
+  O envio também confere (defesa extra) e um 403 `LIMIT_EXCEEDED` em venda fiado abre o paywall
+  do fiado (antes abria o de vendas).
+- O mesmo gate vale no caixa do varejo (`app/retail.tsx`, chip com cadeado), na venda por voz
+  (`assistant/components/sale-voice-card.tsx`) e no pacote de serviço vendido no fiado.
+- Tela Fiado: lista, "Marcar como pago" e "Receber" seguem livres. "Cobrar" (mensagem com link
+  do extrato e Pix) abre `showPaywall("fiado")` no Gratuito.

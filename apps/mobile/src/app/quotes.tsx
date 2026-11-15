@@ -49,6 +49,8 @@ import { useProfile } from "../features/subscription/hooks";
 import { DateField } from "../shared/components/date-field";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { useLimitCheck } from "../shared/hooks/use-limit-check";
+import { ApiError } from "../shared/utils/api-client";
 import { useAuth } from "../shared/hooks/use-auth";
 import { brToIso } from "../shared/utils/date";
 import {
@@ -444,6 +446,7 @@ function ConvertModal({
   onDone: () => void;
 }>) {
   const convert = useConvertQuote();
+  const showPaywall = usePaywall((s) => s.show);
   const [dateText, setDateText] = useState("");
   const [deposit, setDeposit] = useState("");
   const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
@@ -468,6 +471,12 @@ function ConvertModal({
       showToast("Encomenda criada na agenda!");
       onDone();
     } catch (err) {
+      // Limite de encomendas do mês no Gratuito (contagem local defasada).
+      if (err instanceof ApiError && err.code === "LIMIT_EXCEEDED") {
+        onClose();
+        showPaywall("orders", undefined, "limit");
+        return;
+      }
       const message = err instanceof Error ? err.message : "Não foi possível converter.";
       alertError(message);
     }
@@ -528,6 +537,8 @@ function QuoteDetail({
   const setStatus = useUpdateQuoteStatus();
   const removeQuote = useDeleteQuote();
   const [convertVisible, setConvertVisible] = useState(false);
+  // Aprovar orçamento cria encomenda: conta no limite do mês do Gratuito.
+  const { checkAndBlock: checkOrdersLimit } = useLimitCheck("orders");
   const [exporting, setExporting] = useState(false);
   const businessName = profile?.businessName ?? profile?.name ?? "Meu negócio";
 
@@ -546,7 +557,7 @@ function QuoteDetail({
 
   async function handlePdf() {
     if (!profile || !hasActiveFeature(profile.plan, profile.planExpiresAt, "quotesPdf")) {
-      showPaywall("export");
+      showPaywall("quotesPdf");
       return;
     }
     setExporting(true);
@@ -603,6 +614,11 @@ function QuoteDetail({
     });
   }
 
+  const pdfLabel =
+    profile && !hasActiveFeature(profile.plan, profile.planExpiresAt, "quotesPdf")
+      ? "Orçamento em PDF (Premium)"
+      : "Orçamento em PDF";
+
   // Ações secundárias agrupadas num menu, pra não virar parede de botões.
   function openMoreActions() {
     const options: {
@@ -611,7 +627,7 @@ function QuoteDetail({
       onPress?: () => void;
     }[] = [
       {
-        text: exporting ? "Gerando PDF..." : "Orçamento em PDF",
+        text: exporting ? "Gerando PDF..." : pdfLabel,
         onPress: () => void handlePdf(),
       },
     ];
@@ -706,7 +722,10 @@ function QuoteDetail({
                     color={theme.colors.textOnPrimary}
                   />
                 }
-                onPress={() => setConvertVisible(true)}
+                onPress={() => {
+                  if (checkOrdersLimit()) return;
+                  setConvertVisible(true);
+                }}
               />
             ) : null}
           </FormActions>

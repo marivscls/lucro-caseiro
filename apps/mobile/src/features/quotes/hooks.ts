@@ -80,12 +80,15 @@ export function useUpdateQuoteStatus() {
   );
 }
 
-/** Conversao tambem invalida orders (a encomenda nova aparece na agenda). */
+/**
+ * Conversao tambem invalida orders (a encomenda nova aparece na agenda) e os
+ * limites (encomendas do mes contam no Gratuito).
+ */
 export function useConvertQuote() {
   return useInvalidatingMutation(
     (token, { id, data }: { id: string; data: ConvertQuote }) =>
       convertQuote(token, id, data),
-    [["orders"]],
+    [["orders"], ["subscription", "limits"]],
   );
 }
 

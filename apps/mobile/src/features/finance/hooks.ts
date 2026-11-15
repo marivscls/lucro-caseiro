@@ -43,12 +43,16 @@ export function useFinanceEntries(opts?: {
   });
 }
 
-export function useFinanceSummary(opts?: { month?: number; year?: number }) {
+export function useFinanceSummary(
+  opts?: { month?: number; year?: number },
+  enabled = true,
+) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...FINANCE_KEY, "summary", opts],
     queryFn: () => fetchSummary(token!, opts),
-    enabled: !!token,
+    // Desligado quando o plano não vê o período (ex.: mês anterior no Gratuito).
+    enabled: !!token && enabled,
   });
 }
 

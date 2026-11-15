@@ -78,6 +78,9 @@ import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useNotificationAsk } from "../../shared/hooks/notification-ask";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
+import { useFeatureGate } from "../../shared/hooks/use-feature-gate";
+import { PremiumLockTag } from "../../shared/components/premium-lock-tag";
+import { createsFiado } from "../../features/sales/fiado";
 import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
 import { showAlert } from "../../shared/components/alert-store";
@@ -486,6 +489,9 @@ export default function NewSaleScreen() {
   const navigationBottomPadding = floatingTabBarContentPadding(insets.bottom);
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const showPaywall = usePaywall((s) => s.show);
+  // Fiado (venda nova a receber depois) é do Premium: no Gratuito a opção
+  // aparece com cadeado e abre o paywall em vez de ser escolhida.
+  const fiadoGate = useFeatureGate("fiado");
   const offerNextStep = useOfferNextStep();
   const [step, setStep] = useState<Step>(FIRST_SALE_STEP);
 
@@ -740,6 +746,7 @@ export default function NewSaleScreen() {
       return;
     }
     if (checkSalesLimit()) return;
+    if (createsFiado([effectivePayment]) && fiadoGate.blockIfLocked()) return;
 
     const payload = {
       clientId: selectedClient?.id,
@@ -800,7 +807,8 @@ export default function NewSaleScreen() {
       // Limite do plano gratuito esgotado: abre o paywall em vez de erro generico.
       // (Fallback do gate client-side, que pode estar com a contagem defasada.)
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
-        showPaywall("sales");
+        // Vendas são ilimitadas: no fiado o bloqueio é da feature `fiado`.
+        showPaywall(createsFiado([effectivePayment]) ? "fiado" : "sales");
         return;
       }
       // Tempo esgotado: o servidor pode ter gravado a venda. Nao enfileira
@@ -834,6 +842,11 @@ export default function NewSaleScreen() {
           : "Não foi possível registrar a venda. Tente novamente.";
       alertError(message);
     }
+  }
+
+  function choosePayment(method: PaymentOption["value"]) {
+    if (createsFiado([method]) && fiadoGate.blockIfLocked()) return;
+    setPaymentMethod(method);
   }
 
   const formValidation = useFormValidation({
@@ -1164,7 +1177,7 @@ export default function NewSaleScreen() {
                   title={option.label}
                   description={paymentSubtitles[option.value]}
                   selected={isSelected}
-                  onPress={() => setPaymentMethod(option.value)}
+                  onPress={() => choosePayment(option.value)}
                   leading={
                     <DesktopChoiceIcon
                       icon={option.icon as AppIconName}
@@ -1172,11 +1185,15 @@ export default function NewSaleScreen() {
                     />
                   }
                   trailing={
-                    <AppIcon
-                      name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-                      size={24}
-                      color={isSelected ? pal.wine : theme.colors.textSecondary}
-                    />
+                    option.value === "credit" && fiadoGate.locked ? (
+                      <PremiumLockTag />
+                    ) : (
+                      <AppIcon
+                        name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+                        size={24}
+                        color={isSelected ? pal.wine : theme.colors.textSecondary}
+                      />
+                    )
                   }
                 />
               );
@@ -2049,7 +2066,7 @@ export default function NewSaleScreen() {
                           return (
                             <Pressable
                               key={option.value}
-                              onPress={() => setPaymentMethod(option.value)}
+                              onPress={() => choosePayment(option.value)}
                               accessibilityRole="radio"
                               accessibilityLabel={option.label}
                               accessibilityState={{ checked: isSelected }}
@@ -2092,11 +2109,19 @@ export default function NewSaleScreen() {
                                   {subtitles[option.value]}
                                 </Typography>
                               </View>
-                              <AppIcon
-                                name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-                                size={24}
-                                color={isSelected ? pal.wine : theme.colors.textSecondary}
-                              />
+                              {option.value === "credit" && fiadoGate.locked ? (
+                                <PremiumLockTag />
+                              ) : (
+                                <AppIcon
+                                  name={
+                                    isSelected ? "checkmark-circle" : "ellipse-outline"
+                                  }
+                                  size={24}
+                                  color={
+                                    isSelected ? pal.wine : theme.colors.textSecondary
+                                  }
+                                />
+                              )}
                             </Pressable>
                           );
                         })}

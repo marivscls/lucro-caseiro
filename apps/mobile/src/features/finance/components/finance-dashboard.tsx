@@ -38,10 +38,12 @@ import financeSummaryIllustration from "../../../assets/finance-summary-illustra
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { useFeatureGate } from "../../../shared/hooks/use-feature-gate";
 import { useProfile } from "../../subscription/hooks";
 import { getExportUrl } from "../api";
 import {
   countByType,
+  currentWeekRange,
   entryBalance,
   financePeriodRange,
   orderReceiptProgress,
@@ -49,6 +51,7 @@ import {
   profitDeltaPct as computeProfitDeltaPct,
   totalsByType,
   unusualExpenses,
+  weekRangeLabel,
   type FinancePeriod,
 } from "../calc";
 import {
@@ -57,8 +60,14 @@ import {
   entryDisplayDescription,
   formatEntryDate,
 } from "../entry-display";
-import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../hooks";
+import {
+  useDeleteFinanceEntry,
+  useFinanceEntries,
+  useFinanceRangeSummary,
+  useFinanceSummary,
+} from "../hooks";
 import { CreateFinanceEntry } from "./create-finance-entry";
+import { FinanceHistoryNote } from "./finance-history-note";
 import {
   FinanceDashboardDesktop,
   type FinanceAttention,
@@ -108,6 +117,10 @@ const PERIOD_OPTIONS: ReadonlyArray<{ value: FinancePeriod; label: string }> = [
   { value: "7days", label: "7 dias" },
   { value: "month", label: "Mês" },
 ];
+// Gratuito: só a semana atual (segunda a domingo). Outros períodos são Premium.
+const FREE_PERIOD_OPTIONS: ReadonlyArray<{ value: FinancePeriod; label: string }> = [
+  { value: "week", label: "Esta semana" },
+];
 
 function dateDistanceInDays(date: string, now: Date): number {
   const target = new Date(`${date.slice(0, 10)}T12:00:00`);
@@ -145,8 +158,10 @@ export function FinanceDashboard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const { data: profile } = useProfile();
-  // Meses anteriores ficam abertos em todos os planos: ver o histórico é o
-  // que faz a pessoa confiar no app. Relatórios e exportações seguem pagos.
+  // 2026-11-15: no Gratuito o Financeiro mostra só a semana atual; meses e
+  // outros períodos abrem o paywall (`financeHistory`). Exportações são pagas.
+  const historyGate = useFeatureGate("financeHistory");
+  const historyLocked = historyGate.locked;
   const canExportBasic = profile
     ? hasActiveFeature(profile.plan, profile.planExpiresAt, "exportBasic")
     : false;
@@ -178,17 +193,30 @@ export function FinanceDashboard({
   const scrollViewRef = useRef<ScrollView>(null);
   const entriesSectionYRef = useRef(0);
 
+  const effectivePeriod: FinancePeriod = historyLocked ? "week" : period;
+  const periodOptions = historyLocked ? FREE_PERIOD_OPTIONS : PERIOD_OPTIONS;
+  // O mês corrente segue liberado no Gratuito; o anterior (comparação) não.
   const {
     data: summary,
     isLoading,
     error,
     refetch: refetchSummary,
   } = useFinanceSummary({ month, year });
-  const { data: prevSummary } = useFinanceSummary({
-    month: previousMonth(month) + 1,
-    year: previousYear(month, year),
-  });
-  const periodRange = financePeriodRange(period, month, year, now);
+  const { data: prevSummary } = useFinanceSummary(
+    {
+      month: previousMonth(month) + 1,
+      year: previousYear(month, year),
+    },
+    !historyLocked,
+  );
+  const periodRange = financePeriodRange(effectivePeriod, month, year, now);
+  const weekLabel = weekRangeLabel(currentWeekRange(now));
+  // Totais exatos da semana (percorre todas as páginas), não só os 100 da lista.
+  const { data: weekSummary } = useFinanceRangeSummary(
+    periodRange.startDate,
+    periodRange.endDate,
+    effectivePeriod === "week",
+  );
   const { data: entries } = useFinanceEntries({
     limit: 100,
     startDate: periodRange.startDate,
@@ -205,8 +233,15 @@ export function FinanceDashboard({
   const monthlyExpenses = summary?.totalExpenses ?? 0;
   const allEntries = entries?.items ?? [];
   const periodTotals = totalsByType(allEntries);
-  const income = period === "month" ? monthlyIncome : periodTotals.income;
-  const expenses = period === "month" ? monthlyExpenses : periodTotals.expenses;
+  let income = periodTotals.income;
+  let expenses = periodTotals.expenses;
+  if (effectivePeriod === "month") {
+    income = monthlyIncome;
+    expenses = monthlyExpenses;
+  } else if (effectivePeriod === "week" && weekSummary) {
+    income = weekSummary.totalIncome;
+    expenses = weekSummary.totalExpenses;
+  }
   const profit = computeProfit(income, expenses);
   const fullWidthHeroValue = narrowLayout && formatHeroCurrency(profit).length > 10;
   const prevProfit = computeProfit(
@@ -215,7 +250,7 @@ export function FinanceDashboard({
   );
   // So compara quando ha base: lucro anterior diferente de zero.
   const profitDeltaPct =
-    period === "month" ? computeProfitDeltaPct(profit, prevProfit) : null;
+    effectivePeriod === "month" ? computeProfitDeltaPct(profit, prevProfit) : null;
   const hasNoMovements = income === 0 && expenses === 0;
   let balanceLabel = "Sem movimentações";
   if (!hasNoMovements) balanceLabel = profit >= 0 ? "Saldo positivo" : "Saldo negativo";
@@ -353,7 +388,16 @@ export function FinanceDashboard({
     [token, year, month, canExportBasic, canExportFull, showPaywall],
   );
 
+  function changePeriod(next: FinancePeriod) {
+    if (historyLocked && next !== "week") {
+      historyGate.blockIfLocked();
+      return;
+    }
+    setPeriod(next);
+  }
+
   function handlePrevMonth() {
+    if (historyGate.blockIfLocked()) return;
     if (month === 1) {
       setMonth(12);
       setYear((currentYear) => currentYear - 1);
@@ -363,6 +407,7 @@ export function FinanceDashboard({
   }
 
   function handleNextMonth() {
+    if (historyGate.blockIfLocked()) return;
     if (month === 12) {
       setMonth(1);
       setYear((currentYear) => currentYear + 1);
@@ -372,6 +417,7 @@ export function FinanceDashboard({
   }
 
   function handleOpenMonthPicker() {
+    if (historyGate.blockIfLocked()) return;
     setPeriod("month");
     setPickerYear(year);
     setShowMonthPicker(true);
@@ -814,9 +860,17 @@ export function FinanceDashboard({
           onEntriesLayout={(y) => {
             entriesSectionYRef.current = y;
           }}
-          period={period}
-          periodOptions={PERIOD_OPTIONS}
-          onPeriodChange={setPeriod}
+          period={effectivePeriod}
+          periodOptions={periodOptions}
+          onPeriodChange={changePeriod}
+          historyNote={
+            historyLocked ? (
+              <FinanceHistoryNote
+                weekLabel={weekLabel}
+                onUpgrade={() => showPaywall("financeHistory")}
+              />
+            ) : null
+          }
           monthLabel={`${MONTH_NAMES[month - 1]} ${year}`}
           onPrevMonth={handlePrevMonth}
           onNextMonth={handleNextMonth}
@@ -894,19 +948,23 @@ export function FinanceDashboard({
             compactLayout && styles.periodFilterRowCompact,
           ]}
         >
-          {PERIOD_OPTIONS.map((option) => (
+          {periodOptions.map((option) => (
             <FilterPill
               key={option.value}
               label={option.label}
-              selected={period === option.value}
-              onPress={() => setPeriod(option.value)}
+              selected={effectivePeriod === option.value}
+              onPress={() => changePeriod(option.value)}
               compact
               styles={styles}
             />
           ))}
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Escolher período personalizado"
+            accessibilityLabel={
+              historyLocked
+                ? "Outros períodos, recurso Premium"
+                : "Escolher período personalizado"
+            }
             onPress={handleOpenMonthPicker}
             style={({ pressed }) => [styles.customPeriodPill, pressed && styles.pressed]}
           >
@@ -918,13 +976,24 @@ export function FinanceDashboard({
                 WEB_NOWRAP,
               ]}
             >
-              Personalizado
+              {historyLocked ? "Outros períodos" : "Personalizado"}
             </Typography>
-            <AppIcon name="chevron-down" size={iconSizes.xs} color={theme.colors.text} />
+            <AppIcon
+              name={historyLocked ? "lock-closed" : "chevron-down"}
+              size={iconSizes.xs}
+              color={historyLocked ? theme.colors.premium : theme.colors.text}
+            />
           </Pressable>
         </View>
 
-        {period === "month" ? (
+        {historyLocked ? (
+          <FinanceHistoryNote
+            weekLabel={weekLabel}
+            onUpgrade={() => showPaywall("financeHistory")}
+          />
+        ) : null}
+
+        {effectivePeriod === "month" ? (
           <View style={styles.monthSelector}>
             <Pressable
               onPress={handlePrevMonth}

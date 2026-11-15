@@ -147,3 +147,11 @@ A lista e a tabela dizem Criado para datas derivadas de createdAt. Salvar um or�
 ## Retomada de cadastro - 2026-10-01
 
 O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.
+
+## Gratuito enxuto — 2026-11-15
+
+- Orçamento em PDF (`quotesPdf`) saiu do Gratuito: o item do menu diz "Orçamento em PDF (Premium)"
+  e abre `showPaywall("quotesPdf")` (copy própria). Enviar pelo WhatsApp segue livre.
+- "Aprovar e criar encomenda" conta nas encomendas do mês: `useLimitCheck("orders")` antes de
+  abrir o modal; 403 `LIMIT_EXCEEDED` fecha o modal e abre o paywall de encomendas.
+  `useConvertQuote` também invalida `["subscription", "limits"]`.

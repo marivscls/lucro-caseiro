@@ -12,6 +12,8 @@ import { FormActions } from "../../../shared/components/form-layout";
 import { showToast } from "../../../shared/components/toast";
 import { alertError, errorMessage } from "../../../shared/utils/alerts";
 import { formatCurrency } from "../../../shared/utils/format";
+import { useFeatureGate } from "../../../shared/hooks/use-feature-gate";
+import { createsFiado } from "../../sales/fiado";
 import { useCreateSale } from "../../sales/hooks";
 import { PAYMENT_OPTIONS, draftToSale, draftTotal, isReadyItem } from "../domain";
 import { useDraftSale } from "../hooks";
@@ -21,8 +23,10 @@ import {
   type VoiceRecording,
 } from "../voice-recorder";
 
-function initialPayment(draft: AssistantSaleDraft): PaymentMethod {
+function initialPayment(draft: AssistantSaleDraft, fiadoLocked: boolean): PaymentMethod {
   if (!draft.paymentMethod || draft.paymentMethod === "transfer") return "pix";
+  // Fiado é do Premium: no Gratuito começa no Pix e o fiado fica com cadeado.
+  if (fiadoLocked && createsFiado([draft.paymentMethod])) return "pix";
   return draft.paymentMethod;
 }
 
@@ -34,11 +38,15 @@ function DraftReview({
   const palette = brandScreenPalette(theme);
   const router = useRouter();
   const createSale = useCreateSale();
-  const [payment, setPayment] = useState<PaymentMethod>(initialPayment(draft));
+  const fiadoGate = useFeatureGate("fiado");
+  const [payment, setPayment] = useState<PaymentMethod>(
+    initialPayment(draft, fiadoGate.locked),
+  );
   const result = draftToSale(draft, payment);
 
   async function handleRegister() {
     if (!result.ok) return;
+    if (createsFiado([payment]) && fiadoGate.blockIfLocked()) return;
     try {
       await createSale.mutateAsync(result.sale);
       showToast(payment === "credit" ? "Venda anotada no fiado." : "Venda registrada!");
@@ -99,8 +107,14 @@ function DraftReview({
         <ChoiceField
           value={payment}
           accessibilityLabel="Forma de pagamento"
-          options={PAYMENT_OPTIONS}
-          onChange={setPayment}
+          options={PAYMENT_OPTIONS.map((option) => ({
+            ...option,
+            locked: option.value === "credit" && fiadoGate.locked,
+          }))}
+          onChange={(method) => {
+            if (createsFiado([method]) && fiadoGate.blockIfLocked()) return;
+            setPayment(method);
+          }}
         />
       </FormField>
       {result.ok ? null : (

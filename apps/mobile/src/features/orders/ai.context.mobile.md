@@ -211,3 +211,16 @@ A ação de adicionar, o vazio e o formulário usam o nome da atividade do segme
 ## Imagem selecionada — 2026-10-09
 
 Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.
+
+## Encomendas do mês no Gratuito — 2026-11-15
+
+Limite `maxOrdersPerMonth` = 5 (`LimitResource` "orders").
+
+- Agenda: "Adicionar" (barra, FAB, vazio, orientação e `?create=home`) passa por
+  `useLimitCheck("orders")`; no limite abre `showPaywall("orders", undefined, "limit")` em vez do
+  formulário. `LimitBanner resource="orders"` acima da lista ("Faltam apenas 2 encomendas do mês").
+- Novo atendimento pela tela de serviços e "Aprovar e criar encomenda" do orçamento usam o mesmo
+  check. `OrderForm` trata 403 `LIMIT_EXCEEDED` ao criar com o paywall de encomendas.
+- `useCreateOrder` invalida `["subscription", "limits"]` para a contagem andar na hora.
+- Pedidos do catálogo e de agendamento não passam por aqui (entram sempre). Editar, concluir e
+  receber encomendas existentes não mudam.

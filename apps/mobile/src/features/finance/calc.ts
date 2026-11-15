@@ -31,12 +31,56 @@ export function countByType(entries: ReadonlyArray<{ type: string }>): {
   return { incomeCount, expenseCount };
 }
 
-export type FinancePeriod = "today" | "7days" | "month";
+/** "week" = semana atual (segunda a domingo), o período do plano Gratuito. */
+export type FinancePeriod = "today" | "7days" | "week" | "month";
 
 function isoDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+/**
+ * Semana atual de segunda a domingo (datas locais, inclusivas). É o que o
+ * Financeiro do plano Gratuito mostra; o backend aplica o mesmo recorte.
+ */
+export function currentWeekRange(today = new Date()): {
+  startDate: string;
+  endDate: string;
+} {
+  // getDay(): domingo = 0. Dias desde a segunda: seg = 0 ... dom = 6.
+  const sinceMonday = (today.getDay() + 6) % 7;
+  const start = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() - sinceMonday,
+  );
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  return { startDate: isoDate(start), endDate: isoDate(end) };
+}
+
+/** Rótulo curto da semana: "10 a 16 de nov." ou "28 de out. a 3 de nov.". */
+export function weekRangeLabel(range: { startDate: string; endDate: string }): string {
+  const [, startMonth, startDay] = range.startDate.split("-").map(Number);
+  const [, endMonth, endDay] = range.endDate.split("-").map(Number);
+  const months = [
+    "jan.",
+    "fev.",
+    "mar.",
+    "abr.",
+    "maio",
+    "jun.",
+    "jul.",
+    "ago.",
+    "set.",
+    "out.",
+    "nov.",
+    "dez.",
+  ];
+  if (startMonth === endMonth) {
+    return `${startDay} a ${endDay} de ${months[endMonth - 1]}`;
+  }
+  return `${startDay} de ${months[startMonth - 1]} a ${endDay} de ${months[endMonth - 1]}`;
 }
 
 /** Intervalo inclusivo usado pelos filtros rápidos do financeiro. */
@@ -50,6 +94,7 @@ export function financePeriodRange(
     const date = isoDate(today);
     return { startDate: date, endDate: date };
   }
+  if (period === "week") return currentWeekRange(today);
   if (period === "7days") {
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
     return { startDate: isoDate(start), endDate: isoDate(today) };

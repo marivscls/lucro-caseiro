@@ -92,3 +92,6 @@ inventário, reposição, serviços, promoções, preços, etiquetas, reservas e
   `DesktopSplit` com abas de tipo, título em `desktopSection` e documentos em cartões
   (`DesktopGrid`), e a lateral "Pátio de equipamentos" (oficina) ou "Rastreio por serial"
   (revenda). O vazio vira um cartão tracejado, e `ScreenCreateBar` sai no desktop.
+
+- 2026-11-15: no caixa, a forma "Fiado" (principal ou segunda forma) é Premium (feature `fiado`):
+  chip com cadeado e `showPaywall("fiado")` no Gratuito.

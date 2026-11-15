@@ -84,3 +84,10 @@ que quebra, e "Falar com a equipe" / "Perguntar" à direita, ao lado do aviso de
 de 2 colunas abaixo do assistente. Mesmas respostas, ações e rótulos; o celular não mudou.
 
 - 2026-11-15: plano único Premium. A resposta sobre planos fala em dois planos (Gratuito e Premium), com o preço do `SOLD_PLAN` (R$ 49,90/mês ou R$ 449/ano; valor redondo sem centavos), teste de 7 dias do Premium e aviso de que quem assinava Essencial ou Profissional passa a ter tudo do Premium pelo mesmo valor. Perguntas com "essencial"/"profissional" continuam caindo nessa resposta.
+
+- 2026-11-15 (Gratuito enxuto): a resposta sobre planos descreve o Gratuito com os números da
+  matriz (`PLAN_LIMITS`, `FREE_CATALOG_MAX_PRODUCTS`: 30 clientes, 15 produtos, 5 encomendas
+  novas por mês, catálogo com 5 produtos, Financeiro da semana atual) e o Premium com fiado,
+  agenda sem limite, Financeiro de qualquer mês e PDFs. Nova resposta para fiado (rota `/fiado`):
+  venda nova no fiado e cobrança com link/Pix são Premium; dar baixa é liberado. A resposta do
+  Financeiro avisa que o Gratuito mostra a semana atual.

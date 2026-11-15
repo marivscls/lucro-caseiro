@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildChargeMessage,
+  createsFiado,
   fiadoInitials,
   fiadoTiming,
   fiadoTimingLabel,
@@ -150,5 +151,24 @@ describe("buildChargeMessage com Pix e extrato", () => {
   it("sem Pix mantém o fechamento de antes", () => {
     const [group] = groupFiados([makeSale({ total: 45 })]);
     expect(buildChargeMessage(group)).toContain("é só me chamar");
+  });
+});
+
+describe("createsFiado", () => {
+  it("é fiado quando algum pagamento é na forma fiado", () => {
+    expect(createsFiado(["credit"])).toBe(true);
+    expect(createsFiado(["pix", "credit"])).toBe(true);
+  });
+
+  it("não é fiado quando tudo é pago na hora", () => {
+    expect(createsFiado(["pix"])).toBe(false);
+    expect(createsFiado(["cash", "card"])).toBe(false);
+  });
+
+  it("é fiado quando o valor recebido fica abaixo do total", () => {
+    expect(createsFiado(["pix"], 30, 50)).toBe(true);
+    expect(createsFiado(["pix"], 50, 50)).toBe(false);
+    // Arredonda centavos: 0,1 + 0,2 recebidos cobrem 0,30.
+    expect(createsFiado(["pix"], 0.1 + 0.2, 0.3)).toBe(false);
   });
 });

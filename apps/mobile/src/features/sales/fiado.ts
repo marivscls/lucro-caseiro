@@ -14,6 +14,21 @@ export type FiadoTiming =
   | { kind: "upcoming"; days: number }
   | { kind: "open"; days: number };
 
+/**
+ * Venda NOVA que deixa saldo para receber depois (é fiado, feature `fiado`):
+ * forma "credit" em algum pagamento, ou valor recebido menor que o total.
+ * Dar baixa em fiado que já existe nunca passa por aqui.
+ */
+export function createsFiado(
+  methods: readonly string[],
+  received?: number,
+  total?: number,
+): boolean {
+  if (methods.includes("credit")) return true;
+  if (received === undefined || total === undefined) return false;
+  return Math.round(received * 100) < Math.round(total * 100);
+}
+
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const FIADO_DUE_AFTER_DAYS = 7;
 const FIADO_UPCOMING_WINDOW_DAYS = 3;

@@ -92,3 +92,7 @@ URL pública do extrato: `EXPO_PUBLIC_CATALOG_URL ?? EXPO_PUBLIC_API_URL` + `/f/
   Nome do recebedor = nome do negócio (até 25 letras no código). O código vai sozinho numa
   linha da mensagem para facilitar copiar no WhatsApp.
 - 2026-09-28: salvar a chave mostra uma confirmação animada junto dos botões (some ao editar); tipos de chave em duas colunas com rótulo curto "Aleatória"; Salvar e Remover empilhados no celular.
+
+- 2026-11-15: Pix nas cobranças do fiado é Premium (feature `fiado`). No Gratuito o botão diz
+  "Salvar chave Pix (Premium)" e abre `showPaywall("fiado")`; remover a chave segue liberado (se o
+  backend recusar, a mensagem dele aparece no alerta).

@@ -1,5 +1,5 @@
-import type { FreemiumLimits, UserProfile } from "@lucro-caseiro/contracts";
-import { planLimit, resolveActivePlan } from "@lucro-caseiro/contracts";
+import type { FreemiumLimits, PlanFeature, UserProfile } from "@lucro-caseiro/contracts";
+import { hasActiveFeature, planLimit, resolveActivePlan } from "@lucro-caseiro/contracts";
 
 import type { LimitResource } from "./limit-copy";
 
@@ -22,7 +22,24 @@ const LIMIT_FIELDS: Record<LimitResource, { current: string; max: string }> = {
   packaging: { current: "currentPackaging", max: "maxPackaging" },
   products: { current: "currentProducts", max: "maxProducts" },
   suppliers: { current: "currentSuppliers", max: "maxSuppliers" },
+  orders: { current: "currentOrdersThisMonth", max: "maxOrdersPerMonth" },
 };
+
+// Quantos itens restantes já mostram o banner. Padrão: 20% do limite (mín. 1).
+// Encomendas são poucas por mês (5 no Gratuito): avisa a partir de 2 restantes.
+const BANNER_THRESHOLD: Partial<Record<LimitResource, number>> = { orders: 2 };
+
+/**
+ * Plano ativo NÃO tem a feature (bloqueia na UI e abre o paywall). Sem perfil
+ * carregado não bloqueia: o backend continua sendo a fonte da regra.
+ */
+export function isFeatureLocked(
+  profile: UserProfile | null | undefined,
+  feature: PlanFeature,
+): boolean {
+  if (!profile) return false;
+  return !hasActiveFeature(profile.plan, profile.planExpiresAt, feature);
+}
 
 export interface LimitUsage {
   readonly current: number;
@@ -76,7 +93,7 @@ export function getLimitBannerState(
   if (max === null) return null;
 
   const remaining = max - current;
-  const threshold = Math.max(1, Math.ceil(max * 0.2));
+  const threshold = BANNER_THRESHOLD[resource] ?? Math.max(1, Math.ceil(max * 0.2));
   if (remaining > threshold) return null;
 
   return {

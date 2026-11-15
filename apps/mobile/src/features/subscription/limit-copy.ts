@@ -12,7 +12,8 @@ export type LimitResource =
   | "recipes"
   | "packaging"
   | "products"
-  | "suppliers";
+  | "suppliers"
+  | "orders";
 
 interface ResourceCopy {
   /** Nome no plural usado na contagem ("Faltam 5 vendas"). */
@@ -88,6 +89,17 @@ const LIMIT_COPY: Record<LimitResource, ResourceCopy> = {
     atLimit: {
       title: "🤝 Limite de fornecedores atingido",
       body: "Assine o Premium para fornecedores ilimitados e controle de compras.",
+    },
+  },
+  orders: {
+    plural: "encomendas do mês",
+    lastOne: {
+      title: "📅 Falta apenas 1 encomenda este mês",
+      body: "No Premium a agenda não tem limite de encomendas.",
+    },
+    atLimit: {
+      title: "📅 Agenda do mês cheia no plano gratuito",
+      body: "Você chegou ao limite de encomendas do mês no plano gratuito. Com o Premium a agenda não tem limite. Pedidos do catálogo continuam chegando.",
     },
   },
 };
@@ -174,6 +186,21 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   prioritySupport: {
     title: "Suporte prioritário",
     message: "Fale com a equipe com prioridade no Premium.",
+  },
+  fiado: {
+    title: "🧾 Vender no fiado",
+    message:
+      "Anote vendas para receber depois e cobre pelo WhatsApp com link e Pix no Premium. O que já está no fiado continua aqui para você receber.",
+  },
+  financeHistory: {
+    title: "📆 Financeiro completo",
+    message:
+      "No plano gratuito você vê a semana atual. Veja meses anteriores e qualquer período no Premium.",
+  },
+  quotesPdf: {
+    title: "📄 Orçamento em PDF",
+    message:
+      "Mande orçamentos em PDF com a cara do seu negócio no Premium. O envio pelo WhatsApp continua liberado.",
   },
 };
 
@@ -264,6 +291,21 @@ function resourceCopyFor(
       atLimit: {
         title: "📦 Limite de custos adicionais atingido",
         body: `Cadastre ${experienceCopy.packagingNounPlural} sem limite no Premium.`,
+      },
+    };
+  }
+
+  if (resource === "orders") {
+    const nouns = experienceCopy.orderNounPlural;
+    return {
+      plural: `${nouns} do mês`,
+      lastOne: {
+        title: `📅 Falta apenas 1 ${experienceCopy.orderNoun} este mês`,
+        body: `No Premium a agenda não tem limite de ${nouns}.`,
+      },
+      atLimit: {
+        title: "📅 Agenda do mês cheia no plano gratuito",
+        body: `Você chegou ao limite de ${nouns} do mês no plano gratuito. Com o Premium a agenda não tem limite. Pedidos do catálogo continuam chegando.`,
       },
     };
   }

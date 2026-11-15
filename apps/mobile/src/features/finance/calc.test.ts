@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   countByType,
+  currentWeekRange,
   entryBalance,
   financePeriodRange,
   orderReceiptProgress,
@@ -9,6 +10,7 @@ import {
   profitDeltaPct,
   totalsByType,
   unusualExpenses,
+  weekRangeLabel,
 } from "./calc";
 
 describe("profit", () => {
@@ -72,6 +74,58 @@ describe("financePeriodRange", () => {
       startDate: "2024-02-01",
       endDate: "2024-02-29",
     });
+  });
+});
+
+describe("currentWeekRange", () => {
+  it("vai de segunda a domingo quando hoje é meio de semana", () => {
+    // 2026-11-18 é quarta-feira.
+    expect(currentWeekRange(new Date(2026, 10, 18, 9))).toEqual({
+      startDate: "2026-11-16",
+      endDate: "2026-11-22",
+    });
+  });
+
+  it("começa no próprio dia quando hoje é segunda", () => {
+    expect(currentWeekRange(new Date(2026, 10, 16, 0, 5))).toEqual({
+      startDate: "2026-11-16",
+      endDate: "2026-11-22",
+    });
+  });
+
+  it("domingo fecha a semana que começou na segunda anterior", () => {
+    // 2026-11-15 é domingo.
+    expect(currentWeekRange(new Date(2026, 10, 15, 23, 50))).toEqual({
+      startDate: "2026-11-09",
+      endDate: "2026-11-15",
+    });
+  });
+
+  it("atravessa a virada de mês e de ano", () => {
+    // 2026-12-31 é quinta-feira.
+    expect(currentWeekRange(new Date(2026, 11, 31, 12))).toEqual({
+      startDate: "2026-12-28",
+      endDate: "2027-01-03",
+    });
+  });
+
+  it("é o intervalo do período week em financePeriodRange", () => {
+    const today = new Date(2026, 10, 18, 9);
+    expect(financePeriodRange("week", 1, 2020, today)).toEqual(currentWeekRange(today));
+  });
+});
+
+describe("weekRangeLabel", () => {
+  it("encurta quando a semana fica no mesmo mês", () => {
+    expect(weekRangeLabel({ startDate: "2026-11-16", endDate: "2026-11-22" })).toBe(
+      "16 a 22 de nov.",
+    );
+  });
+
+  it("mostra os dois meses na virada", () => {
+    expect(weekRangeLabel({ startDate: "2026-10-26", endDate: "2026-11-01" })).toBe(
+      "26 de out. a 1 de nov.",
+    );
   });
 });
 

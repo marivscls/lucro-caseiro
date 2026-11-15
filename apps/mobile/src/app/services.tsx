@@ -27,6 +27,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import servicesHeroToolkit from "../assets/services-hero-toolkit.png";
 import { OrderForm } from "../features/orders/components/order-form";
+import { useLimitCheck } from "../shared/hooks/use-limit-check";
 import { ServiceDashboardModal } from "../features/services/components/service-dashboard-modal";
 import { ServiceForm } from "../features/services/components/service-form";
 import {
@@ -488,6 +489,8 @@ export default function ServicesScreen() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [appointmentService, setAppointmentService] = useState<Service | null>(null);
+  // Atendimento novo conta nas encomendas do mês do Gratuito.
+  const { checkAndBlock: checkOrdersLimit } = useLimitCheck("orders");
   const [showCreate, setShowCreate] = useState(false);
   const { create } = useLocalSearchParams<{ create?: string }>();
   useEffect(() => {
@@ -912,6 +915,7 @@ export default function ServicesScreen() {
             setEditingService(selectedService);
           }}
           onNewAppointment={() => {
+            if (checkOrdersLimit()) return;
             setSelectedService(null);
             setAppointmentService(selectedService);
           }}

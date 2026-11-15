@@ -24,6 +24,10 @@ describe("paywall copy points to the single paid plan", () => {
       "birthdays",
       "notifications",
       "prioritySupport",
+      "orders",
+      "fiado",
+      "financeHistory",
+      "quotesPdf",
     ];
 
     for (const resource of resources) {
@@ -61,5 +65,29 @@ describe("contextual limit copy", () => {
 
     expect(getLimitResourceLabel("products", copy)).toBe("serviços");
     expect(getLimitResourceLabel("recipes", copy)).toBe("fichas de serviço");
+  });
+});
+
+describe("copy do Gratuito enxuto (2026-11-15)", () => {
+  it("tem paywall próprio para fiado, histórico do financeiro e orçamento em PDF", () => {
+    const fallback = getPaywallCopy(null);
+    for (const resource of ["fiado", "financeHistory", "quotesPdf", "orders"]) {
+      expect(getPaywallCopy(resource)).not.toEqual(fallback);
+    }
+    expect(getPaywallCopy("financeHistory").message).toContain("semana atual");
+    expect(getPaywallCopy("fiado").message).toContain("continua aqui");
+  });
+
+  it("conta as encomendas restantes do mês no banner", () => {
+    expect(getBannerCopy("orders", 2).body).toBe(
+      "Faltam apenas 2 encomendas do mês para atingir o limite do plano gratuito.",
+    );
+    expect(getLimitResourceLabel("orders", businessCopyFor("services"))).toBe(
+      "atendimentos do mês",
+    );
+  });
+
+  it("lembra que pedidos do catálogo continuam chegando no limite", () => {
+    expect(getPaywallCopy("orders").message).toContain("catálogo continuam chegando");
   });
 });

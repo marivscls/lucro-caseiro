@@ -163,6 +163,11 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
           max: limits.maxProducts,
         },
         {
+          label: "Encomendas este mês",
+          cur: limits.currentOrdersThisMonth ?? 0,
+          max: limits.maxOrdersPerMonth ?? null,
+        },
+        {
           label: "Receitas",
           cur: limits.currentRecipes,
           max: limits.maxRecipes,

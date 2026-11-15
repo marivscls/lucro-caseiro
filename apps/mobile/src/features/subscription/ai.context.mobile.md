@@ -300,3 +300,23 @@ pessoa pagou e nada mudou.
 - Ao voltar para o app (`AppState` → `active`), as compras disponíveis são sincronizadas de novo.
 - "Restaurar compras" com compra encontrada mas não liberada mostra o mesmo aviso em vez de
   fechar sem mensagem.
+
+## Gratuito enxuto — 2026-11-15
+
+Matriz em `@lucro-caseiro/contracts` (`plans.ts`): produtos 15, clientes 30, encomendas novas
+5 por mês (`maxOrdersPerMonth`), catálogo público com 5 produtos; `fiado`, `financeHistory`,
+`exportBasic` e `quotesPdf` só no Premium (teste grátis incluso).
+
+- `LimitResource` local ganhou `orders` (`limits.ts`: `currentOrdersThisMonth`/`maxOrdersPerMonth`;
+  campos opcionais: API antiga sem eles = sem bloqueio). O banner de encomendas aparece a partir
+  de 2 restantes (`BANNER_THRESHOLD`); os outros recursos seguem com 20% do limite.
+- `isFeatureLocked(profile, feature)` (pura, em `limits.ts`) + `useFeatureGate(feature, resource)`
+  em `shared/hooks/use-feature-gate.ts`: `locked` para a UI e `blockIfLocked()` que abre o
+  paywall. Sem perfil carregado não trava (o backend decide).
+- `limit-copy.ts`: copy de limite para `orders` (contextual: "atendimentos do mês" em serviços;
+  no limite lembra que pedidos do catálogo continuam chegando) e paywalls de feature `fiado`,
+  `financeHistory` e `quotesPdf`.
+- `plan-benefits.ts`: nova linha "Fiado, agenda e financeiro completos" (10 linhas no total);
+  `fiado`, `orders` e `financeHistory` puxam essa linha para o topo do checkout; `quotesPdf`
+  puxa "Resultados completos + PDF e Excel".
+- Tela de planos: "Encomendas este mês" na lista de uso do Gratuito.

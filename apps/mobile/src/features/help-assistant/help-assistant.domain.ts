@@ -1,5 +1,6 @@
 import {
   ESSENTIAL_TRIAL_DAYS,
+  FREE_CATALOG_MAX_PRODUCTS,
   PLAN_LABELS,
   PLAN_LIMITS,
   PLAN_PRICING,
@@ -24,6 +25,7 @@ export interface HelpAnswer {
       | "/tabs/new-sale"
       | "/tabs/clients"
       | "/tabs/agenda"
+      | "/fiado"
       | "/settings";
   };
 }
@@ -103,8 +105,8 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       kind: "guide",
       text: `Temos dois planos: o ${PLAN_LABELS.free} e o ${PLAN_LABELS[SOLD_PLAN]}, com opção mensal ou anual.`,
       steps: [
-        `${PLAN_LABELS.free}: sem mensalidade, com vendas ilimitadas, até ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos.`,
-        `${PLAN_LABELS[SOLD_PLAN]}: ${planPrice(SOLD_PLAN)}. Tudo liberado: clientes e produtos ilimitados, catálogo completo e personalizado, relatórios completos, exportação em PDF/Excel, compras e suporte prioritário.`,
+        `${PLAN_LABELS.free}: sem mensalidade, com vendas ilimitadas, cálculo de preço, até ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos, ${PLAN_LIMITS.free.maxOrdersPerMonth} encomendas novas por mês na agenda, catálogo com ${FREE_CATALOG_MAX_PRODUCTS} produtos e o Financeiro da semana atual.`,
+        `${PLAN_LABELS[SOLD_PLAN]}: ${planPrice(SOLD_PLAN)}. Tudo liberado: fiado com cobrança por link e Pix, agenda sem limite, Financeiro de qualquer mês, clientes e produtos ilimitados, catálogo completo e personalizado, relatórios completos, resumo do mês e orçamentos em PDF, compras e suporte prioritário.`,
         `Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do ${PLAN_LABELS[SOLD_PLAN]} para testar, sem cartão. Depois, volta sozinha para o ${PLAN_LABELS.free} se você não assinar.`,
         `Quem já assinava o Essencial ou o Profissional passa a ter tudo do ${PLAN_LABELS[SOLD_PLAN]}, pagando o mesmo valor que contratou.`,
         "Toque em Ver planos para conferir os recursos e o valor antes de assinar.",
@@ -125,6 +127,18 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       ],
     };
   }
+  if (has(q, ["fiado", "pagar depois", "receber depois", "cobrar cliente"])) {
+    return {
+      kind: "guide",
+      text: "O fiado mostra quem ainda deve e quanto falta receber.",
+      steps: [
+        `Venda nova no fiado e cobrança com link e Pix fazem parte do ${PLAN_LABELS[SOLD_PLAN]}.`,
+        "Quando o cliente pagar, abra Fiado e marque a venda como paga. Dar baixa é liberado em todos os planos.",
+        "O valor recebido entra no Financeiro na hora.",
+      ],
+      action: { label: "Abrir Fiado", route: "/fiado" },
+    };
+  }
   if (
     has(q, ["lucro", "financeiro", "caixa", "faturamento", "despesa", "gasto"]) &&
     !has(q, ["preco", "cobrar", "precifica", "custo"])
@@ -133,7 +147,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       kind: "guide",
       text: "Eu explico como usar o app, mas não consulto os dados da sua conta.",
       steps: [
-        "Abra o Financeiro e selecione o período que deseja conferir.",
+        "Abra o Financeiro e selecione o período que deseja conferir. No plano Gratuito aparece a semana atual; meses anteriores ficam no Premium.",
         "Revise as entradas e despesas registradas. Uma venda paga gera sua entrada vinculada.",
         "Confira se os custos e gastos estão completos antes de interpretar os resultados.",
       ],

@@ -62,6 +62,7 @@ import {
 } from "../shared/layout/desktop-density";
 import { desktopPageContent } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { useFeatureGate } from "../shared/hooks/use-feature-gate";
 import { DesktopFiadoPage } from "../features/sales/components/fiado-desktop";
 import { ScreenGuidance, useGuidanceTakeover } from "../shared/guidance/screen-guidance";
 import { alertError } from "../shared/utils/alerts";
@@ -523,6 +524,8 @@ export default function FiadoScreen() {
   const { data: pixSettings } = usePixSettings();
   const { data: profile } = useProfile();
   const createLink = useCreateFiadoLink();
+  // Cobrar com link do extrato e Pix é do Premium. Ver e dar baixa seguem livres.
+  const fiadoGate = useFeatureGate("fiado");
 
   const sales = data?.items ?? [];
   const pendingSales = React.useMemo(
@@ -595,6 +598,7 @@ export default function FiadoScreen() {
   }
 
   async function handleCharge(group: FiadoGroup) {
+    if (fiadoGate.blockIfLocked()) return;
     const message = buildChargeMessage(group, {
       pixCode: chargePix(pixSettings, profile, group.total),
       statementUrl: await statementLink(group.clientId),

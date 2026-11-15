@@ -190,3 +190,22 @@ que não mudou (tudo atrás de `useDesktopLayout`).
 O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.
 
 - 2026-11-15: plano único Premium. O selo da exportação diz "Excel no Premium" (antes "Excel no Profissional"); o cartão de gastos recorrentes no computador diz "Recurso Premium" e "Desbloquear no Premium". Regras de acesso iguais (`exportBasic`, `export`, `recurringExpenses`).
+
+## Gratuito enxuto: Financeiro da semana — 2026-11-15
+
+Decisão em `docs/planos-comerciais.md` ("Decisao 2026-11-15 (2)"). Feature `financeHistory`.
+
+- Gratuito: `FinanceDashboard` força o período `week` (segunda a domingo, datas locais) via
+  `currentWeekRange()` em `calc.ts` (pura, com teste). O seletor mostra só "Esta semana"; a
+  pílula "Outros períodos" (cadeado), o ícone de calendário do cabeçalho, as setas de mês e o
+  seletor de mês abrem `showPaywall("financeHistory")` em vez de navegar.
+- `FinanceHistoryNote` (`components/finance-history-note.tsx`, com teste) aparece abaixo do
+  seletor no celular e no desktop (`historyNote` em `FinanceDashboardDesktop`): "No plano gratuito
+  você vê a semana atual. Veja meses anteriores no Premium." + botão "Ver meses anteriores".
+- Totais da semana vêm de `useFinanceRangeSummary` (percorre as páginas). O resumo do mês
+  corrente continua sendo pedido (liberado no backend, usado pelo Início); o do mês anterior
+  (comparação) fica desligado no Gratuito (`useFinanceSummary(opts, enabled)`), porque o backend
+  responde 403 `LIMIT_EXCEEDED` para mês passado.
+- PDF do resumo do mês (`exportBasic`) saiu do Gratuito: o botão já abria
+  `showPaywall("export", "essential")` sem a feature; o selo agora diz "Premium" no Gratuito.
+- Premium e teste grátis: sem mudança (Hoje / 7 dias / Mês, qualquer mês).

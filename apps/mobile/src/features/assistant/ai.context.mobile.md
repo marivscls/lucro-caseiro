@@ -85,3 +85,4 @@ fiado"). A IA monta um rascunho; a pessoa confere antes de salvar.
 - 2026-09-29: aviso de limite esgotado muda com `usage.trial`: "Seus usos de teste acabaram" no Gratuito; "No dia 1º os usos voltam" nos pagos.
 - 2026-09-29: `/assistant?falar=1` (vindo do Início) começa a gravar sozinho em aparelhos que gravam; nos outros abre normal, sem aviso.
 - 2026-11-15: plano único Premium. No fim dos usos de teste, o aviso convida para o Premium (antes falava em "planos pagos").
+- 2026-11-15: venda por voz no fiado é Premium (feature `fiado`). No Gratuito a forma "Fiado" tem cadeado, o rascunho que veio como fiado começa no Pix e registrar no fiado abre `showPaywall("fiado")`.

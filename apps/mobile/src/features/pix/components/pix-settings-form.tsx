@@ -8,6 +8,7 @@ import { ChoiceField, FormField, TextField } from "../../../shared/components/fo
 import { FormActions, FormBody, FormGrid } from "../../../shared/components/form-layout";
 import { SaleSuccessMark } from "../../../shared/components/motion-feedback";
 import { showToast } from "../../../shared/components/toast";
+import { useFeatureGate } from "../../../shared/hooks/use-feature-gate";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { alertError, errorMessage } from "../../../shared/utils/alerts";
 import {
@@ -68,6 +69,7 @@ export function PixSettingsForm({
   const [city, setCity] = useState(settings?.pixCity ?? "");
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const update = useUpdatePixSettings();
+  const fiadoGate = useFeatureGate("fiado");
 
   useEffect(() => {
     if (!settings) return;
@@ -80,6 +82,8 @@ export function PixSettingsForm({
 
   async function handleSave() {
     if (!validation.validate()) return;
+    // Pix nas cobranças do fiado é do Premium (o backend recusa no Gratuito).
+    if (fiadoGate.blockIfLocked()) return;
     try {
       await update.mutateAsync({
         pixKeyType: keyType,
@@ -174,7 +178,7 @@ export function PixSettingsForm({
           <Button title="Remover chave" variant="outline" onPress={handleRemove} />
         ) : null}
         <Button
-          title="Salvar chave Pix"
+          title={fiadoGate.locked ? "Salvar chave Pix (Premium)" : "Salvar chave Pix"}
           loading={update.isPending}
           onPress={() => {
             void handleSave();

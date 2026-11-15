@@ -27,6 +27,8 @@ import { FormActions } from "../../../shared/components/form-layout";
 import { FormSection } from "../../../shared/components/form-section";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { useFeatureGate } from "../../../shared/hooks/use-feature-gate";
+import { createsFiado } from "../../sales/fiado";
 import { alertError } from "../../../shared/utils/alerts";
 import { isoToBR } from "../../../shared/utils/date";
 import { formatCurrency } from "../../../shared/utils/format";
@@ -93,12 +95,15 @@ export function ServiceDashboardModal({
   const updatingBookingIdRef = useRef<string | null>(null);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [packagePaymentMethod, setPackagePaymentMethod] = useState<PaymentMethod>("pix");
+  // Pacote vendido no fiado é venda nova a receber depois: Premium.
+  const fiadoGate = useFeatureGate("fiado");
   const [showClientPicker, setShowClientPicker] = useState(false);
   const profitColor =
     (insights.data?.profit ?? 0) < 0 ? theme.colors.alert : theme.colors.success;
 
   async function sellPackage(client: Pick<Client, "id" | "name"> | null) {
     if (!client || !selectedPackageId) return;
+    if (createsFiado([packagePaymentMethod]) && fiadoGate.blockIfLocked()) return;
     try {
       await purchasePackage.mutateAsync({
         packageId: selectedPackageId,
@@ -339,8 +344,14 @@ export function ServiceDashboardModal({
               <ChipChoiceField
                 accessibilityLabel="Forma de pagamento"
                 value={packagePaymentMethod}
-                options={PAYMENT_OPTIONS}
-                onChange={setPackagePaymentMethod}
+                options={PAYMENT_OPTIONS.map((option) => ({
+                  ...option,
+                  locked: option.value === "credit" && fiadoGate.locked,
+                }))}
+                onChange={(method) => {
+                  if (createsFiado([method]) && fiadoGate.blockIfLocked()) return;
+                  setPackagePaymentMethod(method);
+                }}
               />
             </FormField>
             <View style={isDesktop ? styles.inlineActionRow : undefined}>

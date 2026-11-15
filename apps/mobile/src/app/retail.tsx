@@ -74,6 +74,8 @@ import {
   desktopPageContent,
 } from "../shared/layout/desktop-page";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { useFeatureGate } from "../shared/hooks/use-feature-gate";
+import { createsFiado } from "../features/sales/fiado";
 
 type OperationMode =
   | "checkout"
@@ -198,6 +200,8 @@ export default function RetailScreen() {
   const [counted, setCounted] = useState<Record<string, string>>({});
 
   const cash = useCashSession();
+  // Fiado em venda nova é do Premium (dar baixa continua livre).
+  const fiadoGate = useFeatureGate("fiado");
   const productsQuery = useAllProducts();
   const productCodeLookup = useProductCodeLookup();
   const clientsQuery = useClients();
@@ -375,6 +379,11 @@ export default function RetailScreen() {
 
   async function submitCheckout() {
     if (!cash.data?.session || !requireProducts()) return;
+    const usedMethods =
+      numberValue(secondaryAmount) > 0
+        ? [primaryPayment, secondaryPayment]
+        : [primaryPayment];
+    if (createsFiado(usedMethods) && fiadoGate.blockIfLocked()) return;
     const items = selectedStockItems.map(({ product, variation }) => ({
       productId: product.id,
       ...(variation ? { variationId: variation.id } : {}),
@@ -820,7 +829,11 @@ export default function RetailScreen() {
             key={method.id}
             label={method.label}
             selected={value === method.id}
-            onPress={() => onChange(method.id)}
+            locked={method.id === "credit" && fiadoGate.locked}
+            onPress={() => {
+              if (createsFiado([method.id]) && fiadoGate.blockIfLocked()) return;
+              onChange(method.id);
+            }}
           />
         ))}
       </View>

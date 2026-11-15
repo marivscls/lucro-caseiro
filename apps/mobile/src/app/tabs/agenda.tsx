@@ -58,6 +58,9 @@ import { openWhatsApp, waMessages } from "../../shared/utils/whatsapp";
 import { showAlert } from "../../shared/components/alert-store";
 import { alertError } from "../../shared/utils/alerts";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import { useLimitCheck } from "../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../shared/hooks/use-paywall";
+import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { DesktopStatRow, desktopPageContent } from "../../shared/layout/desktop-page";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { StandardModal } from "../../shared/components/standard-modal";
@@ -1314,6 +1317,13 @@ function AgendaContent() {
       ? "Adicione um atendimento com data e horário para começar a organizar sua agenda."
       : `Adicione ${agendaArticle} ${guidanceCopy.orderNoun} com a data combinada para começar a organizar sua agenda.`;
   const [showCreate, setShowCreate] = useState(false);
+  // Gratuito: 5 encomendas novas por mês criadas no app (as do catálogo não contam).
+  const { checkAndBlock: checkOrdersLimit } = useLimitCheck("orders");
+  const showPaywall = usePaywall((s) => s.show);
+  function openCreate() {
+    if (checkOrdersLimit()) return;
+    setShowCreate(true);
+  }
   const [showDayFilter, setShowDayFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -1321,7 +1331,7 @@ function AgendaContent() {
   const [completing, setCompleting] = useState(false);
   useEffect(() => {
     if (create === "home") {
-      setShowCreate(true);
+      openCreate();
       router.setParams({ create: undefined });
     }
     if (orderId) {
@@ -1374,7 +1384,7 @@ function AgendaContent() {
             title="Sua agenda está vazia"
             description={agendaEmptyDescription}
             actionLabel={createOrderLabel}
-            onAction={() => setShowCreate(true)}
+            onAction={openCreate}
           />
         </ScrollView>
       );
@@ -1384,7 +1394,7 @@ function AgendaContent() {
         <EmptyState
           title="Sua agenda está vazia"
           description={agendaEmptyDescription}
-          action={<Button title={createOrderLabel} onPress={() => setShowCreate(true)} />}
+          action={<Button title={createOrderLabel} onPress={openCreate} />}
           style={
             nativeMobile
               ? { paddingBottom: floatingTabBarContentPadding(insets.bottom) }
@@ -1422,7 +1432,7 @@ function AgendaContent() {
           area: "agenda",
           actionLabel: createOrderLabel,
           title: `Organize ${guidanceCopy.orderNounPlural}`,
-          onStart: () => setShowCreate(true),
+          onStart: openCreate,
           hasRecords: (orders?.length ?? 0) > 0,
           loading: isLoading || !!error,
           suspended: showCreate,
@@ -1436,16 +1446,27 @@ function AgendaContent() {
               icon="add"
               header
               accessibilityLabel={createOrderLabel}
-              onPress={() => setShowCreate(true)}
+              onPress={openCreate}
             />
           ) : undefined
         }
       />
 
+      {guidanceTakeover ? null : (
+        <LimitBanner
+          resource="orders"
+          onUpgrade={() => showPaywall("orders")}
+          containerStyle={{
+            paddingTop: spacing.sm,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
+        />
+      )}
       {guidanceTakeover ? null : <View style={{ flex: 1 }}>{renderContent()}</View>}
 
       {!isDesktop && !isLoading && !error && (orders?.length ?? 0) > 0 ? (
-        <ScreenCreateBar title={createOrderLabel} onPress={() => setShowCreate(true)} />
+        <ScreenCreateBar title={createOrderLabel} onPress={openCreate} />
       ) : null}
 
       {/* Criar */}

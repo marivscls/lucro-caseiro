@@ -11,6 +11,11 @@ const PREMIUM_ONLY: readonly PlanFeature[] = [
   "labelsPremium",
   "prioritySupport",
   "compositeProducts",
+  // 2026-11-15: PDFs, fiado e histórico do financeiro saíram do Gratuito.
+  "exportBasic",
+  "quotesPdf",
+  "fiado",
+  "financeHistory",
 ];
 
 describe("plan feature matrix", () => {
@@ -23,7 +28,7 @@ describe("plan feature matrix", () => {
     );
   });
 
-  it.each(["exportBasic", "quotesPdf", "premiumNotifications"] as const)(
+  it.each(["premiumNotifications"] as const)(
     "releases %s on every plan, including free",
     (feature) => {
       expect(hasActiveFeature("free", null, feature)).toBe(true);

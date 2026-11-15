@@ -46,6 +46,8 @@ import {
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
 import { useBusinessCopy } from "../../subscription/business-copy";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { ApiError } from "../../../shared/utils/api-client";
 
 interface OrderFormProps {
   readonly order?: Order | null;
@@ -418,6 +420,7 @@ export function OrderForm({
   const [formStep, setFormStep] = useState(1);
 
   const createOrder = useCreateOrder();
+  const showPaywall = usePaywall((s) => s.show);
   const createService = useCreateService();
   const { data: services = [] } = useServices();
   const { data: packagePurchases = [] } = useServicePackagePurchases(serviceId);
@@ -622,6 +625,11 @@ export function OrderForm({
       requestIdRef.current = createOrderRequestId();
       onSuccess?.();
     } catch (error) {
+      // Limite de encomendas do mês no Gratuito (contagem local pode estar defasada).
+      if (!isEditing && error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
+        showPaywall("orders", undefined, "limit");
+        return;
+      }
       const message =
         error instanceof Error
           ? error.message

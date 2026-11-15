@@ -87,4 +87,22 @@ describe("help assistant", () => {
     expect(answerHelpQuestion("ajuda", "other").kind).toBe("unknown");
     expect(answerHelpQuestion(" ", "other").kind).toBe("unknown");
   });
+
+  it("descreve o Gratuito enxuto de 2026-11-15", () => {
+    const answer = answerHelpQuestion("O que inclui o plano gratuito?", "food");
+    const content = answer.steps.join(" ");
+    expect(content).toContain("até 30 clientes e 15 produtos");
+    expect(content).toContain("5 encomendas novas por mês");
+    expect(content).toContain("catálogo com 5 produtos");
+    expect(content).toContain("Financeiro da semana atual");
+    expect(content).toContain("fiado com cobrança por link e Pix");
+    expect(content).not.toContain("50 clientes");
+  });
+
+  it("explica que fiado novo é Premium e dar baixa é livre", () => {
+    const answer = answerHelpQuestion("como cobrar cliente no fiado?", "food");
+    expect(answer.action?.route).toBe("/fiado");
+    expect(answer.steps.join(" ")).toContain("Premium");
+    expect(answer.steps.join(" ")).toContain("Dar baixa é liberado");
+  });
 });

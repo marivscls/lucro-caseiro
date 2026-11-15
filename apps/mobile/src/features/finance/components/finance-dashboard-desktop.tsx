@@ -83,6 +83,8 @@ export type FinanceDesktopProps = Readonly<{
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onOpenMonthPicker: () => void;
+  /** Aviso do plano Gratuito (só a semana atual); null quando o plano vê tudo. */
+  historyNote?: ReactNode;
   hasNoMovements: boolean;
   profitLabel: string;
   profit: number;
@@ -310,6 +312,30 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
     </>
   );
 
+  // Mês: setas. Outros períodos: "Escolher mês". Gratuito: o aviso faz esse papel.
+  let periodControl: ReactNode = null;
+  if (props.period === "month") {
+    periodControl = (
+      <DesktopMonthStepper
+        label={props.monthLabel}
+        onPrev={props.onPrevMonth}
+        onNext={props.onNextMonth}
+        onOpenPicker={props.onOpenMonthPicker}
+      />
+    );
+  } else if (!props.historyNote) {
+    periodControl = (
+      <Button
+        title="Escolher mês"
+        variant="outline"
+        accessibilityLabel="Escolher período personalizado"
+        onPress={props.onOpenMonthPicker}
+        icon={<AppIcon name="calendar-outline" size={20} color={pal.wine} />}
+        style={desktopActionButton}
+      />
+    );
+  }
+
   const exportCard = (row: boolean) => (
     <AsideCard
       key="export"
@@ -397,24 +423,9 @@ export function FinanceDashboardDesktop(props: FinanceDesktopProps) {
             value={props.period}
             onChange={props.onPeriodChange}
           />
-          {props.period === "month" ? (
-            <DesktopMonthStepper
-              label={props.monthLabel}
-              onPrev={props.onPrevMonth}
-              onNext={props.onNextMonth}
-              onOpenPicker={props.onOpenMonthPicker}
-            />
-          ) : (
-            <Button
-              title="Escolher mês"
-              variant="outline"
-              accessibilityLabel="Escolher período personalizado"
-              onPress={props.onOpenMonthPicker}
-              icon={<AppIcon name="calendar-outline" size={20} color={pal.wine} />}
-              style={desktopActionButton}
-            />
-          )}
+          {periodControl}
         </View>
+        {props.historyNote ?? null}
       </View>
 
       <View onLayout={(event) => setSplitY(event.nativeEvent.layout.y)}>

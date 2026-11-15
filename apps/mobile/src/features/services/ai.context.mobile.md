@@ -187,3 +187,6 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
 - Vazio, filtro sem resultado e erro: cartão tracejado (`DesktopEmptyCard layout="stack"` de `shared/layout/desktop-kit.tsx`) com o
   mesmo texto e ação do celular (`emptyCopy`).
 - Sem `ScreenCreateBar` no desktop: "Cadastrar serviço" fica no cabeçalho.
+
+- 2026-11-15: vender pacote no fiado é Premium (feature `fiado`): chip com cadeado e paywall no
+  Gratuito. "Novo atendimento" conta nas encomendas do mês (`useLimitCheck("orders")`).
