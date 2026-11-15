@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { fetchAllSales, fetchSales } from "../sales/api";
 import { fetchAllProducts } from "../products/api";
+import { fetchAllClients } from "../clients/api";
 
 export async function fetchPendingSales(token: string) {
   const first = await fetchSales(token, { status: "pending", page: 1 });
@@ -34,6 +35,26 @@ export function useHomeSalesHistory(dateFrom: string) {
     queryFn: () => fetchSalesHistory(token!, dateFrom),
     enabled: !!token,
   });
+}
+
+/**
+ * Dados de "Clientes que sumiram": vendas desde `dateFrom` (todas as páginas,
+ * prefixo `sales`) e a lista inteira de clientes (prefixo `clients`), para
+ * as invalidações existentes das duas features atualizarem o cartão.
+ */
+export function useHomeLapsedClientsData(dateFrom: string, enabled: boolean) {
+  const { token } = useAuth();
+  const sales = useQuery({
+    queryKey: ["sales", "home-lapsed", dateFrom],
+    queryFn: () => fetchSalesHistory(token!, dateFrom),
+    enabled: !!token && enabled,
+  });
+  const clients = useQuery({
+    queryKey: ["clients", "home-lapsed"],
+    queryFn: () => fetchAllClients(token!),
+    enabled: !!token && enabled,
+  });
+  return { sales, clients };
 }
 
 export function useHomeProducts(enabled: boolean) {

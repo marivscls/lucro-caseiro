@@ -60,11 +60,13 @@ import {
   HomeDayPreview,
   HomeFiado,
   HomeHabitGoal,
+  HomeLapsedClients,
   HomeMonthHero,
   HomeNextIdeas,
   HomePriceAlert,
   HomePrimaryButton,
   HomeReadyBanner,
+  HomeSeasonalCard,
   HomeSetupSteps,
   HomeSetupTip,
   HomeStreakCard,
@@ -83,7 +85,12 @@ import {
   type HomePhase,
   type SetupStepId,
 } from "../../features/home/domain";
-import { useHomeProducts, useHomeSalesHistory } from "../../features/home/hooks";
+import {
+  useHomeLapsedClientsData,
+  useHomeProducts,
+  useHomeSalesHistory,
+} from "../../features/home/hooks";
+import { lapsedLookbackStart } from "../../features/home/lapsed-clients";
 import { useOrders } from "../../features/orders/hooks";
 import { useBusinessCopy } from "../../features/subscription/business-copy";
 import { TrialChecklist } from "../../features/discovery/components/trial-checklist";
@@ -250,6 +257,10 @@ export default function HomeScreen() {
         olderHistory: hasOlderHistory(olderInsights.data, since),
       })
     : null;
+  const lapsedData = useHomeLapsedClientsData(
+    lapsedLookbackStart(now),
+    phase === "ready" || phase === "month",
+  );
   const failedQuery = [allProducts, salesQuery, history].find(
     (query) => query.isError && query.data === undefined,
   );
@@ -326,6 +337,23 @@ export default function HomeScreen() {
   );
 
   const openGoal = () => setShowGoalForm(true);
+  const seasonalCard = (
+    <HomeSeasonalCard
+      now={now}
+      userId={userId}
+      scheduling={hasScheduling}
+      service={serviceBusiness}
+    />
+  );
+  const lapsedClientsCard = (
+    <HomeLapsedClients
+      sales={lapsedData.sales}
+      clients={lapsedData.clients}
+      now={now}
+      businessName={profile?.businessName}
+      service={serviceBusiness}
+    />
+  );
 
   return (
     <SafeAreaView
@@ -447,6 +475,7 @@ export default function HomeScreen() {
               <HomePrimaryButton label="Anotar outra venda" onPress={newSale} />
             )}
             {voiceEntry}
+            {seasonalCard}
             <HomeDayNumbers
               desktop={isDesktop}
               history={history}
@@ -456,6 +485,7 @@ export default function HomeScreen() {
             {isDesktop ? null : (
               <HomeStreakCard activeDays={activeDays} desktop={false} />
             )}
+            {lapsedClientsCard}
             <HomeNextIdeas
               columns={isDesktop ? 3 : 1}
               hasGoal={!!goalQuery.data?.config}
@@ -486,11 +516,15 @@ export default function HomeScreen() {
               ) : null}
             </Columns>
             {isDesktop ? (
-              voiceEntry
+              <>
+                {voiceEntry}
+                {seasonalCard}
+              </>
             ) : (
               <>
                 <HomePrimaryButton label="Anotar venda" onPress={newSale} />
                 {voiceEntry}
+                {seasonalCard}
                 <HomeHabitGoal
                   full={false}
                   history={history}
@@ -519,6 +553,7 @@ export default function HomeScreen() {
                 />
               ) : null}
             </Columns>
+            {lapsedClientsCard}
           </>
         ) : null}
 

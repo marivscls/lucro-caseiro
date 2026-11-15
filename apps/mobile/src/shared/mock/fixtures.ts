@@ -336,7 +336,9 @@ export function seededDemoData(
       birthday.getDate(),
     ).padStart(2, "0")}`,
   });
-  const clients = [mariana, juliana, cida, rafael, carla];
+  // Cliente frequente que parou de comprar (aparece em "Clientes que sumiram").
+  const sonia = client({ name: "Sônia Ribeiro", phone: "11932109876" });
+  const clients = [mariana, juliana, cida, rafael, carla, sonia];
 
   const sale = (
     days: number,
@@ -399,6 +401,9 @@ export function seededDemoData(
         ),
       );
     }
+  }
+  for (const day of [-80, -61, -40]) {
+    sales.push(sale(day, 15, "pix", [{ product: caixa, quantity: 2 }], sonia));
   }
   sales.sort((a, b) => b.soldAt.localeCompare(a.soldAt));
 

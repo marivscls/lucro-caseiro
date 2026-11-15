@@ -16,7 +16,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 
 - **Depende de:** `@lucro-caseiro/contracts` (tipos `Client`, `CreateClient`, `UpdateClient`), `@lucro-caseiro/ui` (componentes genericos), `shared/hooks/use-auth`, `shared/hooks/use-limit-check`, `shared/utils/api-client`.
 - **Depende de (cross-feature):** `features/sales/hooks` (`useSales`) para exibir historico de compras no detalhe do cliente; `features/products/display` (`displayProductName` nos itens do historico).
-- **Dependentes:** `features/sales` (tela `new-sale` usa `useClients` para selecionar cliente na venda), `tabs/index` (Home usa `useBirthdays`).
+- **Dependentes:** `features/sales` (tela `new-sale` usa `useClients` para selecionar cliente na venda), `tabs/index` (Home usa `useBirthdays`), `features/home/hooks` (cartão "Clientes que sumiram" usa `fetchAllClients`, chave `["clients", "home-lapsed"]`, invalidada pelas mutações de cliente).
 
 ## Code pointers
 

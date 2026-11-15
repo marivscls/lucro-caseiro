@@ -3,6 +3,7 @@ import { fetchAllSales, fetchSales } from "../sales/api";
 import { fetchPendingSales, fetchSalesHistory } from "./hooks";
 vi.mock("../sales/api", () => ({ fetchSales: vi.fn(), fetchAllSales: vi.fn() }));
 vi.mock("../products/api", () => ({ fetchAllProducts: vi.fn() }));
+vi.mock("../clients/api", () => ({ fetchAllClients: vi.fn() }));
 vi.mock("../../shared/hooks/use-auth", () => ({ useAuth: vi.fn() }));
 
 describe("pending sales for home", () => {

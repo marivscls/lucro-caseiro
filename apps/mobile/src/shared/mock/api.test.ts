@@ -160,7 +160,7 @@ describe("mock api — dados da confeitaria de exemplo", () => {
       maxProducts: 30,
       maxClients: 50,
       currentProducts: 6,
-      currentClients: 5,
+      currentClients: 6,
     });
   });
 
