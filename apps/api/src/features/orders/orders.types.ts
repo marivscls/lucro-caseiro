@@ -1,6 +1,7 @@
 import type {
   CreateService,
   Order,
+  OrderRecurrence,
   OrderStatus,
   PurchaseServicePackage,
   Service,
@@ -46,6 +47,7 @@ export interface CreateOrderData {
   photoUrl?: string | null;
   notes?: string;
   status?: OrderStatus;
+  recurrence?: OrderRecurrence | null;
 }
 
 export type UpdateOrderData = Partial<CreateOrderData>;

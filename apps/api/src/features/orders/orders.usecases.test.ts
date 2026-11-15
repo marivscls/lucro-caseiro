@@ -137,6 +137,42 @@ describe("OrdersUseCases", () => {
       );
     });
 
+    it("creates the next order when a repeating order is delivered", async () => {
+      // Arrange
+      const weekly = makeOrder({ recurrence: "weekly", deliveryTime: "15:00" });
+      const create = vi.fn((_userId: string, data: { title: string }) =>
+        Promise.resolve(makeOrder({ id: "order-2", title: data.title })),
+      );
+      const update = vi.fn((_userId: string, _id: string, data: Partial<Order>) =>
+        Promise.resolve({ ...weekly, ...data }),
+      );
+      const { sut } = makeSut({
+        repo: { findById: () => Promise.resolve(weekly), create, update },
+      });
+      // Act
+      await sut.deliver(USER_ID, "order-1", { registerIncome: false });
+      // Assert
+      expect(create).toHaveBeenCalledWith(
+        USER_ID,
+        expect.objectContaining({
+          title: "Bolo de chocolate",
+          deliveryDate: "2026-06-06",
+          deliveryTime: "15:00",
+          amount: 80,
+          status: "pending",
+          recurrence: "weekly",
+        }),
+      );
+      expect(update).toHaveBeenLastCalledWith(USER_ID, "order-1", { recurrence: null });
+    });
+
+    it("does not create a next order for one-off orders", async () => {
+      const create = vi.fn();
+      const { sut } = makeSut({ repo: { create } });
+      await sut.deliver(USER_ID, "order-1", { registerIncome: false });
+      expect(create).not.toHaveBeenCalled();
+    });
+
     it("is idempotent — does not re-register income if already done", async () => {
       const { sut, createIncome } = makeSut({
         repo: { findById: () => Promise.resolve(makeOrder({ status: "done" })) },

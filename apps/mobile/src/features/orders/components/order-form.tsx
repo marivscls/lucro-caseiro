@@ -2,7 +2,7 @@ import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { guidanceEvent } from "../../../shared/guidance/guidance-events";
 import { useAuth } from "../../../shared/hooks/use-auth";
-import type { Order } from "@lucro-caseiro/contracts";
+import type { Order, OrderRecurrence } from "@lucro-caseiro/contracts";
 import { Button, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useState } from "react";
@@ -31,7 +31,7 @@ import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { createOrderRequestId } from "../request-id";
-import { isCatalogOrder } from "../domain";
+import { RECURRENCE_LABEL, isCatalogOrder } from "../domain";
 import { CatalogOrderBanner } from "./catalog-order-banner";
 import {
   useCreateService,
@@ -68,6 +68,13 @@ const LOCATION_OPTIONS: readonly ChoiceOption<LocationMode | "">[] = [
   { value: "business", label: "Meu espaço" },
   { value: "client", label: "Cliente" },
   { value: "online", label: "Online" },
+];
+
+const RECURRENCE_OPTIONS: readonly ChoiceOption<OrderRecurrence | "">[] = [
+  { value: "", label: "Não repete" },
+  { value: "weekly", label: RECURRENCE_LABEL.weekly },
+  { value: "biweekly", label: RECURRENCE_LABEL.biweekly },
+  { value: "monthly", label: RECURRENCE_LABEL.monthly },
 ];
 
 function pad(n: number): string {
@@ -366,6 +373,9 @@ export function OrderForm({
     order?.deliveryDate ? isoToBR(order.deliveryDate) : offsetIsoBr(0),
   );
   const [time, setTime] = useState(order?.deliveryTime ?? "");
+  const [recurrence, setRecurrence] = useState<OrderRecurrence | "">(
+    order?.recurrence ?? "",
+  );
   const [amount, setAmount] = useState(
     order?.amount != null ? currencyInput(order.amount) : "",
   );
@@ -584,6 +594,7 @@ export function OrderForm({
       colors: colors.trim() || null,
       photoUrl,
       notes: notes.trim() || undefined,
+      recurrence: recurrence || null,
     };
 
     try {
@@ -1040,6 +1051,19 @@ export function OrderForm({
                 onChangeText={(v) => setTime(maskTimeBR(v))}
                 keyboardType="number-pad"
                 maxLength={5}
+              />
+            </FormField>
+            <FormField
+              label="Repetir"
+              optional
+              span="full"
+              hint="Quando você marcar como entregue, a próxima já entra na agenda."
+            >
+              <ChoiceField
+                value={recurrence}
+                options={RECURRENCE_OPTIONS}
+                onChange={setRecurrence}
+                accessibilityLabel="Repetir esta encomenda"
               />
             </FormField>
           </FormGrid>

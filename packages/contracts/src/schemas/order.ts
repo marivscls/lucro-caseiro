@@ -6,6 +6,10 @@ import { AppointmentLocationMode, ServiceAppointmentStatus } from "./operations"
 export const OrderSource = z.enum(["catalog"]);
 export type OrderSource = z.infer<typeof OrderSource>;
 
+// Encomenda que se repete (ao entregar, a próxima é criada sozinha).
+export const OrderRecurrence = z.enum(["weekly", "biweekly", "monthly"]);
+export type OrderRecurrence = z.infer<typeof OrderRecurrence>;
+
 export const CreateOrderDto = z.object({
   requestId: z.string().uuid().optional(),
   title: z.string().min(1).max(200),
@@ -33,6 +37,7 @@ export const CreateOrderDto = z.object({
   photoUrl: z.string().url().nullable().optional(),
   notes: z.string().max(500).optional(),
   status: OrderStatus.optional(),
+  recurrence: OrderRecurrence.nullable().optional(),
 });
 
 export type CreateOrder = z.infer<typeof CreateOrderDto>;
@@ -107,6 +112,7 @@ export const OrderDto = z.object({
   // Contato digitado pela cliente no pedido do catálogo.
   customerName: z.string().nullable().optional(),
   customerPhone: z.string().nullable().optional(),
+  recurrence: OrderRecurrence.nullable().optional(),
   createdAt: z.string().datetime(),
 });
 

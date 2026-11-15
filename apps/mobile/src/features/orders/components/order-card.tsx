@@ -7,6 +7,7 @@ import React from "react";
 import { Image, Pressable, View } from "react-native";
 
 import {
+  RECURRENCE_LABEL,
   STATUS_LABEL,
   STATUS_TONE,
   formatDateBR,
@@ -114,6 +115,14 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
             {order.deliveryTime ? ` · ${order.deliveryTime}` : ""}
           </Typography>
         </View>
+        {order.recurrence ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <AppIcon name="repeat-outline" size={14} color={theme.colors.textSecondary} />
+            <Typography variant="caption" numberOfLines={1}>
+              {RECURRENCE_LABEL[order.recurrence]}
+            </Typography>
+          </View>
+        ) : null}
       </View>
 
       <View

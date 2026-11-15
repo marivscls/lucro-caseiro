@@ -1,4 +1,4 @@
-import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
+import type { Order, OrderRecurrence, OrderStatus } from "@lucro-caseiro/contracts";
 
 import { isoToBR } from "../../shared/utils/date";
 
@@ -229,3 +229,10 @@ export function catalogOrderConfirmUrl(
   const message = `${greeting}! Recebi seu pedido pelo catálogo: ${order.title}, para ${formatDateBR(order.deliveryDate)}${time}. Está confirmado! 😊`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
+
+/** Rótulo da repetição de uma encomenda. */
+export const RECURRENCE_LABEL: Record<OrderRecurrence, string> = {
+  weekly: "Toda semana",
+  biweekly: "A cada 15 dias",
+  monthly: "Todo mês",
+};

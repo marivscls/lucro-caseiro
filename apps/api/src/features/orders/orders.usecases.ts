@@ -13,7 +13,12 @@ import type {
 } from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
-import { buildOrdersSummary, todayISO, validateOrder } from "./orders.domain";
+import {
+  buildOrdersSummary,
+  nextOccurrence,
+  todayISO,
+  validateOrder,
+} from "./orders.domain";
 import type {
   CreateOrderData,
   FindAllOrdersOpts,
@@ -79,6 +84,9 @@ export class OrdersUseCases {
     await this.assertAvailable(userId, data, id, existing);
     const updated = await this.repo.update(userId, id, data);
     if (!updated) throw new NotFoundError("Encomenda nao encontrada");
+    if (existing.status !== "done" && updated.status === "done") {
+      await this.scheduleNextOccurrence(userId, updated);
+    }
     return updated;
   }
 
@@ -105,6 +113,7 @@ export class OrdersUseCases {
       });
     }
 
+    await this.scheduleNextOccurrence(userId, updated);
     return updated;
   }
 
@@ -283,7 +292,20 @@ export class OrdersUseCases {
       saleId,
     });
     if (!completed) throw new NotFoundError("Atendimento não encontrado");
+    await this.scheduleNextOccurrence(userId, completed);
     return completed;
+  }
+
+  /**
+   * Encomenda que se repete: ao concluir, cria a próxima na agenda. Chamado só
+   * na transição para concluída (os fluxos já retornam cedo quando já estava).
+   * A próxima herda a repetição; a atual deixa de repetir para não duplicar.
+   */
+  private async scheduleNextOccurrence(userId: string, order: Order): Promise<void> {
+    const next = nextOccurrence(order);
+    if (!next) return;
+    await this.repo.create(userId, next);
+    await this.repo.update(userId, order.id, { recurrence: null });
   }
 
   private async prepareServiceOrder(

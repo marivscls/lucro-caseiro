@@ -71,6 +71,8 @@ export const orders = pgTable(
     // Contato digitado pela cliente no pedido do catálogo (pode não ser cliente cadastrada).
     customerName: text("customer_name"),
     customerPhone: text("customer_phone"),
+    // Repetição: null | weekly | biweekly | monthly. Ao entregar, cria a próxima.
+    recurrence: text("recurrence"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

@@ -183,6 +183,8 @@ Services coexist with products and are persisted in the `services` table.
 
 ## Change log / Decisions
 
+- 2026-11-15: **encomenda que se repete.** Coluna `recurrence` (null | `weekly` | `biweekly` | `monthly`, CHECK; migration `20261115110000_order_recurrence.sql`, roda no boot) em `CreateOrderDto`/`UpdateOrderDto`/`Order`. Na transição para concluída (`deliver`, `update` com status `done` vindo de outro status, `completeServiceAppointment`) o usecase cria a próxima com `nextOccurrence` (domínio puro: mesmo título, cliente, valor, horário, serviço e personalização; data por `nextRecurrenceDate` — +7, +14 ou mesmo dia do mês seguinte, limitado ao último dia; `pending`, sem sinal nem pacote) e tira a repetição da que foi concluída, para não duplicar se ela voltar a pendente e for concluída de novo.
+
 - 2026-11-15: colunas `source` (null | `catalog`, CHECK), `customer_name` e `customer_phone` em `orders` (migration `20261115100000_catalog_product_orders.sql`, roda no boot). `Order` expõe os três como opcionais. A criação pelo catálogo vive em `catalog` (repo grava direto, como as solicitações de horário); orders só lê e mapeia.
 
 - 2026-07-28: serviços v2 adicionam local/intervalo, opções e adicionais,

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { buildOrdersSummary, isTerminal, todayISO, validateOrder } from "./orders.domain";
+import {
+  buildOrdersSummary,
+  isTerminal,
+  nextRecurrenceDate,
+  todayISO,
+  validateOrder,
+} from "./orders.domain";
 
 describe("validateOrder", () => {
   it("rejeita sinal maior que o valor da encomenda", () => {
@@ -126,5 +132,19 @@ describe("buildOrdersSummary", () => {
 describe("todayISO", () => {
   it("formats a date as YYYY-MM-DD", () => {
     expect(todayISO(new Date(2026, 4, 9))).toBe("2026-05-09");
+  });
+});
+
+describe("nextRecurrenceDate", () => {
+  it.each([
+    ["2026-11-20", "weekly", "2026-11-27"],
+    ["2026-12-28", "weekly", "2027-01-04"],
+    ["2026-11-20", "biweekly", "2026-12-04"],
+    ["2026-11-15", "monthly", "2026-12-15"],
+    ["2026-01-31", "monthly", "2026-02-28"],
+    ["2028-01-31", "monthly", "2028-02-29"],
+    ["2026-12-10", "monthly", "2027-01-10"],
+  ] as const)("%s %s -> %s", (date, recurrence, expected) => {
+    expect(nextRecurrenceDate(date, recurrence)).toBe(expected);
   });
 });

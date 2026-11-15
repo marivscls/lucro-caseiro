@@ -28,6 +28,7 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/20260928220300_assistant_usage.sql",
       "../../../packages/database/src/migrations/20261114100000_analytics_drop_stale_event_whitelist.sql",
       "../../../packages/database/src/migrations/20261115100000_catalog_product_orders.sql",
+      "../../../packages/database/src/migrations/20261115110000_order_recurrence.sql",
     ]);
   });
   it("installs supplier management fields before startup", () => {

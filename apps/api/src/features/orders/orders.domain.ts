@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@lucro-caseiro/contracts";
+import type { Order, OrderRecurrence, OrderStatus } from "@lucro-caseiro/contracts";
 
 import type {
   CreateOrderData,
@@ -89,4 +89,53 @@ export function todayISO(now: Date): string {
   const m = String(now.getMonth() + 1).padStart(2, "0");
   const d = String(now.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+const RECURRENCE_DAYS = { weekly: 7, biweekly: 14 } as const;
+
+/**
+ * Próxima data de uma encomenda que se repete (YYYY-MM-DD). Mensal mantém o
+ * dia do mês e cai no último dia quando o mês é mais curto (31/01 -> 28/02).
+ */
+export function nextRecurrenceDate(date: string, recurrence: OrderRecurrence): string {
+  const [year, month, day] = date.split("-").map(Number) as [number, number, number];
+  if (recurrence === "monthly") {
+    const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const next = new Date(Date.UTC(year, month, Math.min(day, lastDay)));
+    return next.toISOString().slice(0, 10);
+  }
+  const next = new Date(Date.UTC(year, month - 1, day + RECURRENCE_DAYS[recurrence]));
+  return next.toISOString().slice(0, 10);
+}
+
+/**
+ * Dados da próxima encomenda de uma que se repete: mesmos item, cliente,
+ * valor, horário e personalização, na próxima data, pendente e sem sinal.
+ * Null quando a encomenda não se repete. Função pura.
+ */
+export function nextOccurrence(order: Order): CreateOrderData | null {
+  if (!order.recurrence) return null;
+  return {
+    title: order.title,
+    deliveryDate: nextRecurrenceDate(order.deliveryDate, order.recurrence),
+    deliveryTime: order.deliveryTime ?? undefined,
+    clientId: order.clientId ?? undefined,
+    serviceId: order.serviceId,
+    serviceVariationId: order.serviceVariationId,
+    serviceVariationName: order.serviceVariationName,
+    serviceAddOnIds: order.serviceAddOnIds,
+    serviceAddOnNames: order.serviceAddOnNames,
+    durationMinutes: order.durationMinutes,
+    locationMode: order.locationMode,
+    locationDetails: order.locationDetails,
+    appointmentStatus: order.serviceId ? "scheduled" : null,
+    amount: order.amount ?? undefined,
+    theme: order.theme,
+    honoree: order.honoree,
+    colors: order.colors,
+    photoUrl: order.photoUrl,
+    notes: order.notes ?? undefined,
+    status: "pending",
+    recurrence: order.recurrence,
+  };
 }

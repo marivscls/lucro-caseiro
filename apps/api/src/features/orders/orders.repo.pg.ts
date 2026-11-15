@@ -79,6 +79,7 @@ export class OrdersRepoPg implements IOrdersRepo {
         actualCost: data.actualCost != null ? String(data.actualCost) : null,
         completedAt: data.completedAt ? new Date(data.completedAt) : null,
         saleId: data.saleId ?? null,
+        recurrence: data.recurrence ?? null,
       })
       .onConflictDoNothing({ target: orders.id })
       .returning();
@@ -176,6 +177,7 @@ export class OrdersRepoPg implements IOrdersRepo {
       set.completedAt = data.completedAt ? new Date(data.completedAt) : null;
     if (data.saleId !== undefined) set.saleId = data.saleId ?? null;
     if (data.status !== undefined) set.status = data.status;
+    if (data.recurrence !== undefined) set.recurrence = data.recurrence ?? null;
 
     if (Object.keys(set).length === 0) {
       return this.findById(userId, id);
@@ -964,6 +966,7 @@ export class OrdersRepoPg implements IOrdersRepo {
       source: row.source as Order["source"],
       customerName: row.customerName,
       customerPhone: row.customerPhone,
+      recurrence: row.recurrence as Order["recurrence"],
       createdAt: row.createdAt.toISOString(),
     };
   }
