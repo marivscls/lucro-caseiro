@@ -1,7 +1,7 @@
 /**
  * Suporte no desktop (web >= 1024px): contato numa lateral fixa e perguntas
- * frequentes em grade abaixo do assistente. Só apresentação; o envio de e-mail
- * continua em `app/support.tsx`.
+ * frequentes em grade abaixo do assistente. Só apresentação; abrir WhatsApp e
+ * e-mail fica em `shared/utils/support-contact.ts`.
  */
 import { Button, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
@@ -16,8 +16,17 @@ import {
 
 export function SupportContactDesktop({
   email,
-  onContact,
-}: Readonly<{ email: string; onContact: () => void }>) {
+  whatsapp,
+  responseTime,
+  onWhatsApp,
+  onEmail,
+}: Readonly<{
+  email: string;
+  whatsapp: string;
+  responseTime: string;
+  onWhatsApp: () => void;
+  onEmail: () => void;
+}>) {
   const { theme } = useTheme();
   return (
     <View style={[desktopCardStyle(theme), { gap: spacing.lg }]}>
@@ -33,20 +42,32 @@ export function SupportContactDesktop({
       </View>
       <Typography variant="desktopBody" color={theme.colors.textSecondary}>
         O suporte está disponível para todos, em qualquer plano. Conte em qual etapa teve
-        dificuldade para a gente ajudar.
+        dificuldade para a gente ajudar. {responseTime}
       </Typography>
       <Button
-        title="Falar com o suporte"
+        title="Chamar no WhatsApp"
         size="lg"
         icon={
-          <AppIcon name="mail-outline" size={20} color={theme.colors.textOnPrimary} />
+          <AppIcon name="logo-whatsapp" size={20} color={theme.colors.textOnPrimary} />
         }
-        onPress={onContact}
+        onPress={onWhatsApp}
         style={{ width: "100%", minHeight: 48 }}
       />
-      <Typography variant="desktopMeta" selectable>
-        {email}
-      </Typography>
+      <Button
+        title="Enviar e-mail"
+        variant="outline"
+        icon={<AppIcon name="mail-outline" size={20} color={theme.colors.primary} />}
+        onPress={onEmail}
+        style={{ width: "100%", minHeight: 48 }}
+      />
+      <View style={{ gap: 2 }}>
+        <Typography variant="desktopMeta" selectable>
+          WhatsApp: {whatsapp}
+        </Typography>
+        <Typography variant="desktopMeta" selectable>
+          E-mail: {email}
+        </Typography>
+      </View>
     </View>
   );
 }

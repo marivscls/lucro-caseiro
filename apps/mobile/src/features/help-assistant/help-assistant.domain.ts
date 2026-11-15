@@ -68,7 +68,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
   ) {
     return {
       kind: "handoff",
-      text: "Para entender o que aconteceu, precisamos da ajuda da equipe. Toque em Falar por email e conte em qual tela ocorreu. Sua pergunta já vai no rascunho para você revisar.",
+      text: "Para entender o que aconteceu, precisamos da ajuda da equipe. Toque em Falar no WhatsApp e conte em qual tela ocorreu. Sua pergunta já vai no rascunho para você revisar.",
       steps: [],
     };
   }
@@ -82,7 +82,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       steps: [
         "Confira o recibo para identificar o provedor.",
         "Google Play: abra Assinaturas na loja e gerencie o plano por lá.",
-        "Stripe: fale com a equipe por email para solicitar o cancelamento. Apagar a conta não cancela a assinatura.",
+        "Stripe: fale com a equipe pelo WhatsApp ou por email para solicitar o cancelamento. Apagar a conta não cancela a assinatura.",
       ],
     };
   }
@@ -115,7 +115,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       steps: [
         "Se esqueceu a senha, use a recuperação na tela de login e confira seu email.",
         "Ao trocar de aparelho, entre com a mesma conta para acessar seus registros.",
-        "Se ainda tiver dificuldade, fale por email. Não envie sua senha.",
+        "Se ainda tiver dificuldade, fale no WhatsApp. Não envie sua senha.",
       ],
     };
   }
@@ -243,7 +243,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
   }
   return {
     kind: "unknown",
-    text: "Ainda não encontrei uma orientação para essa pergunta. Tente dizer a tarefa, como “cadastrar produto” ou “calcular preço”. Se preferir, fale com a equipe por email.",
+    text: "Ainda não encontrei uma orientação para essa pergunta. Tente dizer a tarefa, como “cadastrar produto” ou “calcular preço”. Se preferir, fale com a equipe no WhatsApp.",
     steps: [],
   };
 }

@@ -1,9 +1,8 @@
-import { showAlert } from "../shared/components/alert-store";
 import { Button, Card, Typography, spacing, useBrand, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
-import React from "react";
-import { Linking, ScrollView, View } from "react-native";
+import React, { useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useBusinessCopy } from "../features/subscription/business-copy";
@@ -26,14 +25,24 @@ import {
   DesktopPageHeader,
   DesktopSplit,
 } from "../shared/layout/desktop-page";
-
-const SUPPORT_EMAIL = "contato@orionseven.com.br";
+import {
+  SUPPORT_EMAIL,
+  SUPPORT_RESPONSE_TIME,
+  SUPPORT_WHATSAPP_LABEL,
+  openSupportEmail,
+  openSupportWhatsApp,
+} from "../shared/utils/support-contact";
+import { TutorialVideoModal } from "../shared/guidance/tutorial-video-modal";
+import {
+  getTutorialVideoUrl,
+  TUTORIAL_VIDEOS,
+  type TutorialVideoSpec,
+} from "../shared/guidance/tutorial-videos";
 
 const STATIC_FAQ: { question: string; answer: string }[] = [
   {
     question: "Como falo com vocês?",
-    answer:
-      "Use o botão para abrir seu e-mail e contar em qual tela teve dificuldade. As instruções básicas e o envio de dúvidas estão disponíveis em todos os planos.",
+    answer: `Chame a gente no WhatsApp ${SUPPORT_WHATSAPP_LABEL} ou escreva para ${SUPPORT_EMAIL}. ${SUPPORT_RESPONSE_TIME} O suporte vale para todos os planos.`,
   },
   {
     question: "Como cancelo minha assinatura?",
@@ -47,26 +56,61 @@ const STATIC_FAQ: { question: string; answer: string }[] = [
   },
 ];
 
-function openSupportEmail(brandName: string, question = "") {
-  const subject = encodeURIComponent(`Suporte ${brandName}`);
-  const body = encodeURIComponent(
-    `Oi! Preciso de ajuda com:\n\n${question.slice(0, 400)}\n\n---\n(Conte em qual tela aconteceu e o que você tentou fazer.)`,
-  );
-  void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(
-    () =>
-      showAlert({
-        title: "Envie sua dúvida por e-mail",
-        message: `Não foi possível abrir o aplicativo de e-mail. Escreva para ${SUPPORT_EMAIL} e informe em qual tela aconteceu.`,
-      }),
-  );
-}
-
 export default function SupportScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const experienceCopy = useBusinessCopy();
   const brandName = getBrandDisplayName(useBrand());
   const isDesktop = useDesktopLayout();
+  const [selectedVideo, setSelectedVideo] = useState<{
+    video: TutorialVideoSpec;
+    url: string;
+  } | null>(null);
+  const availableVideos = TUTORIAL_VIDEOS.flatMap((video) => {
+    const url = getTutorialVideoUrl(video);
+    return url ? [{ video, url }] : [];
+  });
+  const videosSection =
+    availableVideos.length > 0 ? (
+      <View style={{ gap: spacing.sm }}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
+          Vídeos rápidos
+        </Typography>
+        {availableVideos.map(({ video, url }) => (
+          <Pressable
+            key={video.id}
+            accessibilityRole="button"
+            onPress={() => setSelectedVideo({ video, url })}
+            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
+          >
+            <Card variant="surface" padding="lg" style={{ gap: 6 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              >
+                <AppIcon
+                  name="play-circle-outline"
+                  size={22}
+                  color={theme.colors.primaryStrong}
+                />
+                <Typography
+                  variant="bodyBold"
+                  color={theme.colors.text}
+                  style={{ flex: 1 }}
+                >
+                  {video.title}
+                </Typography>
+                <Typography variant="captionBold" color={theme.colors.primaryStrong}>
+                  {video.durationLabel}
+                </Typography>
+              </View>
+              <Typography variant="body" color={theme.colors.textSecondary}>
+                {video.summary}
+              </Typography>
+            </Card>
+          </Pressable>
+        ))}
+      </View>
+    ) : null;
   const faq = [
     ...STATIC_FAQ.slice(0, 2),
     {
@@ -102,7 +146,10 @@ export default function SupportScreen() {
             aside={
               <SupportContactDesktop
                 email={SUPPORT_EMAIL}
-                onContact={() => openSupportEmail(brandName)}
+                whatsapp={SUPPORT_WHATSAPP_LABEL}
+                responseTime={SUPPORT_RESPONSE_TIME}
+                onWhatsApp={() => openSupportWhatsApp(brandName)}
+                onEmail={() => openSupportEmail(brandName)}
               />
             }
           >
@@ -110,8 +157,9 @@ export default function SupportScreen() {
               desktop
               profile={experienceCopy.profile}
               onNavigate={(route) => router.push(route)}
-              onContactSupport={(question) => openSupportEmail(brandName, question)}
+              onContactSupport={(question) => openSupportWhatsApp(brandName, question)}
             />
+            {videosSection}
             <SupportFaqDesktop items={faq} />
           </DesktopSplit>
         </ScrollView>
@@ -132,8 +180,9 @@ export default function SupportScreen() {
           <HelpAssistant
             profile={experienceCopy.profile}
             onNavigate={(route) => router.push(route)}
-            onContactSupport={(question) => openSupportEmail(brandName, question)}
+            onContactSupport={(question) => openSupportWhatsApp(brandName, question)}
           />
+          {videosSection}
           <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <AppIcon
@@ -145,22 +194,38 @@ export default function SupportScreen() {
             </View>
             <Typography variant="body" color={theme.colors.textSecondary}>
               O suporte está disponível para todos, em qualquer plano. Conte em qual etapa
-              teve dificuldade para a gente ajudar.
+              teve dificuldade para a gente ajudar. {SUPPORT_RESPONSE_TIME}
             </Typography>
             <Button
-              title="Falar com o suporte"
+              title="Chamar no WhatsApp"
               size="lg"
               icon={
                 <AppIcon
-                  name="mail-outline"
+                  name="logo-whatsapp"
                   size={20}
                   color={theme.colors.textOnPrimary}
                 />
               }
+              onPress={() => openSupportWhatsApp(brandName)}
+              style={desktopAction(isDesktop, 240)}
+            />
+            <Button
+              title="Enviar e-mail"
+              variant="outline"
+              icon={
+                <AppIcon name="mail-outline" size={20} color={theme.colors.primary} />
+              }
               onPress={() => openSupportEmail(brandName)}
               style={desktopAction(isDesktop, 240)}
             />
-            <Typography variant="caption">{SUPPORT_EMAIL}</Typography>
+            <View style={{ gap: 2 }}>
+              <Typography variant="caption" selectable>
+                WhatsApp: {SUPPORT_WHATSAPP_LABEL}
+              </Typography>
+              <Typography variant="caption" selectable>
+                E-mail: {SUPPORT_EMAIL}
+              </Typography>
+            </View>
           </Card>
 
           <View style={{ gap: spacing.sm }}>
@@ -197,6 +262,14 @@ export default function SupportScreen() {
           </View>
         </ScrollView>
       )}
+      {selectedVideo ? (
+        <TutorialVideoModal
+          visible
+          video={selectedVideo.video}
+          url={selectedVideo.url}
+          onClose={() => setSelectedVideo(null)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

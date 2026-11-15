@@ -71,7 +71,7 @@ describe("HelpAssistant", () => {
     fireEvent.click(screen.getByRole("button", { name: "Abrir Precificação" }));
     expect(navigate).toHaveBeenCalledWith("/pricing");
   });
-  it("passes the unanswered question to a reviewable support email", () => {
+  it("passes the unanswered question to a reviewable support message", () => {
     const contact = vi.fn();
     render(
       <HelpAssistant profile="food" onNavigate={() => {}} onContactSupport={contact} />,
@@ -81,7 +81,7 @@ describe("HelpAssistant", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Perguntar" }));
     expect(contact).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Falar por email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Falar no WhatsApp" }));
     expect(contact).toHaveBeenCalledWith("Minha tela travou");
   });
   it("keeps the same questions and actions in the desktop layout", () => {
@@ -99,7 +99,7 @@ describe("HelpAssistant", () => {
     fireEvent.change(screen.getByLabelText("Sua pergunta"), {
       target: { value: "Minha tela travou" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Falar por email" }));
+    fireEvent.click(screen.getByRole("button", { name: "Falar no WhatsApp" }));
     expect(contact).toHaveBeenCalledWith("Minha tela travou");
   });
   it("disables sending an empty question", () => {

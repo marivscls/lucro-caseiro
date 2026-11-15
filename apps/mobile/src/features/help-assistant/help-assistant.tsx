@@ -172,7 +172,7 @@ export function HelpAssistant({
               conta.
             </Typography>
             <Button
-              title="Falar por email"
+              title="Falar no WhatsApp"
               variant="outline"
               onPress={contact}
               style={{ minWidth: 160, minHeight: 48 }}
@@ -193,7 +193,7 @@ export function HelpAssistant({
               disabled={!draft.trim()}
               onPress={() => ask(draft)}
             />
-            <Button title="Falar por email" variant="outline" onPress={contact} />
+            <Button title="Falar no WhatsApp" variant="outline" onPress={contact} />
             <Typography variant="caption" color={theme.colors.textSecondary}>
               O assistente orienta sobre o app. Não consulta nem altera os dados da sua
               conta.
