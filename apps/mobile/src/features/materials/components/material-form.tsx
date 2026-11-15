@@ -191,8 +191,9 @@ function ContentExample({
       />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography variant="captionBold" color={theme.colors.success}>
-          Ex.: 1 {unit.trim() || "kg"} = {contentPerUnit.trim() || "350"}{" "}
-          {contentUnit.trim() || "ml"}
+          {contentPerUnit.trim() || contentUnit.trim()
+            ? `Ex.: 1 ${unit.trim() || "unidade"} = ${contentPerUnit.trim() || "350"} ${contentUnit.trim() || "ml"}`
+            : "Ex.: 1 lata = 350 ml"}
         </Typography>
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {text}
@@ -504,7 +505,7 @@ export function MaterialForm({
         <FormSection
           collapsible={false}
           title="Conteúdo por unidade"
-          subtitle={`Opcional. Diz quanto vem em uma unidade de ${experienceCopy.materialNoun}.`}
+          subtitle="Opcional. Para lata, pacote ou caixa: diga quanto vem em cada. Em kg, g, L e ml não precisa, a conversão é automática."
         >
           <FormGrid>
             <FormField

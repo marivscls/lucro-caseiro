@@ -160,3 +160,7 @@ no celular a tela é a mesma de antes.
 ## Retomada de cadastro - 2026-10-01
 
 O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A lista oferece Retomar cadastro ou Descartar rascunho. Web usa sessionStorage (somente a aba); nativo usa SecureStore existente, sem fallback em texto simples. Cancelar/fechar, Limpar rascunho, sucesso confirmado e logout/troca de usuário apagam; erros/limites preservam. Edição de registros não usa este rascunho. Tokens, respostas de API, blobs e URIs de fotos não são armazenados; foto deve ser escolhida novamente. Armazenamento inválido/expirado é descartado; falha de storage é informada sem bloquear cadastro. Ver shared/form-drafts e testes de sessão/hook/UI.
+
+## Conteúdo por unidade só para embalagens — 2026-11-15
+
+A ficha de custo passou a converter kg↔g e L↔ml sozinha (ver `recipes`), então o campo "Conteúdo por unidade" deixou de ser necessário para esses casos. O subtítulo da seção diz que ele serve para lata, pacote ou caixa e que kg, g, L e ml não precisam. Com os campos em branco, o exemplo mostra "1 lata = 350 ml" em vez de combinar a unidade escolhida com 350 ml ("1 kg = 350 ml").
