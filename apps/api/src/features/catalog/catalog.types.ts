@@ -63,4 +63,23 @@ export interface ICatalogRepo {
     data: PublicServiceBookingRequestInput,
   ): Promise<ServiceBookingRequest | null>;
   getOwnerDefaults(userId: string): Promise<CatalogOwner | null>;
+  /** Grava o pedido da vitrine como encomenda (status pending, source catalog). */
+  createCatalogOrder?(userId: string, data: NewCatalogOrder): Promise<{ id: string }>;
 }
+
+export interface NewCatalogOrder {
+  title: string;
+  amount: number;
+  notes: string;
+  deliveryDate: string;
+  deliveryTime: string | null;
+  customerName: string;
+  customerPhone: string;
+}
+
+/** Aviso ao dono (push) de que chegou um pedido pelo catálogo. Best-effort. */
+export type CatalogOrderNotifier = (
+  userId: string,
+  brandId: string,
+  order: { id: string; customerName: string; total: number },
+) => Promise<void>;

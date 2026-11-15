@@ -238,6 +238,43 @@ dialog textarea{min-height:84px;resize:vertical}
 .lc-cal-year.is-selected{background:var(--storefront-primary);color:#fff}
 #cal-close{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:10px;background:var(--cream);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
 .dialog-submit{min-height:48px;border:0;border-radius:12px;background:var(--storefront-action);color:var(--storefront-on-action);font-weight:800}
+.order-chip{display:flex;align-items:center;justify-content:center;gap:8px;margin:auto 12px 12px;padding:0 16px;min-height:48px;box-sizing:border-box;border:0;border-radius:12px;background:var(--storefront-action);color:var(--storefront-on-action);font-size:1rem;font-weight:800;letter-spacing:.01em;white-space:nowrap;box-shadow:0 1px 2px rgba(36,24,30,.12),0 4px 12px color-mix(in srgb,var(--storefront-action) 22%,transparent);transition:background .15s ease,transform .15s ease,box-shadow .15s ease}
+.order-action:hover .order-chip{background:var(--storefront-action-hover);box-shadow:0 2px 4px rgba(36,24,30,.14),0 8px 18px color-mix(in srgb,var(--storefront-action) 28%,transparent)}
+.order-action:active .order-chip{transform:translateY(1px)}
+.order-action:focus-visible .order-chip{outline:3px solid color-mix(in srgb,var(--storefront-action) 45%,white);outline-offset:2px}
+.highlight-card .order-chip{display:none}
+.order-action .order-chip{margin-top:auto}
+.card-hit.order-action{width:100%;box-sizing:border-box;font:inherit}
+.highlight-card .item-image.is-placeholder{aspect-ratio:16/10;height:auto}
+.highlight-card .item-image{flex:none}
+.highlight-card .item-body{display:flex;flex-direction:column;flex:1}
+.highlight-card .item-body .item-price{margin-top:auto;padding-top:4px}
+.order-action .item-body{padding-bottom:12px}
+body.has-order{padding-bottom:96px}
+.order-bar-count{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;box-sizing:border-box;border-radius:999px;background:var(--storefront-on-action);color:var(--storefront-action);font-size:.95rem}
+.order-bar-total{margin-left:auto}
+.order-chip svg{width:19px;height:19px;stroke-width:2}
+.order-items{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.order-line{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--storefront-border);border-radius:12px}
+.order-line-info{display:grid;gap:4px;min-width:0;flex:1 1 150px}
+.order-line-info strong{font-size:1rem;overflow-wrap:anywhere}
+.order-line-info span{font-size:1rem;color:var(--warm)}
+.order-line-info select{width:100%;min-height:48px;font:inherit;font-size:1rem;border:1px solid var(--storefront-border);border-radius:10px;padding:8px;background:var(--cream);color:var(--ink)}
+.order-qty{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.order-qty button{width:48px;height:48px;border:1px solid var(--storefront-border);border-radius:50%;background:#fff;color:var(--ink);font-size:1.4rem;font-weight:800;line-height:1;cursor:pointer}
+.order-qty span{min-width:2ch;text-align:center;font-size:1.1rem;font-weight:800}
+.order-empty{padding:12px;color:var(--warm);font-size:1rem}
+.order-total{display:flex;justify-content:space-between;margin:0;font-size:1.05rem}
+.order-more{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--storefront-border);border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-weight:700;cursor:pointer}
+.order-more svg,.order-whatsapp svg,.order-bar svg{width:20px;height:20px}
+.order-whatsapp{min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;background:#1f7a3f;color:#fff;font-weight:800;text-decoration:none}
+.order-whatsapp[hidden],.order-bar[hidden]{display:none}
+.order-bar{position:fixed;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));bottom:max(16px,calc(env(safe-area-inset-bottom) + 12px));z-index:31;margin:0 auto;max-width:420px;min-height:56px;padding:0 18px;display:flex;align-items:center;gap:10px;border:0;border-radius:16px;background:var(--storefront-action);color:var(--storefront-on-action);font:inherit;font-size:1.05rem;font-weight:800;box-shadow:0 10px 28px rgba(36,24,30,.22);cursor:pointer}
+body.has-order .floating-contact{display:none}
+.order-done{display:none}
+#order-form.is-sent>:not(header):not(#order-message):not(#order-whatsapp):not(.order-done){display:none}
+#order-form.is-sent .order-done{display:inline-flex}
+#order-form.is-sent #order-message{font-size:1.05rem;line-height:1.5}
 footer{display:flex;flex-direction:column;align-items:center;gap:6px;padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;color:var(--warm);font-size:.76rem;border-top:1px solid color-mix(in srgb,var(--storefront-action) 10%,white)}
 footer .made-with{color:var(--storefront-primary);font-weight:700;text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
 footer .made-with:hover{text-decoration:underline}

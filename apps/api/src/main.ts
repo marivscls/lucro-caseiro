@@ -378,8 +378,10 @@ const webPushSender =
         config.webPushSubject,
       )
     : null;
-const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db), (...args) =>
-  notificationsUseCases.notifyServiceBooking(...args),
+const catalogUseCases = new CatalogUseCases(
+  new CatalogRepoPg(db),
+  (...args) => notificationsUseCases.notifyServiceBooking(...args),
+  (...args) => notificationsUseCases.notifyCatalogOrder(...args),
 );
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
 

@@ -66,6 +66,11 @@ export const orders = pgTable(
     actualCost: decimal("actual_cost", { precision: 10, scale: 2 }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     saleId: uuid("sale_id").references(() => sales.id, { onDelete: "set null" }),
+    // Origem: null = anotada no app; "catalog" = pedido feito na vitrine pública.
+    source: text("source"),
+    // Contato digitado pela cliente no pedido do catálogo (pode não ser cliente cadastrada).
+    customerName: text("customer_name"),
+    customerPhone: text("customer_phone"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

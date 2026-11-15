@@ -13,6 +13,8 @@ import {
 } from "@lucro-caseiro/contracts";
 import {
   catalogSettings,
+  clients,
+  orders,
   products,
   publicServiceBookingRequests,
   serviceAddOns,
@@ -21,14 +23,16 @@ import {
   serviceVariations,
   users,
 } from "@lucro-caseiro/database/schema";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, eq, ne, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
+import { nationalPhoneDigits } from "./catalog.domain";
 import type {
   CatalogOwner,
   CatalogPublishedSnapshot,
   CatalogSettingsData,
   ICatalogRepo,
+  NewCatalogOrder,
 } from "./catalog.types";
 
 const ACCENT_KEYS = ["brown", "rose", "green", "lavender", "blue", "amber"];
@@ -307,6 +311,48 @@ export class CatalogRepoPg implements ICatalogRepo {
       status: row!.status as ServiceBookingRequest["status"],
       createdAt: row!.createdAt.toISOString(),
     };
+  }
+
+  async createCatalogOrder(
+    userId: string,
+    data: NewCatalogOrder,
+  ): Promise<{ id: string }> {
+    // Liga à cliente já cadastrada quando o telefone bate (sem o 55 do país).
+    const digits = nationalPhoneDigits(data.customerPhone);
+    let clientId: string | null = null;
+    if (digits.length >= 10) {
+      const [client] = await this.db
+        .select({ id: clients.id })
+        .from(clients)
+        .where(
+          and(
+            eq(clients.userId, userId),
+            sql`(case when length(regexp_replace(coalesce(${clients.phone}, ''), '\\D', '', 'g')) in (12, 13)
+                 and left(regexp_replace(coalesce(${clients.phone}, ''), '\\D', '', 'g'), 2) = '55'
+               then substring(regexp_replace(coalesce(${clients.phone}, ''), '\\D', '', 'g') from 3)
+               else regexp_replace(coalesce(${clients.phone}, ''), '\\D', '', 'g') end) = ${digits}`,
+          ),
+        )
+        .limit(1);
+      clientId = client?.id ?? null;
+    }
+    const [row] = await this.db
+      .insert(orders)
+      .values({
+        userId,
+        clientId,
+        title: data.title,
+        deliveryDate: data.deliveryDate,
+        deliveryTime: data.deliveryTime,
+        status: "pending",
+        amount: data.amount > 0 ? data.amount.toFixed(2) : null,
+        notes: data.notes,
+        source: "catalog",
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+      })
+      .returning({ id: orders.id });
+    return { id: row!.id };
   }
 
   async getOwnerDefaults(userId: string): Promise<CatalogOwner | null> {

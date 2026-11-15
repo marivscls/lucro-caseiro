@@ -11,6 +11,7 @@ export const NOTIFICATION_TYPES = {
   TRIAL_EXPIRING: "TRIAL_EXPIRING",
   SERVICE_BOOKING: "SERVICE_BOOKING",
   MEI_DAS: "MEI_DAS",
+  CATALOG_ORDER: "CATALOG_ORDER",
 } as const;
 
 export type NotificationType =
@@ -26,6 +27,7 @@ type NotificationData =
   | { type: typeof NOTIFICATION_TYPES.DAILY_REMINDER }
   | { type: typeof NOTIFICATION_TYPES.TRIAL_EXPIRING }
   | { type: typeof NOTIFICATION_TYPES.MEI_DAS }
+  | { type: typeof NOTIFICATION_TYPES.CATALOG_ORDER; orderId?: string }
   | {
       type: typeof NOTIFICATION_TYPES.SERVICE_BOOKING;
       serviceId: string;
@@ -68,6 +70,14 @@ export function handleNotificationResponse(response: NotificationResponse): void
       break;
     case NOTIFICATION_TYPES.MEI_DAS:
       router.push("/mei");
+      break;
+    case NOTIFICATION_TYPES.CATALOG_ORDER:
+      // Pedido feito na vitrine: abre a agenda já na encomenda criada.
+      router.push(
+        data.orderId
+          ? `/tabs/agenda?orderId=${encodeURIComponent(data.orderId)}`
+          : "/tabs/agenda",
+      );
       break;
   }
 }

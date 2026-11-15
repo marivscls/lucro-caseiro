@@ -31,6 +31,8 @@ import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { createOrderRequestId } from "../request-id";
+import { isCatalogOrder } from "../domain";
+import { CatalogOrderBanner } from "./catalog-order-banner";
 import {
   useCreateService,
   useServicePackagePurchases,
@@ -948,6 +950,7 @@ export function OrderForm({
         </FormActions>
       }
     >
+      {order && isCatalogOrder(order) ? <CatalogOrderBanner order={order} /> : null}
       <FormStepProgress current={formStep} steps={formSteps} onStepPress={setFormStep} />
 
       <View {...stepProps(1)}>

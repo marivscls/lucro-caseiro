@@ -54,6 +54,14 @@ describe("handleNotificationResponse", () => {
     expect(router.push).toHaveBeenCalledWith("/finance");
   });
 
+  it("opens the agenda on the new order for CATALOG_ORDER", () => {
+    const response = makeResponse("CATALOG_ORDER");
+    (response.notification.request.content.data as Record<string, string>).orderId =
+      "abc";
+    handleNotificationResponse(response);
+    expect(router.push).toHaveBeenCalledWith("/tabs/agenda?orderId=abc");
+  });
+
   it("navigates to the home tab for DAILY_REMINDER", () => {
     handleNotificationResponse(makeResponse("DAILY_REMINDER"));
     expect(router.push).toHaveBeenCalledWith("/tabs");

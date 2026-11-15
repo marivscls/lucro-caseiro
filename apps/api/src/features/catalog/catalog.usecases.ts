@@ -1,6 +1,8 @@
 import type {
   CatalogSettings,
   PublicCatalog,
+  PublicProductOrderInput,
+  PublicProductOrderResult,
   PublicServiceBookingRequestInput,
   ServiceBookingRequest,
   StorefrontCustomization,
@@ -10,8 +12,16 @@ import { FREE_CATALOG_MAX_PRODUCTS, hasActiveFeature } from "@lucro-caseiro/cont
 import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
-import { isValidSlug, slugify } from "./catalog.domain";
-import type { ICatalogRepo } from "./catalog.types";
+import {
+  buildCatalogOrder,
+  isoDateInTimeZone,
+  isValidSlug,
+  slugify,
+} from "./catalog.domain";
+import type { CatalogOrderNotifier, ICatalogRepo } from "./catalog.types";
+
+// Vitrine é de negócios no Brasil; "hoje" do pedido segue o horário de Brasília.
+const CATALOG_ORDER_TIME_ZONE = "America/Sao_Paulo";
 
 function wantsCustomization(data: UpdateCatalogSettings): boolean {
   return (
@@ -44,6 +54,7 @@ export class CatalogUseCases {
       serviceName: string,
       bookingRequestId: string,
     ) => Promise<void>,
+    private notifyCatalogOrder?: CatalogOrderNotifier,
   ) {}
 
   /** Retorna as configuracoes do catalogo, criando defaults na primeira vez. */
@@ -350,6 +361,53 @@ export class CatalogUseCases {
       }
     }
     return created;
+  }
+
+  /**
+   * Pedido de produtos feito na vitrine pública: vira encomenda pendente na
+   * agenda do dono, com os preços e produtos que a vitrine mostra agora.
+   */
+  async createPublicProductOrder(
+    slug: string,
+    data: PublicProductOrderInput,
+    now: Date = new Date(),
+  ): Promise<PublicProductOrderResult> {
+    const owner = await this.repo.findOwnerBySlug(slug);
+    if (!owner || !owner.enabled || !this.repo.createCatalogOrder) {
+      throw new NotFoundError("Catálogo não encontrado");
+    }
+    // Campo-isca preenchido: finge sucesso sem gravar nada.
+    if (data.website?.trim()) {
+      return { id: "00000000-0000-4000-8000-000000000000", title: "", total: 0 };
+    }
+    const catalog = await this.getPublicCatalog(slug);
+    const draft = buildCatalogOrder(
+      catalog.products,
+      data,
+      isoDateInTimeZone(now, CATALOG_ORDER_TIME_ZONE),
+    );
+    if (!draft.ok) throw new ValidationError([draft.error]);
+    const created = await this.repo.createCatalogOrder(owner.userId, {
+      title: draft.title,
+      amount: draft.amount,
+      notes: draft.notes,
+      deliveryDate: data.desiredDate,
+      deliveryTime: data.desiredTime ?? null,
+      customerName: data.clientName.trim(),
+      customerPhone: data.phone.trim(),
+    });
+    if (this.notifyCatalogOrder) {
+      try {
+        await this.notifyCatalogOrder(owner.userId, owner.brandId, {
+          id: created.id,
+          customerName: data.clientName.trim(),
+          total: draft.amount,
+        });
+      } catch (error) {
+        console.warn("Catalog order push notification failed", error);
+      }
+    }
+    return { id: created.id, title: draft.title, total: draft.amount };
   }
 
   async resolvePublicRetailOwner(

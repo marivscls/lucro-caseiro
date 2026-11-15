@@ -23,6 +23,8 @@ import {
   STATUS_TONE,
   agendaDayCountLabel,
   formatDateBR,
+  isCatalogOrder,
+  orderCustomerName,
   type AgendaStripDay,
   type AgendaTimelineSlot,
 } from "../domain";
@@ -248,7 +250,8 @@ function orderColumns(
               {order.title}
             </Typography>
             <Typography variant="desktopMeta" numberOfLines={1}>
-              {order.clientName ?? "Sem cliente"}
+              {isCatalogOrder(order) ? "Pelo catálogo · " : ""}
+              {orderCustomerName(order) ?? "Sem cliente"}
             </Typography>
           </View>
         </View>

@@ -141,6 +141,8 @@ receita ao entregar.
 
 ## Change log / Decisions
 
+- 2026-11-15: encomenda vinda da vitrine (`source='catalog'`): cartão e tabela mostram "Pelo catálogo · {nome}" (`orderCustomerName`: cliente cadastrada ou nome digitado); o formulário de edição abre com `CatalogOrderBanner` (quem pediu, telefone e "Confirmar pelo WhatsApp" com mensagem pronta via `catalogOrderConfirmUrl`). Push `CATALOG_ORDER` abre `/tabs/agenda?orderId=`.
+
 - Criação inicial: agenda de encomendas/entregas unificada.
 - v1 sem itens de produto nem seleção de cliente no form (só título+data+valor).
 - "Entregar" pode registrar a receita no financeiro (back cria lançamento income/sale).

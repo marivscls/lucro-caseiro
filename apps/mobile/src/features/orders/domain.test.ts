@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   agendaDateLimit,
+  catalogOrderConfirmUrl,
+  isCatalogOrder,
+  orderCustomerName,
+  whatsappDigits,
   agendaDayCountLabel,
   agendaStripDays,
   agendaTimelineSlots,
@@ -187,5 +191,41 @@ describe("agendaTimelineSlots", () => {
     // Assert
     expect(busy.map((slot) => slot.label)).toEqual(["09:00", "09:30"]);
     expect(busy[0].busyWith).toBe("Bolo");
+  });
+});
+
+describe("pedido pelo catálogo", () => {
+  const catalogOrder = {
+    source: "catalog" as const,
+    clientName: null,
+    customerName: "Ana Souza",
+    customerPhone: "(11) 97777-6666",
+    title: "2× Bolo de pote",
+    deliveryDate: "2026-11-20",
+    deliveryTime: "15:00",
+  };
+
+  it("reconhece a origem e mostra o nome digitado pela cliente", () => {
+    expect(isCatalogOrder(catalogOrder)).toBe(true);
+    expect(isCatalogOrder({ source: null })).toBe(false);
+    expect(orderCustomerName(catalogOrder)).toBe("Ana Souza");
+    expect(orderCustomerName({ ...catalogOrder, clientName: "Ana (cadastro)" })).toBe(
+      "Ana (cadastro)",
+    );
+  });
+
+  it("monta o WhatsApp de confirmação com 55 e a mensagem pronta", () => {
+    // Act
+    const url = catalogOrderConfirmUrl(catalogOrder);
+    // Assert
+    expect(url).toMatch(/^https:\/\/wa\.me\/5511977776666\?text=/);
+    expect(decodeURIComponent(url!.split("text=")[1])).toBe(
+      "Oi, Ana! Recebi seu pedido pelo catálogo: 2× Bolo de pote, para 20/11/2026 às 15:00. Está confirmado! 😊",
+    );
+  });
+
+  it("não monta link com telefone inválido", () => {
+    expect(whatsappDigits("1234")).toBeNull();
+    expect(catalogOrderConfirmUrl({ ...catalogOrder, customerPhone: "123" })).toBeNull();
   });
 });

@@ -325,3 +325,36 @@ export const PublicCatalogDto = z.object({
 export type PublicCatalog = z.infer<typeof PublicCatalogDto>;
 export type PublicCatalogProduct = z.infer<typeof PublicCatalogProductDto>;
 export type PublicCatalogService = z.infer<typeof PublicCatalogServiceDto>;
+
+/** Pedido de produtos feito pela cliente na vitrine pública: vira encomenda na agenda. */
+export const PublicProductOrderInputDto = z.object({
+  clientName: z.string().trim().min(2).max(120),
+  phone: z.string().trim().min(8).max(30),
+  desiredDate: z.string().date(),
+  desiredTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .nullable()
+    .optional(),
+  notes: z.string().trim().max(500).nullable().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        variationId: z.string().uuid().nullable().optional(),
+        quantity: z.number().int().min(1).max(99),
+      }),
+    )
+    .min(1)
+    .max(30),
+  // Campo-isca invisível: robôs preenchem, pessoas não.
+  website: z.string().max(200).optional(),
+});
+export type PublicProductOrderInput = z.infer<typeof PublicProductOrderInputDto>;
+
+export const PublicProductOrderResultDto = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  total: z.number(),
+});
+export type PublicProductOrderResult = z.infer<typeof PublicProductOrderResultDto>;

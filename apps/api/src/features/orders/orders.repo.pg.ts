@@ -961,6 +961,9 @@ export class OrdersRepoPg implements IOrdersRepo {
       actualCost: row.actualCost == null ? null : Number(row.actualCost),
       completedAt: row.completedAt?.toISOString() ?? null,
       saleId: row.saleId,
+      source: row.source as Order["source"],
+      customerName: row.customerName,
+      customerPhone: row.customerPhone,
       createdAt: row.createdAt.toISOString(),
     };
   }

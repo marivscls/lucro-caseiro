@@ -1,4 +1,5 @@
 import {
+  PublicProductOrderInputDto,
   PublicServiceBookingRequestInputDto,
   StorefrontCustomizationDto,
   UpdateCatalogSettingsDto,
@@ -8,6 +9,7 @@ import { Router, type Response } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { NotFoundError } from "../../shared/errors";
+import { rateLimit } from "../../shared/middleware/rate-limit";
 import { renderCatalogErrorHtml, renderCatalogHtml } from "./catalog.domain";
 import type { CatalogUseCases } from "./catalog.usecases";
 import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
@@ -119,6 +121,24 @@ export function createPublicCatalogRouter(useCases: CatalogUseCases): Router {
       next(err);
     }
   });
+
+  // Pedido de produtos pela vitrine: vira encomenda na agenda do dono.
+  // Limite próprio por IP (além do global) para conter spam de pedidos.
+  router.post(
+    "/:slug/orders",
+    rateLimit({ windowMs: 10 * 60_000, max: 10 }),
+    async (req, res, next) => {
+      try {
+        const order = await useCases.createPublicProductOrder(
+          String(req.params.slug),
+          PublicProductOrderInputDto.parse(req.body),
+        );
+        res.status(201).json(order);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   router.get("/:slug", async (req, res) => {
     try {

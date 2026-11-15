@@ -6,7 +6,14 @@ import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
 import { Image, Pressable, View } from "react-native";
 
-import { STATUS_LABEL, STATUS_TONE, formatDateBR, type StatusTone } from "../domain";
+import {
+  STATUS_LABEL,
+  STATUS_TONE,
+  formatDateBR,
+  isCatalogOrder,
+  orderCustomerName,
+  type StatusTone,
+} from "../domain";
 
 interface OrderCardProps {
   readonly order: Order;
@@ -87,9 +94,10 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         >
           {order.title}
         </Typography>
-        {order.clientName ? (
+        {orderCustomerName(order) ? (
           <Typography variant="caption" numberOfLines={1}>
-            {order.clientName}
+            {isCatalogOrder(order) ? "Pelo catálogo · " : ""}
+            {orderCustomerName(order)}
           </Typography>
         ) : null}
         <View

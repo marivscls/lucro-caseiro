@@ -666,3 +666,113 @@ describe("CatalogUseCases.createPublicServiceBooking", () => {
     warn.mockRestore();
   });
 });
+
+describe("CatalogUseCases.createPublicProductOrder", () => {
+  const NOW = new Date("2026-11-15T15:00:00Z");
+  const input = {
+    clientName: "  Ana Souza ",
+    phone: "(11) 97777-6666",
+    desiredDate: "2026-11-20",
+    desiredTime: "15:00",
+    notes: "Sem lactose",
+    items: [{ productId: "11111111-1111-1111-1111-111111111111", quantity: 2 }],
+  };
+
+  it("grava a encomenda com o preço do servidor e avisa o dono", async () => {
+    // Arrange
+    const createCatalogOrder = vi.fn(() => Promise.resolve({ id: "order-1" }));
+    const notify = vi.fn(() => Promise.resolve());
+    const sut = new CatalogUseCases(makeRepo({ createCatalogOrder }), undefined, notify);
+    // Act
+    const result = await sut.createPublicProductOrder("doces-da-maria", input, NOW);
+    // Assert
+    expect(result).toEqual({ id: "order-1", title: "2× Bolo de Pote", total: 25 });
+    expect(createCatalogOrder).toHaveBeenCalledWith(USER_ID, {
+      title: "2× Bolo de Pote",
+      amount: 25,
+      notes:
+        "Pedido feito pelo catálogo.\n2× Bolo de Pote\nRecado da cliente: Sem lactose",
+      deliveryDate: "2026-11-20",
+      deliveryTime: "15:00",
+      customerName: "Ana Souza",
+      customerPhone: "(11) 97777-6666",
+    });
+    expect(notify).toHaveBeenCalledWith(USER_ID, "lucro-caseiro", {
+      id: "order-1",
+      customerName: "Ana Souza",
+      total: 25,
+    });
+  });
+
+  it("não falha o pedido quando o aviso ao dono falha", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({ createCatalogOrder: () => Promise.resolve({ id: "order-1" }) }),
+      undefined,
+      () => Promise.reject(new Error("expo fora")),
+    );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    await expect(
+      sut.createPublicProductOrder("doces-da-maria", input, NOW),
+    ).resolves.toMatchObject({ id: "order-1" });
+    warn.mockRestore();
+  });
+
+  it("recusa produto que não está na vitrine", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({ createCatalogOrder: () => Promise.resolve({ id: "x" }) }),
+    );
+
+    await expect(
+      sut.createPublicProductOrder(
+        "doces-da-maria",
+        {
+          ...input,
+          items: [{ productId: "22222222-2222-2222-2222-222222222222", quantity: 1 }],
+        },
+        NOW,
+      ),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("recusa data que já passou", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({ createCatalogOrder: () => Promise.resolve({ id: "x" }) }),
+    );
+
+    await expect(
+      sut.createPublicProductOrder(
+        "doces-da-maria",
+        { ...input, desiredDate: "2026-11-14" },
+        NOW,
+      ),
+    ).rejects.toThrow("Escolha uma data a partir de hoje.");
+  });
+
+  it("ignora em silêncio quando o campo-isca vem preenchido", async () => {
+    const createCatalogOrder = vi.fn();
+    const sut = new CatalogUseCases(makeRepo({ createCatalogOrder }));
+
+    await sut.createPublicProductOrder(
+      "doces-da-maria",
+      { ...input, website: "spam.example" },
+      NOW,
+    );
+
+    expect(createCatalogOrder).not.toHaveBeenCalled();
+  });
+
+  it("responde 404 quando o catálogo está desativado", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        findOwnerBySlug: () =>
+          Promise.resolve({ ...makeSettings({ enabled: false }), ...makeOwner() }),
+        createCatalogOrder: () => Promise.resolve({ id: "x" }),
+      }),
+    );
+
+    await expect(
+      sut.createPublicProductOrder("doces-da-maria", input, NOW),
+    ).rejects.toBeInstanceOf(NotFoundError);
+  });
+});

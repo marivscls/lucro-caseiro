@@ -191,3 +191,41 @@ export function upcomingCount(orders: Order[], today: Date): number {
         o.deliveryDate < todayStr),
   ).length;
 }
+
+/** Encomenda que a cliente fez pela vitrine pública (não foi anotada no app). */
+export function isCatalogOrder(order: Pick<Order, "source">): boolean {
+  return order.source === "catalog";
+}
+
+/** Nome a mostrar: a cliente cadastrada ou, no pedido do catálogo, o nome digitado. */
+export function orderCustomerName(
+  order: Pick<Order, "clientName" | "customerName">,
+): string | null {
+  return order.clientName ?? order.customerName ?? null;
+}
+
+/** Telefone no formato do wa.me (com 55 quando vier só DDD + número). */
+export function whatsappDigits(phone: string): string | null {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
+    return digits;
+  }
+  return null;
+}
+
+/** Link do WhatsApp para confirmar o pedido do catálogo com a cliente. */
+export function catalogOrderConfirmUrl(
+  order: Pick<
+    Order,
+    "customerName" | "customerPhone" | "title" | "deliveryDate" | "deliveryTime"
+  >,
+): string | null {
+  const digits = order.customerPhone ? whatsappDigits(order.customerPhone) : null;
+  if (!digits) return null;
+  const firstName = order.customerName?.trim().split(/\s+/)[0];
+  const time = order.deliveryTime ? " às " + order.deliveryTime : "";
+  const greeting = firstName ? "Oi, " + firstName : "Oi";
+  const message = `${greeting}! Recebi seu pedido pelo catálogo: ${order.title}, para ${formatDateBR(order.deliveryDate)}${time}. Está confirmado! 😊`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}

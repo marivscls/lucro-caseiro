@@ -183,6 +183,8 @@ Services coexist with products and are persisted in the `services` table.
 
 ## Change log / Decisions
 
+- 2026-11-15: colunas `source` (null | `catalog`, CHECK), `customer_name` e `customer_phone` em `orders` (migration `20261115100000_catalog_product_orders.sql`, roda no boot). `Order` expõe os três como opcionais. A criação pelo catálogo vive em `catalog` (repo grava direto, como as solicitações de horário); orders só lê e mapeia.
+
 - 2026-07-28: serviços v2 adicionam local/intervalo, opções e adicionais,
   pacotes com validade/recorrência, solicitações públicas, indicadores e histórico.
   A conclusão de atendimento cria uma venda de serviço idempotente (pagamento

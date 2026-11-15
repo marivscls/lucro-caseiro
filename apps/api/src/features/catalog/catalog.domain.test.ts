@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildCatalogOrder,
+  isoDateInTimeZone,
   isValidSlug,
+  nationalPhoneDigits,
   renderCatalogErrorHtml,
   renderCatalogHtml,
   slugify,
@@ -183,5 +186,102 @@ describe("renderCatalogErrorHtml", () => {
     expect(html).toContain("Tentar novamente");
     expect(html).toContain('<a href="">Tentar novamente</a>');
     expect(html).not.toContain("onclick=");
+  });
+});
+
+describe("buildCatalogOrder", () => {
+  const cake = {
+    id: "11111111-1111-1111-1111-111111111111",
+    name: "Bolo de Pote",
+    category: "Doces",
+    description: null,
+    photoUrl: null,
+    extraPhotos: [],
+    salePrice: 12.5,
+    saleUnit: "unit",
+    variations: [],
+  };
+  const brigadeiro = {
+    ...cake,
+    id: "22222222-2222-2222-2222-222222222222",
+    name: "Brigadeiro",
+    salePrice: 2.3,
+    variations: [
+      { id: "33333333-3333-3333-3333-333333333333", name: "Ao leite", inStock: true },
+      { id: "44444444-4444-4444-4444-444444444444", name: "Branco", inStock: false },
+    ],
+  };
+  const today = "2026-11-15";
+
+  it("soma itens repetidos e usa o preço da vitrine", () => {
+    // Arrange
+    const items = [
+      { productId: cake.id, quantity: 1 },
+      { productId: cake.id, quantity: 2 },
+      {
+        productId: brigadeiro.id,
+        variationId: "33333333-3333-3333-3333-333333333333",
+        quantity: 10,
+      },
+    ];
+    // Act
+    const draft = buildCatalogOrder(
+      [cake, brigadeiro],
+      { items, desiredDate: today, notes: null },
+      today,
+    );
+    // Assert
+    expect(draft).toMatchObject({
+      ok: true,
+      title: "3× Bolo de Pote, 10× Brigadeiro (Ao leite)",
+      amount: 60.5,
+    });
+  });
+
+  it("exige uma opção em estoque quando o produto tem variações", () => {
+    const draft = buildCatalogOrder(
+      [brigadeiro],
+      {
+        items: [
+          {
+            productId: brigadeiro.id,
+            variationId: "44444444-4444-4444-4444-444444444444",
+            quantity: 1,
+          },
+        ],
+        desiredDate: today,
+      },
+      today,
+    );
+    expect(draft).toEqual({
+      ok: false,
+      error: "Escolha uma opção disponível de Brigadeiro.",
+    });
+  });
+
+  it("corta o título longo em 200 caracteres", () => {
+    const long = { ...cake, name: "Torta ".repeat(60).trim() };
+    const draft = buildCatalogOrder(
+      [long],
+      { items: [{ productId: cake.id, quantity: 1 }], desiredDate: today },
+      today,
+    );
+    expect(draft.ok && draft.title.length).toBe(200);
+    expect(draft.ok && draft.title.endsWith("…")).toBe(true);
+  });
+});
+
+describe("isoDateInTimeZone", () => {
+  it("usa a data do fuso (madrugada UTC ainda é ontem em Brasília)", () => {
+    expect(isoDateInTimeZone(new Date("2026-11-16T02:00:00Z"), "America/Sao_Paulo")).toBe(
+      "2026-11-15",
+    );
+  });
+});
+
+describe("nationalPhoneDigits", () => {
+  it("tira o 55 do país e a pontuação", () => {
+    expect(nationalPhoneDigits("+55 (11) 97777-6666")).toBe("11977776666");
+    expect(nationalPhoneDigits("(11) 97777-6666")).toBe("11977776666");
   });
 });

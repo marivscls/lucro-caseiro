@@ -3,6 +3,9 @@ import { z } from "zod";
 import { MAX_MONEY, OrderStatus, PaymentMethod } from "./common";
 import { AppointmentLocationMode, ServiceAppointmentStatus } from "./operations";
 
+export const OrderSource = z.enum(["catalog"]);
+export type OrderSource = z.infer<typeof OrderSource>;
+
 export const CreateOrderDto = z.object({
   requestId: z.string().uuid().optional(),
   title: z.string().min(1).max(200),
@@ -99,6 +102,11 @@ export const OrderDto = z.object({
   actualCost: z.number().nullable(),
   completedAt: z.string().datetime().nullable(),
   saleId: z.string().uuid().nullable(),
+  // Pedido feito pela cliente na vitrine pública; null/ausente = anotado no app.
+  source: OrderSource.nullable().optional(),
+  // Contato digitado pela cliente no pedido do catálogo.
+  customerName: z.string().nullable().optional(),
+  customerPhone: z.string().nullable().optional(),
   createdAt: z.string().datetime(),
 });
 

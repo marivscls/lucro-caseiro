@@ -76,8 +76,12 @@ api:
     - method: GET
       path: /c/:slug/json # público; JSON PublicCatalog
       response: PublicCatalog
+    - method: POST
+      path: /c/:slug/orders # público; pedido de produtos vira encomenda
+      body: PublicProductOrderInput
+      response: PublicProductOrderResult (201)
 db:
-  tables: [catalog_settings, products, users]
+  tables: [catalog_settings, products, users, orders, clients]
   indexes: [idx_catalog_settings_slug]
 invariants:
   - slug unico global, formato kebab 1-40 chars
@@ -130,6 +134,8 @@ invariants:
 - `PUT /api/v1/catalog/settings` `{ "enabled": true, "slug": "doces-da-maria" }`.
 
 ## Change log / Decisions
+
+- 2026-11-15: **pedido de produto pela vitrine vira encomenda.** `POST /c/:slug/orders` (público, limite de 10 por IP a cada 10 min além do global) recebe `PublicProductOrderInputDto` (nome, WhatsApp, data desejada >= hoje em America/Sao_Paulo, horário e recado opcionais, 1 a 30 itens com `productId`/`variationId`/`quantity`, campo-isca `website`). O servidor usa só os produtos visíveis agora na vitrine (respeita o limite do Gratuito) e o preço publicado; `buildCatalogOrder` (domínio puro) soma itens repetidos, exige variação em estoque e monta título (até 200) e notas (até 500). Grava em `orders` com `status=pending`, `source='catalog'`, `customer_name`/`customer_phone` e liga à cliente cadastrada quando o telefone bate (mesma normalização do índice de clientes). Push `CATALOG_ORDER` best-effort ao dono. Erros: 404 catálogo desativado; 400 produto fora da vitrine, opção indisponível ou data passada. Na página, produtos com ação pedir/encomendar ou contato por WhatsApp mostram "+ Pedir" (sacola com quantidades, opção da variação, barra "Ver pedido", calendário compartilhado com o agendamento); após enviar, oferece "Avisar também pelo WhatsApp" com o resumo. Link externo explícito continua link. Na prévia o envio é bloqueado. Migration `20261115100000_catalog_product_orders.sql` (boot).
 
 - 2026-09-28: rodapé da vitrine publicada leva "Feito com <marca> · crie o seu catálogo grátis"
   (`shared/helpers/made-with.ts`, UTM `utm_source=catalogo`); a prévia não mostra.

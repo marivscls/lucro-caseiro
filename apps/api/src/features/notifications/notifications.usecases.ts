@@ -43,4 +43,24 @@ export class NotificationsUseCases {
     });
     await this.repo.deleteTokens(result.invalidTokens);
   }
+
+  async notifyCatalogOrder(
+    userId: string,
+    brandId: string,
+    order: { id: string; customerName: string; total: number },
+  ): Promise<void> {
+    const tokens = await this.repo.listTokens(userId, brandId);
+    if (tokens.length === 0) return;
+
+    const total = order.total.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+    const result = await this.sendPush(tokens, {
+      title: "Novo pedido pelo catálogo 🛍️",
+      body: `${order.customerName} pediu ${total}. Já está na sua agenda.`,
+      data: { type: "CATALOG_ORDER", orderId: order.id },
+    });
+    await this.repo.deleteTokens(result.invalidTokens);
+  }
 }

@@ -623,3 +623,57 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).not.toContain('class="hero-bg"');
   });
 });
+
+describe("pedido pela vitrine", () => {
+  it("troca o WhatsApp do produto por Adicionar ao pedido e inclui a sacola", () => {
+    // Arrange / Act
+    const html = renderPublishedStorefrontHtml(catalog(), "all", "nonce-test");
+    // Assert
+    expect(html).toContain('class="card-hit order-action"');
+    expect(html).toContain("Adicionar ao pedido");
+    expect(html).toContain('id="order-dialog"');
+    expect(html).toContain('id="order-bar"');
+    expect(html).toContain("/orders");
+    expect(html).toContain('data-whatsapp="5511999998888"');
+  });
+
+  it("mantém link externo e não monta a sacola sem produto pedível", () => {
+    const base = customization();
+    const html = renderPublishedStorefrontHtml(
+      catalog({
+        ...base,
+        organization: {
+          ...base.organization,
+          actions: {
+            ...base.organization.actions,
+            productDefault: {
+              type: "externalLink",
+              label: "Comprar",
+              destination: "https://loja.example.com",
+            },
+          },
+        },
+      }),
+    );
+    expect(html).not.toContain('class="card-hit order-action"');
+    expect(html).not.toContain('id="order-dialog"');
+    expect(html).toContain("https://loja.example.com");
+  });
+
+  it("avisa na prévia que o pedido não é enviado", () => {
+    const html = renderPublishedStorefrontHtml(catalog(), "all", "", true);
+    expect(html).toContain('data-preview="true"');
+  });
+});
+
+describe("scripts da vitrine", () => {
+  it("geram JavaScript válido (pedido, calendário e vitrine)", () => {
+    const html = renderPublishedStorefrontHtml(catalog(), "all", "n");
+    const scripts = [...html.matchAll(/<script nonce="n">([\s\S]*?)<\/script>/g)].map(
+      (match) => match[1]!,
+    );
+    expect(scripts.length).toBeGreaterThanOrEqual(3);
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval, sonarjs/code-eval -- só compila o script gerado pelo teste, não executa
+    for (const code of scripts) expect(() => new Function(code)).not.toThrow();
+  });
+});
