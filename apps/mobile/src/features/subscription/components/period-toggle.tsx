@@ -70,7 +70,7 @@ export function PeriodToggle({
                 variant={desktop ? "desktopBodyStrong" : "bodyBold"}
                 color={theme.colors.success}
               >
-                2 meses grátis
+                Mais vantajoso
               </Typography>
             ) : null}
           </Pressable>

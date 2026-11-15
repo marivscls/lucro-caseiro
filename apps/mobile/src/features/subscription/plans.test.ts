@@ -155,10 +155,7 @@ describe("single-page checkout", () => {
       render(React.createElement(PlansScreen));
       const payment = platform === "android" ? state.subscribe : state.checkout;
       expect(payment).not.toHaveBeenCalled();
-      expect(screen.getByText("R$ 29,90 cobrados a cada mês.")).toBeTruthy();
-      fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-      expect(payment).toHaveBeenLastCalledWith("essential", "monthly");
-      fireEvent.click(screen.getByRole("button", { name: "Anual" }));
+      // Abre no anual, com o valor do ano por extenso.
       expect(screen.getByText("R$ 299,00 cobrados uma vez por ano.")).toBeTruthy();
       // Os dois planos mudam juntos de período e comparam o valor por mês.
       expect(screen.getByText("R$ 24,92")).toBeTruthy();
@@ -166,6 +163,11 @@ describe("single-page checkout", () => {
       expect(screen.getByText("R$ 699,00 cobrados uma vez por ano")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(payment).toHaveBeenLastCalledWith("essential", "annual");
+      fireEvent.click(screen.getByRole("button", { name: "Mensal" }));
+      expect(screen.getByText("R$ 29,90 cobrados a cada mês.")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
+      expect(payment).toHaveBeenLastCalledWith("essential", "monthly");
+      fireEvent.click(screen.getByRole("button", { name: "Anual" }));
       fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
       expect(screen.getByText("R$ 699,00 cobrados uma vez por ano.")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
@@ -205,10 +207,10 @@ describe("single-page checkout", () => {
     expect(screen.queryByText("Plano ativo")).toBeNull();
     expect(screen.queryByRole("button", { name: "Cancelar assinatura" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-    expect(state.checkout).toHaveBeenLastCalledWith("essential", "monthly");
+    expect(state.checkout).toHaveBeenLastCalledWith("essential", "annual");
     fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
     fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-    expect(state.checkout).toHaveBeenLastCalledWith("professional", "monthly");
+    expect(state.checkout).toHaveBeenLastCalledWith("professional", "annual");
   });
 
   it.each(["web", "android"])(
@@ -222,7 +224,7 @@ describe("single-page checkout", () => {
       view.rerender(React.createElement(PlansScreen));
       fireEvent.click(screen.getByRole("button", { name: "Abrindo pagamento..." }));
       fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
-      fireEvent.click(screen.getByRole("button", { name: "Anual" }));
+      fireEvent.click(screen.getByRole("button", { name: "Mensal" }));
       expect(state.checkout).not.toHaveBeenCalled();
       expect(state.subscribe).not.toHaveBeenCalled();
       state.stripeLoading = false;
@@ -231,7 +233,7 @@ describe("single-page checkout", () => {
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(
         platform === "android" ? state.subscribe : state.checkout,
-      ).toHaveBeenCalledWith("essential", "monthly");
+      ).toHaveBeenCalledWith("essential", "annual");
     },
   );
 });

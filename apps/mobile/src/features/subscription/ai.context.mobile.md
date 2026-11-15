@@ -247,8 +247,11 @@ Revisão de design das telas de Planos e do checkout (modal). Nenhuma regra come
   sem letra miúda, o que é cobrado ("R$ 299,00 cobrados uma vez por ano" no anual; no mensal,
   a cobrança mensal). Substitui a decisão de 2026-09-23 (anual como valor principal), que deixava o
   Essencial anual (R$ 299) ao lado do Profissional mensal (R$ 69,90) parecendo mais caro.
-- Planos (celular e desktop): o Mensal/Anual (`components/period-toggle.tsx`, com "2 meses
-  grátis") fica acima dos planos e muda os dois juntos. Conta gratuita vê "Recomendado" no
+- Planos (celular e desktop): o Mensal/Anual (`components/period-toggle.tsx`) fica acima dos
+  planos e muda os dois juntos. **Abre no anual** (substitui "Monthly is the initial period"
+  de 2026-09-09): a pessoa paga o ano de uma vez e o valor por mês fica menor. O Anual leva o
+  selo "Mais vantajoso", também no checkout. Não usamos "Mais vendido": afirma um dado de
+  vendas que não temos. Conta gratuita vê "Recomendado" no
   Essencial. Sob o botão: economia no ano e "Sem fidelidade: cancele quando quiser". No
   desktop, a saída das boas-vindas vai para a lateral, abaixo do pagamento (`skip`).
 - Checkout (`Paywall`): sem cabeçalho de marca (só o X); título maior que a explicação e

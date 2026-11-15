@@ -368,7 +368,7 @@ export function Paywall({
             <PressableScale
               onPress={() => setPeriod("annual")}
               accessibilityRole="button"
-              accessibilityLabel="Selecionar cobrança anual, com dois meses grátis"
+              accessibilityLabel="Selecionar cobrança anual, a mais vantajosa"
               accessibilityState={{ selected: period === "annual" }}
               onHoverIn={() => setHighlightedPeriod("annual")}
               onHoverOut={() => setHighlightedPeriod(null)}
@@ -398,7 +398,7 @@ export function Paywall({
                   color={theme.colors.primaryStrong}
                   style={{ fontSize: fontSizes.sm }}
                 >
-                  2 meses grátis
+                  Mais vantajoso
                 </Typography>
               </View>
             </PressableScale>

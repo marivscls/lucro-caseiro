@@ -121,7 +121,8 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
   const { checkout, loading: stripeLoading } = useStripeCheckout();
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const checkoutLoading = stripeLoading || subscriptionLoading;
-  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+  const [period, setPeriod] = useState<BillingPeriod>("annual");
+  // Abre no anual: a pessoa paga o ano de uma vez e o valor por mês fica menor.
   // No teste grátis do Essencial a pessoa ainda não assinou: para compra ela
   // conta como Gratuito (pode assinar Essencial ou Profissional).
   const onTrial = isProfileOnTrial(profile);
