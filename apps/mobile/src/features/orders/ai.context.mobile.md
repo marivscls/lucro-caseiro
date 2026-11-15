@@ -141,7 +141,7 @@ receita ao entregar.
 
 ## Change log / Decisions
 
-- 2026-11-15: campo "Repetir" (Não repete / Toda semana / A cada 15 dias / Todo mês, `RECURRENCE_LABEL`) no passo de data do formulário, com a dica de que a próxima entra sozinha na agenda ao marcar como entregue; o cartão mostra o ícone de repetição e o rótulo. A criação da próxima é do servidor.
+- 2026-11-15: campo "Repetir" (não repete, semanal, quinzenal ou mensal; rótulos em `RECURRENCE_LABEL`) no passo de data do formulário, com a dica de que a próxima entra sozinha na agenda ao marcar como entregue; o cartão mostra o ícone de repetição e o rótulo. A criação da próxima é do servidor.
 
 - 2026-11-15: encomenda vinda da vitrine (`source='catalog'`): cartão e tabela mostram "Pelo catálogo · {nome}" (`orderCustomerName`: cliente cadastrada ou nome digitado); o formulário de edição abre com `CatalogOrderBanner` (quem pediu, telefone e "Confirmar pelo WhatsApp" com mensagem pronta via `catalogOrderConfirmUrl`). Push `CATALOG_ORDER` abre `/tabs/agenda?orderId=`.
 
