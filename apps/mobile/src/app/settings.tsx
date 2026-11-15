@@ -288,7 +288,7 @@ export default function SettingsScreen() {
   const experienceCopy = businessCopyFor(businessType);
   const avatarUrl = profile?.avatarUrl ?? null;
   const currentPlan = activePlan(profile);
-  // Teste grátis do Essencial: usa os recursos, mas não há assinatura para
+  // Teste grátis do Premium: usa os recursos, mas não há assinatura para
   // cancelar nem gerenciar.
   const onTrial = isProfileOnTrial(profile);
   const hasPaidPlan = currentPlan !== "free" && !onTrial;
@@ -497,7 +497,7 @@ export default function SettingsScreen() {
       return (
         <View style={actionRowStyle}>
           <Button
-            title={onTrial ? "Assinar um plano" : "Conhecer os planos"}
+            title={onTrial ? "Assinar o Premium" : "Conhecer o Premium"}
             variant="premium"
             size="md"
             icon={
@@ -539,41 +539,7 @@ export default function SettingsScreen() {
       );
     }
 
-    if (currentPlan === "essential") {
-      return (
-        <View style={actionRowStyle}>
-          <Button
-            title="Fazer upgrade para Profissional"
-            variant="premium"
-            size="md"
-            icon={
-              <AppIcon
-                name="crown-outline"
-                size={19}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            onPress={() => showPaywall("plans", "professional")}
-            style={planButtonStyle}
-          />
-          <Button
-            title="Gerenciar assinatura"
-            variant="outline"
-            size="md"
-            icon={
-              <AppIcon
-                name="settings-outline"
-                size={19}
-                color={theme.colors.primaryStrong}
-              />
-            }
-            onPress={() => router.push("/plans")}
-            style={planButtonStyle}
-          />
-        </View>
-      );
-    }
-
+    // Assinante (qualquer nível pago é o Premium, com tudo liberado): só gerencia.
     return (
       <Button
         title="Gerenciar assinatura"
@@ -952,7 +918,7 @@ export default function SettingsScreen() {
                       <Typography variant="bodyBold">{item.label}</Typography>
                       {locked ? (
                         <Typography variant="caption" color={theme.colors.premium}>
-                          Profissional
+                          Premium
                         </Typography>
                       ) : null}
                     </View>
@@ -960,7 +926,7 @@ export default function SettingsScreen() {
                       <Pressable
                         onPress={() => showPaywall("notifications")}
                         accessibilityRole="button"
-                        accessibilityLabel={`${item.label}, recurso Profissional`}
+                        accessibilityLabel={`${item.label}, recurso Premium`}
                         style={{
                           width: 44,
                           height: 44,

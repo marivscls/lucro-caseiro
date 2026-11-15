@@ -13,7 +13,7 @@ export function activePlan(profile?: UserProfile | null): PlanType {
   return resolveActivePlan(profile.plan, profile.planExpiresAt);
 }
 
-/** True para qualquer plano pago ativo (Essencial ou Profissional). */
+/** True para qualquer plano pago ativo (Premium, inclusive níveis antigos e teste). */
 export function isProfilePremiumActive(profile?: UserProfile | null): boolean {
   return isPaidPlan(activePlan(profile));
 }

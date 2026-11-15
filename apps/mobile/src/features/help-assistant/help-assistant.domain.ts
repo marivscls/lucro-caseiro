@@ -3,6 +3,7 @@ import {
   PLAN_LABELS,
   PLAN_LIMITS,
   PLAN_PRICING,
+  SOLD_PLAN,
 } from "@lucro-caseiro/contracts";
 
 export interface HelpAnswer {
@@ -31,9 +32,14 @@ function has(question: string, terms: readonly string[]): boolean {
   return terms.some((term) => question.includes(term));
 }
 
+// Reais sem centavos quando o valor é redondo: "449", "49,90".
+function formatReais(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(".", ",");
+}
+
 function planPrice(plan: keyof typeof PLAN_PRICING): string {
   const { monthly, annual } = PLAN_PRICING[plan];
-  return `R$ ${monthly.toFixed(2).replace(".", ",")}/mês ou R$ ${annual.toFixed(2).replace(".", ",")}/ano`;
+  return `R$ ${formatReais(monthly)}/mês ou R$ ${formatReais(annual)}/ano`;
 }
 
 export const HELP_SUGGESTIONS = [
@@ -95,13 +101,13 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
   ) {
     return {
       kind: "guide",
-      text: "Temos três planos disponíveis. Os planos pagos têm opções mensal e anual.",
+      text: `Temos dois planos: o ${PLAN_LABELS.free} e o ${PLAN_LABELS[SOLD_PLAN]}, com opção mensal ou anual.`,
       steps: [
         `${PLAN_LABELS.free}: sem mensalidade, com vendas ilimitadas, até ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos.`,
-        `${PLAN_LABELS.essential}: ${planPrice("essential")}. Clientes e produtos ilimitados, catálogo completo e personalizado e resumo do mês em PDF.`,
-        `${PLAN_LABELS.professional}: ${planPrice("professional")}. Tudo do Essencial, mais relatórios avançados, exportação em PDF/Excel, compras e suporte prioritário.`,
-        `Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do ${PLAN_LABELS.essential} para testar, sem cartão. Depois, volta sozinha para o ${PLAN_LABELS.free} se você não assinar.`,
-        "Toque em Ver planos para comparar os recursos e conferir o valor antes de assinar.",
+        `${PLAN_LABELS[SOLD_PLAN]}: ${planPrice(SOLD_PLAN)}. Tudo liberado: clientes e produtos ilimitados, catálogo completo e personalizado, relatórios completos, exportação em PDF/Excel, compras e suporte prioritário.`,
+        `Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do ${PLAN_LABELS[SOLD_PLAN]} para testar, sem cartão. Depois, volta sozinha para o ${PLAN_LABELS.free} se você não assinar.`,
+        `Quem já assinava o Essencial ou o Profissional passa a ter tudo do ${PLAN_LABELS[SOLD_PLAN]}, pagando o mesmo valor que contratou.`,
+        "Toque em Ver planos para conferir os recursos e o valor antes de assinar.",
       ],
       action: { label: "Ver planos", route: "/plans" },
     };

@@ -48,7 +48,7 @@ export const SOLUTION_LABELS: Record<SolutionSlug, string> = {
   "relatorio-mensal-mei": "Relatório mensal do MEI",
 };
 
-const freeAnswer = `Sim. Crie a conta grátis no Android ou no navegador. Toda conta nova ainda ganha ${ESSENTIAL_TRIAL_DAYS} dias do Essencial, sem cartão.`;
+const freeAnswer = `Sim. Crie a conta grátis no Android ou no navegador. Toda conta nova ainda ganha ${ESSENTIAL_TRIAL_DAYS} dias do Premium, sem cartão.`;
 
 export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
   "controle-de-fiado": {
@@ -200,7 +200,7 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
       },
       {
         title: "Com a sua cara",
-        text: "No Essencial, o catálogo fica completo e personalizado, com capa, cores e mais fotos por produto.",
+        text: "No Premium, o catálogo fica completo e personalizado, com capa, cores e mais fotos por produto.",
       },
     ],
     steps: [
@@ -211,7 +211,7 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     faqs: [
       {
         question: "Quantos produtos cabem no catálogo grátis?",
-        answer: `No Gratuito, até ${FREE_CATALOG_MAX_PRODUCTS} produtos publicados. No Essencial e no Profissional, o catálogo é completo e personalizado.`,
+        answer: `No Gratuito, até ${FREE_CATALOG_MAX_PRODUCTS} produtos publicados. No Premium, o catálogo é completo e personalizado.`,
       },
       {
         question: "O cliente precisa baixar algum app?",

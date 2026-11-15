@@ -277,7 +277,7 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
   contagens em linhas (produtos, serviços, publicados), link com copiar, ação principal
   (Ativar / Compartilhar / Adicionar conteúdo, mesma regra do celular), aviso e
   "Ver como cliente".
-- Convite ao Essencial vai para a lateral (`CatalogDesktopUpsell`), sem faixa lateral.
+- Convite ao Premium vai para a lateral (`CatalogDesktopUpsell`), sem faixa lateral.
 - Abas Produtos/Serviços com largura do texto (16 px, contagem 14 px); itens em grade
   de 2 colunas; o botão de ver a lista completa tem largura do texto.
 - Cabeçalho: `DesktopToolbarButton` "Mais opções" (ícone com texto); a folha de
@@ -292,3 +292,4 @@ Tudo atrás de `useDesktopLayout()`; o celular não muda (capturas de 390 px id�
   escala do celular, porque reproduz a página pública.
 
 - 2026-10-18: o banner do free usa `FREE_CATALOG_MAX_PRODUCTS` ("Seu catálogo mostra até 10 produtos").
+- 2026-11-15: plano único Premium. O convite do free (celular e `CatalogDesktopUpsell`) diz "Mostre seu catálogo completo e personalize as cores no Premium."; o paywall continua o mesmo (`showPaywall("catalog", "essential")`, o checkout vende sempre o Premium).

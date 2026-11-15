@@ -142,6 +142,7 @@ no celular a tela é a mesma de antes.
   desktop, os cartões de uma linha têm a mesma altura e as ações ficam no rodapé.
 - "Compras recentes" em `desktopSection`. Vazio e filtro sem resultado: cartão tracejado.
   `ScreenCreateBar` não aparece; a criação fica no cabeçalho ("Nova compra").
-- Sem o plano Profissional: o cartão "Recurso Profissional" vira duas colunas (texto e
-  benefícios de 16 px à esquerda, arte à direita), e "Desbloquear no Profissional" tem a
+- Sem o Premium: o cartão "Recurso Premium" vira duas colunas (texto e
+  benefícios de 16 px à esquerda, arte à direita), e "Desbloquear no Premium" tem a
   largura do texto em vez de ocupar a linha inteira.
+- 2026-11-15: plano único Premium. A tela de apresentação no computador mostra "Recurso Premium" e "Desbloquear no Premium" (antes Profissional). Acesso por `purchases`, sem mudança.

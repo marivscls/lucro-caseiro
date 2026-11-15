@@ -145,7 +145,7 @@ export function LabelLayoutEditor({
           style={{ flex: 1 }}
         >
           {locked
-            ? "Defina medidas e quantidade por folha no plano Profissional."
+            ? "Defina medidas e quantidade por folha no Premium."
             : "As medidas são aplicadas exatamente no PDF para impressão."}
         </Typography>
         {locked ? (

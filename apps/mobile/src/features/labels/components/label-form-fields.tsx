@@ -39,12 +39,12 @@ export const LABEL_FORM_STEPS = [
   { label: "Marca", title: "Contato e acabamento" },
 ] as const;
 
-function ProfessionalTag() {
+function PremiumTag() {
   const isDesktop = useDesktopLayout();
   return isDesktop ? (
-    <DesktopTag label="Profissional" variant="premium" strong />
+    <DesktopTag label="Premium" variant="premium" strong />
   ) : (
-    <Badge label="Profissional" variant="premium" />
+    <Badge label="Premium" variant="premium" />
   );
 }
 
@@ -180,7 +180,7 @@ export function LabelProductFields({
       <FormSection
         title="Formato de impressão"
         subtitle="Tamanho exato e quantidade na folha A4"
-        titleAccessory={<ProfessionalTag />}
+        titleAccessory={<PremiumTag />}
       >
         <LabelLayoutEditor
           value={labelData.layout}
@@ -385,7 +385,7 @@ export function LabelBrandFields({
       <FormSection
         title="Personalizar"
         subtitle="Cores, borda e cantos"
-        titleAccessory={<ProfessionalTag />}
+        titleAccessory={<PremiumTag />}
       >
         <LabelStyleEditor
           value={labelData.style}

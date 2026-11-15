@@ -31,19 +31,19 @@ export function buildTrialReminderEmail(
   switch (stage) {
     case "three_days":
       copy = {
-        subject: "Seu teste do Essencial segue por mais alguns dias",
+        subject: "Seu teste do Premium segue por mais alguns dias",
         eyebrow: "SEU TESTE CONTINUA",
         title: "Aproveite estes dias com calma",
-        body: `Seu acesso ao Essencial vai até ${deadline}. Ainda dá tempo de explorar os recursos no seu ritmo. Depois, sua conta continua no Gratuito e seus dados continuam salvos, sem cobrança automática.`,
-        next: "Se quiser manter os recursos do Essencial depois desse dia, consulte os planos no app. A escolha é sua.",
+        body: `Seu acesso ao Premium vai até ${deadline}. Ainda dá tempo de explorar os recursos no seu ritmo. Depois, sua conta continua no Gratuito e seus dados continuam salvos, sem cobrança automática.`,
+        next: "Se quiser manter os recursos do Premium depois desse dia, consulte os planos no app. A escolha é sua.",
       };
       break;
     case "one_day":
       copy = {
-        subject: "Seu teste do Essencial termina em breve",
+        subject: "Seu teste do Premium termina em breve",
         eyebrow: "UM LEMBRETE TRANQUILO",
         title: "Seu trabalho continua com você",
-        body: `Seu acesso ao Essencial termina em ${deadline}. Depois, sua conta continua no Gratuito e seus dados continuam salvos, sem cobrança automática.`,
+        body: `Seu acesso ao Premium termina em ${deadline}. Depois, sua conta continua no Gratuito e seus dados continuam salvos, sem cobrança automática.`,
         next: "Você pode continuar no Gratuito ou escolher um plano no app. Assinar é opcional.",
       };
       break;
@@ -52,8 +52,8 @@ export function buildTrialReminderEmail(
         subject: "Seu teste terminou; seus dados continuam salvos",
         eyebrow: "SEU TESTE TERMINOU",
         title: "Pode seguir no seu ritmo",
-        body: "Seus 7 dias do Essencial chegaram ao fim e sua conta voltou ao plano Gratuito. Seus dados continuam salvos, sem cobrança automática.",
-        next: "Você pode continuar usando os recursos gratuitos. Para voltar aos recursos do Essencial, consulte os planos no app quando fizer sentido para você.",
+        body: "Seus 7 dias do Premium chegaram ao fim e sua conta voltou ao plano Gratuito. Seus dados continuam salvos, sem cobrança automática.",
+        next: "Você pode continuar usando os recursos gratuitos. Para voltar aos recursos do Premium, consulte os planos no app quando fizer sentido para você.",
       };
       break;
   }
@@ -94,7 +94,7 @@ export function buildTrialReminderEmail(
             <p style="margin:14px 0 0;color:#6B6660;font-size:12px;line-height:19px">Se o botão não abrir, acesse o app pelo ícone no celular.</p>
           </td></tr>
         </table>
-        <p style="max-width:600px;margin:20px 0 0;color:#6B6660;font-size:12px;line-height:20px">Esta mensagem acompanha o teste do Essencial no Lucro Caseiro.</p>
+        <p style="max-width:600px;margin:20px 0 0;color:#6B6660;font-size:12px;line-height:20px">Esta mensagem acompanha o teste do Premium no Lucro Caseiro.</p>
       </td></tr>
     </table>
   </body>

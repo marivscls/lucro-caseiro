@@ -137,3 +137,5 @@ e, no plano com gráficos, `MonthlyBars` com 240px de altura, eixos de 14px e o 
 à direita; ao lado (a partir de 960px) ou abaixo, o cartão "O que fazer agora". Rankings em grade
 de 2 colunas, "Perguntas rápidas" e, sem plano, o convite em duas colunas
 (`components/insights-desktop.tsx`).
+
+- 2026-11-15: plano único Premium. O convite no computador (`InsightsTeaserDesktop`) diz "Recurso Premium" e "Desbloquear no Premium". Acesso por `advancedReports`, sem mudança.

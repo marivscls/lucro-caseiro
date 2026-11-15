@@ -6,7 +6,7 @@ const expiry = "2026-10-05T21:02:54.645Z";
 describe("Essential trial reminder emails", () => {
   it("gently introduces the approaching end three days ahead", () => {
     const email = buildTrialReminderEmail("three_days", expiry);
-    expect(email.subject).toContain("Essencial");
+    expect(email.subject).toContain("Premium");
     expect(email.text).toContain("5 de outubro");
     expect(email.text).toContain("sem cobrança automática");
     expect(email.text).toContain("dados continuam salvos");

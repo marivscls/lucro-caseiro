@@ -2,24 +2,26 @@
 
 Configuracao atual: **Stripe Checkout + webhooks** para pagamentos fora da loja. O app abre uma Stripe Checkout Session e o backend ativa/desativa o plano a partir dos eventos assinados da Stripe. O fluxo Google Play Billing continua disponivel no codigo para builds Android que precisem cumprir regras da Play Store.
 
-Planos: **Essencial** e **Profissional**, cada um com preco mensal e anual (ver `docs/planos-comerciais.md`). Sao 4 Prices no total.
+Plano pago: **Premium** (decisao de 2026-11-15, ver `docs/planos-comerciais.md`), com preco mensal e anual. O Premium usa as variaveis do antigo Profissional; as do Essencial ficam so para reconhecer assinaturas antigas.
 
 ## Produtos
 
-| Plano        | Periodo | Preco     | Stripe Price ID                        |
-| ------------ | ------- | --------- | -------------------------------------- |
-| Essencial    | Mensal  | R$ 29,90  | `STRIPE_PRICE_ESSENTIAL_MONTHLY_ID`    |
-| Essencial    | Anual   | R$ 299,00 | `STRIPE_PRICE_ESSENTIAL_ANNUAL_ID`     |
-| Profissional | Mensal  | R$ 69,90  | `STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID` |
-| Profissional | Anual   | R$ 699,00 | `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID`  |
+| Plano   | Periodo | Preco     | Stripe Price ID                        |
+| ------- | ------- | --------- | -------------------------------------- |
+| Premium | Mensal  | R$ 49,90  | `STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID` |
+| Premium | Anual   | R$ 449,00 | `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID`  |
+
+Legado (nao vendido): `STRIPE_PRICE_ESSENTIAL_{MONTHLY,ANNUAL}_ID` (R$ 29,90 / R$ 299,00) e os Prices antigos do Profissional (R$ 69,90 / R$ 699,00). Assinaturas antigas continuam nesses Prices ate a pessoa cancelar; o plano e reconhecido pela metadata `tier`. O checkout cria sempre a sessao com o Price do Premium, mesmo que o pedido diga `essential`.
 
 ## 1. Stripe Dashboard
 
 1. Acesse Stripe Dashboard -> **Product catalog**.
-2. Crie o produto **Lucro Caseiro Essencial** com dois Prices recorrentes: mensal R$ 29,90 e anual R$ 299,00.
-3. Crie o produto **Lucro Caseiro Profissional** com dois Prices recorrentes: mensal R$ 69,90 e anual R$ 699,00.
-4. Copie os quatro IDs `price_...` para as variaveis `STRIPE_PRICE_{ESSENTIAL,PROFESSIONAL}_{MONTHLY,ANNUAL}_ID`.
+2. No produto do plano pago (renomeie para **Lucro Caseiro Premium**), crie dois Prices recorrentes novos: mensal R$ 49,90 e anual R$ 449,00. Nao apague os Prices antigos: ha assinaturas neles.
+3. Copie os dois IDs `price_...` novos para `STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID` e `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID` (segredos da API no Fly).
+4. Arquive no Stripe os Prices do Essencial para nao serem usados em novas vendas.
 5. Use chaves `live` em producao e `test` em desenvolvimento.
+
+Google Play: nos produtos `lucrocaseiro_professional_monthly` e `_annual`, mude o preco do plano base para R$ 49,90 e R$ 449,00 mantendo assinantes atuais no preco antigo (opcao de preco legado do Play Console), e desative os planos base do Essencial para novas compras.
 
 ## 2. Webhook
 
@@ -102,7 +104,7 @@ Respostas do endpoint: 200 quando processou ou ignorou de proposito (teste, outr
 
 ## Checklist
 
-- [ ] 4 Products/Prices (Essencial/Profissional x mensal/anual) criados na Stripe
+- [ ] Prices do Premium (R$ 49,90 mensal e R$ 449,00 anual) criados na Stripe e IDs nos segredos da API
 - [ ] `STRIPE_SECRET_KEY` no backend de producao
 - [ ] `STRIPE_WEBHOOK_SECRET` no backend de producao
 - [ ] Os 4 `STRIPE_PRICE_*_ID` configurados

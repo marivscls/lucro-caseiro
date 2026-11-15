@@ -1,4 +1,3 @@
-import type { PaidPlan } from "@lucro-caseiro/contracts";
 import React from "react";
 import { Platform } from "react-native";
 
@@ -11,16 +10,11 @@ import { businessCopyFor } from "../business-copy";
 import { getPaywallCopy } from "../limit-copy";
 
 interface SubscriptionCheckoutProps {
-  readonly recommendedTier: PaidPlan;
   readonly onClose?: () => void;
   readonly onSeePlans?: () => void;
 }
 
-export function SubscriptionCheckout({
-  recommendedTier,
-  onClose,
-  onSeePlans,
-}: SubscriptionCheckoutProps) {
+export function SubscriptionCheckout({ onClose, onSeePlans }: SubscriptionCheckoutProps) {
   const resource = usePaywall((state) => state.resource);
   const { data: profile } = useProfile();
   const experienceCopy = businessCopyFor(profile?.businessType);
@@ -33,7 +27,6 @@ export function SubscriptionCheckout({
       title={copy.title}
       message={copy.message}
       experienceCopy={experienceCopy}
-      recommendedTier={recommendedTier}
       resource={resource}
       onClose={onClose}
       onSeePlans={onSeePlans}

@@ -5,7 +5,7 @@
 ## Purpose
 
 Mostrar o código de convite da pessoa, mandar o convite pronto no WhatsApp, deixar quem
-chegou agora digitar o código de quem indicou e acompanhar o prêmio: 1 mês do Essencial para
+chegou agora digitar o código de quem indicou e acompanhar o prêmio: 1 mês do Premium para
 as duas contas quando a conta indicada registra 3 vendas.
 
 ## Non-goals
@@ -78,3 +78,4 @@ salesCount, rewardDays, requiredSales }`.
 - 2026-09-28: criação. Link do convite leva UTM `indicacao` para medir o canal; o código é
   digitado depois do cadastro para não alongar o onboarding.
 - 2026-09-28: textos da tela, do convite e dos erros ficaram neutros (sem "amiga", "vocês duas"), porque quem vende pode ser homem ou mulher.
+- 2026-11-15: plano único Premium. O prêmio da indicação aparece como "1 mês do Premium" na tela, no progresso, no prêmio liberado e na mensagem do WhatsApp (antes "plano Essencial").

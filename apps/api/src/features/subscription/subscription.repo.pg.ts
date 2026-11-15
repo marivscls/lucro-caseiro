@@ -46,7 +46,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
           | "other"
           | undefined,
         avatarUrl: data.avatarUrl ?? null,
-        // Conta nova nasce no teste do Essencial. Só no INSERT: o onConflict
+        // Conta nova nasce no teste do Premium. Só no INSERT: o onConflict
         // abaixo nunca mexe no plano de quem já existe.
         ...newAccountTrialPlan(),
       })

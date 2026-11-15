@@ -17,13 +17,17 @@ describe("help assistant", () => {
     expect(answer.action?.route).toBe("/plans");
     const content = [answer.text, ...answer.steps].join(" ");
     expect(content).toContain("Gratuito");
-    expect(content).toContain("Essencial");
-    expect(content).toContain("Profissional");
-    expect(content).toContain("29,90/mês");
-    expect(content).toContain("69,90/mês");
-    expect(content).toContain("299,00/ano");
-    expect(content).toContain("699,00/ano");
+    expect(content).toContain("Premium");
+    expect(content).toContain("R$ 49,90/mês");
+    expect(content).toContain("R$ 449/ano");
+    expect(content).not.toContain("29,90");
+    expect(content).not.toContain("69,90");
     expect(content).toContain("vendas ilimitadas");
+  });
+  it("offers a single paid plan with a Premium trial", () => {
+    const answer = answerHelpQuestion("quais planos temos disponiveis?", "food");
+    expect(answer.text).toContain("dois planos");
+    expect(answer.steps.join(" ")).toContain("7 dias do Premium");
   });
   it("keeps plan failures and cancellation ahead of the plan comparison", () => {
     expect(answerHelpQuestion("Não consigo assinar o plano", "food").kind).toBe(

@@ -804,8 +804,7 @@ export function FinanceDashboard({
       deltaLabel = `${sign}${profitDeltaPct}% vs. ${MONTH_NAMES[previousMonth(month)]} ${previousYear(month, year)}`;
     }
     let exportBadge: string | null = null;
-    if (!canExportFull)
-      exportBadge = canExportBasic ? "Excel no Profissional" : "Premium";
+    if (!canExportFull) exportBadge = canExportBasic ? "Excel no Premium" : "Premium";
 
     return (
       <>
@@ -1429,7 +1428,7 @@ export function FinanceDashboard({
                   color={theme.colors.premium}
                 />
                 <Typography variant="captionBold" color={theme.colors.premium}>
-                  {canExportBasic ? "Excel no Profissional" : "Premium"}
+                  {canExportBasic ? "Excel no Premium" : "Premium"}
                 </Typography>
               </View>
             )}

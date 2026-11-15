@@ -73,17 +73,16 @@ function currentCount(resource: ResourceType, counts: ResourceCounts): number {
 
 const FREE = PLAN_LIMITS.free;
 
-// Vendas/clientes/produtos/receitas/embalagens já ficam ilimitados no Essencial,
-// então o upsell é para o Essencial. Fornecedores só liberam no Profissional.
+// Um plano pago só (Premium, 2026-11-15): cada upsell de limite aponta para ele.
 const LIMIT_MESSAGES: Record<ResourceType, string> = {
   // Vendas são ilimitadas em todos os planos; mensagem mantida só por segurança.
   sales:
-    "🚀 Você está vendendo muito! Continue registrando suas vendas com o plano Essencial.",
-  clients: `🤝 Sua carteira está crescendo! Você usou os ${FREE.maxClients} clientes do plano gratuito. Assine o Essencial para clientes ilimitados.`,
-  recipes: `🧁 Suas receitas fazem sucesso! Você atingiu as ${FREE.maxRecipes} receitas do plano gratuito. Assine o Essencial para receitas ilimitadas.`,
-  packaging: `📦 Você atingiu as ${FREE.maxPackaging} embalagens do plano gratuito. Assine o Essencial para embalagens ilimitadas.`,
-  products: `🎉 Sua loja está crescendo! Você usou os ${FREE.maxProducts} produtos do plano gratuito. Assine o Essencial e expanda seu catálogo sem limites.`,
-  suppliers: `🤝 Você atingiu os ${FREE.maxSuppliers} fornecedores. Fornecedores ilimitados e controle de compras fazem parte do plano Profissional.`,
+    "🚀 Você está vendendo muito! Continue registrando suas vendas com o plano Premium.",
+  clients: `🤝 Sua carteira está crescendo! Você usou os ${FREE.maxClients} clientes do plano gratuito. Assine o Premium para clientes ilimitados.`,
+  recipes: `🧁 Suas receitas fazem sucesso! Você atingiu as ${FREE.maxRecipes} receitas do plano gratuito. Assine o Premium para receitas ilimitadas.`,
+  packaging: `📦 Você atingiu as ${FREE.maxPackaging} embalagens do plano gratuito. Assine o Premium para embalagens ilimitadas.`,
+  products: `🎉 Sua loja está crescendo! Você usou os ${FREE.maxProducts} produtos do plano gratuito. Assine o Premium e expanda seu catálogo sem limites.`,
+  suppliers: `🤝 Você atingiu os ${FREE.maxSuppliers} fornecedores do plano gratuito. Assine o Premium para fornecedores ilimitados e controle de compras.`,
 };
 
 export function getLimitMessage(resourceType: ResourceType): string {

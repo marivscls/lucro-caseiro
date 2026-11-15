@@ -30,7 +30,7 @@
 - **Publico**: pessoas de todas as idades, incluindo idosos e jovens sem experiencia tech
 - **Principio #1 de UX**: simplicidade radical — maximo 3 toques pra qualquer acao principal
 - **Plataformas**: iOS, Android e Web (codebase unica via Expo Router)
-- **Monetizacao**: Freemium (limites) + Premium (assinatura)
+- **Monetizacao**: Freemium (limites) + Premium (assinatura unica: R$ 49,90/mes ou R$ 449/ano; ver `docs/planos-comerciais.md`)
 
 ### Limites Freemium
 

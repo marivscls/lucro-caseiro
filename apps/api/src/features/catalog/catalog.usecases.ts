@@ -131,7 +131,7 @@ export class CatalogUseCases {
       throw new ValidationError(["Este endereço já está em uso. Escolha outro."]);
     }
 
-    // Personalização (capa/cor/frase) está disponível a partir do Essencial.
+    // Personalização (capa/cor/frase) está disponível no Premium.
     if (wantsCustomization(data)) {
       const owner = await this.repo.getOwnerDefaults(userId);
       if (
@@ -139,7 +139,7 @@ export class CatalogUseCases {
         !hasActiveFeature(owner.plan, owner.planExpiresAt, "catalogCustomization")
       ) {
         throw new LimitExceededError(
-          "A personalização do catálogo faz parte do plano Essencial.",
+          "A personalização do catálogo faz parte do plano Premium.",
         );
       }
     }
@@ -216,7 +216,7 @@ export class CatalogUseCases {
       throw new NotFoundError("Catálogo não encontrado");
     }
 
-    // Catálogo completo + personalização aparecem a partir do Essencial (se a
+    // Catálogo completo + personalização aparecem no Premium (se a
     // assinatura cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
     const hasFullCatalog = hasActiveFeature(
       owner.plan,

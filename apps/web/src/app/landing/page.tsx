@@ -9,12 +9,12 @@ import {
   SITE_URL,
   SOCIAL_LINKS,
 } from "@/features/landing/site-constants";
-import { PLAN_PRICING } from "@lucro-caseiro/contracts";
+import { ESSENTIAL_TRIAL_DAYS, PLAN_PRICING, SOLD_PLAN } from "@lucro-caseiro/contracts";
 
 export const metadata: Metadata = publicMetadata({
   title: "App de precificação e vendas",
   description:
-    "Calcule custos, inclua seu trabalho e saiba quanto sobra de cada venda. Organize vendas, fiado e catálogo. Grátis, com 7 dias do Essencial para testar.",
+    `Calcule custos, inclua seu trabalho e saiba quanto sobra de cada venda. Organize vendas, fiado e catálogo. Grátis, com ${ESSENTIAL_TRIAL_DAYS} dias do Premium para testar.`,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -44,14 +44,14 @@ export default async function Page() {
       { "@type": "Offer", name: "Gratuito", price: "0", priceCurrency: "BRL" },
       {
         "@type": "Offer",
-        name: "Essencial mensal",
-        price: PLAN_PRICING.essential.monthly,
+        name: "Premium mensal",
+        price: PLAN_PRICING[SOLD_PLAN].monthly,
         priceCurrency: "BRL",
       },
       {
         "@type": "Offer",
-        name: "Profissional mensal",
-        price: PLAN_PRICING.professional.monthly,
+        name: "Premium anual",
+        price: PLAN_PRICING[SOLD_PLAN].annual,
         priceCurrency: "BRL",
       },
     ],

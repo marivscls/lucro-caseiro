@@ -311,3 +311,5 @@ POST /api/v1/products  (produto composto / kit / caixinha)
 O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.
 
 - 2026-10-18: galeria dos planos pagos passa a até 5 fotos por produto (principal + `MAX_PRODUCT_EXTRA_PHOTOS` = 4, em `@lucro-caseiro/contracts`; antes 3), a pedido de LUCAS.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). Fotos extras e produto composto (kit) valem nos dois níveis pagos; as mensagens de bloqueio (`require-feature.ts`) citam o plano Premium em vez de Essencial/Profissional.

@@ -8,20 +8,19 @@ import type { ISubscriptionRepo } from "../../features/subscription/subscription
 import { getUserId } from "./auth";
 
 const FEATURE_MESSAGE: Partial<Record<PlanFeature, string>> = {
-  exportBasic: "A exportação do resumo mensal em PDF faz parte do plano Essencial.",
-  export:
-    "A exportação em Excel e os relatórios avançados fazem parte do plano Profissional.",
-  advancedReports: "Os relatórios completos fazem parte do plano Profissional.",
-  extraPhotos: "Fotos adicionais do produto fazem parte do plano Essencial.",
-  catalogCustomization: "A personalização do catálogo faz parte do plano Essencial.",
-  purchases: "Registrar compras de fornecedores faz parte do plano Profissional.",
-  compositeProducts: "Produtos compostos (kits) fazem parte do plano Profissional.",
+  exportBasic: "A exportação do resumo mensal em PDF faz parte do plano Premium.",
+  export: "A exportação em Excel e os relatórios avançados fazem parte do plano Premium.",
+  advancedReports: "Os relatórios completos fazem parte do plano Premium.",
+  extraPhotos: "Fotos adicionais do produto fazem parte do plano Premium.",
+  catalogCustomization: "A personalização do catálogo faz parte do plano Premium.",
+  purchases: "Registrar compras de fornecedores faz parte do plano Premium.",
+  compositeProducts: "Produtos compostos (kits) fazem parte do plano Premium.",
 };
 
 function featureMessage(feature: PlanFeature): string {
   return (
     FEATURE_MESSAGE[feature] ??
-    "Esse recurso faz parte do plano Profissional. Faça upgrade para liberar."
+    "Esse recurso faz parte do plano Premium. Faça upgrade para liberar."
   );
 }
 
@@ -47,7 +46,7 @@ export function requireFeature(repo: ISubscriptionRepo, feature: PlanFeature) {
 }
 
 /**
- * Fotos extras do produto (galeria) a partir do Essencial. Diferente do
+ * Fotos extras do produto (galeria) só no Premium. Diferente do
  * `requireFeature`, só barra quando o request traz `extraPhotos` não-vazio — os
  * demais planos seguem criando/editando produtos normalmente.
  */
@@ -78,7 +77,7 @@ export function requireFeatureForExtraPhotos(repo: ISubscriptionRepo) {
 }
 
 /**
- * Produto composto (kit) só no Profissional. Só barra quando o request cria ou
+ * Produto composto (kit) só no Premium. Só barra quando o request cria ou
  * transforma o produto em composto (`isComposite: true`) — editar/excluir um
  * produto simples segue liberado em qualquer plano.
  */

@@ -343,7 +343,7 @@ function ExtraPhotosField({
       hint={
         isPremium
           ? `Mostre mais detalhes (até ${max + 1} fotos no total).`
-          : `Com o Essencial, até ${max + 1} fotos por produto.`
+          : `Com o Premium, até ${max + 1} fotos por produto.`
       }
     >
       <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
@@ -492,7 +492,7 @@ export function CreateProductForm({
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "extraPhotos");
 
   function handleCompositeChange(next: boolean) {
-    // Kit/produto composto é recurso Profissional: nunca deixa marcar sem plano.
+    // Kit/produto composto é recurso Premium: nunca deixa marcar sem plano.
     if (next && !canUseCompositeProducts) {
       showPaywall("compositeProducts");
       return;

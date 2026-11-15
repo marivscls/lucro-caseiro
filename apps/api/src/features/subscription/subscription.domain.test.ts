@@ -38,8 +38,8 @@ describe("buildFreemiumLimits", () => {
     expect(result.maxProducts).toBeNull();
     expect(result.maxRecipes).toBeNull();
     expect(result.maxPackaging).toBeNull();
-    // Fornecedores só liberam no Profissional.
-    expect(result.maxSuppliers).toBe(3);
+    // Um plano pago só: o nível essential também libera fornecedores.
+    expect(result.maxSuppliers).toBeNull();
   });
 
   it("returns null limits for professional plan", () => {
@@ -97,7 +97,7 @@ describe("isLimitExceeded", () => {
     expect(isLimitExceeded("suppliers", makeCounts(), "free")).toBe(false);
   });
 
-  it("never exceeds volume limits on essential but still caps suppliers", () => {
+  it("never exceeds any limit on essential (same as Premium)", () => {
     const heavy = makeCounts({
       salesThisMonth: 9999,
       clients: 9999,
@@ -107,7 +107,7 @@ describe("isLimitExceeded", () => {
     expect(isLimitExceeded("sales", heavy, "essential")).toBe(false);
     expect(isLimitExceeded("clients", heavy, "essential")).toBe(false);
     expect(isLimitExceeded("products", heavy, "essential")).toBe(false);
-    expect(isLimitExceeded("suppliers", heavy, "essential")).toBe(true);
+    expect(isLimitExceeded("suppliers", heavy, "essential")).toBe(false);
   });
 
   it("never exceeds any limit on professional", () => {
@@ -127,9 +127,18 @@ describe("getLimitMessage", () => {
     expect(getLimitMessage("suppliers")).toContain("fornecedores");
   });
 
-  it("upsells volume resources to Essencial and suppliers to Profissional", () => {
-    expect(getLimitMessage("sales")).toContain("Essencial");
-    expect(getLimitMessage("suppliers")).toContain("Profissional");
+  it("upsells every resource to Premium", () => {
+    for (const resource of [
+      "sales",
+      "clients",
+      "products",
+      "recipes",
+      "packaging",
+      "suppliers",
+    ] as const) {
+      expect(getLimitMessage(resource)).toContain("Premium");
+      expect(getLimitMessage(resource)).not.toMatch(/Essencial|Profissional/);
+    }
   });
 });
 

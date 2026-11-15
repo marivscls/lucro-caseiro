@@ -21,8 +21,8 @@ function makeEvent(kind: SubscriptionEmailKind): SubscriptionEmailEvent {
 
 describe("buildSubscriptionLifecycleEmail", () => {
   it.each([
-    ["activated", "Seu plano Profissional est\u00e1 ativo"],
-    ["renewed", "Seu plano Profissional foi renovado"],
+    ["activated", "Seu plano Premium est\u00e1 ativo"],
+    ["renewed", "Seu plano Premium foi renovado"],
     ["payment_failed", "N\u00e3o conseguimos renovar sua assinatura"],
     ["cancelled", "Sua assinatura do Lucro Caseiro foi encerrada"],
   ] as const)("builds the %s message", (kind, subject) => {

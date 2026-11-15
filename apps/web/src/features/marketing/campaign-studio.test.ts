@@ -56,9 +56,9 @@ describe("campaign strategy enrichment", () => {
   });
 
   it("preserves an explicit campaign audience and offer", () => {
-    expect(campaignAiBriefingFields("  Papeleiras  ", "  Plano Essencial  ")).toEqual({
+    expect(campaignAiBriefingFields("  Papeleiras  ", "  Plano Premium  ")).toEqual({
       audience: "Papeleiras",
-      offer: "Plano Essencial",
+      offer: "Plano Premium",
     });
   });
 

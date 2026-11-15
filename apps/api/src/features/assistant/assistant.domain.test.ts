@@ -104,6 +104,12 @@ describe("assistantLimit", () => {
     },
   );
 
+  it("dá o mesmo limite aos dois níveis pagos (um Premium só)", () => {
+    // R$ 449/ano → R$ 37,42/mês × 10% ÷ R$ 0,02 = 187 usos.
+    expect(assistantLimit("essential")).toBe(187);
+    expect(assistantLimit("professional")).toBe(187);
+  });
+
   it("dá ao Gratuito só os usos de teste", () => {
     expect(assistantLimit("free")).toBe(ASSISTANT_FREE_TRIAL_USES);
   });

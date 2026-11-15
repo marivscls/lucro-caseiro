@@ -87,3 +87,4 @@ conta" → conta apagada → tela de login.
 - Exclusão é total e irreversível (espelha a decisão da API).
 - 2026-08-31: os cards Privacidade e Conta em Configurações passaram a ter o mesmo
   `gap` do restante da tela (antes o wrapper mobile os empilhava sem respiro).
+- 2026-11-15: plano único Premium. Em Configurações, assinante (essential ou professional) vê só "Gerenciar assinatura": saiu o botão "Fazer upgrade para Profissional", porque os dois níveis pagos valem o mesmo. Free e teste veem "Conhecer o Premium" / "Assinar o Premium". Notificações bloqueadas mostram o selo "Premium".

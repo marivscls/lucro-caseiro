@@ -1,4 +1,3 @@
-import type { PaidPlan } from "@lucro-caseiro/contracts";
 import { getActiveBrand } from "@lucro-caseiro/brands";
 
 import { getBrandDisplayName } from "../../shared/brand-name";
@@ -29,66 +28,66 @@ const LIMIT_COPY: Record<LimitResource, ResourceCopy> = {
     plural: "vendas",
     lastOne: {
       title: "⚠️ Última venda disponível",
-      body: "Assine o Essencial para vender sem limites.",
+      body: "Assine o Premium para vender sem limites.",
     },
     atLimit: {
       title: "🚀 Limite atingido!",
-      body: "Continue registrando vendas com o plano Essencial.",
+      body: "Continue registrando vendas com o Premium.",
     },
   },
   products: {
     plural: "produtos",
     lastOne: {
       title: "📦 Falta apenas 1 produto",
-      body: "Assine o Essencial e tenha produtos ilimitados.",
+      body: "Assine o Premium e tenha produtos ilimitados.",
     },
     atLimit: {
       title: "📦 Limite de produtos atingido",
-      body: "Cadastre quantos produtos quiser com o Essencial.",
+      body: "Cadastre quantos produtos quiser com o Premium.",
     },
   },
   recipes: {
     plural: "receitas",
     lastOne: {
       title: "🧁 Falta apenas 1 receita",
-      body: "Assine o Essencial e crie receitas sem limites.",
+      body: "Assine o Premium e crie receitas sem limites.",
     },
     atLimit: {
       title: "🧁 Limite de receitas atingido",
-      body: "Desbloqueie receitas ilimitadas no Essencial.",
+      body: "Desbloqueie receitas ilimitadas no Premium.",
     },
   },
   packaging: {
     plural: "embalagens",
     lastOne: {
       title: "📦 Falta apenas 1 embalagem",
-      body: "Assine o Essencial e tenha embalagens ilimitadas.",
+      body: "Assine o Premium e tenha embalagens ilimitadas.",
     },
     atLimit: {
       title: "📦 Limite de embalagens atingido",
-      body: "Crie embalagens sem restrições no Essencial.",
+      body: "Crie embalagens sem restrições no Premium.",
     },
   },
   clients: {
     plural: "clientes",
     lastOne: {
       title: "🤝 Falta apenas 1 cliente",
-      body: "Assine o Essencial e cadastre clientes ilimitados.",
+      body: "Assine o Premium e cadastre clientes ilimitados.",
     },
     atLimit: {
       title: "🤝 Limite de clientes atingido",
-      body: "Organize seus clientes sem limites com o Essencial.",
+      body: "Organize seus clientes sem limites com o Premium.",
     },
   },
   suppliers: {
     plural: "fornecedores",
     lastOne: {
       title: "🤝 Falta apenas 1 fornecedor",
-      body: "Fornecedores ilimitados fazem parte do plano Profissional.",
+      body: "Fornecedores ilimitados fazem parte do Premium.",
     },
     atLimit: {
       title: "🤝 Limite de fornecedores atingido",
-      body: "Assine o Profissional para fornecedores ilimitados e controle de compras.",
+      body: "Assine o Premium para fornecedores ilimitados e controle de compras.",
     },
   },
 };
@@ -119,62 +118,62 @@ const ESSENTIAL_FEATURE_COPY: Record<string, { title: string; message: string }>
   productPhotos: {
     title: "📸 Mais fotos do produto",
     message:
-      "Mostre seu produto de vários ângulos com várias fotos. Desbloqueie no Essencial.",
+      "Mostre seu produto de vários ângulos com várias fotos. Desbloqueie no Premium.",
   },
   catalog: {
     title: "📖 Catálogo completo e personalizado",
     message:
-      "Mostre todos os produtos e personalize sua vitrine para os clientes. Desbloqueie no Essencial.",
+      "Mostre todos os produtos e personalize sua vitrine para os clientes. Desbloqueie no Premium.",
   },
 };
 
-// Paywalls de feature (não-contagem): recursos do plano Profissional.
+// Paywalls de feature (não-contagem): recursos do plano Premium.
 const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   reports: {
     title: "📊 Insights completos",
     message:
-      "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Profissional.",
+      "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Premium.",
   },
   advancedPricing: {
-    title: "Recursos profissionais de precificação",
+    title: "Precificação completa",
     message:
-      "Use rateio por faturamento e salve perfis de taxas por canal no plano Profissional. Custos, mão de obra e rateio por produção estão na precificação de todos os planos.",
+      "Use rateio por faturamento e salve perfis de taxas por canal no Premium. Custos, mão de obra e rateio por produção estão na precificação de todos os planos.",
   },
   export: {
     title: "📄 Exportar PDF e Excel",
-    message: "Baixe seus insights pra contabilidade e MEI. Recurso do Profissional.",
+    message: "Baixe seus insights pra contabilidade e MEI. Recurso do Premium.",
   },
   labels: {
     title: "🏷️ Etiquetas personalizadas",
-    message: "Crie etiquetas com a cara do seu negócio no plano Profissional.",
+    message: "Crie etiquetas com a cara do seu negócio no Premium.",
   },
   recurring: {
     title: "🔁 Gastos fixos no automático",
     message:
-      "Cadastre aluguel, internet e outros custos mensais e deixe o app lançar sozinho no seu caixa. Desbloqueie no Profissional.",
+      "Cadastre aluguel, internet e outros custos mensais e deixe o app lançar sozinho no seu caixa. Desbloqueie no Premium.",
   },
   purchases: {
     title: "Compras de fornecedores",
     message:
-      "Registre compras, acompanhe contas a pagar e lance as saídas no caixa com o Profissional.",
+      "Registre compras, acompanhe contas a pagar e lance as saídas no caixa com o Premium.",
   },
   compositeProducts: {
     title: "Produtos compostos e kits",
-    message: "Monte kits e produtos formados por outros itens no plano Profissional.",
+    message: "Monte kits e produtos formados por outros itens no Premium.",
   },
   birthdays: {
     title: "🎂 Aniversários dos clientes",
     message:
-      "Veja quem faz aniversário no mês e parabenize na hora certa pra fidelizar. Desbloqueie no Profissional.",
+      "Veja quem faz aniversário no mês e parabenize na hora certa pra fidelizar. Desbloqueie no Premium.",
   },
   notifications: {
-    title: "Notificações profissionais",
+    title: "Lembretes e resumos",
     message:
-      "Ative lembretes diários, aniversários de clientes e o resumo semanal no Profissional.",
+      "Ative lembretes diários, aniversários de clientes e o resumo semanal no Premium.",
   },
   prioritySupport: {
     title: "Suporte prioritário",
-    message: "Fale com a equipe com prioridade no plano Profissional.",
+    message: "Fale com a equipe com prioridade no Premium.",
   },
 };
 
@@ -232,11 +231,11 @@ function resourceCopyFor(
       plural: experienceCopy.productNounPlural,
       lastOne: {
         title: `📦 Falta apenas 1 ${experienceCopy.productNoun}`,
-        body: `Assine o Essencial e tenha ${experienceCopy.productNounPlural} sem limite.`,
+        body: `Assine o Premium e tenha ${experienceCopy.productNounPlural} sem limite.`,
       },
       atLimit: {
         title: `📦 Limite de ${experienceCopy.productNounPlural} atingido`,
-        body: `Cadastre ${experienceCopy.productNounPlural} sem limite com o Essencial.`,
+        body: `Cadastre ${experienceCopy.productNounPlural} sem limite com o Premium.`,
       },
     };
   }
@@ -246,11 +245,11 @@ function resourceCopyFor(
       plural: experienceCopy.formulaNounPlural,
       lastOne: {
         title: `📋 Falta apenas 1 ${experienceCopy.formulaNoun}`,
-        body: `Assine o Essencial e crie ${experienceCopy.formulaNounPlural} sem limite.`,
+        body: `Assine o Premium e crie ${experienceCopy.formulaNounPlural} sem limite.`,
       },
       atLimit: {
         title: `📋 Limite de ${experienceCopy.formulaNounPlural} atingido`,
-        body: `Desbloqueie ${experienceCopy.formulaNounPlural} sem limite no Essencial.`,
+        body: `Desbloqueie ${experienceCopy.formulaNounPlural} sem limite no Premium.`,
       },
     };
   }
@@ -260,22 +259,14 @@ function resourceCopyFor(
       plural: experienceCopy.packagingNounPlural,
       lastOne: {
         title: "📦 Falta apenas 1 custo adicional",
-        body: `Assine o Essencial e tenha ${experienceCopy.packagingNounPlural} sem limite.`,
+        body: `Assine o Premium e tenha ${experienceCopy.packagingNounPlural} sem limite.`,
       },
       atLimit: {
         title: "📦 Limite de custos adicionais atingido",
-        body: `Cadastre ${experienceCopy.packagingNounPlural} sem limite no Essencial.`,
+        body: `Cadastre ${experienceCopy.packagingNounPlural} sem limite no Premium.`,
       },
     };
   }
 
   return LIMIT_COPY[resource];
-}
-
-/** Tier mínimo do paywall quando o caller não informou um explicitamente. */
-export function getPaywallRecommendedTier(resource: string | null): PaidPlan {
-  if (resource && resource in ESSENTIAL_FEATURE_COPY) return "essential";
-  if (resource && resource in FEATURE_COPY) return "professional";
-  if (resource === "suppliers") return "professional";
-  return "essential";
 }

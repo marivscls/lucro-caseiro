@@ -3,13 +3,14 @@ import type { BillingPeriod, PaidPlan, PlanType } from "@lucro-caseiro/contracts
 import {
   ESSENTIAL_TRIAL_DAYS,
   PLAN_LABELS,
+  SOLD_PLAN,
   isPaidPlan,
   normalizePlan,
 } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../hooks";
@@ -76,8 +77,6 @@ function expiryWarning(planLabel: string, expiresAt: string): ExpiryWarning | nu
   return null;
 }
 
-const RANK: Record<PlanType, number> = { free: 0, essential: 1, professional: 2 };
-
 /** Linha sob o seletor: o valor cobrado do plano escolhido, por extenso. */
 function chargeLine(plan: PaidPlan, period: BillingPeriod): string {
   const { perMonth, charge } = planPriceDisplay(plan, period);
@@ -87,11 +86,8 @@ function chargeLine(plan: PaidPlan, period: BillingPeriod): string {
 function chargeHint(plan: PaidPlan, period: BillingPeriod): string {
   return period === "annual"
     ? `Economia de ${formatMoney(annualSavings(plan))} no ano. Sem fidelidade: cancele quando quiser.`
-    : "Sem fidelidade: cancele quando quiser. No anual, saem 2 meses grátis.";
+    : `Sem fidelidade: cancele quando quiser. No anual, você economiza ${formatMoney(annualSavings(plan))}.`;
 }
-
-/** Plano sugerido para quem ainda não assina: o que tira os limites do dia a dia. */
-const RECOMMENDED_PLAN: PaidPlan = "essential";
 
 /**
  * Modo boas-vindas: a mesma tela de planos, aberta uma vez logo após o cadastro
@@ -113,26 +109,20 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
   const isDesktop = useDesktopLayout();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const experienceCopy = businessCopyFor(profile?.businessType);
-  const planFeatures: Record<PaidPlan, readonly string[]> = {
-    essential: tierBenefitsFor("essential", experienceCopy),
-    professional: tierBenefitsFor("professional", experienceCopy),
-  };
+  const benefits = tierBenefitsFor(SOLD_PLAN, experienceCopy);
   const { data: limits, isLoading: limitsLoading } = useLimits();
   const { checkout, loading: stripeLoading } = useStripeCheckout();
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const checkoutLoading = stripeLoading || subscriptionLoading;
   const [period, setPeriod] = useState<BillingPeriod>("annual");
   // Abre no anual: a pessoa paga o ano de uma vez e o valor por mês fica menor.
-  // No teste grátis do Essencial a pessoa ainda não assinou: para compra ela
-  // conta como Gratuito (pode assinar Essencial ou Profissional).
+  // No teste grátis a pessoa ainda não assinou: para compra ela conta como Gratuito.
   const onTrial = isProfileOnTrial(profile);
   const current = onTrial ? "free" : activePlan(profile);
-  const [choice, setChoice] = useState<PaidPlan | null>(null);
-  const defaultPlan = isPaidPlan(current) ? current : "essential";
-  const selectedPlan = current === "professional" ? current : (choice ?? defaultPlan);
-  const isUpgrade = RANK[selectedPlan] > RANK[current];
+  // Um plano pago só: quem já paga (Premium ou um nível antigo) tem tudo liberado.
+  const selectedPlan = SOLD_PLAN;
+  const isUpgrade = !isPaidPlan(current);
   const displayPeriod = isUpgrade ? period : "monthly";
-  const showRecommended = current === "free";
 
   function continueToPayment() {
     if (checkoutLoading || !isUpgrade) return;
@@ -187,19 +177,17 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
           typeof item.max === "number" && Number.isFinite(item.max) && item.max > 0,
       )
     : [];
-  let visiblePlans: readonly PaidPlan[] = ["essential", "professional"];
-  if (current === "professional") visiblePlans = ["professional"];
-
-  let heading = current === "free" ? "Escolha seu plano" : "Sua assinatura";
+  const premium = PLAN_LABELS[SOLD_PLAN];
+  let heading = current === "free" ? `Assine o ${premium}` : "Sua assinatura";
   let subheading =
     current === "free"
-      ? "Sem anúncios e sem limite de clientes e produtos nos dois planos."
+      ? "Tudo liberado: sem limites, sem anúncios, com relatórios completos e catálogo personalizado."
       : "Consulte os benefícios e gerencie seu plano.";
   if (welcome && onTrial) {
     heading = "Seu teste grátis começou";
-    subheading = `Você tem ${ESSENTIAL_TRIAL_DAYS} dias do plano Essencial liberados, sem cartão. Assine agora ou continue testando: nada é cobrado sozinho.`;
+    subheading = `Você tem ${ESSENTIAL_TRIAL_DAYS} dias do ${premium} liberados, sem cartão. Assine agora ou continue testando: nada é cobrado sozinho.`;
   } else if (welcome && current === "free") {
-    heading = "Conheça os planos";
+    heading = `Conheça o ${premium}`;
     subheading =
       "Comece grátis e assine quando quiser crescer sem limites. Seus dados ficam sempre salvos.";
   }
@@ -334,24 +322,19 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
 
         {isDesktop ? (
           <PlansDesktop
-            cards={visiblePlans.map((plan) => ({
-              plan,
-              label: PLAN_LABELS[plan],
-              price: planPriceDisplay(plan, displayPeriod).perMonth,
-              periodLabel: "por mês",
-              chargeNote: planPriceDisplay(plan, displayPeriod).charge,
-              recommended: showRecommended && plan === RECOMMENDED_PLAN,
-              heading:
-                plan === "professional"
-                  ? "Tudo do Essencial, mais:"
-                  : "Incluído no Essencial",
-              features: planFeatures[plan].filter(
-                (feature) => feature !== "Tudo do Essencial",
-              ),
-              current: plan === current,
-            }))}
+            cards={[
+              {
+                plan: SOLD_PLAN,
+                label: premium,
+                price: planPriceDisplay(SOLD_PLAN, displayPeriod).perMonth,
+                periodLabel: "por mês",
+                chargeNote: planPriceDisplay(SOLD_PLAN, displayPeriod).charge,
+                heading: `Tudo liberado no ${premium}`,
+                features: benefits,
+                current: isPaidPlan(current),
+              },
+            ]}
             selectedPlan={selectedPlan}
-            onSelect={setChoice}
             isUpgrade={isUpgrade}
             period={period}
             onPeriodChange={setPeriod}
@@ -400,75 +383,24 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                     onChange={setPeriod}
                   />
                 ) : null}
-                <View style={{ flexDirection: "row", gap: spacing.lg }}>
-                  {visiblePlans.map((plan) => {
-                    const selected = plan === selectedPlan;
-                    const price = planPriceDisplay(plan, displayPeriod);
-                    const recommended = showRecommended && plan === RECOMMENDED_PLAN;
-                    return (
-                      <Pressable
-                        key={plan}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Ver plano ${PLAN_LABELS[plan]}`}
-                        accessibilityState={{ selected, disabled: checkoutLoading }}
-                        disabled={checkoutLoading}
-                        onPress={() => setChoice(plan)}
-                        style={({ pressed }) => ({
-                          flex: 1,
-                          minWidth: 0,
-                          padding: spacing.md,
-                          gap: spacing.xs,
-                          borderRadius: radii.md,
-                          borderWidth: selected ? 2 : 1,
-                          borderColor: selected
-                            ? theme.colors.primaryStrong
-                            : theme.colors.border,
-                          backgroundColor: selected
-                            ? theme.colors.primaryBg
-                            : "transparent",
-                          opacity: pressed ? 0.65 : 1,
-                        })}
-                      >
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: spacing.sm,
-                          }}
-                        >
-                          <AppIcon
-                            name={selected ? "checkmark-circle" : "ellipse-outline"}
-                            size={20}
-                            color={
-                              selected
-                                ? theme.colors.primaryStrong
-                                : theme.colors.textSecondary
-                            }
-                          />
-                          <Typography variant="bodyBold" color={theme.colors.text}>
-                            {PLAN_LABELS[plan]}
-                          </Typography>
-                        </View>
-                        {recommended ? (
-                          <Typography variant="captionBold" color={theme.colors.success}>
-                            Recomendado
-                          </Typography>
-                        ) : null}
-                        <Typography
-                          variant="h2"
-                          style={{ fontVariant: ["tabular-nums"], marginTop: spacing.xs }}
-                        >
-                          {price.perMonth}
-                        </Typography>
-                        <Typography variant="body" color={theme.colors.text}>
-                          por mês
-                        </Typography>
-                        <Typography variant="body" color={theme.colors.textSecondary}>
-                          {price.charge}
-                        </Typography>
-                      </Pressable>
-                    );
-                  })}
+                <View style={{ gap: spacing.xs }}>
+                  <Typography variant="bodyBold" color={theme.colors.text}>
+                    {premium}
+                  </Typography>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "baseline",
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <Typography variant="h1" style={{ fontVariant: ["tabular-nums"] }}>
+                      {planPriceDisplay(SOLD_PLAN, displayPeriod).perMonth}
+                    </Typography>
+                    <Typography variant="bodyBold" color={theme.colors.text}>
+                      por mês
+                    </Typography>
+                  </View>
                 </View>
 
                 {isUpgrade && (
@@ -523,26 +455,33 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                 accessibilityLiveRegion="polite"
               >
                 <Typography variant="h3" accessibilityRole="header">
-                  {selectedPlan === "professional"
-                    ? "Tudo do Essencial, mais:"
-                    : "Incluído no Essencial"}
+                  {`Tudo liberado no ${premium}`}
                 </Typography>
-                {planFeatures[selectedPlan]
-                  .filter((feature) => feature !== "Tudo do Essencial")
-                  .map((feature, index, features) => (
-                    <View
-                      key={feature}
-                      style={{
-                        paddingVertical: spacing.md,
-                        borderBottomWidth: index < features.length - 1 ? 1 : 0,
-                        borderBottomColor: theme.colors.border,
-                      }}
+                {benefits.map((feature) => (
+                  <View
+                    key={feature}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-start",
+                      gap: spacing.sm,
+                      paddingVertical: spacing.xs,
+                    }}
+                  >
+                    <AppIcon
+                      name="checkmark"
+                      size={20}
+                      color={theme.colors.success}
+                      style={{ marginTop: 2 }}
+                    />
+                    <Typography
+                      variant="body"
+                      color={theme.colors.text}
+                      style={{ flex: 1 }}
                     >
-                      <Typography variant="body" color={theme.colors.text}>
-                        {feature}
-                      </Typography>
-                    </View>
-                  ))}
+                      {feature}
+                    </Typography>
+                  </View>
+                ))}
               </View>
             </Card>
 

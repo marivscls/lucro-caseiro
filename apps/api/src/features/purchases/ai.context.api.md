@@ -190,3 +190,5 @@ POST /api/v1/purchases/pur-1/pay
 - 2026-07-19: **edição consistente** — `PATCH /:id` atualiza dados da compra em transação,
   sincroniza o lançamento financeiro de compras pagas e aplica somente o delta de estoque por
   produto/variação, com compensação em caso de falha.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). A feature `purchases` vale nos dois níveis pagos (o `essential` deixou de ter fornecedores limitados). A mensagem de bloqueio (`require-feature.ts`) cita o plano Premium.

@@ -2,9 +2,11 @@ import type { PlanType } from "./common";
 
 // ---------------------------------------------------------------------------
 // Matriz comercial dos planos (fonte única — API e mobile derivam daqui).
-// Modelo: free (degustação com limites) · essential (uso real sem limites de
-// volume) · professional (apresentação + controle avançado + exportação).
-// Ver docs/planos-comerciais.md.
+// Modelo (2026-11-15): Gratuito (degustação com limites) + um plano pago só, o
+// **Premium**, com tudo liberado. No banco continuam existindo dois níveis pagos:
+// "professional" é o que se vende; "essential" segue gravado pelo teste grátis de
+// contas novas (trigger `handle_new_user`) e por assinaturas antigas, e agora vale
+// exatamente o mesmo que o Premium. Ver docs/planos-comerciais.md.
 // ---------------------------------------------------------------------------
 
 // Limites de contagem por plano. `null` = ilimitado (sobrevive ao JSON; NÃO use
@@ -29,16 +31,14 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxPackaging: 3,
     maxSuppliers: 3,
   },
+  // Mesmo Premium (teste grátis e assinaturas antigas do Essencial).
   essential: {
-    // Essencial remove os limites de volume do dia a dia.
     maxSalesPerMonth: null,
     maxClients: null,
     maxProducts: null,
     maxRecipes: null,
     maxPackaging: null,
-    // Fornecedores/Compras são diferenciais do Profissional: no Essencial o teto
-    // segue igual ao free (dados antigos continuam visíveis, só não passa de 3).
-    maxSuppliers: 3,
+    maxSuppliers: null,
   },
   professional: {
     maxSalesPerMonth: null,
@@ -103,15 +103,12 @@ const FREE_FEATURES: readonly PlanFeature[] = [
   "premiumNotifications",
 ];
 
-// Essencial libera o operacional diário e o catálogo completo com galeria.
-const ESSENTIAL_FEATURES: readonly PlanFeature[] = [
+// Premium libera tudo: o que o Gratuito tem e o resto abaixo.
+const PREMIUM_FEATURES: readonly PlanFeature[] = [
   ...FREE_FEATURES,
   "catalogPremium",
   "catalogCustomization",
   "extraPhotos",
-];
-
-const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
   "advancedReports",
   "advancedPricing",
   "export",
@@ -124,8 +121,8 @@ const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
 
 export const PLAN_FEATURES: Record<PlanType, ReadonlySet<PlanFeature>> = {
   free: new Set<PlanFeature>(FREE_FEATURES),
-  essential: new Set<PlanFeature>(ESSENTIAL_FEATURES),
-  professional: new Set<PlanFeature>([...ESSENTIAL_FEATURES, ...PROFESSIONAL_FEATURES]),
+  essential: new Set<PlanFeature>(PREMIUM_FEATURES),
+  professional: new Set<PlanFeature>(PREMIUM_FEATURES),
 };
 
 export function planHasFeature(plan: PlanType, feature: PlanFeature): boolean {
@@ -157,14 +154,15 @@ export function hasActiveFeature(
 }
 
 // ---------------------------------------------------------------------------
-// Teste grátis: toda conta NOVA ganha o Essencial por 7 dias, sem cartão.
-// Persistido como plan='essential' + plan_expires_at=criação+7d + plan_is_trial;
-// ao expirar, resolveActivePlan já devolve "free" (nada a desligar).
+// Teste grátis: toda conta NOVA ganha o Premium por 7 dias, sem cartão.
+// Persistido como plan='essential' (o trigger do banco grava esse valor, que hoje
+// vale o mesmo que o Premium) + plan_expires_at=criação+7d + plan_is_trial; ao
+// expirar, resolveActivePlan já devolve "free" (nada a desligar).
 // ---------------------------------------------------------------------------
 
 export const ESSENTIAL_TRIAL_DAYS = 7;
 
-/** Estado de plano gravado ao criar uma conta nova (teste do Essencial). */
+/** Estado de plano gravado ao criar uma conta nova (teste do Premium). */
 export function newAccountTrialPlan(now: Date = new Date()): {
   plan: "essential";
   planExpiresAt: Date;
@@ -193,7 +191,7 @@ export function trialDaysLeft(
   return Math.round((startOfDay(end) - startOfDay(now)) / (24 * 60 * 60 * 1000));
 }
 
-/** Teste do Essencial ainda valendo (plano pago em teste e não expirado). */
+/** Teste do Premium ainda valendo (plano pago em teste e não expirado). */
 export function isActiveTrial(
   plan: string,
   expiresAt: string | null,
@@ -219,16 +217,23 @@ export interface PlanPrice {
   readonly annual: number;
 }
 
-// Anual = ~2 meses grátis (docs/planos-comerciais.md).
+/** O único plano à venda (Premium). Checkout e telas compram sempre este. */
+export const SOLD_PLAN: PaidPlan = "professional";
+
+// Premium: R$ 49,90/mês ou R$ 449/ano (R$ 37,42/mês). Os dois níveis têm o mesmo
+// preço porque valem o mesmo (docs/planos-comerciais.md). Assinantes antigos
+// seguem pagando o preço que contrataram, definido na loja (Stripe/Google Play).
+const PREMIUM_PRICE: PlanPrice = { monthly: 49.9, annual: 449 };
+
 export const PLAN_PRICING: Record<PaidPlan, PlanPrice> = {
-  essential: { monthly: 29.9, annual: 299 },
-  professional: { monthly: 69.9, annual: 699 },
+  essential: PREMIUM_PRICE,
+  professional: PREMIUM_PRICE,
 };
 
 export const PLAN_LABELS: Record<PlanType, string> = {
   free: "Gratuito",
-  essential: "Essencial",
-  professional: "Profissional",
+  essential: "Premium",
+  professional: "Premium",
 };
 
 export type StoreProductId =

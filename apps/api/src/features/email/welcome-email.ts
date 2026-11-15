@@ -14,7 +14,7 @@ const TRIAL_SECTION_HTML = `            <tr>
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FAF1F3" style="background-color:#FAF1F3;border-radius:10px;">
                   <tr><td style="padding:20px 22px;">
                     <h2 style="margin:0;font-family:Manrope,'Segoe UI',Arial,sans-serif;font-size:18px;line-height:25px;color:#5F2B33;">Seu presente de boas-vindas</h2>
-                    <p style="margin:8px 0 0;font-size:15px;line-height:24px;color:#2C2A29;">Você ganhou 7 dias do plano Essencial, sem cartão e sem cobrança. Ao fim do teste, sua conta continua no plano Gratuito com seus dados salvos. Assinar é opcional.</p>
+                    <p style="margin:8px 0 0;font-size:15px;line-height:24px;color:#2C2A29;">Você ganhou 7 dias do plano Premium, sem cartão e sem cobrança. Ao fim do teste, sua conta continua no plano Gratuito com seus dados salvos. Assinar é opcional.</p>
                   </td></tr>
                 </table>
               </td>
@@ -43,14 +43,14 @@ export function buildWelcomeEmail(profile: WelcomeProfile): {
     : "Seu negócio é bem-vindo no Lucro Caseiro.";
   if (profile.trialActive) {
     subject = firstName
-      ? `${firstName}, seus 7 dias do Essencial já começaram.`
-      : "Seus 7 dias do Essencial já começaram.";
+      ? `${firstName}, seus 7 dias do Premium já começaram.`
+      : "Seus 7 dias do Premium já começaram.";
   }
   let preheader = service
     ? "Organize seus serviços, defina os preços e acompanhe seus atendimentos."
     : "Organize os custos, calcule o preço e acompanhe suas vendas com o Lucro Caseiro.";
   if (profile.trialActive) {
-    preheader = "Seu Essencial está ativo por 7 dias, sem cartão e sem cobrança.";
+    preheader = "Seu Premium está ativo por 7 dias, sem cartão e sem cobrança.";
   }
   const productCosts =
     profile.businessType === "food"
@@ -98,7 +98,7 @@ export function buildWelcomeEmail(profile: WelcomeProfile): {
     ...(profile.trialActive
       ? [
           "Seu presente de boas-vindas",
-          "Você ganhou 7 dias do plano Essencial, sem cartão e sem cobrança. Ao fim do teste, sua conta continua no plano Gratuito com seus dados salvos. Assinar é opcional.",
+          "Você ganhou 7 dias do plano Premium, sem cartão e sem cobrança. Ao fim do teste, sua conta continua no plano Gratuito com seus dados salvos. Assinar é opcional.",
           "",
         ]
       : []),

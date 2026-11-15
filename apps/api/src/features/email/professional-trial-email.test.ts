@@ -16,7 +16,7 @@ describe("buildProfessionalTrialEmail", () => {
     const { theme } = resolveBrand("lucro-caseiro");
 
     expect(content.subject).toBe(
-      "Um presente para o seu neg\u00f3cio: 1 m\u00eas de Profissional \ud83c\udf81",
+      "Um presente para o seu neg\u00f3cio: 1 m\u00eas de Premium \ud83c\udf81",
     );
     expect(content.html).toContain("PRESENTE ESPECIAL");
     expect(content.html).toContain(PROFESSIONAL_TRIAL_GIFT_URL);

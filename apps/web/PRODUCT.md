@@ -36,7 +36,7 @@ Um único fluxo em que a informação anda com a pessoa: o que ela digita na pre
 
 Confirmado e publicado: precificação completa com histórico; produtos com foto, preço, custo e estoque; receitas com custo automático; embalagens e rótulos; catálogo online com link e pedido pelo WhatsApp; vendas com status (pago, pendente, cancelado); clientes com aniversário e histórico; agenda de encomendas; fiado; financeiro com entradas, saídas e resumo mensal; alertas de estoque e cobrança; offline.
 
-Planos (fonte: `docs/planos-comerciais.md`): Gratuito R$ 0 (vendas ilimitadas, 50 clientes, 30 produtos, 5 receitas, 3 embalagens, agenda, fiado e financeiro básicos, resumo do mês e orçamentos em PDF, catálogo básico); Essencial R$ 29,90/mês ou R$ 299/ano (tudo do Gratuito, clientes e produtos ilimitados, catálogo completo e personalizado); Profissional R$ 69,90/mês ou R$ 699/ano (tudo do Essencial, rateio por faturamento e perfis salvos de taxas, relatórios e exportações avançadas, compras, fornecedores, rótulos, kits). Corrigido em 2026-11-14 pela tabela de `docs/planos-comerciais.md`. Nunca chamar o tier pago de "Premium".
+Planos (fonte: `PLAN_PRICING`/`PLAN_FEATURES` em `@lucro-caseiro/contracts` e `docs/planos-comerciais.md`). Desde 2026-11-15 há um plano pago só, decisão da dona do produto: Gratuito R$ 0 (vendas ilimitadas, 50 clientes, 30 produtos, 5 receitas, 3 embalagens, 3 fornecedores, agenda, fiado e financeiro básicos, resumo do mês e orçamentos em PDF, catálogo com até 10 produtos); **Premium** R$ 49,90/mês ou R$ 449/ano (equivale a R$ 37,42/mês, economia de R$ 149,80 no ano), com tudo liberado: clientes, produtos, receitas, embalagens e fornecedores sem limite, catálogo completo e personalizado com até 5 fotos por produto, compras de fornecedores, gastos recorrentes, relatórios completos, exportação PDF/Excel, etiquetas personalizadas, kits, precificação avançada, suporte prioritário e sem anúncios. O anual é a escolha recomendada e vem marcado, com o selo "Mais vantajoso" (nunca "Mais vendido": não há dado de vendas que sustente). O destaque é o valor por mês e logo abaixo vai o que é cobrado de fato. Toda conta nova ganha 7 dias do Premium, sem cartão e sem cobrança automática. Os antigos Essencial (R$ 29,90) e Profissional (R$ 69,90) saíram da venda em 2026-11-15; no código o Premium é o nível `professional` (`SOLD_PLAN`).
 
 Constraints da web: Next.js App Router, `next/image`, CSS Modules, CSS, Web Animations e GSAP/ScrollTrigger na demonstração; rotas, âncoras (`#como-funciona`, `#planos`, `#duvidas`), slugs de guias e `data-analytics` existentes devem ser preservados; calculadora pública em `/landing/calculadora` usa as funções puras do contracts e não envia dados. App em português brasileiro; código em inglês. Acessibilidade: fontes mínimas 16px, alvos 48px, contraste AA, ícone sempre com texto, linguagem sem jargão.
 
@@ -62,7 +62,7 @@ Undecided: app nativo iOS; multiusuário.
 2. Mostrar a conta, não prometer resultado: a demonstração é a precificação real, com exemplo rotulado, nunca um número inventado.
 3. Um fluxo, sem recadastro: precificação → produto → catálogo ou venda é a história da marca em toda peça.
 4. Linguagem da pessoa, não do sistema: custo, preço, lucro, embalagem, seu tempo; nunca "gestão de ativos" ou "KPI".
-5. O grátis é real: dá para fazer o fluxo completo sem pagar; a assinatura entra quando o limite aparece.
+5. O grátis é real: dá para fazer o fluxo completo sem pagar; a assinatura do Premium entra quando o limite aparece.
 
 ## Accessibility & Inclusion
 

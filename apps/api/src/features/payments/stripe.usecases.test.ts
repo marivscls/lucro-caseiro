@@ -67,7 +67,7 @@ function makeSut(
 }
 
 describe("StripeUseCases.createCheckoutUrl", () => {
-  it("creates a subscription checkout session with the selected tier price", async () => {
+  it("sells the Premium (professional) price even when the request asks for essential", async () => {
     const { sut, createSession } = makeSut();
 
     const url = await sut.createCheckoutUrl({
@@ -80,14 +80,27 @@ describe("StripeUseCases.createCheckoutUrl", () => {
     expect(createSession).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: "subscription",
-        line_items: [{ price: "price_ess_monthly", quantity: 1 }],
+        line_items: [{ price: "price_pro_monthly", quantity: 1 }],
         client_reference_id: USER_ID,
-        metadata: { userId: USER_ID, tier: "essential", period: "monthly" },
+        metadata: { userId: USER_ID, tier: "professional", period: "monthly" },
         subscription_data: {
-          metadata: { userId: USER_ID, tier: "essential", period: "monthly" },
+          metadata: { userId: USER_ID, tier: "professional", period: "monthly" },
         },
       }),
     );
+  });
+
+  it("never falls back to the essential price when the professional one is missing", async () => {
+    const { sut, createSession } = makeSut({
+      prices: {
+        essential: { monthly: "price_ess_monthly", annual: "price_ess_annual" },
+        professional: { monthly: "", annual: "" },
+      },
+    });
+    await expect(
+      sut.createCheckoutUrl({ userId: USER_ID, tier: "essential", period: "monthly" }),
+    ).rejects.toThrow("Preço Stripe não configurado");
+    expect(createSession).not.toHaveBeenCalled();
   });
 
   it("selects the professional annual price", async () => {

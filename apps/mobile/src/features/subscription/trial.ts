@@ -6,7 +6,7 @@ type TrialProfile = Pick<UserProfile, "plan" | "planExpiresAt"> & {
   planIsTrial?: boolean;
 };
 
-/** Conta nova usando o teste grátis do Essencial (ainda dentro dos 7 dias). */
+/** Conta nova usando o teste grátis do Premium (ainda dentro dos 7 dias). */
 export function isProfileOnTrial(
   profile?: TrialProfile | null,
   now: Date = new Date(),
@@ -45,7 +45,7 @@ export function trialNotice(
 
   if (isProfileOnTrial(profile, now)) {
     return {
-      title: `Seu teste do Essencial termina ${trialEndLabel(profile.planExpiresAt, now)}`,
+      title: `Seu teste do Premium termina ${trialEndLabel(profile.planExpiresAt, now)}`,
       message:
         "Depois disso, sua conta volta para o plano Gratuito e seus dados continuam salvos. Assine para continuar sem limites.",
       ended: false,
@@ -55,7 +55,7 @@ export function trialNotice(
   const endedMs = now.getTime() - new Date(profile.planExpiresAt).getTime();
   if (endedMs >= 0 && endedMs <= 30 * DAY_MS) {
     return {
-      title: "Seu teste do Essencial terminou",
+      title: "Seu teste do Premium terminou",
       message:
         "Sua conta voltou para o plano Gratuito e seus dados continuam salvos. Assine para voltar a usar sem limites.",
       ended: true,

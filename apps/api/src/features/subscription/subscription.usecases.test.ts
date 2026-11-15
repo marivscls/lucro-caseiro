@@ -246,13 +246,13 @@ describe("SubscriptionUseCases", () => {
       expect(result.currentClients).toBe(5);
     });
 
-    it("returns null volume limits for essential but keeps suppliers capped", async () => {
+    it("returns null limits for essential (same as Premium)", async () => {
       const { sut } = makeSut({
         getProfile: () => Promise.resolve(makeProfile({ plan: "essential" })),
       });
       const result = await sut.getLimits(USER_ID);
       expect(result.maxSalesPerMonth).toBeNull();
-      expect(result.maxSuppliers).toBe(3);
+      expect(result.maxSuppliers).toBeNull();
     });
 
     it("returns null limits for professional user", async () => {
@@ -748,9 +748,7 @@ describe("SubscriptionUseCases", () => {
       await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
 
       const messages = alertOps.mock.calls.map(([message]) => message);
-      expect(messages).toEqual([
-        expect.stringContaining("Nova assinatura: Profissional"),
-      ]);
+      expect(messages).toEqual([expect.stringContaining("Nova assinatura: Premium")]);
       expect(messages.join(" ")).not.toContain("@");
     });
   });

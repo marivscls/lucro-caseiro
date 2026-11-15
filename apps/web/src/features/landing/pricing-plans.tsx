@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { StartCta } from "./hero-actions";
 import styles from "./landing-page.module.css";
+import { annualMonthlyEquivalent, annualSavings, formatBrl } from "./plan-price";
 
 export type PricingPlan = {
   readonly name: string;
@@ -18,15 +19,13 @@ export type PricingPlan = {
   readonly annual: number | null;
 };
 
-type Period = "monthly" | "annual";
+export type Period = "monthly" | "annual";
 
-const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-/** Meses de mensalidade que o anual economiza, arredondado para baixo. */
-export function freeMonthsInAnnual(monthly: number, annual: number): number {
-  return Math.floor((monthly * 12 - annual) / monthly + 0.05);
-}
-
+/**
+ * Preço de um plano: o destaque é sempre o valor por mês (no anual, o
+ * equivalente) e a linha de baixo diz o que é cobrado de fato e quando,
+ * igual à tela de planos do app.
+ */
 export function priceFor(plan: PricingPlan, period: Period) {
   if (plan.monthly === null || plan.annual === null) {
     return {
@@ -35,27 +34,27 @@ export function priceFor(plan: PricingPlan, period: Period) {
       note: "Continue grátis dentro dos limites do plano.",
     };
   }
+  const perMonthInAnnual = formatBrl(annualMonthlyEquivalent(plan.annual));
   if (period === "annual") {
+    const savings = annualSavings(plan.monthly, plan.annual);
     return {
-      price: money.format(plan.annual),
-      period: "por ano, em cobrança única",
-      note: `Sai por ${money.format(Math.round((plan.annual / 12) * 100) / 100)} por mês.`,
+      price: perMonthInAnnual,
+      period: "por mês, no plano anual",
+      note:
+        `${formatBrl(plan.annual)} cobrados uma vez por ano.` +
+        (savings > 0 ? ` Economia de ${formatBrl(savings)} no ano.` : ""),
     };
   }
   return {
-    price: money.format(plan.monthly),
+    price: formatBrl(plan.monthly),
     period: "por mês",
-    note: `ou ${money.format(plan.annual)} no anual, com ${freeMonthsInAnnual(plan.monthly, plan.annual)} meses grátis`,
+    note: `${formatBrl(plan.monthly)} cobrados todo mês. No plano anual, sai por ${perMonthInAnnual} por mês.`,
   };
 }
 
 export function PricingPlans({ plans }: { readonly plans: readonly PricingPlan[] }) {
-  const [period, setPeriod] = useState<Period>("monthly");
-  const paid = plans.find((plan) => plan.monthly !== null && plan.annual !== null);
-  const freeMonths =
-    paid && paid.monthly !== null && paid.annual !== null
-      ? freeMonthsInAnnual(paid.monthly, paid.annual)
-      : 0;
+  // O anual é a escolha recomendada e já vem marcado, como no app.
+  const [period, setPeriod] = useState<Period>("annual");
 
   return (
     <>
@@ -73,9 +72,7 @@ export function PricingPlans({ plans }: { readonly plans: readonly PricingPlan[]
           onClick={() => setPeriod("annual")}
         >
           Anual
-          {freeMonths > 0 ? (
-            <span className={styles.periodSaving}>{freeMonths} meses grátis</span>
-          ) : null}
+          <span className={styles.periodSaving}>Mais vantajoso</span>
         </button>
       </div>
       <div className={styles.pricingGrid}>

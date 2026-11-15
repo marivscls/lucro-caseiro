@@ -68,9 +68,11 @@ export function canClaim(account: ReferralAccount, now: Date): boolean {
 }
 
 /**
- * Prêmio da indicação: +30 dias do Essencial. Quem já paga uma assinatura não
+ * Prêmio da indicação: +30 dias do Premium. Quem já paga uma assinatura não
  * muda nada (a loja cuida da cobrança). Quem está no grátis ou em teste ganha
- * os dias somados ao que ainda tinha. Teste do Profissional continua Profissional.
+ * os dias somados ao que ainda tinha. Grava "essential" (mesmo valor do teste
+ * grátis, que hoje vale o Premium inteiro); teste em "professional" continua
+ * "professional".
  */
 export function rewardPlan(
   current: PlanState,

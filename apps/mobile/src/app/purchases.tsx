@@ -640,7 +640,7 @@ function PurchasesEmptyState({ onAdd }: Readonly<{ onAdd: () => void }>) {
 }
 
 /**
- * Tela de apresentação pra quem não tem o plano Profissional: explica o que
+ * Tela de apresentação pra quem não tem o Premium: explica o que
  * Compras faz + CTA de upgrade, sem exibir o formulário (que não salvaria).
  */
 function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
@@ -664,7 +664,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
         }}
       >
         <View style={{ flex: 1, minWidth: 0, gap: spacing.lg }}>
-          <DesktopTag label="Recurso Profissional" variant="premium" strong />
+          <DesktopTag label="Recurso Premium" variant="premium" strong />
           <View style={{ gap: spacing.sm }}>
             <Typography variant="desktopSection" accessibilityRole="header">
               Compras de fornecedor organizadas
@@ -688,7 +688,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
             ))}
           </View>
           <Button
-            title="Desbloquear no Profissional"
+            title="Desbloquear no Premium"
             variant="premium"
             icon={
               <AppIcon

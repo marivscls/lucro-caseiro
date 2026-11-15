@@ -56,15 +56,22 @@ describe("subscription limits", () => {
     expect(getLimitBannerState(limits, profile, "products")).toBeNull();
   });
 
-  it("frees volume limits for essential but still caps suppliers at 3", () => {
+  it("frees volume and supplier limits for the essential tier (now Premium)", () => {
     const profile = makeProfile({ plan: "essential" });
 
-    // Vendas/produtos: ilimitados no Essencial, mesmo com payload antigo.
+    // Vendas/produtos: ilimitados no Premium, mesmo com payload antigo.
     const volumeLimits = makeLimits({ currentProducts: 999, maxProducts: 15 });
     expect(isLimitBlocked(volumeLimits, profile, "products")).toBe(false);
     expect(getLimitBannerState(volumeLimits, profile, "products")).toBeNull();
 
-    // Fornecedores: ainda limitados (max 3).
+    // Fornecedores: também sem limite no Premium, mesmo com payload antigo.
+    const supplierLimits = makeLimits({ currentSuppliers: 3, maxSuppliers: 3 });
+    expect(isLimitBlocked(supplierLimits, profile, "suppliers")).toBe(false);
+    expect(getLimitBannerState(supplierLimits, profile, "suppliers")).toBeNull();
+  });
+
+  it("still caps suppliers at 3 on the free plan", () => {
+    const profile = makeProfile({ plan: "free" });
     const supplierLimits = makeLimits({ currentSuppliers: 3, maxSuppliers: 3 });
     expect(isLimitBlocked(supplierLimits, profile, "suppliers")).toBe(true);
     expect(getLimitBannerState(supplierLimits, profile, "suppliers")).toMatchObject({

@@ -51,12 +51,12 @@ describe("welcome email", () => {
       businessType: "food",
       trialActive: true,
     });
-    expect(email.subject).toContain("7 dias do Essencial");
-    expect(email.text).toContain("Você ganhou 7 dias do plano Essencial");
+    expect(email.subject).toContain("7 dias do Premium");
+    expect(email.text).toContain("Você ganhou 7 dias do plano Premium");
     expect(email.text).toContain("sem cartão e sem cobrança");
     expect(email.text).toContain("continua no plano Gratuito com seus dados salvos");
     expect(email.text).toContain("Assinar é opcional");
-    expect(email.html).toContain("Você ganhou 7 dias do plano Essencial");
+    expect(email.html).toContain("Você ganhou 7 dias do plano Premium");
     expect(email.html).toContain("sem cartão e sem cobrança");
   });
 

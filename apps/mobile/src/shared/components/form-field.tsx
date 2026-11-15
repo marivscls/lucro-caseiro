@@ -418,7 +418,7 @@ export function ChoiceField<T extends string>({
             disabled={option.disabled}
             accessibilityRole="radio"
             accessibilityLabel={
-              option.locked ? `${option.label}, recurso de plano pago` : option.label
+              option.locked ? `${option.label}, recurso Premium` : option.label
             }
             accessibilityHint={option.description}
             accessibilityState={{

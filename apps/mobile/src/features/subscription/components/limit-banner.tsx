@@ -7,6 +7,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
+import { PLAN_LABELS, SOLD_PLAN } from "@lucro-caseiro/contracts";
 import React from "react";
 import {
   Pressable,
@@ -38,7 +39,7 @@ export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBanner
 
   const experienceCopy = businessCopyFor(profile?.businessType);
   const resourceLabel = getLimitResourceLabel(resource, experienceCopy);
-  const upgradePlan = resource === "suppliers" ? "Profissional" : "Essencial";
+  const upgradePlan = PLAN_LABELS[SOLD_PLAN];
   let remainingLabel = "Limite atingido";
   if (state.remaining === 1) {
     remainingLabel = "1 restante";

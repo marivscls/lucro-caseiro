@@ -256,3 +256,5 @@ GET /api/v1/finance/export/pdf?month=2026-03
   Tabela freemium do CLAUDE.md atualizada (Recorrência de gastos = Premium).
 
 - 2026-10-18: `exportBasic` (PDF do resumo mensal) passa a valer também no Gratuito. O gate de `GET /export/pdf` continua, mas libera qualquer plano; `GET /export/xlsx` segue só no Profissional.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). `GET /export/xlsx` e relatórios avançados (`export`) passam a ser descritos como do Premium; mensagens de bloqueio vêm de `require-feature.ts`, que agora citam o plano Premium.

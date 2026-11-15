@@ -22,7 +22,7 @@ function presentLabel(label: Label): Label {
 export class LabelsUseCases {
   constructor(
     private repo: ILabelsRepo,
-    // Estilo customizado e exclusivo do Profissional; sem wiring explicito, nega.
+    // Estilo customizado e exclusivo do Premium; sem wiring explicito, nega.
     private hasLabelsPremium: (userId: string) => Promise<boolean> = () =>
       Promise.resolve(false),
   ) {}
@@ -34,7 +34,7 @@ export class LabelsUseCases {
     if (!hasCustomStyle(data.style) && !data.layout) return;
     if (await this.hasLabelsPremium(userId)) return;
     throw new LimitExceededError(
-      "A personalização da etiqueta faz parte do plano Profissional.",
+      "A personalização da etiqueta faz parte do plano Premium.",
     );
   }
 

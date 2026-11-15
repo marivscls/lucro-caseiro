@@ -84,3 +84,4 @@ fiado"). A IA monta um rascunho; a pessoa confere antes de salvar.
 - 2026-09-29: `expo-audio` só é carregado quando o binário tem o módulo nativo (`requireOptionalNativeModule("ExpoAudio")`). Build sem o módulo não quebra mais: o botão avisa para atualizar o app.
 - 2026-09-29: aviso de limite esgotado muda com `usage.trial`: "Seus usos de teste acabaram" no Gratuito; "No dia 1º os usos voltam" nos pagos.
 - 2026-09-29: `/assistant?falar=1` (vindo do Início) começa a gravar sozinho em aparelhos que gravam; nos outros abre normal, sem aviso.
+- 2026-11-15: plano único Premium. No fim dos usos de teste, o aviso convida para o Premium (antes falava em "planos pagos").

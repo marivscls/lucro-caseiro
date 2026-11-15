@@ -81,7 +81,7 @@ export function LabelStyleEditor({
           style={{ flex: 1 }}
         >
           {locked
-            ? "Veja como sua etiqueta pode ficar. Desbloqueie com o Profissional."
+            ? "Veja como sua etiqueta pode ficar. Desbloqueie com o Premium."
             : "Deixe a etiqueta com a sua cara ou mantenha o visual do modelo."}
         </Typography>
         {locked && <AppIcon name="lock-closed" size={16} color={theme.colors.premium} />}

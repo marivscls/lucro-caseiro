@@ -200,7 +200,7 @@ export default function RegisterScreen() {
             style={{ textAlign: "center" }}
           >
             Leva menos de um minuto, e é grátis. Você ganha {ESSENTIAL_TRIAL_DAYS} dias do
-            plano Essencial para testar, sem cartão.
+            Premium para testar, sem cartão.
           </Typography>
         </View>
 

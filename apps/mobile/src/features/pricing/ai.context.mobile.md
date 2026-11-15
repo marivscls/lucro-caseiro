@@ -149,3 +149,4 @@ Dados de 16/09–14/11: 56 pessoas abriram a precificação e 41 (73%) saíram s
   "+150%" com o preço que cada uma dá (`markupShortcutPrices`, mesmas regras de
   `draftCalculation` e `suggestedUnitPrice`). Tocar troca para "Acréscimo sobre o custo" e
   preenche o percentual; o campo continua editável. Sem custos válidos, as pílulas não aparecem.
+- 2026-11-15: plano único Premium. O botão de perfis de taxas no free diz "Perfis de taxas · Premium". Acesso por `advancedPricing`, sem mudança.

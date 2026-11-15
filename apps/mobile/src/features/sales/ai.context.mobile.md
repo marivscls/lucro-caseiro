@@ -277,3 +277,4 @@ A Nova venda abre direto na etapa de produtos, onde já aparece "Venda rápida n
 - 2026-09-28: `buildChargeMessage(group, extras)` aceita `pixCode` e `statementUrl` (cobrança
   do fiado com Pix copia e cola e link do extrato); `buildReceiptMessage(sale, pixCode)` põe o
   Pix só em venda pendente. `DesktopFiadoPage` ganhou `notice` (aviso de cadastrar a chave Pix).
+- 2026-11-15: plano único Premium. A prévia do recibo em PDF tem o botão "Desbloquear com o Premium" (antes Profissional).

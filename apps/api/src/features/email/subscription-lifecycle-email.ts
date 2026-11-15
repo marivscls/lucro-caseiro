@@ -11,9 +11,10 @@ import type { EmailSender } from "./resend-email";
 export type SubscriptionEmailKind = SubscriptionLifecycleKind;
 export type SubscriptionEmailEvent = SubscriptionLifecycleEvent;
 
+// Um plano pago só (2026-11-15): os dois níveis do banco são o Premium.
 const PLAN_NAMES: Record<PaidPlan, string> = {
-  essential: "Essencial",
-  professional: "Profissional",
+  essential: "Premium",
+  professional: "Premium",
 };
 
 function formatDate(value: string | null): string | null {

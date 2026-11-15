@@ -45,9 +45,11 @@ export default function TermsPage() {
         <section>
           <h2>3. Planos e assinaturas</h2>
           <p>
-            O plano Gratuito possui limites informados no aplicativo. O Essencial remove
-            limites de volume do uso diário. O Profissional inclui recursos avançados de
-            apresentação, controle e exportação.
+            O plano Gratuito possui limites informados no aplicativo. O Premium, plano
+            pago, remove esses limites e inclui recursos avançados de apresentação,
+            controle e exportação. Contas novas podem testar o Premium por um período
+            gratuito informado no aplicativo, sem cartão e sem cobrança automática ao
+            final do teste.
           </p>
           <ul>
             <li>Preço, período e benefícios são apresentados antes da contratação.</li>

@@ -79,8 +79,8 @@ export interface TrialChecklistItem {
 }
 
 /**
- * Itens do teste grátis (Essencial): catálogo completo, receitas sem limite e a
- * prévia dos relatórios do Profissional. Um item fica feito quando foi aberto
+ * Itens do teste grátis (Premium): catálogo completo, receitas sem limite e os
+ * relatórios completos. Um item fica feito quando foi aberto
  * pela lista ou, no caso de receitas, quando já existe uma receita.
  */
 export function trialChecklist(input: {
@@ -106,7 +106,7 @@ export function trialChecklist(input: {
   }
   items.push({
     id: "insights",
-    label: "Conheça os relatórios do Profissional",
+    label: "Veja seus relatórios completos",
     route: "/insights",
     done: input.opened.includes("insights"),
   });

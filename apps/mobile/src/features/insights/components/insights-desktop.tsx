@@ -223,7 +223,7 @@ export function InsightsTeaserDesktop({
             color={theme.colors.premium}
             style={{ fontFamily: fonts.bold }}
           >
-            Recurso Profissional
+            Recurso Premium
           </Typography>
         </View>
         <Typography variant="desktopSection" accessibilityRole="header">
@@ -234,7 +234,7 @@ export function InsightsTeaserDesktop({
           clientes.
         </Typography>
         <Button
-          title="Desbloquear no Profissional"
+          title="Desbloquear no Premium"
           onPress={onUpgrade}
           icon={
             <AppIcon

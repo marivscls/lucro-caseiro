@@ -163,7 +163,7 @@ export function ReceiptPreviewModal({
           </Typography>
 
           <Button
-            title="Desbloquear com o Profissional"
+            title="Desbloquear com o Premium"
             variant="premium"
             onPress={onUpgrade}
           />

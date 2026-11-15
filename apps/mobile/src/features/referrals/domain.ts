@@ -20,7 +20,7 @@ export function inviteMessage(appName: string, code: string, url: string): strin
     `Baixe por aqui: ${url}`,
     "",
     `Depois de criar a conta, abra Mais > Indique e ganhe e digite meu código *${code}*.`,
-    "Quando você registrar 3 vendas, nós ganhamos 1 mês do plano Essencial. 💛",
+    "Quando você registrar 3 vendas, nós ganhamos 1 mês do Premium. 💛",
   ].join("\n");
 }
 

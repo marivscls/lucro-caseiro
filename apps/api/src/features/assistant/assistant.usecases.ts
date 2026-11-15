@@ -45,7 +45,7 @@ export class AssistantUseCases {
     if (used >= limit) {
       throw new LimitExceededError(
         trial
-          ? `Você já usou os ${limit} testes do assistente no plano Gratuito. No Essencial ele vem com usos todo mês.`
+          ? `Você já usou os ${limit} testes do assistente no plano Gratuito. No Premium ele vem com usos todo mês.`
           : `Você chegou a ${limit} usos do assistente este mês. O contador volta a zero no dia 1º.`,
       );
     }

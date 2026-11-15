@@ -5,6 +5,30 @@ Data: 2026-06-30
 
 Este documento registra o modelo de planos desejado para o Lucro Caseiro, inspirado na logica de planos do Kyte, mas simplificado para apenas dois planos pagos.
 
+## Decisao 2026-11-15: um plano pago so (Premium)
+
+Substitui o modelo de dois planos pagos descrito abaixo, que fica como historico.
+
+| Plano         |            Preco | Papel                                        |
+| ------------- | ---------------: | -------------------------------------------- |
+| Gratis        |             R$ 0 | Degustacao com limites claros.               |
+| Premium       | R$ 49,90 por mes | Tudo liberado, sem limites e sem anuncios.   |
+| Premium anual |   R$ 449 por ano | Sai R$ 37,42 por mes; economia de R$ 149,80. |
+
+- Motivo: simplicidade (uma decisao a menos para quem assina) e menos regras para manter.
+  Na data havia uma pessoa assinante; o risco de mudar o preco era baixo.
+- O app abre no anual, com o selo "Mais vantajoso" (nunca "Mais vendido": nao temos o dado).
+- No banco continuam os dois valores pagos. `professional` e o que se vende (`SOLD_PLAN`);
+  `essential` segue gravado pelo teste gratis (trigger `handle_new_user`) e por assinaturas
+  antigas, e agora vale exatamente o mesmo que o Premium (limites, recursos e preco em
+  `@lucro-caseiro/contracts`). Nao foi preciso migration.
+- Teste gratis: 7 dias do Premium, sem cartao (antes, do Essencial).
+- Quem ja assina continua pagando o preco que contratou; a loja (Stripe/Google Play) guarda
+  esse preco. Os produtos `lucrocaseiro_professional_monthly/annual` passam a valer R$ 49,90 e
+  R$ 449 para novas assinaturas; os do Essencial deixam de ser vendidos.
+- Pendente fora do codigo: criar os novos precos no Stripe e atualizar os IDs nos segredos da
+  API; ajustar o preco do plano base no Google Play, mantendo assinantes atuais no preco antigo.
+
 ## Principio
 
 O Lucro Caseiro deve vender simplicidade primeiro e profissionalizacao depois.

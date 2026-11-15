@@ -88,10 +88,10 @@ export function PaidPreview({
       </View>
 
       <Typography variant="caption" color={theme.colors.textSecondary}>
-        Exemplo com dados fictícios. No plano Profissional, aparecem os seus números.
+        Exemplo com dados fictícios. No Premium, aparecem os seus números.
       </Typography>
       <Button
-        title="Desbloquear no Profissional"
+        title="Desbloquear no Premium"
         size="lg"
         icon={
           <AppIcon

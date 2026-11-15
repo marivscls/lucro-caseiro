@@ -23,7 +23,6 @@ export type PlanCardData = Readonly<{
   periodLabel: string;
   /** O que é cobrado de fato, sob o valor por mês. */
   chargeNote: string;
-  recommended: boolean;
   heading: string;
   features: readonly string[];
   current: boolean;
@@ -54,15 +53,16 @@ function PlanCard({
   selected: boolean;
   disabled: boolean;
   wide: boolean;
-  onSelect: () => void;
+  /** Sem `onSelect` (um plano só) o cartão é só informativo, não um botão. */
+  onSelect?: () => void;
 }>) {
   const { theme } = useTheme();
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Ver plano ${data.label}`}
-      accessibilityState={{ selected, disabled }}
-      disabled={disabled}
+      accessibilityRole={onSelect ? "button" : undefined}
+      accessibilityLabel={onSelect ? `Ver plano ${data.label}` : undefined}
+      accessibilityState={onSelect ? { selected, disabled } : undefined}
+      disabled={disabled || !onSelect}
       onPress={onSelect}
       style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
         desktopCardStyle(theme, { selected, accent: theme.colors.primaryStrong }),
@@ -74,24 +74,6 @@ function PlanCard({
         <Typography variant="desktopCardTitle" style={{ flex: 1 }}>
           {data.label}
         </Typography>
-        {data.recommended ? (
-          <View
-            style={{
-              paddingHorizontal: spacing.md,
-              paddingVertical: 2,
-              borderRadius: radii.full,
-              backgroundColor: theme.colors.successBg,
-            }}
-          >
-            <Typography
-              variant="desktopMeta"
-              color={theme.colors.success}
-              style={{ fontFamily: fonts.bold }}
-            >
-              Recomendado
-            </Typography>
-          </View>
-        ) : null}
         {data.current ? (
           <View
             style={{
@@ -110,11 +92,13 @@ function PlanCard({
             </Typography>
           </View>
         ) : null}
-        <AppIcon
-          name={selected ? "checkmark-circle" : "ellipse-outline"}
-          size={24}
-          color={selected ? theme.colors.primaryStrong : theme.colors.textSecondary}
-        />
+        {onSelect ? (
+          <AppIcon
+            name={selected ? "checkmark-circle" : "ellipse-outline"}
+            size={24}
+            color={selected ? theme.colors.primaryStrong : theme.colors.textSecondary}
+          />
+        ) : null}
       </View>
       <View style={{ gap: 2 }}>
         <View style={{ flexDirection: "row", alignItems: "baseline", gap: spacing.sm }}>
@@ -234,7 +218,7 @@ export function PlansDesktop({
 }: Readonly<{
   cards: readonly PlanCardData[];
   selectedPlan: PaidPlan;
-  onSelect: (plan: PaidPlan) => void;
+  onSelect?: (plan: PaidPlan) => void;
   isUpgrade: boolean;
   period: BillingPeriod;
   onPeriodChange: (period: BillingPeriod) => void;
@@ -333,7 +317,7 @@ export function PlansDesktop({
             selected={card.plan === selectedPlan}
             disabled={checkoutLoading}
             wide={cards.length === 1}
-            onSelect={() => onSelect(card.plan)}
+            onSelect={onSelect ? () => onSelect(card.plan) : undefined}
           />
         ))}
       </DesktopGrid>

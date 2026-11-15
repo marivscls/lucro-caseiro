@@ -138,7 +138,7 @@ export function RecurringCommitmentsDesktop({
   );
 }
 
-/** Cartão do recurso Profissional: texto e botão à esquerda, benefícios à direita. */
+/** Cartão do recurso Premium: texto e botão à esquerda, benefícios à direita. */
 export function RecurringGateDesktop({
   benefits,
   onUnlock,
@@ -170,7 +170,7 @@ export function RecurringGateDesktop({
             color={theme.colors.premium}
             style={{ fontFamily: fonts.bold }}
           >
-            Recurso Profissional
+            Recurso Premium
           </Typography>
         </View>
         <Typography variant="desktopSection" accessibilityRole="header">
@@ -189,7 +189,7 @@ export function RecurringGateDesktop({
             />
           }
           onPress={onUnlock}
-          title="Desbloquear no Profissional"
+          title="Desbloquear no Premium"
           style={{
             ...desktopActionButton,
             alignSelf: "flex-start",
@@ -400,7 +400,7 @@ export function RecurringAsideDesktop({
   );
 }
 
-/** Estado vazio do plano Profissional, em cartão tracejado. */
+/** Estado vazio do Premium, em cartão tracejado. */
 export function RecurringEmptyDesktop({ onAdd }: Readonly<{ onAdd: () => void }>) {
   return (
     <DesktopEmptyCard

@@ -87,7 +87,7 @@ export async function SolutionPage({ slug }: { readonly slug: SolutionSlug }) {
             />
             <p className={styles.note}>
               <Check aria-hidden="true" size={18} />
-              Grátis para começar, com {ESSENTIAL_TRIAL_DAYS} dias do Essencial sem cartão
+              Grátis para começar, com {ESSENTIAL_TRIAL_DAYS} dias do Premium sem cartão
             </p>
           </div>
           <aside className={styles.example} aria-label="Exemplo ilustrativo">

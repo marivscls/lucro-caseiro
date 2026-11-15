@@ -292,3 +292,5 @@ invariants:
 O hero usa “Vitrine em preparação” quando as contagens expostas estão vazias e “Consulte disponibilidade” quando há conteúdo. Publicação do link não prova disponibilidade de atendimento/pedidos. Links, filtros de exposição e autorização permanecem sob os contratos existentes.
 
 - 2026-10-18: vitrine do plano free passa de 3 para `FREE_CATALOG_MAX_PRODUCTS` (10, em `@lucro-caseiro/contracts`); o produto focado continua entrando na lista.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). Mensagem de bloqueio da personalização do catálogo passa a citar o plano Premium (antes Essencial). Regra inalterada: `catalogCustomization`/`catalogPremium` valem nos dois níveis pagos.

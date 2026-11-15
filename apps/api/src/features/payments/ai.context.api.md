@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Stripe Billing integration for paid subscriptions (Essencial/Profissional). The backend creates Stripe Checkout Sessions and processes signed Stripe webhooks to activate/deactivate the plan.
+Stripe Billing integration for paid subscriptions (Premium; tiers `essential`/`professional` no banco, equivalentes desde 2026-11-15). The backend creates Stripe Checkout Sessions and processes signed Stripe webhooks to activate/deactivate the plan.
 
 ## Non-goals
 
@@ -46,7 +46,7 @@ No payment tables. Mapping is derived from Stripe metadata:
 ## Invariants
 
 - Checkout requires auth; `userId` comes from JWT, never request body.
-- Checkout uses `mode: "subscription"` and one recurring Price (selected by `tier` + `period`).
+- Checkout uses `mode: "subscription"` and one recurring Price: always the `SOLD_PLAN` (`professional`) Price for the requested `period`; the `tier` in the body is accepted but ignored (2026-11-15).
 - Webhook signature verification uses `Stripe-Signature` + `STRIPE_WEBHOOK_SECRET`.
 - Stripe webhook route must receive raw request body before `express.json()`.
 - Subscription events reconcile the current provider state by retrieving the subscription
@@ -192,3 +192,5 @@ Stripe-Signature: t=...,v1=...
 - Mobile opens Stripe Checkout in the system browser.
 - Webhooks are the source of truth for plan activation.
 - 2026-07-01: **três planos** — checkout passou de `{plan}` para `{tier, period}` e o config de 2 price ids para 4 (`STRIPE_PRICE_{ESSENTIAL,PROFESSIONAL}_{MONTHLY,ANNUAL}_ID`). O tier ativado vem de `subscription.metadata.tier` (ou casando o price id; fallback `professional` p/ assinaturas Premium legadas). Webhook chama `activatePlan(userId, tier, expiresAt)` / `deactivatePlan`.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). `POST /checkout` continua aceitando `tier: essential | professional` no body (compatibilidade), mas `createCheckoutUrl` sempre cria a sessão com `SOLD_PLAN` (`professional`): usa o preço professional do período pedido e grava `metadata.tier = professional`. O preço essential do Stripe (R$ 29,90) não é mais vendido; se o preço professional faltar, o checkout falha em vez de cair no essential. Webhooks e `resolveStripePlanTier` seguem reconhecendo os dois níveis (assinaturas antigas e teste). Nomes das variáveis de preço do Stripe não mudam.

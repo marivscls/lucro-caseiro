@@ -32,7 +32,7 @@ export default function AssistantScreen() {
           </Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
             {usage?.trial
-              ? "Nos planos pagos você anota falando todo mês."
+              ? "No Premium você anota falando todo mês."
               : "No dia 1º os usos voltam."}
           </Typography>
           <Button title="Ver planos" onPress={() => router.push("/plans")} />

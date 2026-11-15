@@ -43,7 +43,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         id: user.id,
         email: user.email ?? "",
         name: user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Usuário",
-        // Mesmo teste do Essencial que o trigger concede; só vale se inserir.
+        // Mesmo teste do Premium que o trigger concede; só vale se inserir.
         ...newAccountTrialPlan(),
       })
       .onConflictDoNothing();

@@ -41,7 +41,7 @@ const HOW: { icon: AppIconName; text: string }[] = [
     icon: "receipt-outline",
     text: "Quando essa pessoa registrar 3 vendas, vocês ganham.",
   },
-  { icon: "gift-outline", text: "1 mês do plano Essencial para cada um, sem cartão." },
+  { icon: "gift-outline", text: "1 mês do Premium para cada um, sem cartão." },
 ];
 
 function ProgressBar({ done, total }: Readonly<{ done: number; total: number }>) {
@@ -167,7 +167,7 @@ export default function ReferralsScreen() {
             Você entrou pelo convite de {summary.referredByName}
           </Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Registre {summary.requiredSales} vendas e o mês do Essencial chega para vocês.
+            Registre {summary.requiredSales} vendas e o mês do Premium chega para vocês.
           </Typography>
           <ProgressBar done={progress.done} total={progress.total} />
           <Typography variant="bodyBold" color={palette.wine}>
@@ -180,8 +180,7 @@ export default function ReferralsScreen() {
         <Card variant="surface" padding="xl" style={{ gap: spacing.sm }}>
           <Typography variant="h3">Prêmio liberado 🎉</Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Você e {summary.referredByName} ganharam {summary.rewardDays} dias do plano
-            Essencial.
+            Você e {summary.referredByName} ganharam {summary.rewardDays} dias do Premium.
           </Typography>
         </Card>
       ) : null}

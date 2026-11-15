@@ -1,7 +1,8 @@
 import { hasActiveFeature, type PlanFeature } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-const PROFESSIONAL_ONLY: readonly PlanFeature[] = [
+// Recursos que antes eram só do Profissional e agora fazem parte do Premium.
+const PREMIUM_ONLY: readonly PlanFeature[] = [
   "advancedReports",
   "advancedPricing",
   "export",
@@ -46,9 +47,12 @@ describe("plan feature matrix", () => {
     expect(hasActiveFeature("premium", null, "catalogCustomization")).toBe(true);
   });
 
-  it.each(PROFESSIONAL_ONLY)("keeps %s exclusive to professional", (feature) => {
+  // Um plano pago só (Premium): os dois níveis gravados no banco liberam tudo,
+  // inclusive o teste grátis (gravado como "essential").
+  it.each(PREMIUM_ONLY)("unlocks %s on both paid tiers but not on free", (feature) => {
     expect(hasActiveFeature("free", null, feature)).toBe(false);
-    expect(hasActiveFeature("essential", null, feature)).toBe(false);
+    expect(hasActiveFeature("essential", null, feature)).toBe(true);
     expect(hasActiveFeature("professional", null, feature)).toBe(true);
+    expect(hasActiveFeature("essential", "2020-01-01T00:00:00Z", feature)).toBe(false);
   });
 });

@@ -31,7 +31,7 @@ com os produtos e clientes cadastrados.
 
 ## Invariants
 
-- Limites (`ASSISTANT_MONTHLY_LIMITS`): Gratuito = `ASSISTANT_FREE_TRIAL_USES` (10) usos de teste no total, contados na chave `"trial"` (não renova); pagos por mês, calculados para a IA nunca passar de `ASSISTANT_MAX_PRICE_SHARE` (10%) do mês do plano anual com `ASSISTANT_WORST_COST_PER_USE` (R$ 0,02, raciocínio desligado): Essencial 124, Profissional 291.
+- Limites (`ASSISTANT_MONTHLY_LIMITS`): Gratuito = `ASSISTANT_FREE_TRIAL_USES` (10) usos de teste no total, contados na chave `"trial"` (não renova); pagos por mês, calculados para a IA nunca passar de `ASSISTANT_MAX_PRICE_SHARE` (10%) do mês do plano anual com `ASSISTANT_WORST_COST_PER_USE` (R$ 0,02, raciocínio desligado): Premium (os dois níveis pagos) 187.
 - O limite é conferido antes da IA; o uso só conta quando a IA responde.
 - Casamento de nomes exige todas as palavras faladas no cadastro.
 - Arquivo: áudio `audio/*` do app, até 6 MB.
@@ -96,3 +96,5 @@ db:
 
 - 2026-09-28: criado (aposta 3). Gemini porque já é usado na central de marketing e entende áudio e imagem.
 - 2026-09-29: removida a leitura da foto do caderno de fiado e a importação (`/notebook`, `/notebook/import`), a pedido de LUCAS: a leitura falhava demais. `SalesUseCases.createOpeningFiado` saiu junto.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). Como os dois níveis pagos têm o mesmo `PLAN_PRICING`, o limite mensal ficou igual: 187 usos (R$ 449 ÷ 12 × 10% ÷ R$ 0,02). A mensagem de fim do teste do Gratuito agora cita o Premium.

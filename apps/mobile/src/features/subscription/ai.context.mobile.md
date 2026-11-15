@@ -41,7 +41,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 
 ## Components
 
-- `Paywall`: shows tier selection (Essencial/Profissional), monthly/annual period, tier benefits, subscribe CTA, restore action, and close action. `onSubscribe(tier, period)` is platform-routed in `app/_layout.tsx`. Accepts `recommendedTier` to preselect (passed via `usePaywall.show(resource, tier)` or derived from the triggering resource).
+- `Paywall`: sells the single Premium plan (`SOLD_PLAN`): monthly/annual period, Premium benefits (the triggering resource's benefit first), subscribe CTA, restore, "Comparar planos" and close. `onSubscribe(tier, period)` is platform-routed in `app/_layout.tsx`. `usePaywall.show(resource, tier)` still accepts a tier for analytics, but the checkout always sells Premium (see "Um plano pago só" below).
 - `LimitBanner`: shows free-plan usage and prompts upgrade near/at limits.
 - Plans screen: compares Essential/Professional and monthly/annual pricing in one page, displays the full billing amount, and routes the CTA directly through the existing platform checkout hooks. Current paid tiers cannot be repurchased; upgrades remain available. Free usage appears below the offer.
 - Settings screen: displays current plan and restore action.
@@ -261,6 +261,27 @@ Revisão de design das telas de Planos e do checkout (modal). Nenhuma regra come
   (`onSeePlans`: fecha o checkout e abre `/plans`). Barra fixa: valor por mês + valor cobrado.
 - `TIER_BENEFITS.essential` não lista mais "Fornecedores: até 3": é o mesmo teto do Gratuito,
   não vantagem. Fornecedores ilimitados seguem na lista do Profissional.
+
+## Um plano pago só: Premium — 2026-11-15
+
+Decisão da dona do produto (registrada em `docs/planos-comerciais.md`): Essencial e Profissional
+viram um plano só, **Premium**, a R$ 49,90/mês ou R$ 449/ano (R$ 37,42/mês). Substitui as
+regras de dois planos pagos descritas nas seções anteriores.
+
+- Contratos: os dois níveis do banco (`essential`, `professional`) têm os mesmos recursos,
+  limites (fornecedores sem limite), preço e rótulo ("Premium"). Vende-se `SOLD_PLAN`
+  (`professional`). O teste grátis continua gravado como `essential` e agora libera tudo.
+- Planos: um cartão só com o Premium (sem escolha entre planos), período no topo abrindo no
+  anual, benefícios em lista com check. Conta paga em qualquer nível vê "Plano ativo"; não há
+  mais "upgrade" de Essencial para Profissional. Títulos: "Assine o Premium", "Conheça o
+  Premium" (boas-vindas do Gratuito), "Seu teste grátis começou" (boas-vindas no teste).
+- Checkout: `SubscriptionCheckout`/`Paywall` não recebem mais `recommendedTier`; vendem sempre
+  `SOLD_PLAN`. `getPaywallRecommendedTier` foi removido. `_layout.tsx` fecha o checkout para
+  qualquer plano pago ativo (`isPaidPlan`).
+- Benefícios (`plan-benefits.ts`): uma lista do Premium para os dois níveis;
+  `benefitsLeadingWith(benefits, resource)` não recebe mais o nível.
+- Textos: limites, banners, avisos do teste ("Seu teste do Premium termina...") e paywalls
+  falam só em Premium.
 
 ## Compra do Google Play só é confirmada quando libera o plano — 2026-11-14
 

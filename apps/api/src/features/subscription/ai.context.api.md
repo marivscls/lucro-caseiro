@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Backend ownership for user profile, plan state (Free / Essencial / Profissional), freemium limits, and provider-backed plan validation.
+Backend ownership for user profile, plan state (Free / Premium; no banco `essential` e `professional`, que valem o mesmo desde 2026-11-15), freemium limits, and provider-backed plan validation.
 
 ## Non-goals
 
@@ -271,3 +271,5 @@ vazias = desligado. Falha no Telegram só é logada (`ops_alert_failed`), nunca 
   `subscription_lifecycle_analytics_failed` e segue para e-mail e alerta. Antes, a lista antiga de
   eventos no banco fazia `activatePlan` lançar depois de gravar o plano: `/sync-plan` devolvia 500,
   o app não confirmava a compra e o e-mail de ativação nunca saía.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). `essential` (teste grátis e assinaturas antigas) e `professional` (o vendido, `SOLD_PLAN`) seguem no banco e valem o mesmo, inclusive fornecedores ilimitados; sem migration. `planLabel` devolve "Premium" para os dois níveis (alerta da equipe). `LIMIT_MESSAGES` apontam para o Premium; não há mais upsell separado de fornecedores. Comentários do teste grátis passam a dizer "teste do Premium".

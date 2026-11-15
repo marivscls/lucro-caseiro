@@ -134,3 +134,4 @@ o caminho de produção (os módulos simulados nem são avaliados).
   página pública do catálogo, exportação PDF/Excel do financeiro e upload real de imagens
   (a foto vira URL local da sessão).
 - Testes: `shared/mock/api.test.ts`, `auth.test.ts` e `reset.test.ts`.
+- 2026-11-15: plano único Premium. O cadastro diz que a conta nova ganha 7 dias do Premium para testar, sem cartão (antes "plano Essencial").

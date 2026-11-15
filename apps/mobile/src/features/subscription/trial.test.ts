@@ -59,7 +59,7 @@ describe("essential trial helpers", () => {
       NOW,
     );
     expect(active).toMatchObject({
-      title: "Seu teste do Essencial termina em 3 dias",
+      title: "Seu teste do Premium termina em 3 dias",
       ended: false,
     });
 
@@ -67,14 +67,14 @@ describe("essential trial helpers", () => {
       { plan: "essential", planExpiresAt: atDays(0, 20), planIsTrial: true },
       NOW,
     );
-    expect(today?.title).toBe("Seu teste do Essencial termina hoje");
+    expect(today?.title).toBe("Seu teste do Premium termina hoje");
 
     const ended = trialNotice(
       { plan: "essential", planExpiresAt: atDays(-2), planIsTrial: true },
       NOW,
     );
     expect(ended).toMatchObject({
-      title: "Seu teste do Essencial terminou",
+      title: "Seu teste do Premium terminou",
       ended: true,
     });
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { PLAN_PRICING, SOLD_PLAN } from "@lucro-caseiro/contracts";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
@@ -23,6 +24,11 @@ import {
   mergeCampaignStrategyEnrichment,
   normalizeCarouselSlides,
 } from "./campaign-strategy";
+
+const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const OFFER_PLACEHOLDER = `Ex.: Lucro Caseiro grátis para calcular o primeiro preço. Premium ${brl.format(
+  PLAN_PRICING[SOLD_PLAN].monthly,
+)} por mês.`;
 
 type Briefing = {
   segment: "pme" | "ecommerce" | "agency";
@@ -369,7 +375,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
               onChange={(event) =>
                 setBriefing({ ...briefing, offer: event.target.value })
               }
-              placeholder="Ex.: Lucro Caseiro grátis para calcular o primeiro preço. Essencial R$ 29,90."
+              placeholder={OFFER_PLACEHOLDER}
             />
           </label>
           <details className="span-2 campaign-advanced">

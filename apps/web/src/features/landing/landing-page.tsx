@@ -11,8 +11,10 @@ import Image from "next/image";
 import {
   ESSENTIAL_TRIAL_DAYS,
   FREE_CATALOG_MAX_PRODUCTS,
+  PLAN_LABELS,
   PLAN_LIMITS,
   PLAN_PRICING,
+  SOLD_PLAN,
 } from "@lucro-caseiro/contracts";
 
 import styles from "./landing-page.module.css";
@@ -20,6 +22,7 @@ import { AppDemo } from "./app-demo";
 import { HeroActions, StartCta } from "./hero-actions";
 import { LandingMotion } from "./landing-motion";
 import { SiteFooter, SiteHeader } from "./site-chrome";
+import { annualMonthlyEquivalent, annualSavings, formatBrl } from "./plan-price";
 import { PricingPlans, type PricingPlan } from "./pricing-plans";
 import { SupportWhatsApp } from "./site-chrome";
 import { TESTIMONIALS } from "./testimonials";
@@ -132,6 +135,8 @@ const audiences: readonly {
 ];
 
 const trialDays = ESSENTIAL_TRIAL_DAYS;
+const premiumName = PLAN_LABELS[SOLD_PLAN];
+const premiumPrice = PLAN_PRICING[SOLD_PLAN];
 
 const plans: readonly PricingPlan[] = [
   {
@@ -153,35 +158,22 @@ const plans: readonly PricingPlan[] = [
     ctaLabel: "Começar grátis",
   },
   {
-    name: "Essencial",
-    monthly: PLAN_PRICING.essential.monthly,
-    annual: PLAN_PRICING.essential.annual,
-    description: "Para usar no dia a dia sem limites de volume.",
+    name: premiumName,
+    monthly: premiumPrice.monthly,
+    annual: premiumPrice.annual,
+    description: "Tudo liberado, sem limites, para o negócio crescer.",
     features: [
       "Tudo do Gratuito",
-      "Clientes e produtos ilimitados",
-      "Catálogo completo e personalizado, com mais fotos",
-      "Sem anúncios",
+      "Clientes, produtos, receitas, embalagens e fornecedores sem limite",
+      "Catálogo completo e personalizado, com até 5 fotos por produto",
+      "Relatórios completos e exportação em PDF e Excel",
+      "Compras de fornecedores e gastos que se repetem todo mês",
+      "Precificação avançada, etiquetas personalizadas e kits",
+      "Atendimento prioritário e sem anúncios",
     ],
     featured: true,
     badge: `${trialDays} dias grátis`,
     ctaLabel: `Testar ${trialDays} dias grátis`,
-  },
-  {
-    name: "Profissional",
-    monthly: PLAN_PRICING.professional.monthly,
-    annual: PLAN_PRICING.professional.annual,
-    description: "Para automatizar custos e aprofundar o controle do negócio.",
-    features: [
-      "Tudo do Essencial",
-      "Rateio por faturamento e perfis salvos de taxas",
-      "Relatórios e exportações avançadas",
-      "Compras, gastos recorrentes e rótulos",
-      "Produtos compostos e kits",
-    ],
-    featured: false,
-    badge: null,
-    ctaLabel: "Começar grátis",
   },
 ];
 
@@ -196,8 +188,12 @@ export const landingFaqs = [
     answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes, anotar o fiado, organizar encomendas, gerar orçamentos em PDF e publicar até ${FREE_CATALOG_MAX_PRODUCTS} produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
   },
   {
-    question: "Posso testar o Essencial antes de assinar?",
-    answer: `Sim. Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do Essencial grátis, sem cartão. É só criar a sua conta e usar.`,
+    question: "Posso testar o Premium antes de assinar?",
+    answer: `Sim. Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do Premium grátis, com tudo liberado e sem cartão. É só criar a sua conta e usar.`,
+  },
+  {
+    question: "Quanto custa o Premium?",
+    answer: `${formatBrl(premiumPrice.monthly)} por mês, ou ${formatBrl(premiumPrice.annual)} por ano, cobrados de uma vez. No anual, sai por ${formatBrl(annualMonthlyEquivalent(premiumPrice.annual))} por mês, uma economia de ${formatBrl(annualSavings(premiumPrice.monthly, premiumPrice.annual))} no ano. Sem fidelidade: cancele quando quiser.`,
   },
   {
     question: "Tem alguma cobrança quando o teste acabar?",
@@ -219,9 +215,9 @@ export const landingFaqs = [
       "Sim. Suas vendas, clientes e fiado ficam salvos na sua conta, na nuvem. No celular novo ou no computador, é só entrar com o mesmo e-mail.",
   },
   {
-    question: "Preciso do Profissional para calcular mão de obra e taxas?",
+    question: "Preciso do Premium para calcular mão de obra e taxas?",
     answer:
-      "Não. Esses valores podem ser informados em todos os planos. O Profissional acrescenta rateio de custos por faturamento e perfis salvos de taxas, além de relatórios, exportações e outras ferramentas de gestão.",
+      "Não. Esses valores podem ser informados em todos os planos. O Premium acrescenta rateio de custos por faturamento e perfis salvos de taxas, além de relatórios completos, exportação em PDF e Excel e outras ferramentas de gestão.",
   },
   {
     question: "Preciso entender de administração para usar?",
@@ -296,8 +292,8 @@ export function LandingPage() {
                 beside={
                   <p className={styles.heroNote}>
                     <Check aria-hidden="true" size={18} />
-                    Grátis para sempre, e {trialDays} dias do Essencial para testar, sem
-                    cartão
+                    Grátis para sempre, e {trialDays} dias do {premiumName} para testar,
+                    sem cartão
                   </p>
                 }
                 trailing={
@@ -463,15 +459,16 @@ export function LandingPage() {
         ) : null}
 
         <section className={styles.pricingSection} id="planos">
-          <h2>Um plano para cada fase do seu negócio.</h2>
+          <h2>Comece grátis. Libere tudo quando precisar.</h2>
           <p className={styles.lede}>
-            Comece grátis e teste o Essencial por {trialDays} dias. Escolha um plano só
-            quando seu negócio precisar de mais.
+            Use o Gratuito pelo tempo que quiser. Quando o negócio pedir mais, o{" "}
+            {premiumName} tira todos os limites.
           </p>
           <PricingPlans plans={plans} />
           <p className={styles.pricingNote}>
-            Toda conta nova ganha {trialDays} dias do Essencial, sem cartão. Depois,
-            continue no Gratuito ou escolha um plano no app. Cancele quando quiser.
+            Toda conta nova ganha {trialDays} dias do {premiumName}, sem cartão. Nada é
+            cobrado no fim do teste: a conta volta para o Gratuito, com seus dados
+            salvos. Se quiser assinar, é no app. Cancele quando quiser.
           </p>
         </section>
 
@@ -564,8 +561,8 @@ export function LandingPage() {
             </h2>
             <p>
               Calcule seu primeiro preço ou registre uma venda no app. Use no navegador ou
-              no Android, com {trialDays} dias do Essencial sem cartão. Depois, continue
-              no Gratuito ou escolha um plano.
+              no Android, com {trialDays} dias do {premiumName} sem cartão. Depois,
+              continue no Gratuito ou assine o {premiumName}.
             </p>
           </div>
           <StartCta

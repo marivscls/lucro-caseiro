@@ -178,14 +178,14 @@ export function CatalogDesktopShareCard({
   );
 }
 
-/** Convite ao Essencial na lateral (sem faixa colorida lateral). */
+/** Convite ao Premium na lateral (sem faixa colorida lateral). */
 export function CatalogDesktopUpsell({ onPress }: Readonly<{ onPress: () => void }>) {
   const { theme } = useTheme();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel="Conhecer o Essencial para mostrar o catálogo completo"
+      accessibilityLabel="Conhecer o Premium para mostrar o catálogo completo"
       style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => ({
         backgroundColor: theme.colors.premiumBg,
         borderRadius: radii.lg,
@@ -204,7 +204,7 @@ export function CatalogDesktopUpsell({ onPress }: Readonly<{ onPress: () => void
           Seu catálogo mostra até {FREE_CATALOG_MAX_PRODUCTS} produtos
         </Typography>
         <Typography variant="desktopMeta" color={theme.colors.text}>
-          Mostre seu catálogo completo e personalize as cores no Essencial.
+          Mostre seu catálogo completo e personalize as cores no Premium.
         </Typography>
       </View>
       <AppIcon name="chevron-forward" size={18} color={theme.colors.textSecondary} />

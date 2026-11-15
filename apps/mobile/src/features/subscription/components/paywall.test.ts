@@ -81,36 +81,34 @@ describe("paywall contextual", () => {
   });
 
   it("keeps the triggering resource visible through the checkout", () => {
-    render(
-      React.createElement(SubscriptionCheckout, { recommendedTier: "professional" }),
-    );
+    render(React.createElement(SubscriptionCheckout, {}));
     const copy = getPaywallCopy("suppliers");
     expect(screen.getByText(copy.title)).toBeTruthy();
     expect(screen.getByText(copy.message)).toBeTruthy();
-    fireEvent.click(screen.getByText("Desbloquear Profissional"));
+    fireEvent.click(screen.getByText("Desbloquear Premium"));
     expect(state.subscribe).toHaveBeenCalledWith("professional", "annual");
   });
 
-  it("lists every essential benefit", () => {
-    render(React.createElement(Paywall, { recommendedTier: "essential" }));
-    for (const benefit of TIER_BENEFITS.essential) {
+  it("lists every Premium benefit", () => {
+    render(React.createElement(Paywall, {}));
+    for (const benefit of TIER_BENEFITS.professional) {
       expect(screen.getByText(benefit)).toBeTruthy();
     }
   });
 
   it("leads with the monthly value and states the yearly charge", () => {
-    render(React.createElement(Paywall, { recommendedTier: "essential" }));
-    expect(screen.getByText("R$ 24,92")).toBeTruthy();
-    expect(screen.getByText("R$ 299,00 cobrados uma vez por ano.")).toBeTruthy();
+    render(React.createElement(Paywall, {}));
+    expect(screen.getByText("R$ 37,42")).toBeTruthy();
+    expect(screen.getByText("R$ 449,00 cobrados uma vez por ano.")).toBeTruthy();
     expect(screen.getByText("Sem fidelidade: cancele quando quiser.")).toBeTruthy();
     fireEvent.click(screen.getByLabelText("Selecionar cobrança mensal"));
-    expect(screen.getByText("R$ 29,90")).toBeTruthy();
+    expect(screen.getByText("R$ 49,90")).toBeTruthy();
     expect(screen.getByText("Cobrado todo mês.")).toBeTruthy();
   });
 
   it("opens the plans comparison when offered", () => {
     const onSeePlans = vi.fn();
-    render(React.createElement(Paywall, { recommendedTier: "essential", onSeePlans }));
+    render(React.createElement(Paywall, { onSeePlans }));
     fireEvent.click(screen.getByText("Comparar planos"));
     expect(onSeePlans).toHaveBeenCalledTimes(1);
   });

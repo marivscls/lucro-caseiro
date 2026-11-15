@@ -46,7 +46,7 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 | `apps/mobile/src/features/labels/components/label-preview.tsx`        | Preview simples da etiqueta                             |
 | `apps/mobile/src/features/labels/components/label-product-picker.tsx` | Busca e selecao do produto                              |
 | `apps/mobile/src/features/labels/components/template-picker.tsx`      | Selecao dos cinco modelos                               |
-| `apps/mobile/src/features/labels/components/label-style-editor.tsx`   | Personalizacao Profissional                             |
+| `apps/mobile/src/features/labels/components/label-style-editor.tsx`   | Personalizacao Premium                                  |
 | `apps/mobile/src/features/labels/components/label-layout-editor.tsx`  | Medidas e quantidade por folha                          |
 | `apps/mobile/src/features/labels/label-export.ts`                     | HTML, PDF, folha com copias e aviso de responsabilidade |
 | `apps/mobile/src/features/labels/qr.ts`                               | QR como SVG                                             |
@@ -139,9 +139,9 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 - `note`: observacao livre opcional.
 - `manufacturingDate` e `expirationDate`: datas opcionais informadas pelo usuario.
 - `producerName` e `producerPhone`: contato opcional.
-- `style`: personalizacao opcional do plano Profissional.
+- `style`: personalizacao opcional do Premium.
 - `layout`: largura/altura em milimetros e quantidade por folha A4; personalizacao opcional do
-  plano Profissional.
+  Premium.
 
 Campos regulatorios antigos continuam aceitos no contrato e preservados no JSON para que
 registros existentes nao quebrem, mas nao aparecem no formulario, preview ou PDF.
@@ -233,3 +233,5 @@ O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A
 ## Imagem selecionada — 2026-10-09
 
 Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.
+
+- 2026-11-15: plano único Premium. O selo de personalização e de medidas virou "Premium" (`PremiumTag` em `label-form-fields.tsx`), e os avisos de bloqueio dizem "Desbloqueie com o Premium." e "Defina medidas e quantidade por folha no Premium.". O acesso segue por `labelsPremium`.

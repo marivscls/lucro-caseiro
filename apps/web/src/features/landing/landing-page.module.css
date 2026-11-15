@@ -618,9 +618,10 @@
 .pricingSection {
   padding-top: 88px;
 }
+/* Dois cartões (Gratuito e Premium) na largura da coluna. */
 .pricingGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 .planCard {

@@ -6,7 +6,7 @@ Levar a pessoa até os recursos pagos no momento em que eles fazem sentido, sem 
 
 1. **Próximo passo** depois de uma ação concluída: um aviso no rodapé com um botão que abre a tela relacionada.
 2. **Prévia das telas pagas**: no lugar do cartão de bloqueio, um exemplo com dados fictícios do que a tela mostra, com o botão para desbloquear.
-3. **Lista do teste grátis** na tela inicial: o que o teste do Essencial libera, com atalhos.
+3. **Lista do teste grátis** na tela inicial: o que o teste do Premium libera, com atalhos.
 
 Motivo (2026-11-14): em 60 dias, 50 pessoas abriram Vendas e 56 a Precificação, mas só 1 abriu Fornecedores, 4 os Relatórios e 5 as Receitas. Nenhuma das 25 contas que ganharam o Profissional de presente assinou depois.
 
@@ -38,7 +38,7 @@ Motivo (2026-11-14): em 60 dias, 50 pessoas abriram Vendas e 56 a Precificação
 ## Components
 
 - `NextStepHost`: cartão no rodapé (acima da barra de abas), com título, texto, botão de ação e botão "Fechar". Some depois de 12 s. Tocar no botão abre a rota e registra `discovery_step_opened`.
-- `PaidPreview({ screen, onUnlock })`: selo "Exemplo", título, linhas de exemplo, aviso "Exemplo com dados fictícios. No plano Profissional, aparecem os seus números." e o botão "Desbloquear no Profissional" (chama `onUnlock`, que abre o paywall da tela). Registra `paid_preview_viewed` uma vez por abertura.
+- `PaidPreview({ screen, onUnlock })`: selo "Exemplo", título, linhas de exemplo, aviso "Exemplo com dados fictícios. No Premium, aparecem os seus números." e o botão "Desbloquear no Premium" (chama `onUnlock`, que abre o paywall da tela). Registra `paid_preview_viewed` uma vez por abertura.
 - `TrialChecklist`: cartão "Aproveite seu teste grátis" com até 3 itens, cada um com estado feito/pendente e atalho. Botão "Dispensar" esconde para sempre nesta conta.
 
 ## Hooks
@@ -79,3 +79,4 @@ Regras puras e um único valor por conta no armazenamento local. Nenhuma requisi
 ## Change log / Decisions
 
 - 2026-11-14: criação. Cada próximo passo aparece no máximo uma vez por conta. A lista do teste só aparece com o teste ativo e mostra o que o Essencial libera (catálogo e receitas ilimitadas) mais a prévia dos relatórios do Profissional. Prévias substituem o cartão de bloqueio no celular de Relatórios, Gastos recorrentes e Compras; as versões de desktop seguem com o cartão atual por enquanto.
+- 2026-11-15: plano único Premium. A lista do teste mostra o que o teste do Premium libera; o item de relatórios virou "Veja seus relatórios completos" (o teste já libera os relatórios). `PaidPreview` diz "No Premium, aparecem os seus números." e o botão é "Desbloquear no Premium".

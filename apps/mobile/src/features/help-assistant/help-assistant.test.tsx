@@ -53,8 +53,7 @@ describe("HelpAssistant", () => {
       target: { value: "quais planos temos disponiveis?" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Perguntar" }));
-    expect(screen.getByText(/Essencial.*29,90\/mês/)).toBeTruthy();
-    expect(screen.getByText(/Profissional.*69,90\/mês/)).toBeTruthy();
+    expect(screen.getByText(/Premium: R\$ 49,90\/mês ou R\$ 449\/ano/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Ver planos" }));
     expect(navigate).toHaveBeenCalledWith("/plans");
   });

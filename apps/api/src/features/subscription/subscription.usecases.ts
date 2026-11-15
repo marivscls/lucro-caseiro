@@ -34,8 +34,8 @@ function isPaidPlan(plan: PlanType): plan is PaidPlan {
 }
 
 function planLabel(plan: PlanType): string {
-  if (plan === "essential") return "Essencial";
-  if (plan === "professional") return "Profissional";
+  // Um plano pago só: os dois níveis do banco aparecem como "Premium".
+  if (isPaidPlan(plan)) return "Premium";
   return plan;
 }
 

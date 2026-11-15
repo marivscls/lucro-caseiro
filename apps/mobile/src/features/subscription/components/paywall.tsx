@@ -8,7 +8,7 @@ import {
   type Theme,
 } from "@lucro-caseiro/ui";
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
-import { PLAN_LABELS } from "@lucro-caseiro/contracts";
+import { PLAN_LABELS, SOLD_PLAN } from "@lucro-caseiro/contracts";
 import React, { useState } from "react";
 import { Image, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,14 +26,13 @@ interface PaywallProps {
   readonly message?: string;
   readonly currentUsage?: string;
   readonly experienceCopy?: BusinessExperienceCopy;
-  readonly recommendedTier?: PaidPlan;
   /** Recurso que abriu o checkout: o benefício dele vem primeiro, destacado. */
   readonly resource?: string | null;
   readonly onSubscribe?: (tier: PaidPlan, period: BillingPeriod) => void;
   readonly onRestore?: () => void;
   readonly loading?: boolean;
   readonly onClose?: () => void;
-  /** Abre a tela de planos para comparar Essencial e Profissional. */
+  /** Abre a tela de planos (Gratuito e Premium, com o uso do Gratuito). */
   readonly onSeePlans?: () => void;
 }
 
@@ -160,7 +159,6 @@ export function Paywall({
   message,
   currentUsage,
   experienceCopy,
-  recommendedTier = "professional",
   resource,
   onSubscribe,
   onRestore,
@@ -171,7 +169,8 @@ export function Paywall({
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
   const compact = width < 520;
-  const tier = recommendedTier;
+  // Um plano pago só: o checkout vende sempre o Premium.
+  const tier = SOLD_PLAN;
   const [period, setPeriod] = useState<BillingPeriod>("annual");
   const [highlightedPeriod, setHighlightedPeriod] = useState<BillingPeriod | null>(null);
   const [closeHighlighted, setCloseHighlighted] = useState(false);
@@ -182,7 +181,6 @@ export function Paywall({
   const price = planPriceDisplay(tier, period);
   const savings = formatMoney(annualSavings(tier));
   const { benefits, highlighted: leadHighlighted } = benefitsLeadingWith(
-    tier,
     experienceCopy ? tierBenefitsFor(tier, experienceCopy) : TIER_BENEFITS[tier],
     resource,
   );
@@ -311,7 +309,7 @@ export function Paywall({
             ]}
           >
             <Typography variant="bodyBold" style={{ marginBottom: spacing.xs }}>
-              {`Incluído no ${PLAN_LABELS[tier]}`}
+              {`Tudo liberado no ${PLAN_LABELS[tier]}`}
             </Typography>
             {benefits.map((benefit, index) => (
               <BenefitRow

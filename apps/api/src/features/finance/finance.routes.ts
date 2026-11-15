@@ -30,8 +30,8 @@ export function createFinanceRouter(
 ): Router {
   const router = Router();
   router.use(authMiddleware);
-  // PDF do resumo mensal é Essencial+ (ADR-0005: feature `exportBasic`). Excel e
-  // relatórios avançados seguem exclusivos do Profissional (`export`). Guards
+  // PDF do resumo mensal vale em todos os planos (ADR-0005: feature `exportBasic`).
+  // Excel e relatórios avançados seguem exclusivos do Premium (`export`). Guards
   // opcionais (testes sem eles).
   const basicGuards = exportBasicGuard ? [exportBasicGuard] : [];
   const guards = exportGuard ? [exportGuard] : [];

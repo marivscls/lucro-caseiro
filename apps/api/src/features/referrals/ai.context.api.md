@@ -94,3 +94,5 @@ db:
 ## Change log / Decisions
 
 - 2026-09-28: criado (aposta 2). Prêmio na 3ª venda para premiar uso real, não cadastro vazio.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). O prêmio continua gravando `essential` por 30 dias, que hoje equivale ao Premium inteiro; teste em `professional` continua `professional`. Só o texto e os comentários mudaram ("30 dias do Premium").

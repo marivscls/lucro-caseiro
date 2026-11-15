@@ -13,7 +13,7 @@ import {
   type ThemeMode,
 } from "@lucro-caseiro/ui";
 import { getActiveBrand } from "@lucro-caseiro/brands";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
+import { hasActiveFeature, isPaidPlan } from "@lucro-caseiro/contracts";
 import { useFonts } from "expo-font";
 import plusJakartaSansExtraBold from "../assets/fonts/PlusJakartaSans-ExtraBold.ttf";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
@@ -62,7 +62,6 @@ import { clearCreateFormDrafts } from "../shared/form-drafts/use-create-form-dra
 import { clearPricingDraft } from "../features/pricing/use-pricing-draft";
 import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
-import { getPaywallRecommendedTier } from "../features/subscription/limit-copy";
 import { activePlan, useProfile } from "../features/subscription/hooks";
 
 const activeBrand = getActiveBrand();
@@ -96,12 +95,7 @@ function AppContent() {
       ? floatingTabBarReserve(mobileTabBarSafeInset(insets.bottom))
       : 0;
   const router = useRouter();
-  const {
-    visible: paywallVisible,
-    hide: hidePaywall,
-    resource: paywallResource,
-    recommendedTier: paywallRecommendedTier,
-  } = usePaywall();
+  const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
   const { data: profile } = useProfile();
   const {
     visible: successVisible,
@@ -114,12 +108,8 @@ function AppContent() {
   const canUsePremiumNotifications =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
-  const requiredPaywallTier =
-    paywallRecommendedTier ?? getPaywallRecommendedTier(paywallResource);
-  const currentPlan = activePlan(profile);
-  const hasRequiredPaywallPlan =
-    currentPlan === "professional" ||
-    (requiredPaywallTier === "essential" && currentPlan === "essential");
+  // Um plano pago só (Premium): qualquer plano pago, inclusive o teste, libera tudo.
+  const hasRequiredPaywallPlan = isPaidPlan(activePlan(profile));
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
@@ -291,7 +281,6 @@ function AppContent() {
           onRequestClose={hidePaywall}
         >
           <SubscriptionCheckout
-            recommendedTier={requiredPaywallTier}
             onClose={hidePaywall}
             onSeePlans={() => {
               hidePaywall();

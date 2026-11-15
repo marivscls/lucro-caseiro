@@ -60,7 +60,7 @@ describe("claimRefusal", () => {
 });
 
 describe("rewardPlan", () => {
-  it("dá 30 dias de Essencial para quem está no grátis", () => {
+  it("dá 30 dias de Premium para quem está no grátis", () => {
     expect(
       rewardPlan({ plan: "free", planExpiresAt: null, planIsTrial: false }, NOW),
     ).toEqual({
@@ -89,7 +89,7 @@ describe("rewardPlan", () => {
     });
   });
 
-  it("mantém o Profissional de quem está no teste do Profissional", () => {
+  it("mantém o nível professional de quem está em teste nele", () => {
     const end = new Date(NOW.getTime() + DAY);
     expect(
       rewardPlan({ plan: "professional", planExpiresAt: end, planIsTrial: true }, NOW)

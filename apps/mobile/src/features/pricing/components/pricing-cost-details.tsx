@@ -405,7 +405,7 @@ export function PricingFees({ draft, update, professional }: DetailsProps) {
         </>
       ) : (
         <Button
-          title="Perfis de taxas · Profissional"
+          title="Perfis de taxas · Premium"
           variant="secondary"
           onPress={() => showPaywall("advancedPricing")}
         />

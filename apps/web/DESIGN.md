@@ -198,7 +198,7 @@ Paleta quente e contida: um vinho profundo como marca, um rose queimado para agi
 
 ### Secondary
 
-- **Lima do Pingo** (lime): o acento de resposta. Destaca a última linha do título do hero ("de cada venda.", com traço desenhado à mão) e do bloco final ("Coloque isso no preço."); também é a seleção de texto, o anel de foco sobre vinho, o hover dos links sobre vinho, o selo de economia do plano anual e o ícone de reprodução do vídeo.
+- **Lima do Pingo** (lime): o acento de resposta. Destaca a última linha do título do hero ("de cada venda.", com traço desenhado à mão) e do bloco final ("Coloque isso no preço."); também é a seleção de texto, o anel de foco sobre vinho, o hover dos links sobre vinho, o selo "Mais vantajoso" do plano anual e o ícone de reprodução do vídeo.
 
 ### Tertiary
 
@@ -253,7 +253,7 @@ Paleta quente e contida: um vinho profundo como marca, um rose queimado para agi
 
 Coluna central `--gutter`: `min(100% − 112px, 1200px)`, estreitando para 64px de margem até 1180px, `min(100% − 40px, 680px)` até 880px e `100% − 32px` até 560px. Faixas de fundo cheio (vinho) vão de borda a borda; o conteúdo dentro delas respeita a mesma coluna.
 
-Seções empilham com respiro de 72–88px no desktop e 56–64px no celular. Composições em duas colunas assimétricas (0,8–1,2fr) colocam o argumento à esquerda e a prova à direita (hero com a ficha, problema, dúvidas); colapsam em uma coluna até 880px. Cartões de plano em três colunas iguais com 16px de vão, nomes, descrições e preços em linhas de base iguais.
+Seções empilham com respiro de 72–88px no desktop e 56–64px no celular. Composições em duas colunas assimétricas (0,8–1,2fr) colocam o argumento à esquerda e a prova à direita (hero com a ficha, problema, dúvidas); colapsam em uma coluna até 880px. Cartões de plano em duas colunas iguais (Gratuito e Premium, desde 2026-11-15) com 16px de vão, nomes, descrições e preços em linhas de base iguais.
 
 A jornada de três passos usa subgrid: cada passo ocupa quatro linhas (número, título, texto, captura) para que tudo se alinhe entre colunas. Abaixo de 900px vira lista vertical com a captura à direita do texto e, abaixo de 560px, a captura desce para baixo do texto.
 

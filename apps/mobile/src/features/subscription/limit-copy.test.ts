@@ -1,32 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  getBannerCopy,
-  getLimitResourceLabel,
-  getPaywallCopy,
-  getPaywallRecommendedTier,
-} from "./limit-copy";
+import { getBannerCopy, getLimitResourceLabel, getPaywallCopy } from "./limit-copy";
 import { businessCopyFor } from "./business-copy";
 
-describe("paywall recommended tier", () => {
-  it("routes volume and catalog upgrades to essential", () => {
+describe("paywall copy points to the single paid plan", () => {
+  it("never names the old Essencial or Profissional plans", () => {
     const resources = [
       "sales",
       "clients",
       "products",
       "recipes",
       "packaging",
+      "suppliers",
       "catalog",
       "productPhotos",
-    ];
-
-    for (const resource of resources) {
-      expect(getPaywallRecommendedTier(resource)).toBe("essential");
-    }
-  });
-
-  it("routes professional features to professional", () => {
-    const resources = [
       "reports",
       "advancedPricing",
       "export",
@@ -37,11 +24,11 @@ describe("paywall recommended tier", () => {
       "birthdays",
       "notifications",
       "prioritySupport",
-      "suppliers",
     ];
 
     for (const resource of resources) {
-      expect(getPaywallRecommendedTier(resource)).toBe("professional");
+      const copy = getPaywallCopy(resource);
+      expect(`${copy.title} ${copy.message}`).not.toMatch(/Essencial|Profissional/);
     }
   });
 });
@@ -52,7 +39,7 @@ describe("contextual limit copy", () => {
 
     expect(getBannerCopy("recipes", 1, copy)).toEqual({
       title: "📋 Falta apenas 1 ficha do serviço",
-      body: "Assine o Essencial e crie fichas de serviço sem limite.",
+      body: "Assine o Premium e crie fichas de serviço sem limite.",
     });
     expect(getPaywallCopy("recipes", copy).message).toContain("fichas de serviço");
     expect(getPaywallCopy("recipes", copy).title).not.toContain("🧁");

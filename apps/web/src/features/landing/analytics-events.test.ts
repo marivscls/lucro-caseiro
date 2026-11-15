@@ -36,9 +36,9 @@ describe("landing funnel", () => {
       event: "start_web",
       placement: "calculator_result",
     });
-    expect(describeCta("play_store_plan_essencial")).toEqual({
+    expect(describeCta("play_store_plan_premium")).toEqual({
       event: "start_android",
-      placement: "plan_essencial",
+      placement: "plan_premium",
     });
     expect(describeCta("calculator_from_hero")).toEqual({
       event: "calculator_from_hero",

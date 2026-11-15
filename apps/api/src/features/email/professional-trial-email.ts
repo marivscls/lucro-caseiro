@@ -20,12 +20,11 @@ export function buildProfessionalTrialEmail(): {
   const background = theme.background ?? "#FAFAF8";
 
   return {
-    subject:
-      "Um presente para o seu neg\u00f3cio: 1 m\u00eas de Profissional \ud83c\udf81",
+    subject: "Um presente para o seu neg\u00f3cio: 1 m\u00eas de Premium \ud83c\udf81",
     text: [
       "Oi!",
       "",
-      "Temos uma \u00f3tima not\u00edcia: sua conta ganhou 1 m\u00eas gr\u00e1tis do plano Profissional do Lucro Caseiro.",
+      "Temos uma \u00f3tima not\u00edcia: sua conta ganhou 1 m\u00eas gr\u00e1tis do plano Premium do Lucro Caseiro.",
       "",
       "Durante esse per\u00edodo, voc\u00ea ter\u00e1 acesso a todos os recursos avan\u00e7ados para organizar seu neg\u00f3cio, acompanhar seus resultados e ganhar tempo na rotina, incluindo:",
       "- relat\u00f3rios avan\u00e7ados e exporta\u00e7\u00f5es;",
@@ -33,7 +32,7 @@ export function buildProfessionalTrialEmail(): {
       "- gest\u00e3o de produtos, clientes e pedidos;",
       "- suporte priorit\u00e1rio.",
       "",
-      "Esse presente n\u00e3o gera cobran\u00e7a autom\u00e1tica. Quando o per\u00edodo terminar, voc\u00ea poder\u00e1 escolher se quer continuar no Profissional.",
+      "Esse presente n\u00e3o gera cobran\u00e7a autom\u00e1tica. Quando o per\u00edodo terminar, voc\u00ea poder\u00e1 escolher se quer continuar no Premium.",
       "",
       "Abra o aplicativo Lucro Caseiro no seu celular para explorar seu plano.",
       "",
@@ -49,7 +48,7 @@ export function buildProfessionalTrialEmail(): {
           <meta name="viewport" content="width=device-width, initial-scale=1">
           <meta name="color-scheme" content="light only">
           <meta name="supported-color-schemes" content="light only">
-          <title>Voc&ecirc; ganhou 1 m&ecirc;s de Profissional gr&aacute;tis</title>
+          <title>Voc&ecirc; ganhou 1 m&ecirc;s de Premium gr&aacute;tis</title>
           <style>
             @media screen and (max-width: 680px) {
               .email-wrap { padding: 0 !important; }
@@ -104,9 +103,9 @@ export function buildProfessionalTrialEmail(): {
                                 <td bgcolor="${primarySoft}" style="background-color:${primarySoft};background-image:linear-gradient(${primarySoft},${primarySoft});border-radius:999px;padding:7px 14px;color:${primary};font-size:13px;font-weight:700;letter-spacing:.04em"><img src="${PROFESSIONAL_TRIAL_BADGE_GIFT_URL}" width="24" height="24" alt="" style="display:inline-block;width:24px;height:24px;margin:0 7px 0 0;border:0;vertical-align:middle">1 M&Ecirc;S GR&Aacute;TIS</td>
                               </tr>
                             </table>
-                            <h2 style="margin:26px 0 0;color:#292d38;font-size:36px;line-height:1.12;font-weight:700">Voc&ecirc; ganhou<br>o plano <span style="color:${primary}">Profissional!</span></h2>
+                            <h2 style="margin:26px 0 0;color:#292d38;font-size:36px;line-height:1.12;font-weight:700">Voc&ecirc; ganhou<br>o plano <span style="color:${primary}">Premium!</span></h2>
                             <p style="margin:24px 0 0;color:#292d38;font-size:17px;line-height:1.55">Oi!</p>
-                            <p style="margin:17px 0 0;color:#292d38;font-size:17px;line-height:1.55">Temos uma &oacute;tima not&iacute;cia: sua conta ganhou <strong style="color:${primary}">1 m&ecirc;s gr&aacute;tis</strong> do plano <strong style="color:${primary}">Profissional</strong> do Lucro Caseiro.</p>
+                            <p style="margin:17px 0 0;color:#292d38;font-size:17px;line-height:1.55">Temos uma &oacute;tima not&iacute;cia: sua conta ganhou <strong style="color:${primary}">1 m&ecirc;s gr&aacute;tis</strong> do plano <strong style="color:${primary}">Premium</strong> do Lucro Caseiro.</p>
                             <p style="margin:17px 0 0;color:#292d38;font-size:17px;line-height:1.55">Durante esse per&iacute;odo, voc&ecirc; ter&aacute; acesso a todos os recursos avan&ccedil;ados para organizar seu neg&oacute;cio, acompanhar seus resultados e ganhar tempo na rotina.</p>
                             <p style="margin:21px 0 0;width:56px;height:3px;background-color:${primary};border-radius:3px;font-size:1px;line-height:1px">&nbsp;</p>
                           </td>
@@ -125,7 +124,7 @@ export function buildProfessionalTrialEmail(): {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                               <tr>
                                 <td width="58" valign="middle" style="width:58px;text-align:center"><img src="${PROFESSIONAL_TRIAL_STAR_URL}" width="46" height="46" alt="" style="display:block;width:46px;height:46px;margin:0 auto;border:0"></td>
-                                <td valign="middle" style="padding:0 8px;color:${primary};font-size:15px;font-weight:700">Tudo do Profissional:</td>
+                                <td valign="middle" style="padding:0 8px;color:${primary};font-size:15px;font-weight:700">Tudo do Premium:</td>
                               </tr>
                             </table>
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:10px">

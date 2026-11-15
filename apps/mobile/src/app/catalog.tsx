@@ -1310,7 +1310,7 @@ function CatalogForm({
     try {
       return await update.mutateAsync(data);
     } catch (err) {
-      // Personalização é do Essencial: LIMIT_EXCEEDED abre o paywall correto.
+      // Personalização é do Premium: LIMIT_EXCEEDED abre o paywall correto.
       if (err instanceof ApiError && err.code === "LIMIT_EXCEEDED") {
         showPaywall("catalog", "essential");
         return null;
@@ -1441,7 +1441,7 @@ function CatalogForm({
                     Seu catálogo mostra até {FREE_CATALOG_MAX_PRODUCTS} produtos
                   </Typography>
                   <Typography variant="caption">
-                    Mostre seu catálogo completo e personalize as cores no Essencial.
+                    Mostre seu catálogo completo e personalize as cores no Premium.
                   </Typography>
                 </View>
                 <AppIcon

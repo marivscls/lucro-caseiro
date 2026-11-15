@@ -177,3 +177,5 @@ GET /api/v1/labels/templates
 - 2026-07-20: `data.layout` adiciona largura, altura e quantidade por folha sem migration, pois
   `data` e JSONB. O contrato calcula a capacidade A4 considerando margens e espacamento; os use
   cases aplicam o mesmo gate Profissional usado pelo estilo e `toSimpleLabelData` preserva o layout.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). Mensagem de bloqueio da personalização da etiqueta passa a citar o plano Premium (antes Profissional). `labelsPremium` vale nos dois níveis pagos.

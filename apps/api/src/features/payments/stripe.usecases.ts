@@ -1,5 +1,7 @@
 import type Stripe from "stripe";
 
+import { SOLD_PLAN } from "@lucro-caseiro/contracts";
+
 import type { SubscriptionUseCases } from "../subscription/subscription.usecases";
 import type { CheckoutUrlInput } from "./payments.types";
 import {
@@ -25,11 +27,17 @@ export class StripeUseCases {
     private cfg: StripePaymentsConfig,
   ) {}
 
-  async createCheckoutUrl({ userId, tier, period }: CheckoutUrlInput): Promise<string> {
+  /**
+   * Um plano pago só (2026-11-15): o body ainda aceita `tier` (essential ou
+   * professional) por compatibilidade, mas o checkout sempre vende o `SOLD_PLAN`
+   * (Premium). O preço essential antigo do Stripe nunca é vendido de novo.
+   */
+  async createCheckoutUrl({ userId, period }: CheckoutUrlInput): Promise<string> {
     if (!this.stripe) {
       throw new Error("Stripe não configurado");
     }
 
+    const tier = SOLD_PLAN;
     const priceId = selectStripePriceId(tier, period, this.cfg.prices);
 
     if (!priceId) {
@@ -105,7 +113,7 @@ export class StripeUseCases {
     const change = deriveStripePremiumStateChange(stripeSubscription);
 
     if (change.action === "activate") {
-      // Sem tier inferível (ex.: assinatura Premium legada) → Profissional.
+      // Sem tier inferível (ex.: assinatura legada) → professional (o Premium vendido).
       const tier =
         resolveStripePlanTier(stripeSubscription, this.cfg.prices) ?? "professional";
       await this.subscription.activatePlan(userId, tier, change.expiresAt);

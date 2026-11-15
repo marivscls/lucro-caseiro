@@ -12,7 +12,7 @@ const AndroidPurchaseDto = z.object({
     "lucrocaseiro_essential_annual",
     "lucrocaseiro_professional_monthly",
     "lucrocaseiro_professional_annual",
-    // SKUs legados do Premium antigo (assinantes migram para Profissional).
+    // SKUs legados do Premium antigo (gravados como professional, o Premium atual).
     "lucrocaseiro_premium_monthly",
     "lucrocaseiro_premium_annual",
   ]),

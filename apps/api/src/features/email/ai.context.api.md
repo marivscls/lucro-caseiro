@@ -105,3 +105,5 @@ The current flow performs one synchronous HTTPS request. Queueing and batching a
 - 2026-08-06: chose the existing Resend account, native `fetch` over a new dependency, the already verified `lucrocaseiro.com.br` domain in São Paulo, and a dedicated sending key for the API.
 - 2026-08-23: stopped granting 1 month of Professional on signup. Campaign email remains only for existing unsent grants.
 - 2026-09-09: added durable opt-in welcome automation for future confirmed signups, using the approved step-by-step design, business-specific instructions, native-app CTA and email support. Provider idempotency reference: https://resend.com/docs/dashboard/emails/idempotency-keys.
+
+- 2026-11-15: um plano pago só (Premium, R$ 49,90/mês ou R$ 449/ano). Boas-vindas, lembretes do teste ("teste do Premium"), e-mail de assinatura (`PLAN_NAMES` = "Premium" para `essential` e `professional`) e o e-mail da campanha antiga de 1 mês trocam Essencial/Profissional por Premium. Os fatos de cada texto (sem cartão, sem cobrança automática, dados salvos) seguem iguais.

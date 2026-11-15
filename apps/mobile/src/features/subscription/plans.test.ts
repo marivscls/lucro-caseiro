@@ -94,7 +94,7 @@ describe("plans loading", () => {
   it("shows placeholders instead of a free plan while the profile loads", () => {
     render(React.createElement(PlansScreen));
     expect(screen.getAllByText("Carregando").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Escolha seu plano")).toBeNull();
+    expect(screen.queryByText("Assine o Premium")).toBeNull();
   });
 
   it("waits for free account usage and then renders the comparison", () => {
@@ -105,7 +105,7 @@ describe("plans loading", () => {
     state.limitsLoading = false;
     view.rerender(React.createElement(PlansScreen));
     expect(screen.queryByText("Carregando")).toBeNull();
-    expect(screen.getByText("Escolha seu plano")).toBeTruthy();
+    expect(screen.getByText("Assine o Premium")).toBeTruthy();
   });
 
   it("does not block a paid plan on the unused free usage query", () => {
@@ -148,34 +148,24 @@ vi.mock("react-native", () => ({
 
 describe("single-page checkout", () => {
   it.each(["web", "ios", "android"])(
-    "sends every plan and period directly to payment on %s",
+    "sends the Premium plan in both periods directly to payment on %s",
     (platform) => {
       state.profileLoading = false;
       state.platform = platform;
       render(React.createElement(PlansScreen));
       const payment = platform === "android" ? state.subscribe : state.checkout;
       expect(payment).not.toHaveBeenCalled();
-      // Abre no anual, com o valor do ano por extenso.
-      expect(screen.getByText("R$ 299,00 cobrados uma vez por ano.")).toBeTruthy();
-      // Os dois planos mudam juntos de período e comparam o valor por mês.
-      expect(screen.getByText("R$ 24,92")).toBeTruthy();
-      expect(screen.getByText("R$ 58,25")).toBeTruthy();
-      expect(screen.getByText("R$ 699,00 cobrados uma vez por ano")).toBeTruthy();
-      fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-      expect(payment).toHaveBeenLastCalledWith("essential", "annual");
-      fireEvent.click(screen.getByRole("button", { name: "Mensal" }));
-      expect(screen.getByText("R$ 29,90 cobrados a cada mês.")).toBeTruthy();
-      fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-      expect(payment).toHaveBeenLastCalledWith("essential", "monthly");
-      fireEvent.click(screen.getByRole("button", { name: "Anual" }));
-      fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
-      expect(screen.getByText("R$ 699,00 cobrados uma vez por ano.")).toBeTruthy();
+      // Um plano só, aberto no anual: valor por mês em destaque e o ano por extenso.
+      expect(screen.queryByRole("button", { name: /Ver plano/ })).toBeNull();
+      expect(screen.getByText("R$ 37,42")).toBeTruthy();
+      expect(screen.getByText("R$ 449,00 cobrados uma vez por ano.")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(payment).toHaveBeenLastCalledWith("professional", "annual");
       fireEvent.click(screen.getByRole("button", { name: "Mensal" }));
+      expect(screen.getByText("R$ 49,90 cobrados a cada mês.")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(payment).toHaveBeenLastCalledWith("professional", "monthly");
-      expect(payment).toHaveBeenCalledTimes(4);
+      expect(payment).toHaveBeenCalledTimes(2);
       expect(state.showPaywall).not.toHaveBeenCalled();
       expect(
         platform === "android" ? state.checkout : state.subscribe,
@@ -183,32 +173,31 @@ describe("single-page checkout", () => {
     },
   );
 
-  it("allows upgrading an Essential subscription without repurchasing the current plan", () => {
-    state.profileLoading = false;
-    state.plan = "essential";
-    render(React.createElement(PlansScreen));
-    expect(screen.getByText("Plano ativo")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Continuar para pagamento" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Anual" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
-    fireEvent.click(screen.getByRole("button", { name: "Anual" }));
-    fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-    expect(state.checkout).toHaveBeenCalledWith("professional", "annual");
-  });
+  it.each(["essential", "professional"])(
+    "treats a paying %s account as Premium with nothing left to buy",
+    (plan) => {
+      state.profileLoading = false;
+      state.plan = plan;
+      render(React.createElement(PlansScreen));
+      expect(screen.getByText("Sua assinatura")).toBeTruthy();
+      expect(screen.getByText("Plano ativo")).toBeTruthy();
+      expect(
+        screen.queryByRole("button", { name: "Continuar para pagamento" }),
+      ).toBeNull();
+      expect(screen.queryByRole("button", { name: "Anual" })).toBeNull();
+    },
+  );
 
-  it("lets a trial account buy Essencial or Profissional and says when the trial ends", () => {
+  it("lets a trial account buy Premium and says when the trial ends", () => {
     state.profileLoading = false;
     state.plan = "essential";
     state.trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
     render(React.createElement(PlansScreen));
-    expect(screen.getByText("Escolha seu plano")).toBeTruthy();
-    expect(screen.getByText(/^Seu teste do Essencial termina/)).toBeTruthy();
+    expect(screen.getByText("Assine o Premium")).toBeTruthy();
+    expect(screen.getByText(/^Seu teste do Premium termina/)).toBeTruthy();
     expect(screen.queryByText(/Sua assinatura vence/)).toBeNull();
     expect(screen.queryByText("Plano ativo")).toBeNull();
     expect(screen.queryByRole("button", { name: "Cancelar assinatura" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-    expect(state.checkout).toHaveBeenLastCalledWith("essential", "annual");
-    fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
     fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
     expect(state.checkout).toHaveBeenLastCalledWith("professional", "annual");
   });
@@ -223,7 +212,6 @@ describe("single-page checkout", () => {
       state.subscriptionLoading = platform === "android";
       view.rerender(React.createElement(PlansScreen));
       fireEvent.click(screen.getByRole("button", { name: "Abrindo pagamento..." }));
-      fireEvent.click(screen.getByRole("button", { name: "Ver plano Profissional" }));
       fireEvent.click(screen.getByRole("button", { name: "Mensal" }));
       expect(state.checkout).not.toHaveBeenCalled();
       expect(state.subscribe).not.toHaveBeenCalled();
@@ -233,7 +221,7 @@ describe("single-page checkout", () => {
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(
         platform === "android" ? state.subscribe : state.checkout,
-      ).toHaveBeenCalledWith("essential", "annual");
+      ).toHaveBeenCalledWith("professional", "annual");
     },
   );
 });
@@ -250,7 +238,7 @@ describe("welcome plans after signup", () => {
     state.trialExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
     const onContinue = renderWelcome();
     expect(screen.getByText("Seu teste grátis começou")).toBeTruthy();
-    expect(screen.queryByText(/^Seu teste do Essencial termina/)).toBeNull();
+    expect(screen.queryByText(/^Seu teste do Premium termina/)).toBeNull();
     expect(screen.getByRole("button", { name: "Continuar para pagamento" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Continuar com o teste grátis" }));
     expect(onContinue).toHaveBeenCalledTimes(1);
@@ -260,7 +248,7 @@ describe("welcome plans after signup", () => {
   it("lets a free account continue on the free plan", () => {
     state.profileLoading = false;
     const onContinue = renderWelcome();
-    expect(screen.getByText("Conheça os planos")).toBeTruthy();
+    expect(screen.getByText("Conheça o Premium")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Continuar no plano Gratuito" }));
     expect(onContinue).toHaveBeenCalledTimes(1);
   });

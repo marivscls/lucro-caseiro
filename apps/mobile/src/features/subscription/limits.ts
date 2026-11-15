@@ -3,9 +3,8 @@ import { planLimit, resolveActivePlan } from "@lucro-caseiro/contracts";
 
 import type { LimitResource } from "./limit-copy";
 
-// Um recurso é ilimitado no plano ativo (ex.: vendas no Essencial)? Deriva do
+// Um recurso é ilimitado no plano ativo (ex.: tudo no Premium)? Deriva do
 // próprio plano — reflete a compra na hora, sem esperar o refetch de /limits.
-// Fornecedores no Essencial NÃO são ilimitados (teto 3), então usa o payload.
 function resourceUnlimited(
   profile: UserProfile | null | undefined,
   resource: LimitResource,
