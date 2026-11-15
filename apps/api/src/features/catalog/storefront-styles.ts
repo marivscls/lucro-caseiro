@@ -248,6 +248,9 @@ dialog textarea{min-height:84px;resize:vertical}
 .order-action:focus-visible .order-chip{outline:3px solid color-mix(in srgb,var(--storefront-action) 45%,white);outline-offset:2px}
 .highlight-card .order-chip{display:none}
 .order-action .order-chip{margin-top:auto}
+.item-initial{display:grid;place-items:center;background:linear-gradient(160deg,color-mix(in srgb,var(--storefront-action) 14%,white),color-mix(in srgb,var(--storefront-action) 26%,white))}
+.item-initial span{font-family:var(--font);font-size:clamp(2.6rem,9vw,3.4rem);font-weight:800;line-height:1;color:color-mix(in srgb,var(--storefront-action) 78%,black);opacity:.85}
+.product-card.no-photo .item-body{padding-top:16px}
 .card-hit.order-action{width:100%;box-sizing:border-box;font:inherit}
 .highlight-card .item-image.is-placeholder{aspect-ratio:16/10;height:auto}
 .highlight-card .item-image{flex:none}

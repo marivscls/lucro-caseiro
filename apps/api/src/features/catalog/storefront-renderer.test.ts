@@ -677,3 +677,57 @@ describe("scripts da vitrine", () => {
     for (const code of scripts) expect(() => new Function(code)).not.toThrow();
   });
 });
+
+describe("produtos sem foto e destaques automáticos", () => {
+  const base = customization();
+  const noFeatured = {
+    ...base,
+    hero: { ...base.hero, featuredItems: [] },
+  };
+  const product = (id: string, name: string, photoUrl: string | null) => ({
+    id,
+    name,
+    category: "Doces",
+    description: null,
+    photoUrl,
+    extraPhotos: [],
+    salePrice: 10,
+    saleUnit: "unit",
+    variations: [],
+  });
+
+  it("deixa o cartão compacto quando nenhum produto tem foto", () => {
+    const html = renderPublishedStorefrontHtml({
+      ...catalog(noFeatured),
+      products: [product("11111111-1111-1111-1111-111111111111", "Bolo", null)],
+    });
+    expect(html).toContain("product-card no-photo");
+    expect(html).not.toContain('class="item-image item-initial"');
+  });
+
+  it("mostra a inicial do nome quando a loja mistura fotos", () => {
+    const html = renderPublishedStorefrontHtml({
+      ...catalog(noFeatured),
+      products: [
+        product("11111111-1111-1111-1111-111111111111", "Bolo", "https://x.test/a.jpg"),
+        product("22222222-2222-2222-2222-222222222222", "cookie", null),
+      ],
+    });
+    expect(html).toContain(
+      '<div class="item-image item-initial" aria-hidden="true"><span>C</span></div>',
+    );
+    expect(html).not.toContain("product-card no-photo");
+  });
+
+  it("não repete a lista em destaques automáticos com poucos produtos", () => {
+    const html = renderPublishedStorefrontHtml({
+      ...catalog(noFeatured),
+      services: [],
+      products: [
+        product("11111111-1111-1111-1111-111111111111", "Bolo", "https://x.test/a.jpg"),
+        product("22222222-2222-2222-2222-222222222222", "Torta", "https://x.test/b.jpg"),
+      ],
+    });
+    expect(html).not.toContain('id="highlights-title"');
+  });
+});

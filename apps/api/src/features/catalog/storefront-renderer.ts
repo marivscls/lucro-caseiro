@@ -13,6 +13,9 @@ import { storefrontStyles } from "./storefront-styles";
 
 type ItemKind = "product" | "service";
 
+// Até esse número de itens a lista já mostra tudo; destaque automático só repetiria.
+const AUTO_HIGHLIGHT_MIN_ITEMS = 4;
+
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const CANONICAL_ORIGIN = "https://catalogo.lucrocaseiro.com.br";
 
@@ -575,6 +578,12 @@ export function isProductOrderAction(action: CatalogItemAction): boolean {
   return action.type === "contact" && action.channel !== "external";
 }
 
+/** Sem foto numa loja com fotos: a inicial do nome em destaque, no lugar da imagem. */
+function initialVisual(name: string): string {
+  const initial = [...name.trim()][0]?.toLocaleUpperCase("pt-BR") ?? "";
+  return `<div class="item-image item-initial" aria-hidden="true"><span>${escapeHtml(initial)}</span></div>`;
+}
+
 function placeholderVisual(kind: ItemKind): string {
   return `<div class="item-image item-placeholder is-placeholder" aria-hidden="true"><span class="item-placeholder-mark">${icon(kind === "service" ? "calendar" : "store")}</span></div>`;
 }
@@ -628,11 +637,16 @@ function productCard(
   product: PublicCatalogProduct,
   index: number,
   hidden = false,
+  compact = false,
 ): string {
   const visibleName = displayCatalogName(product.name);
+  // Sem foto: na loja sem nenhuma foto o cartão fica compacto (só texto);
+  // misturado com fotos, mostra a inicial do nome para a linha não desalinhar.
   const image = product.photoUrl
     ? `<div class="item-image"><img src="${escapeHtml(product.photoUrl)}" alt="" width="720" height="540" ${index < 4 ? 'loading="eager"' : 'loading="lazy"'}></div>`
-    : placeholderVisual("product");
+    : compact
+      ? ""
+      : initialVisual(visibleName);
   const description =
     customization.organization.cards.showDetails && product.description
       ? `<p class="item-description" data-detail-copy>${escapeHtml(product.description)}</p>`
@@ -661,7 +675,7 @@ function productCard(
       : "",
   });
   const inner = `${image}<div class="item-body">${category}<h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(product.salePrice, customization, prefix)}${availability}</div>`;
-  return `<article class="storefront-card product-card${hidden ? " is-hidden" : ""}" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${product.salePrice}" data-order="${index}" ${hidden ? "hidden " : ""}${details}>${itemHit(catalog, customization, "product", product, inner)}</article>`;
+  return `<article class="storefront-card product-card${!product.photoUrl && compact ? " no-photo" : ""}${hidden ? " is-hidden" : ""}" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${product.salePrice}" data-order="${index}" ${hidden ? "hidden " : ""}${details}>${itemHit(catalog, customization, "product", product, inner)}</article>`;
 }
 
 function serviceCard(
@@ -721,11 +735,16 @@ function highlightCards(
   const featuredProducts = featuredIds
     .map((id) => products.find((item) => item.id === id))
     .filter((item): item is PublicCatalogProduct => Boolean(item));
-  const highlightProducts = (featuredProducts.length ? featuredProducts : products).slice(
-    0,
-    6,
-  );
-  const highlightServices = services.slice(0, 4);
+  // Sem destaques escolhidos, a faixa automática só aparece quando acrescenta algo:
+  // mais itens do que a lista mostra de cara e fotos para chamar atenção.
+  const withPhoto = products.filter((product) => product.photoUrl);
+  const autoProducts =
+    products.length > AUTO_HIGHLIGHT_MIN_ITEMS && withPhoto.length >= 2 ? withPhoto : [];
+  const highlightProducts = (
+    featuredProducts.length ? featuredProducts : autoProducts
+  ).slice(0, 6);
+  const highlightServices =
+    services.length > AUTO_HIGHLIGHT_MIN_ITEMS ? services.slice(0, 4) : [];
   if (!highlightProducts.length && !highlightServices.length) return "";
   const productCards = highlightProducts
     .map((product, index) => {
@@ -911,9 +930,18 @@ export function renderPublishedStorefrontHtml(
   const imageMeta = image
     ? `<meta property="og:image" content="${escapeHtml(image)}"><meta name="twitter:card" content="summary_large_image">`
     : '<meta name="twitter:card" content="summary">';
+  // Loja sem nenhuma foto: cartões só de texto, mais curtos e fáceis de ler.
+  const compactProducts = products.every((product) => !product.photoUrl);
   const cards = [
     ...products.map((item, index) =>
-      productCard(catalog, customization, item, index, initialType !== "products"),
+      productCard(
+        catalog,
+        customization,
+        item,
+        index,
+        initialType !== "products",
+        compactProducts,
+      ),
     ),
     ...services.map((item, index) =>
       serviceCard(catalog, customization, item, index, initialType !== "services"),
