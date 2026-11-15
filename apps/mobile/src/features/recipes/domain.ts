@@ -27,6 +27,22 @@ export function formatRecipeQuantity(value: number): string {
   return safe.toString().replace(".", ",");
 }
 
+/**
+ * Frase que confirma a linha em palavras ("200 g de Farinha de trigo = R$ 1,20"),
+ * para a pessoa perceber na hora uma unidade errada. `null` sem quantidade válida.
+ */
+export function recipeLineSummary(
+  quantity: string,
+  unit: string,
+  materialName: string,
+  costLabel: string,
+): string | null {
+  const typed = quantity.trim();
+  const qty = parseFloat(typed.replace(",", "."));
+  if (!typed || Number.isNaN(qty) || qty <= 0) return null;
+  return `${typed} ${unit.trim()} de ${materialName} = ${costLabel}`;
+}
+
 export function recipeCountLabel(
   count: number,
   singular: string,

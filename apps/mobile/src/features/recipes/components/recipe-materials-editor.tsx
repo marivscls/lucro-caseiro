@@ -2,6 +2,10 @@ import { MaterialForm } from "../../materials/components/material-form";
 import { guidanceEvent } from "../../../shared/guidance/guidance-events";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
+import {
+  materialCostPerLineUnit,
+  materialLineUnitOptions,
+} from "@lucro-caseiro/contracts";
 import type { Material } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -9,7 +13,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import {
-  ChoiceField,
+  ChipChoiceField,
   FormField,
   SelectField,
   TextField,
@@ -22,6 +26,7 @@ import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-av
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useMaterials } from "../../materials/hooks";
 import { useBusinessCopy } from "../../subscription/business-copy";
+import { recipeLineSummary } from "../domain";
 
 export interface RecipeLine {
   materialId: string;
@@ -33,37 +38,6 @@ export function emptyLine(): RecipeLine {
   return { materialId: "", quantity: "", unit: "" };
 }
 
-/**
- * #14: custo efetivo por unidade da linha. Se o insumo declara conteudo por unidade
- * (ex.: 1 lata = 350 ml) e a linha usa essa unidade de conteudo, converte o custo.
- * Caso contrario, usa o custo por unidade do insumo (comportamento original).
- */
-function effectiveCostPerUnit(material: Material, lineUnit: string): number {
-  const base = material.costPerUnit ?? 0;
-  if (
-    material.contentPerUnit != null &&
-    material.contentPerUnit > 0 &&
-    material.contentUnit != null &&
-    material.contentUnit.trim().toLowerCase() === lineUnit.trim().toLowerCase()
-  ) {
-    return base / material.contentPerUnit;
-  }
-  return base;
-}
-
-/** Unidades disponiveis para uma linha: a propria do insumo + a de conteudo (se houver). */
-function unitOptions(material: Material): string[] {
-  const opts = [material.unit];
-  if (
-    material.contentUnit &&
-    material.contentUnit.trim() &&
-    material.contentUnit.trim().toLowerCase() !== material.unit.trim().toLowerCase()
-  ) {
-    opts.push(material.contentUnit.trim());
-  }
-  return opts;
-}
-
 function lineCost(
   material: Material | undefined,
   quantity: string,
@@ -72,7 +46,17 @@ function lineCost(
   if (!material) return 0;
   const qty = parseFloat(quantity.replace(",", "."));
   if (Number.isNaN(qty)) return 0;
-  return effectiveCostPerUnit(material, unit) * qty;
+  return (
+    materialCostPerLineUnit(
+      {
+        unit: material.unit,
+        costPerUnit: material.costPerUnit ?? 0,
+        contentPerUnit: material.contentPerUnit,
+        contentUnit: material.contentUnit,
+      },
+      unit,
+    ) * qty
+  );
 }
 
 /** Editor das linhas de insumo de uma receita: seleciona insumo, quantidade e mostra custo. */
@@ -222,11 +206,19 @@ export function RecipeMaterialsEditor({
         {lines.map((line, index) => {
           const material = byId.get(line.materialId);
           const cost = lineCost(material, line.quantity, line.unit);
-          const units = material ? unitOptions(material) : [];
+          const units = material ? materialLineUnitOptions(material) : [];
           const activeUnit =
             units.find(
               (u) => u.trim().toLowerCase() === line.unit.trim().toLowerCase(),
             ) ?? line.unit;
+          const summary = material
+            ? recipeLineSummary(
+                line.quantity,
+                activeUnit,
+                material.name,
+                formatMoney(cost),
+              )
+            : null;
           return (
             <View
               key={index}
@@ -298,28 +290,41 @@ export function RecipeMaterialsEditor({
                     }
                   />
                 </FormField>
-                <FormField label="Quantidade">
-                  <TextField
-                    accessibilityLabel="Quantidade"
-                    placeholder="Ex: 2"
-                    suffix={material ? line.unit || material.unit : undefined}
-                    value={line.quantity}
-                    onChangeText={(v) => updateLine(index, { quantity: v })}
-                    keyboardType="decimal-pad"
-                    numericMode="decimal"
-                  />
-                </FormField>
-                {units.length > 1 ? (
-                  <FormField label="Usar em" span="full">
-                    <ChoiceField
-                      value={activeUnit}
-                      accessibilityLabel="Usar em"
-                      options={units.map((u) => ({ value: u, label: u }))}
-                      onChange={(u) => updateLine(index, { unit: u })}
+                <FormField label="Quanto você usa?">
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <TextField
+                      accessibilityLabel="Quantidade"
+                      placeholder="Ex: 2"
+                      suffix={material && units.length <= 1 ? activeUnit : undefined}
+                      value={line.quantity}
+                      onChangeText={(v) => updateLine(index, { quantity: v })}
+                      keyboardType="decimal-pad"
+                      numericMode="decimal"
+                      containerStyle={{ flexGrow: 1, flexBasis: 120 }}
                     />
-                  </FormField>
-                ) : null}
+                    {units.length > 1 ? (
+                      <ChipChoiceField
+                        value={activeUnit}
+                        accessibilityLabel="Unidade da quantidade"
+                        options={units.map((u) => ({ value: u, label: u }))}
+                        onChange={(u) => updateLine(index, { unit: u })}
+                      />
+                    ) : null}
+                  </View>
+                </FormField>
               </FormGrid>
+              {summary ? (
+                <Typography variant="body" color={theme.colors.textSecondary}>
+                  {summary}
+                </Typography>
+              ) : null}
             </View>
           );
         })}

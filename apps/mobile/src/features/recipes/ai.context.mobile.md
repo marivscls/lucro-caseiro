@@ -227,3 +227,14 @@ O cadastro novo guarda campos editáveis e etapa por conta, por até 24 horas. A
 ## Imagem selecionada — 2026-10-09
 
 Falha de upload interrompe criação/edição e mantém a seleção e formulário para nova tentativa. Não confirma sucesso salvando sem imagem/logo selecionado. URLs anteriores são preservadas sem alteração no servidor até mutação confirmada. Upload comum identifica PNG/JPEG/WebP pelo cabeçalho dos bytes reais e gera caminho distinto por envio, inclusive no mesmo milissegundo. Não altera bucket, policies, schema ou privilégios. Header não é validação audiovisual nem prova de integridade completa. Reabertura autenticada exige teste operacional separado.
+
+## Conversão automática de unidades — 2026-11-15
+
+Uma assinante relatou que a ficha só aceitava "valor por unidade". O insumo em kg só podia ser usado em g com o campo opcional "Conteúdo por unidade" preenchido (1 kg = 1000 g).
+
+- `RecipeMaterialsEditor` usa `materialLineUnitOptions` e `materialCostPerLineUnit`, de `@lucro-caseiro/contracts` (a mesma regra que a API usa para o custo salvo). As funções locais `effectiveCostPerUnit` e `unitOptions` foram removidas.
+- O seletor de unidade aparece para qualquer insumo em kg, g, L ou ml, com a unidade irmã (kg↔g, L↔ml), além da unidade de conteúdo quando declarada. Insumos em un, dz ou outra unidade sem conteúdo continuam com uma opção só, sem o seletor.
+- A unidade inicial da linha continua sendo a do insumo.
+- Testes: `line-units.test.ts`.
+- O campo separado "Usar em" saiu. A linha tem um campo só, "Quanto você usa?", com o número e, ao lado, os chips de unidade (`ChipChoiceField`, grupo "Unidade da quantidade"). Com uma unidade só, ela aparece como sufixo do campo, como antes. O `accessibilityLabel` do número continua "Quantidade".
+- Abaixo dos campos, a linha confirma em palavras o que foi informado: "200 g de Farinha de trigo = R$ 1,20" (`recipeLineSummary`, em `domain.ts`). Sem insumo ou sem quantidade maior que zero, a frase não aparece. Serve para a pessoa notar na hora uma unidade errada (200 kg em vez de 200 g).
