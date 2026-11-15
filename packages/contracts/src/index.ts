@@ -29,6 +29,7 @@ export * from "./schemas/verticals";
 export * from "./pricing-calculator";
 export * from "./pix";
 export * from "./daily-summary";
+export * from "./material-units";
 export * from "./schemas/fiado";
 export * from "./schemas/referral";
 export * from "./schemas/mei";

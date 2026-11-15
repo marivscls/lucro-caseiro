@@ -137,7 +137,7 @@ describe("effectiveCostPerUnit", () => {
   it("converts to content unit when line matches (ex: 1 lata = 350 ml)", () => {
     // R$ 7,00 por lata, 350 ml por lata -> R$ 0,02 por ml
     const cost = effectiveCostPerUnit(
-      { costPerUnit: 7, contentPerUnit: 350, contentUnit: "ml" },
+      { unit: "lata", costPerUnit: 7, contentPerUnit: 350, contentUnit: "ml" },
       "ml",
     );
     expect(cost).toBeCloseTo(0.02, 5);
@@ -145,7 +145,7 @@ describe("effectiveCostPerUnit", () => {
 
   it("matches content unit case-insensitively and trimmed", () => {
     const cost = effectiveCostPerUnit(
-      { costPerUnit: 7, contentPerUnit: 350, contentUnit: "ML" },
+      { unit: "lata", costPerUnit: 7, contentPerUnit: 350, contentUnit: "ML" },
       " ml ",
     );
     expect(cost).toBeCloseTo(0.02, 5);
@@ -153,7 +153,7 @@ describe("effectiveCostPerUnit", () => {
 
   it("keeps costPerUnit when the line uses the material's own unit", () => {
     const cost = effectiveCostPerUnit(
-      { costPerUnit: 7, contentPerUnit: 350, contentUnit: "ml" },
+      { unit: "lata", costPerUnit: 7, contentPerUnit: 350, contentUnit: "ml" },
       "lata",
     );
     expect(cost).toBe(7);
@@ -161,7 +161,7 @@ describe("effectiveCostPerUnit", () => {
 
   it("keeps costPerUnit when material has no content info", () => {
     const cost = effectiveCostPerUnit(
-      { costPerUnit: 5, contentPerUnit: null, contentUnit: null },
+      { unit: "un", costPerUnit: 5, contentPerUnit: null, contentUnit: null },
       "ml",
     );
     expect(cost).toBe(5);
@@ -169,10 +169,56 @@ describe("effectiveCostPerUnit", () => {
 
   it("guards against zero/invalid contentPerUnit (no divide-by-zero)", () => {
     const cost = effectiveCostPerUnit(
-      { costPerUnit: 5, contentPerUnit: 0, contentUnit: "ml" },
+      { unit: "un", costPerUnit: 5, contentPerUnit: 0, contentUnit: "ml" },
       "ml",
     );
     expect(cost).toBe(5);
+  });
+
+  it("converts kg to g without any content info (R$ 6,00/kg -> 200 g = R$ 1,20)", () => {
+    const perGram = effectiveCostPerUnit(
+      { unit: "kg", costPerUnit: 6, contentPerUnit: null, contentUnit: null },
+      "g",
+    );
+    expect(perGram * 200).toBeCloseTo(1.2, 5);
+  });
+
+  it("converts g to kg, L to ml and ml to L", () => {
+    const none = { contentPerUnit: null, contentUnit: null };
+    expect(
+      effectiveCostPerUnit({ unit: "g", costPerUnit: 0.006, ...none }, "kg"),
+    ).toBeCloseTo(6, 5);
+    expect(
+      effectiveCostPerUnit({ unit: "L", costPerUnit: 5, ...none }, "ml"),
+    ).toBeCloseTo(0.005, 5);
+    expect(
+      effectiveCostPerUnit({ unit: "ml", costPerUnit: 0.005, ...none }, " L "),
+    ).toBeCloseTo(5, 5);
+  });
+
+  it("does not convert between weight and volume", () => {
+    const cost = effectiveCostPerUnit(
+      { unit: "kg", costPerUnit: 6, contentPerUnit: null, contentUnit: null },
+      "ml",
+    );
+    expect(cost).toBe(6);
+  });
+
+  it("prefers the declared content over the standard conversion", () => {
+    // Cadastro antigo: 1 kg = 1000 g declarado. Resultado igual ao automatico.
+    const cost = effectiveCostPerUnit(
+      { unit: "kg", costPerUnit: 6, contentPerUnit: 1000, contentUnit: "g" },
+      "g",
+    );
+    expect(cost).toBeCloseTo(0.006, 5);
+  });
+
+  it("converts through the content unit (1 lata = 395 g, line in kg)", () => {
+    const cost = effectiveCostPerUnit(
+      { unit: "lata", costPerUnit: 7.9, contentPerUnit: 395, contentUnit: "g" },
+      "kg",
+    );
+    expect(cost).toBeCloseTo(20, 5);
   });
 });
 

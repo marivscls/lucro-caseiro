@@ -9,9 +9,9 @@ Gerenciar receitas e ingredientes do negocio. Receitas contem lista de ingredien
 ## Non-goals
 
 - Nao gera lista de compras automatica (isso vive em `materials`)
-- Conversao de unidades e LIMITADA (LIGHT, #14): so converte quando o insumo declara
-  `contentPerUnit`/`contentUnit` (ex.: 1 lata = 350 ml) e a linha usa essa unidade de conteudo.
-  NAO ha tabela global de conversao (kg↔g, L↔ml arbitrarios seguem fora de escopo).
+- Conversao de unidades cobre so peso e volume metricos (kg↔g, L↔ml) e o conteudo declarado
+  no insumo (`contentPerUnit`/`contentUnit`, ex.: 1 lata = 350 ml). NAO converte entre peso e
+  volume, nem xicara/colher/duzia.
 - Nao calcula informacao nutricional
 - Nao da baixa de estoque por si (a baixa de insumos na venda fica em `sales`, fase 3 do PRD)
 
@@ -99,10 +99,15 @@ Gerenciar receitas e ingredientes do negocio. Receitas contem lista de ingredien
 - Receita deve ter pelo menos um insumo
 - totalCost = soma de (effectiveCostPerUnit(material, linha.unit) \* quantity) para cada insumo
 - costPerUnit = totalCost / yieldQuantity
-- **#14 effectiveCostPerUnit (LIGHT)**: se `material.contentPerUnit > 0` e
-  `material.contentUnit` (trim, case-insensitive) == `linha.unit`, custo da linha usa
-  `material.costPerUnit / material.contentPerUnit` (custo por unidade de conteudo). Caso
-  contrario usa `material.costPerUnit` (inalterado/compativel). Divisao por zero protegida.
+- **effectiveCostPerUnit** (delega a `materialCostPerLineUnit`, de contracts, a mesma regra
+  da previa do app). Comparacao trim + case-insensitive; divisao por zero protegida. Ordem:
+  1. `linha.unit` == `material.unit`: `material.costPerUnit`;
+  2. #14: `material.contentPerUnit > 0` e `linha.unit` == `material.contentUnit`:
+     `material.costPerUnit / material.contentPerUnit`;
+  3. peso/volume da mesma familia (kg↔g, L↔ml): conversao automatica, sem cadastro extra
+     (insumo em kg a R$ 6,00 e linha de 200 g = R$ 1,20);
+  4. conteudo em peso/volume e linha na unidade irma (1 lata = 395 g, linha em kg);
+  5. sem conversao conhecida: `material.costPerUnit` (inalterado/compativel).
 
 ### Ingredients
 
@@ -251,8 +256,9 @@ invariants:
 - validateRecipeData: nome vazio/> 200, categoria vazia, rendimento zero/negativo, unidade vazia, ingredientes vazios, acumulo, rendimento decimal (1,5 kg)
 - calculateRecipeCost: unico, multiplos, vazio
 - calculateCostPerUnit: calculo correto, rendimento zero, rendimento negativo, rendimento decimal
-- effectiveCostPerUnit (#14): converte lata→ml; case-insensitive/trim; fallback unidade propria;
-  fallback sem conteudo; guard divisao por zero
+- effectiveCostPerUnit: converte lata→ml (#14); case-insensitive/trim; fallback unidade propria;
+  fallback sem conteudo; guard divisao por zero; kg→g, g→kg, L→ml, ml→L sem conteudo; nao
+  converte peso↔volume; conteudo declarado tem prioridade; conversao via unidade de conteudo
 - scaleRecipe: multiplier inteiro, fracionario, preserva props, vazio
 
 ### Recipes UseCases (recipes.usecases.test.ts)
@@ -324,3 +330,9 @@ POST /api/v1/ingredients
   mantem `costPerUnit * quantity`. `RecipeIngredientFull.materialCostPerUnit` passou a refletir o
   custo por unidade da linha (ja convertido) para manter `cost == materialCostPerUnit * quantity`.
   Sem tabela global de conversao — conversao arbitraria de unidades segue fora de escopo.
+- 2026-11-15: **conversao automatica kg↔g e L↔ml**. Uma assinante relatou que a ficha so aceitava
+  "valor por unidade": o insumo em kg so podia ser usado em g se o campo opcional de conteudo
+  fosse preenchido (1 kg = 1000 g). A regra saiu do dominio para `materialCostPerLineUnit`
+  (`packages/contracts/src/material-units.ts`), compartilhada com o app, e `toRecipe` passou a
+  selecionar `materials.unit`. Sem migration e sem mudanca de contrato HTTP; linhas existentes
+  na unidade do insumo ou na de conteudo calculam o mesmo valor de antes.

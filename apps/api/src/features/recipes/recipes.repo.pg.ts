@@ -57,6 +57,7 @@ export class RecipesRepoPg implements IRecipesRepo {
         quantity: recipeIngredients.quantity,
         unit: recipeIngredients.unit,
         materialName: materials.name,
+        materialUnit: materials.unit,
         materialCostPerUnit: materials.costPerUnit,
         materialContentPerUnit: materials.contentPerUnit,
         materialContentUnit: materials.contentUnit,
@@ -104,6 +105,7 @@ export class RecipesRepoPg implements IRecipesRepo {
             quantity: recipeIngredients.quantity,
             unit: recipeIngredients.unit,
             materialName: materials.name,
+            materialUnit: materials.unit,
             materialCostPerUnit: materials.costPerUnit,
             materialContentPerUnit: materials.contentPerUnit,
             materialContentUnit: materials.contentUnit,
@@ -210,6 +212,7 @@ export class RecipesRepoPg implements IRecipesRepo {
       quantity: string;
       unit: string;
       materialName: string;
+      materialUnit: string;
       materialCostPerUnit: string | null;
       materialContentPerUnit: string | null;
       materialContentUnit: string | null;
@@ -218,9 +221,10 @@ export class RecipesRepoPg implements IRecipesRepo {
     const recipeIngredientsList = lineRows.map((line) => {
       const costPerUnit = Number(line.materialCostPerUnit ?? 0);
       const qty = Number(line.quantity);
-      // #14: converte para a unidade de conteudo quando o insumo declara conteudo/unidade.
+      // Converte para a unidade da linha: conteudo declarado (#14) ou kg↔g / L↔ml.
       const lineCostPerUnit = effectiveCostPerUnit(
         {
+          unit: line.materialUnit,
           costPerUnit,
           contentPerUnit:
             line.materialContentPerUnit != null

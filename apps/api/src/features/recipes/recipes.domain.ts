@@ -1,4 +1,5 @@
-import type { RecipeIngredient } from "@lucro-caseiro/contracts";
+import { materialCostPerLineUnit } from "@lucro-caseiro/contracts";
+import type { MaterialUnitCostInfo, RecipeIngredient } from "@lucro-caseiro/contracts";
 
 import type { CreateRecipeData, MaterialLine } from "./recipes.types";
 
@@ -32,19 +33,19 @@ export function validateRecipeData(data: CreateRecipeData): string[] {
   return errors;
 }
 
-export interface MaterialCostInfo {
-  costPerUnit: number;
-  contentPerUnit: number | null;
-  contentUnit: string | null;
-}
+export type MaterialCostInfo = MaterialUnitCostInfo;
 
 /**
- * #14 (LIGHT): custo efetivo por unidade da LINHA da receita.
+ * Custo efetivo por unidade da LINHA da receita (regra em `materialCostPerLineUnit`,
+ * de contracts, a mesma usada na prévia do app):
  *
- * Se o insumo declara conteudo por unidade (ex.: 1 lata = 350 ml) E a linha esta
- * expressa nessa unidade de conteudo (ml), o custo por unidade de conteudo passa a ser
- * `costPerUnit / contentPerUnit`. Caso contrario, retorna `costPerUnit` inalterado
- * (compativel com o comportamento anterior).
+ * 1. linha na unidade do insumo: `costPerUnit`;
+ * 2. linha na unidade de conteudo declarada (#14, ex.: 1 lata = 350 ml):
+ *    `costPerUnit / contentPerUnit`;
+ * 3. peso/volume da mesma familia (kg↔g, L↔ml): conversao automatica, sem cadastro
+ *    extra (ex.: insumo em kg a R$ 6,00, linha em g -> R$ 0,006);
+ * 4. conteudo em peso/volume e linha na unidade irma (1 lata = 395 g, linha em kg);
+ * 5. sem conversao conhecida: `costPerUnit` inalterado.
  *
  * Comparacao de unidades: case-insensitive e com trim. Divisao por zero protegida.
  */
@@ -52,16 +53,7 @@ export function effectiveCostPerUnit(
   material: MaterialCostInfo,
   lineUnit: string,
 ): number {
-  const { costPerUnit, contentPerUnit, contentUnit } = material;
-  if (
-    contentPerUnit != null &&
-    contentPerUnit > 0 &&
-    contentUnit != null &&
-    contentUnit.trim().toLowerCase() === lineUnit.trim().toLowerCase()
-  ) {
-    return costPerUnit / contentPerUnit;
-  }
-  return costPerUnit;
+  return materialCostPerLineUnit(material, lineUnit);
 }
 
 export function calculateRecipeCost(lines: MaterialLine[]): number {
