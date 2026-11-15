@@ -61,7 +61,14 @@ describe("server reminders", () => {
     ).toBe(true);
   });
   const slot = { date: "2026-09-07", period: "morning" as const, monday: true };
-  const counts = { pending: 2, stock: 3, deliveries: 1, birthdays: 4 };
+  const counts = {
+    pending: 2,
+    stock: 3,
+    deliveries: 1,
+    birthdays: 4,
+    todaySales: 3,
+    todayTotal: 150.5,
+  };
   it("respects preferences, plan and brand features", () => {
     const message = reminderMessage(
       slot,
@@ -75,7 +82,14 @@ describe("server reminders", () => {
     expect(message?.url).toBe("/tabs/agenda");
   });
   it("does not send empty reminders or premium reminders on free plans", () => {
-    const empty = { pending: 0, stock: 0, deliveries: 0, birthdays: 0 };
+    const empty = {
+      pending: 0,
+      stock: 0,
+      deliveries: 0,
+      birthdays: 0,
+      todaySales: 0,
+      todayTotal: 0,
+    };
     expect(
       reminderMessage(slot, {}, false, { estoque: true, agendamento: true }, empty),
     ).toBeNull();
@@ -110,6 +124,22 @@ describe("server reminders", () => {
         { estoque: true, agendamento: true },
         counts,
       )?.url,
-    ).toBe("/finance");
+    ).toBe("/tabs");
+  });
+  it("evening reminder tells how much was sold today", () => {
+    // Arrange
+    const evening = { ...slot, period: "evening" as const };
+    const features = { estoque: true, agendamento: true };
+    // Act
+    const withSales = reminderMessage(evening, {}, true, features, counts);
+    const noSales = reminderMessage(evening, {}, true, features, {
+      ...counts,
+      todaySales: 0,
+      todayTotal: 0,
+    });
+    // Assert
+    expect(withSales?.title).toMatch(/Hoje você vendeu R\$\s150,50/);
+    expect(withSales?.body).toContain("3 vendas");
+    expect(noSales?.body).toContain("ainda não anotou");
   });
 });

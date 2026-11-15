@@ -1,3 +1,4 @@
+import { eveningSummaryMessage } from "@lucro-caseiro/contracts";
 import { z } from "zod";
 
 // Only browser-operated push services: endpoints are otherwise an SSRF primitive.
@@ -64,6 +65,10 @@ export type ReminderCounts = {
   stock: number;
   deliveries: number;
   birthdays: number;
+  /** Vendas não canceladas de hoje (fuso da inscrição); usado à noite. */
+  todaySales: number;
+  /** Soma dessas vendas, em reais. */
+  todayTotal: number;
 };
 export type BrowserMessage = { title: string; body: string; url: string; tag?: string };
 
@@ -100,9 +105,11 @@ export function reminderMessage(
   if (slot.period === "evening") {
     return premium && enabled("DAILY_REMINDER")
       ? {
-          title: "Fechou o dia? 📝",
-          body: "Registre as vendas de hoje pra não perder nada de vista.",
-          url: "/finance",
+          ...eveningSummaryMessage({
+            count: counts.todaySales,
+            total: counts.todayTotal,
+          }),
+          url: "/tabs",
         }
       : null;
   }

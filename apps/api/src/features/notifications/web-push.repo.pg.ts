@@ -80,7 +80,16 @@ export class WebPushRepoPg {
             stock: 0,
             deliveries: 0,
             birthdays: 0,
+            todaySales: 0,
+            todayTotal: 0,
           };
+          if (slot.period === "evening") {
+            const result = await tx.execute(sql`SELECT count(*)::int AS "todaySales",
+              coalesce(sum(total),0)::float8 AS "todayTotal"
+              FROM sales WHERE user_id=${row.userId} AND status<>'cancelled'
+                AND (sold_at at time zone ${row.timezone})::date = ${slot.date}::date`);
+            Object.assign(counts, result[0]);
+          }
           if (slot.period === "morning") {
             const result = await tx.execute(sql`SELECT
               (SELECT count(*)::int FROM sales WHERE user_id=${row.userId} AND status='pending') AS pending,

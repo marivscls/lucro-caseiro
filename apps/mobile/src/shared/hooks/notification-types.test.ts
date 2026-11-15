@@ -54,9 +54,9 @@ describe("handleNotificationResponse", () => {
     expect(router.push).toHaveBeenCalledWith("/finance");
   });
 
-  it("navigates to /finance for DAILY_REMINDER", () => {
+  it("navigates to the home tab for DAILY_REMINDER", () => {
     handleNotificationResponse(makeResponse("DAILY_REMINDER"));
-    expect(router.push).toHaveBeenCalledWith("/finance");
+    expect(router.push).toHaveBeenCalledWith("/tabs");
   });
 
   it("navigates to /plans for TRIAL_EXPIRING", () => {

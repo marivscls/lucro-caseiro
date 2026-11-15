@@ -54,8 +54,11 @@ export function handleNotificationResponse(response: NotificationResponse): void
       router.push("/tabs/agenda");
       break;
     case NOTIFICATION_TYPES.WEEKLY_SUMMARY:
-    case NOTIFICATION_TYPES.DAILY_REMINDER:
       router.push("/finance");
+      break;
+    case NOTIFICATION_TYPES.DAILY_REMINDER:
+      // Resumo da noite: o Início mostra o lucro do dia.
+      router.push("/tabs");
       break;
     case NOTIFICATION_TYPES.TRIAL_EXPIRING:
       router.push("/plans");

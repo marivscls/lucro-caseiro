@@ -81,4 +81,5 @@ Push tokens are treated as private device identifiers: they are never returned b
 ## Change log / Decisions
 
 - 2026-08-04: added remote push for new public service booking requests.
+- 2026-11-15: resumo da noite. O aviso das 19h (navegador e celular) deixa de ser genérico: com venda no dia diz "Hoje você vendeu R$ X" e quantas vendas; sem venda convida a anotar. Texto único em `eveningSummaryMessage` (contracts). No navegador, `ReminderCounts` ganha `todaySales`/`todayTotal` (vendas não canceladas pelo `sold_at` no fuso da inscrição) e o toque abre o Início (`/tabs`). No celular, `useDailyReminderNotifier` agenda avisos por data (hoje com os números do dia + 3 dias à frente sem venda), reagendados quando o resumo do dia muda; o gatilho diário antigo é cancelado.
 - 2026-08-04: kept delivery synchronous and best-effort; a queue and receipt tracking are outside the current scope.

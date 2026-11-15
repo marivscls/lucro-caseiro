@@ -29,6 +29,7 @@ import { useAppMetrics } from "../features/analytics/use-app-metrics";
 import { useScreenMetrics } from "../features/analytics/use-screen-metrics";
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
+import { useTodaySummary } from "../features/sales/hooks";
 import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
 import { useDailyReminderNotifier } from "../shared/hooks/use-daily-reminder-notifier";
 import { useNotificationPrefs } from "../shared/hooks/notification-prefs";
@@ -139,9 +140,15 @@ function AppContent() {
   // Entregas próximas na agenda (respeita a preferência "Lembretes de entrega").
   useDeliveryNotifier(hasScheduling);
 
-  // Premium: aniversário de cliente, lembrete diário e resumo semanal.
+  // Aniversário de cliente, resumo da noite (19h, com as vendas do dia) e resumo semanal.
   useBirthdayNotifier(canUsePremiumNotifications);
-  useDailyReminderNotifier(canUsePremiumNotifications);
+  const { data: todaySummary } = useTodaySummary();
+  useDailyReminderNotifier(
+    canUsePremiumNotifications,
+    todaySummary
+      ? { count: todaySummary.totalSales, total: todaySummary.totalAmount }
+      : null,
+  );
   useWeeklySummaryNotifier(canUsePremiumNotifications);
 
   useEffect(() => {
