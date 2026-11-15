@@ -4,7 +4,7 @@ kill_signal = "SIGTERM"
 kill_timeout = "30s"
 
 [build]
-  dockerfile = "apps/mobile/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [build.args]
   EXPO_PUBLIC_API_URL = "https://api.lucrocaseiro.com.br"
@@ -12,6 +12,7 @@ kill_timeout = "30s"
   EXPO_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
   EXPO_PUBLIC_CATALOG_URL = "https://catalogo.lucrocaseiro.com.br"
   EXPO_PUBLIC_AUTH_REDIRECT_URL = "https://app.lucrocaseiro.com.br/auth/callback"
+  EXPO_PUBLIC_TUTORIAL_VIDEOS_URL = "https://ujwxvpceqigvyxcqolch.supabase.co/storage/v1/object/public/tutorials"
 
 [env]
   NODE_ENV = "production"
@@ -21,6 +22,7 @@ kill_timeout = "30s"
   EXPO_PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
   EXPO_PUBLIC_CATALOG_URL = "https://catalogo.lucrocaseiro.com.br"
   EXPO_PUBLIC_AUTH_REDIRECT_URL = "https://app.lucrocaseiro.com.br/auth/callback"
+  EXPO_PUBLIC_TUTORIAL_VIDEOS_URL = "https://ujwxvpceqigvyxcqolch.supabase.co/storage/v1/object/public/tutorials"
 
 [http_service]
   internal_port = 8083

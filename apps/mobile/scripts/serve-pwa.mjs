@@ -62,6 +62,11 @@ const apiOrigin = process.env.EXPO_PUBLIC_API_URL
 const supabaseOrigin = process.env.EXPO_PUBLIC_SUPABASE_URL
   ? new URL(process.env.EXPO_PUBLIC_SUPABASE_URL).origin
   : "";
+const tutorialVideosOrigin =
+  process.env.EXPO_PUBLIC_TUTORIAL_VIDEOS_URL &&
+  /^https?:\/\//i.test(process.env.EXPO_PUBLIC_TUTORIAL_VIDEOS_URL)
+    ? new URL(process.env.EXPO_PUBLIC_TUTORIAL_VIDEOS_URL).origin
+    : "";
 const createCsp = (html) =>
   [
     "default-src 'self'",
@@ -69,6 +74,7 @@ const createCsp = (html) =>
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
+    `media-src 'self' blob: ${supabaseOrigin} ${tutorialVideosOrigin}`.trim(),
     // blob:/data: — o upload lê a foto escolhida (URL blob do seletor) com fetch.
     `connect-src 'self' blob: data: ${apiOrigin} ${supabaseOrigin}`,
     "worker-src 'self' blob:",

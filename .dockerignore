@@ -19,6 +19,13 @@ supabase/.temp
 
 docs/*
 !docs/marketing/
+apps/promo-video
+imagens
+output
+icone
+stitch
+.claude
+.agents
 tasks
 tmp
 
