@@ -309,8 +309,8 @@ export default function SettingsScreen() {
         title: "Endereço copiado!",
         message: "Agora é só colar no navegador do computador.",
       });
-    } catch {
-      alertError("Não foi possível copiar o endereço. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível copiar o endereço. Tente novamente.");
     }
   }
 
@@ -321,8 +321,8 @@ export default function SettingsScreen() {
         title: `Usar ${brandName} no computador`,
         message: `Acesse ${brandName} pelo computador e entre com a mesma conta: ${webAppUrl}`,
       });
-    } catch {
-      alertError("Não foi possível compartilhar o endereço. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível compartilhar o endereço. Tente novamente.");
     }
   }
 
@@ -369,8 +369,8 @@ export default function SettingsScreen() {
       });
       showAlert({ title: "Perfil atualizado!" });
       setShowEditProfile(false);
-    } catch {
-      alertError("Não foi possível atualizar o perfil.");
+    } catch (error) {
+      alertError(error, "Não foi possível atualizar o perfil.");
     }
   }
 

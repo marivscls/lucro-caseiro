@@ -152,8 +152,8 @@ export function CreateFinanceEntry({
       showToast(`${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva!`);
       if (type === "expense") offerNextStep("expense_created");
       onSuccess?.();
-    } catch {
-      alertError("Não foi possível registrar o lançamento. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível registrar o lançamento. Tente novamente.");
     }
   }
 

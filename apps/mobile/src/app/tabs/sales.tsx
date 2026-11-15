@@ -569,8 +569,8 @@ export default function SalesScreen() {
       showAlert({ title: "Venda atualizada!" });
       setShowEdit(false);
       void refetch();
-    } catch {
-      alertError("Não foi possível atualizar a venda.");
+    } catch (error) {
+      alertError(error, "Não foi possível atualizar a venda.");
     }
   }
 

@@ -635,8 +635,8 @@ function CatalogContentManager({
         data: { publicEnabled: enabled },
       });
       await productsQuery.refetch();
-    } catch {
-      alertError("Não foi possível atualizar esse produto no catálogo.");
+    } catch (error) {
+      alertError(error, "Não foi possível atualizar esse produto no catálogo.");
     } finally {
       setPending(null);
     }
@@ -650,8 +650,8 @@ function CatalogContentManager({
         data: { publicEnabled: enabled },
       });
       await servicesQuery.refetch();
-    } catch {
-      alertError("Não foi possível atualizar esse serviço no catálogo.");
+    } catch (error) {
+      alertError(error, "Não foi possível atualizar esse serviço no catálogo.");
     } finally {
       setPending(null);
     }

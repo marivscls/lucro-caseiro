@@ -357,8 +357,9 @@ export function RecipeDetail({
                       try {
                         await deleteRecipe.mutateAsync(recipeId);
                         onDeleted?.();
-                      } catch {
+                      } catch (error) {
                         alertError(
+                          error,
                           `Não foi possível excluir a ${experienceCopy.formulaNoun}.`,
                         );
                       }

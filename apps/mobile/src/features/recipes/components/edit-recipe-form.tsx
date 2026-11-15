@@ -120,8 +120,8 @@ export function EditRecipeForm({
         message: `${name} foi atualizada`,
       });
       onSuccess?.();
-    } catch {
-      alertError("Não foi possível atualizar a receita. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível atualizar a receita. Tente novamente.");
     }
   }
 
@@ -139,8 +139,8 @@ export function EditRecipeForm({
               try {
                 await deleteRecipe.mutateAsync(recipe.id);
                 onSuccess?.();
-              } catch {
-                alertError("Não foi possível excluir a receita.");
+              } catch (error) {
+                alertError(error, "Não foi possível excluir a receita.");
               }
             })();
           },

@@ -406,8 +406,8 @@ export function useSubscription() {
       } else {
         showAlert(PURCHASE_PENDING_ALERT);
       }
-    } catch {
-      alertError("Não foi possível restaurar compras. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível restaurar compras. Tente novamente.");
     } finally {
       setLoading(false);
     }

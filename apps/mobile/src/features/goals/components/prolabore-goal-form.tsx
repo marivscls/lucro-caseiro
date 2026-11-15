@@ -68,8 +68,8 @@ export function ProlaboreGoalForm({
       });
       showToast("Meta salva! Acompanhe na tela inicial.");
       onSuccess?.();
-    } catch {
-      alertError("Não foi possível salvar sua meta. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível salvar sua meta. Tente novamente.");
     }
   }
 
@@ -87,8 +87,8 @@ export function ProlaboreGoalForm({
               try {
                 await remove.mutateAsync();
                 onSuccess?.();
-              } catch {
-                alertError("Não foi possível remover a meta.");
+              } catch (error) {
+                alertError(error, "Não foi possível remover a meta.");
               }
             })();
           },

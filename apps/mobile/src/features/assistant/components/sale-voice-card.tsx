@@ -264,8 +264,9 @@ export function SaleVoiceCard({
     try {
       recorder.current = await startVoiceRecording();
       setRecording(true);
-    } catch {
+    } catch (error) {
       alertError(
+        error,
         "Não consegui usar o microfone. Libere o acesso ao microfone e tente de novo, ou escreva a venda.",
       );
     }

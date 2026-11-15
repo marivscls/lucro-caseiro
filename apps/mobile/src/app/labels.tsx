@@ -235,8 +235,8 @@ function LabelDetailModal({
         current.logoUrl,
         current.qrCodeUrl,
       );
-    } catch {
-      alertError("Não foi possível gerar a etiqueta. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível gerar a etiqueta. Tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -691,8 +691,8 @@ export default function LabelsScreen() {
         label.logoUrl,
         label.qrCodeUrl,
       );
-    } catch {
-      alertError("Não foi possível gerar a etiqueta. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível gerar a etiqueta. Tente novamente.");
     }
   }
 

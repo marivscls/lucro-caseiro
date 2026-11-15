@@ -342,8 +342,8 @@ export function FinanceDashboard({
         } else {
           showAlert({ title: "Sucesso", message: "Arquivo salvo com sucesso." });
         }
-      } catch {
-        alertError("Não foi possível exportar o relatório. Tente novamente.");
+      } catch (error) {
+        alertError(error, "Não foi possível exportar o relatório. Tente novamente.");
       } finally {
         setExporting(null);
       }

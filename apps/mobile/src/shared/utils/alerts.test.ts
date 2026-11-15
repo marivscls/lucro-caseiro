@@ -32,4 +32,21 @@ describe("mensagens para o usuário", () => {
     expect(useAppAlert.getState().options?.message).toMatch(/internet/i);
     expect(useAppAlert.getState().options?.title).not.toBe("Erro");
   });
+
+  it("mostra o motivo real da API em vez do texto reserva", () => {
+    alertError(
+      new Error("Você atingiu o limite de produtos do plano gratuito."),
+      "Não foi possível atualizar o produto.",
+    );
+    expect(useAppAlert.getState().options?.message).toBe(
+      "Você atingiu o limite de produtos do plano gratuito.",
+    );
+  });
+
+  it("usa o texto reserva quando o erro é técnico", () => {
+    alertError(new Error("HTTP 500"), "Não foi possível atualizar o produto.");
+    expect(useAppAlert.getState().options?.message).toBe(
+      "Não foi possível atualizar o produto.",
+    );
+  });
 });

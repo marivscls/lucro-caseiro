@@ -75,8 +75,8 @@ export default function ResetPasswordScreen() {
         message: "Pronto! Agora entre com a sua nova senha.",
         buttons: [{ text: "Entrar", onPress: () => router.replace("/(auth)/login") }],
       });
-    } catch {
-      alertError("Não foi possível alterar a senha. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível alterar a senha. Tente novamente.");
     } finally {
       setLoading(false);
     }

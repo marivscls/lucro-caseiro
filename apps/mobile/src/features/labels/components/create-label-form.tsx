@@ -240,8 +240,8 @@ export function CreateLabelForm({
         logoUri,
         qrUrl,
       );
-    } catch {
-      alertError("Não foi possível gerar a etiqueta. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível gerar a etiqueta. Tente novamente.");
     } finally {
       setExporting(false);
     }

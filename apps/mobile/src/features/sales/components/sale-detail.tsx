@@ -85,8 +85,8 @@ export function SaleDetail({
     setExporting(true);
     try {
       await exportReceiptPdf(sale, { name: businessName, phone: profile?.phone });
-    } catch {
-      alertError("Não foi possível gerar o recibo. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível gerar o recibo. Tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -126,8 +126,8 @@ export function SaleDetail({
                 await updateStatus.mutateAsync({ id: sale.id, status: "paid" });
                 showAlert({ title: "Pronto!", message: "Venda marcada como paga." });
                 onStatusUpdated?.();
-              } catch {
-                alertError("Não foi possível atualizar o status.");
+              } catch (error) {
+                alertError(error, "Não foi possível atualizar o status.");
               }
             })();
           },
@@ -151,8 +151,8 @@ export function SaleDetail({
                 await updateStatus.mutateAsync({ id: sale.id, status: "cancelled" });
                 showAlert({ title: "Pronto!", message: "Venda cancelada." });
                 onStatusUpdated?.();
-              } catch {
-                alertError("Não foi possível cancelar a venda.");
+              } catch (error) {
+                alertError(error, "Não foi possível cancelar a venda.");
               }
             })();
           },

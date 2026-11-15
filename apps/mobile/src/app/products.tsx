@@ -419,8 +419,8 @@ function ProductDetailModal({
       });
       showAlert({ title: "Produto atualizado!" });
       setEditing(false);
-    } catch {
-      alertError("Não foi possível atualizar o produto.");
+    } catch (error) {
+      alertError(error, "Não foi possível atualizar o produto.");
     }
   }
 
@@ -438,8 +438,8 @@ function ProductDetailModal({
               try {
                 await deleteProduct.mutateAsync(productId);
                 onClose();
-              } catch {
-                alertError("Não foi possível excluir o produto.");
+              } catch (error) {
+                alertError(error, "Não foi possível excluir o produto.");
               }
             })();
           },

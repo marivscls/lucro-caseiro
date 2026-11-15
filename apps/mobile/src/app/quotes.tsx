@@ -553,8 +553,8 @@ function QuoteDetail({
     try {
       await exportQuotePdf(quote, { name: businessName, phone: profile?.phone });
       void trackAnalyticsAction("quote_pdf_exported", useAuth.getState().token);
-    } catch {
-      alertError("Não foi possível gerar o PDF. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível gerar o PDF. Tente novamente.");
     } finally {
       setExporting(false);
     }

@@ -617,8 +617,8 @@ export default function FiadoScreen() {
                 await updateStatus.mutateAsync({ id: saleId, status: "paid" });
                 showToast("Recebido! Venda marcada como paga.");
                 void refetch();
-              } catch {
-                alertError("Não foi possível atualizar. Tente novamente.");
+              } catch (error) {
+                alertError(error, "Não foi possível atualizar. Tente novamente.");
               }
             })();
           },
@@ -637,8 +637,8 @@ export default function FiadoScreen() {
         );
         showToast("Tudo recebido! Vendas marcadas como pagas.");
         void refetch();
-      } catch {
-        alertError("Não foi possível atualizar. Tente novamente.");
+      } catch (error) {
+        alertError(error, "Não foi possível atualizar. Tente novamente.");
       }
     })();
   }

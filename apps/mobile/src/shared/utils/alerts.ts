@@ -9,11 +9,18 @@ export function alertValidation(message: string) {
   showAlert({ title: VALIDATION_TITLE, message });
 }
 
-/** Falha de operacao (rede, API). Aceita Error, string ou nada. */
-export function alertError(error?: unknown) {
-  showAlert({ title: ERROR_TITLE, message: errorMessage(error) });
+/**
+ * Falha de operacao (rede, API). Aceita Error, string ou nada.
+ * Passe o erro capturado + um texto reserva: o motivo real (sem internet,
+ * limite do plano, dado invalido) aparece quando e legivel; o reserva so
+ * entra quando o erro e tecnico ou vazio.
+ */
+export function alertError(error?: unknown, fallback?: string) {
+  showAlert({ title: ERROR_TITLE, message: errorMessage(error, fallback) });
 }
 
-export function errorMessage(error?: unknown): string {
-  return userErrorMessage(error);
+export function errorMessage(error?: unknown, fallback?: string): string {
+  return fallback === undefined
+    ? userErrorMessage(error)
+    : userErrorMessage(error, fallback);
 }

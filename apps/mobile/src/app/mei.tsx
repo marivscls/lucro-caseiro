@@ -273,8 +273,8 @@ export default function MeiScreen() {
     setExporting(true);
     try {
       await exportMeiReportPdf(...reportArgs, { name: businessName });
-    } catch {
-      alertError("Não foi possível gerar o PDF. Tente novamente.");
+    } catch (error) {
+      alertError(error, "Não foi possível gerar o PDF. Tente novamente.");
     } finally {
       setExporting(false);
     }
