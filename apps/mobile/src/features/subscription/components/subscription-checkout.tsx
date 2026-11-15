@@ -13,11 +13,13 @@ import { getPaywallCopy } from "../limit-copy";
 interface SubscriptionCheckoutProps {
   readonly recommendedTier: PaidPlan;
   readonly onClose?: () => void;
+  readonly onSeePlans?: () => void;
 }
 
 export function SubscriptionCheckout({
   recommendedTier,
   onClose,
+  onSeePlans,
 }: SubscriptionCheckoutProps) {
   const resource = usePaywall((state) => state.resource);
   const { data: profile } = useProfile();
@@ -32,7 +34,9 @@ export function SubscriptionCheckout({
       message={copy.message}
       experienceCopy={experienceCopy}
       recommendedTier={recommendedTier}
+      resource={resource}
       onClose={onClose}
+      onSeePlans={onSeePlans}
       onSubscribe={(tier, period) => {
         if (Platform.OS === "android") {
           void subscribe(tier, period);

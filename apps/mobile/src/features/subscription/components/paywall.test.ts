@@ -91,10 +91,27 @@ describe("paywall contextual", () => {
     expect(state.subscribe).toHaveBeenCalledWith("professional", "annual");
   });
 
-  it("includes the supplier cap and monthly PDF in essential benefits", () => {
+  it("lists every essential benefit", () => {
     render(React.createElement(Paywall, { recommendedTier: "essential" }));
     for (const benefit of TIER_BENEFITS.essential) {
       expect(screen.getByText(benefit)).toBeTruthy();
     }
+  });
+
+  it("leads with the monthly value and states the yearly charge", () => {
+    render(React.createElement(Paywall, { recommendedTier: "essential" }));
+    expect(screen.getByText("R$ 24,92")).toBeTruthy();
+    expect(screen.getByText("R$ 299,00 cobrados uma vez por ano.")).toBeTruthy();
+    expect(screen.getByText("Sem fidelidade: cancele quando quiser.")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("Selecionar cobrança mensal"));
+    expect(screen.getByText("R$ 29,90")).toBeTruthy();
+    expect(screen.getByText("Cobrado todo mês.")).toBeTruthy();
+  });
+
+  it("opens the plans comparison when offered", () => {
+    const onSeePlans = vi.fn();
+    render(React.createElement(Paywall, { recommendedTier: "essential", onSeePlans }));
+    fireEvent.click(screen.getByText("Comparar planos"));
+    expect(onSeePlans).toHaveBeenCalledTimes(1);
   });
 });

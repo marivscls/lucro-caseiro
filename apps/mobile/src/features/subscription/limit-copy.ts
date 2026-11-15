@@ -178,8 +178,27 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   },
 };
 
+/**
+ * No checkout o título fica ao lado de uma ilustração: sem o emoji que os banners
+ * de limite usam, para não competir com ela.
+ */
+function withoutLeadingEmoji(title: string): string {
+  return title.replace(/^\p{Extended_Pictographic}️?\s*/u, "");
+}
+
 /** Título + mensagem do paywall conforme o recurso/feature de origem. */
 export function getPaywallCopy(
+  resource: string | null,
+  experienceCopy?: BusinessExperienceCopy,
+): {
+  title: string;
+  message: string;
+} {
+  const copy = paywallCopyWithEmoji(resource, experienceCopy);
+  return { title: withoutLeadingEmoji(copy.title), message: copy.message };
+}
+
+function paywallCopyWithEmoji(
   resource: string | null,
   experienceCopy?: BusinessExperienceCopy,
 ): {

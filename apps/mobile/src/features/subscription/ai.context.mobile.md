@@ -238,6 +238,27 @@ no Gratuito (matriz em `@lucro-caseiro/contracts`) e o catálogo free mostra at�
 `TIER_BENEFITS` não lista mais PDF do mês, orçamentos em PDF nem lembretes como vantagem paga.
 Em Configurações, o selo "Profissional" das notificações só aparece quando o item está travado.
 
+## Preço por mês e checkout mais enxuto — 2026-11-15
+
+Revisão de design das telas de Planos e do checkout (modal). Nenhuma regra comercial mudou.
+
+- `plan-pricing.ts` (`planPriceDisplay`, `annualSavings`, `formatMoney`): o destaque de preço
+  é sempre o valor **por mês** (no anual, o equivalente: Essencial R$ 24,92) e logo abaixo,
+  sem letra miúda, o que é cobrado ("R$ 299,00 cobrados uma vez por ano" no anual; no mensal,
+  a cobrança mensal). Substitui a decisão de 2026-09-23 (anual como valor principal), que deixava o
+  Essencial anual (R$ 299) ao lado do Profissional mensal (R$ 69,90) parecendo mais caro.
+- Planos (celular e desktop): o Mensal/Anual (`components/period-toggle.tsx`, com "2 meses
+  grátis") fica acima dos planos e muda os dois juntos. Conta gratuita vê "Recomendado" no
+  Essencial. Sob o botão: economia no ano e "Sem fidelidade: cancele quando quiser". No
+  desktop, a saída das boas-vindas vai para a lateral, abaixo do pagamento (`skip`).
+- Checkout (`Paywall`): sem cabeçalho de marca (só o X); título maior que a explicação e
+  sem emoji (`getPaywallCopy` remove o emoji inicial; os banners de limite mantêm);
+  benefícios em lista compacta com check simples; `resource` coloca o benefício do recurso
+  de origem em primeiro e destacado (`benefitsLeadingWith`). Rodapé ganhou "Comparar planos"
+  (`onSeePlans`: fecha o checkout e abre `/plans`). Barra fixa: valor por mês + valor cobrado.
+- `TIER_BENEFITS.essential` não lista mais "Fornecedores: até 3": é o mesmo teto do Gratuito,
+  não vantagem. Fornecedores ilimitados seguem na lista do Profissional.
+
 ## Compra do Google Play só é confirmada quando libera o plano — 2026-11-14
 
 Incidente: um assinante pagou o Profissional, o Google deixou o pagamento "pendente" por ~2 min,

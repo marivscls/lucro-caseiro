@@ -286,6 +286,10 @@ function AppContent() {
           <SubscriptionCheckout
             recommendedTier={requiredPaywallTier}
             onClose={hidePaywall}
+            onSeePlans={() => {
+              hidePaywall();
+              router.push("/plans");
+            }}
           />
         </ResponsiveModal>
       ) : null}

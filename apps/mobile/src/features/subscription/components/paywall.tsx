@@ -4,22 +4,21 @@ import {
   fontSizes,
   radii,
   spacing,
-  useBrand,
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
-import { PLAN_LABELS, PLAN_PRICING } from "@lucro-caseiro/contracts";
+import { PLAN_LABELS } from "@lucro-caseiro/contracts";
 import React, { useState } from "react";
 import { Image, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import checkoutProfessionalHero from "../../../assets/checkout-professional-hero.png";
-import { getBrandDisplayName } from "../../../shared/brand-name";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
 import { getPaywallCopy } from "../limit-copy";
-import { TIER_BENEFITS, tierBenefitsFor } from "../plan-benefits";
+import { TIER_BENEFITS, benefitsLeadingWith, tierBenefitsFor } from "../plan-benefits";
+import { annualSavings, formatMoney, planPriceDisplay } from "../plan-pricing";
 import type { BusinessExperienceCopy } from "../business-copy";
 
 interface PaywallProps {
@@ -28,17 +27,14 @@ interface PaywallProps {
   readonly currentUsage?: string;
   readonly experienceCopy?: BusinessExperienceCopy;
   readonly recommendedTier?: PaidPlan;
+  /** Recurso que abriu o checkout: o benefício dele vem primeiro, destacado. */
+  readonly resource?: string | null;
   readonly onSubscribe?: (tier: PaidPlan, period: BillingPeriod) => void;
   readonly onRestore?: () => void;
   readonly loading?: boolean;
   readonly onClose?: () => void;
-}
-
-function formatBRL(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  /** Abre a tela de planos para comparar Essencial e Profissional. */
+  readonly onSeePlans?: () => void;
 }
 
 function periodSurface(theme: Theme, selected: boolean, highlighted: boolean) {
@@ -59,70 +55,41 @@ function periodSurface(theme: Theme, selected: boolean, highlighted: boolean) {
 
 function BenefitRow({
   benefit,
-  last,
+  highlighted,
   compact,
   theme,
 }: Readonly<{
   benefit: string;
-  last: boolean;
+  highlighted: boolean;
   compact: boolean;
   theme: Theme;
 }>) {
-  const iconSize = compact ? 54 : 64;
-  const rowHeight = compact ? 84 : 96;
-
   return (
     <View
       style={[
         styles.benefitRow,
-        {
-          minHeight: rowHeight,
-          gap: compact ? spacing.md : spacing.lg,
-        },
+        highlighted
+          ? {
+              backgroundColor: theme.colors.primaryBg,
+              borderRadius: radii.md,
+              paddingHorizontal: spacing.md,
+              marginBottom: spacing.xs,
+            }
+          : null,
       ]}
     >
-      <View
-        style={{
-          width: iconSize,
-          height: iconSize,
-          flexShrink: 0,
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: radii.full,
-          borderWidth: 1,
-          borderColor: theme.colors.primaryBg,
-          backgroundColor: theme.colors.surfaceElevated,
-        }}
+      <AppIcon
+        name="checkmark"
+        size={compact ? 20 : 22}
+        color={theme.colors.primaryStrong}
+      />
+      <Typography
+        variant={highlighted ? "bodyBold" : "body"}
+        color={theme.colors.text}
+        style={{ flex: 1, fontSize: fontSizes.md, lineHeight: 22 }}
       >
-        <AppIcon
-          name="checkmark-outline"
-          size={compact ? 28 : 34}
-          color={theme.colors.primary}
-        />
-      </View>
-      <View
-        style={[
-          styles.benefitCopy,
-          {
-            minHeight: rowHeight,
-            paddingVertical: compact ? spacing.md : spacing.lg,
-            borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
-            borderBottomColor: theme.colors.border,
-          },
-        ]}
-      >
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.text}
-          style={{
-            fontSize: compact ? fontSizes.md : fontSizes.lg,
-            lineHeight: compact ? 22 : 24,
-            letterSpacing: -0.1,
-          }}
-        >
-          {benefit}
-        </Typography>
-      </View>
+        {benefit}
+      </Typography>
     </View>
   );
 }
@@ -194,13 +161,14 @@ export function Paywall({
   currentUsage,
   experienceCopy,
   recommendedTier = "professional",
+  resource,
   onSubscribe,
   onRestore,
   loading = false,
   onClose,
+  onSeePlans,
 }: PaywallProps) {
   const { theme } = useTheme();
-  const brandName = getBrandDisplayName(useBrand());
   const { width } = useWindowDimensions();
   const compact = width < 520;
   const tier = recommendedTier;
@@ -208,16 +176,16 @@ export function Paywall({
   const [highlightedPeriod, setHighlightedPeriod] = useState<BillingPeriod | null>(null);
   const [closeHighlighted, setCloseHighlighted] = useState(false);
   const [highlightedFooterAction, setHighlightedFooterAction] = useState<
-    "restore" | "dismiss" | null
+    "restore" | "plans" | "dismiss" | null
   >(null);
 
-  const pricing = PLAN_PRICING[tier];
-  const displayedMonthlyPrice =
-    period === "annual" ? pricing.annual / 12 : pricing.monthly;
-  const annualSavings = pricing.monthly * 12 - pricing.annual;
-  const benefits = experienceCopy
-    ? tierBenefitsFor(tier, experienceCopy)
-    : TIER_BENEFITS[tier];
+  const price = planPriceDisplay(tier, period);
+  const savings = formatMoney(annualSavings(tier));
+  const { benefits, highlighted: leadHighlighted } = benefitsLeadingWith(
+    tier,
+    experienceCopy ? tierBenefitsFor(tier, experienceCopy) : TIER_BENEFITS[tier],
+    resource,
+  );
   const defaultCopy = getPaywallCopy(null, experienceCopy);
 
   function handleSubscribe() {
@@ -242,6 +210,20 @@ export function Paywall({
     });
   }
 
+  const footerActions: readonly {
+    key: "restore" | "plans" | "dismiss";
+    label: string;
+    onPress: () => void;
+  }[] = [
+    { key: "restore", label: "Restaurar compra", onPress: handleRestore },
+    ...(onSeePlans
+      ? [{ key: "plans" as const, label: "Comparar planos", onPress: onSeePlans }]
+      : []),
+    ...(onClose
+      ? [{ key: "dismiss" as const, label: "Agora não", onPress: onClose }]
+      : []),
+  ];
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView
@@ -257,29 +239,6 @@ export function Paywall({
       >
         <View style={[styles.content, { maxWidth: compact ? 520 : 760 }]}>
           <View style={styles.header}>
-            <View style={styles.brand}>
-              <View
-                style={[
-                  styles.brandMark,
-                  {
-                    width: compact ? 46 : 58,
-                    height: compact ? 46 : 58,
-                    backgroundColor: theme.colors.premiumBg,
-                    borderColor: theme.colors.premium,
-                  },
-                ]}
-              >
-                <AppIcon
-                  name="diamond"
-                  size={compact ? 25 : 32}
-                  color={theme.colors.premium}
-                />
-              </View>
-              <Typography variant="h3" color={theme.colors.text}>
-                {brandName}
-              </Typography>
-            </View>
-
             {onClose ? (
               <PressableScale
                 onPress={onClose}
@@ -294,8 +253,8 @@ export function Paywall({
                 style={[
                   styles.closeButton,
                   {
-                    width: compact ? 46 : 58,
-                    height: compact ? 46 : 58,
+                    width: 48,
+                    height: 48,
                     backgroundColor: closeHighlighted
                       ? theme.colors.surfaceElevated
                       : theme.colors.surface,
@@ -303,11 +262,7 @@ export function Paywall({
                   closeHighlighted ? theme.shadows.sm : undefined,
                 ]}
               >
-                <AppIcon
-                  name="close"
-                  size={compact ? 24 : 30}
-                  color={theme.colors.text}
-                />
+                <AppIcon name="close" size={24} color={theme.colors.text} />
               </PressableScale>
             ) : null}
           </View>
@@ -316,35 +271,29 @@ export function Paywall({
             source={checkoutProfessionalHero}
             resizeMode="contain"
             accessibilityLabel="Catálogo, resultados, encomendas e materiais profissionais"
-            style={[
-              styles.heroImage,
-              {
-                height: compact ? 224 : 330,
-                marginTop: compact ? spacing.md : spacing.xl,
-              },
-            ]}
+            style={[styles.heroImage, { height: compact ? 180 : 250 }]}
           />
 
-          <View
-            style={[styles.intro, { marginTop: compact ? spacing.lg : spacing["2xl"] }]}
-          >
+          <View style={[styles.intro, { marginTop: compact ? spacing.lg : spacing.xl }]}>
+            {/* O título é a promessa: maior que a explicação embaixo dele. */}
             <Typography
-              variant="screenTitle"
+              variant="h1"
+              accessibilityRole="header"
               color={theme.colors.text}
-              style={styles.title}
+              style={[
+                styles.title,
+                {
+                  fontSize: compact ? fontSizes["2xl"] : fontSizes["3xl"],
+                  lineHeight: compact ? 30 : 34,
+                },
+              ]}
             >
               {title ?? defaultCopy.title}
             </Typography>
             <Typography
               variant="body"
               color={theme.colors.textSecondary}
-              style={[
-                styles.subtitle,
-                {
-                  fontSize: compact ? fontSizes.md : fontSizes.xl,
-                  lineHeight: compact ? 24 : 32,
-                },
-              ]}
+              style={[styles.subtitle, { fontSize: fontSizes.md, lineHeight: 24 }]}
             >
               {message ?? defaultCopy.message}
             </Typography>
@@ -358,14 +307,17 @@ export function Paywall({
           <View
             style={[
               styles.benefits,
-              { marginTop: compact ? spacing.xl : spacing["3xl"] },
+              { marginTop: compact ? spacing.xl : spacing["2xl"] },
             ]}
           >
+            <Typography variant="bodyBold" style={{ marginBottom: spacing.xs }}>
+              {`Incluído no ${PLAN_LABELS[tier]}`}
+            </Typography>
             {benefits.map((benefit, index) => (
               <BenefitRow
                 key={benefit}
                 benefit={benefit}
-                last={index === benefits.length - 1}
+                highlighted={leadHighlighted && index === 0}
                 compact={compact}
                 theme={theme}
               />
@@ -376,7 +328,7 @@ export function Paywall({
             style={[
               styles.periodSwitch,
               {
-                marginTop: compact ? spacing["2xl"] : spacing["3xl"],
+                marginTop: compact ? spacing.xl : spacing["2xl"],
                 borderColor: theme.colors.border,
                 backgroundColor: theme.colors.surface,
               },
@@ -458,100 +410,65 @@ export function Paywall({
               { marginTop: compact ? spacing.xl : spacing["2xl"] },
             ]}
           >
-            {/* O valor em destaque é o que será cobrado; no anual o mensal
-                equivalente fica como informação secundária. */}
+            {/* Destaque no valor por mês (comparável); logo abaixo, sem letra
+                miúda, o que é cobrado e quando. */}
             <View style={styles.priceLine}>
               <Typography variant="moneyHero" color={theme.colors.text}>
-                R$ {formatBRL(period === "annual" ? pricing.annual : pricing.monthly)}
+                {price.perMonth}
               </Typography>
               <Typography variant="body" color={theme.colors.text}>
-                {period === "annual" ? "/ano" : "/mês"}
+                /mês
               </Typography>
             </View>
-
-            {period === "annual" ? (
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                style={{
-                  textAlign: "center",
-                  fontSize: compact ? fontSizes.md : fontSizes.xl,
-                }}
-              >
-                Cobrado uma vez por ano. Equivale a R$ {formatBRL(displayedMonthlyPrice)}{" "}
-                por mês.
-              </Typography>
-            ) : null}
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.text}
+              style={{ textAlign: "center" }}
+            >
+              {`${price.charge.replace(/^./, (letter) => letter.toUpperCase())}.`}
+            </Typography>
 
             {period === "annual" ? (
               <View style={styles.savings}>
-                <AppIcon
-                  name="checkmark-circle"
-                  size={compact ? 18 : 22}
-                  color={theme.colors.success}
-                />
-                <Typography
-                  variant="body"
-                  color={theme.colors.success}
-                  style={{ fontSize: compact ? fontSizes.md : fontSizes.xl }}
-                >
-                  Economize R$ {formatBRL(annualSavings)}
+                <AppIcon name="checkmark-circle" size={20} color={theme.colors.success} />
+                <Typography variant="body" color={theme.colors.success}>
+                  {`Economize ${savings} no ano`}
                 </Typography>
               </View>
             ) : null}
+            <Typography
+              variant="body"
+              color={theme.colors.textSecondary}
+              style={{ textAlign: "center" }}
+            >
+              Sem fidelidade: cancele quando quiser.
+            </Typography>
           </View>
 
           <View style={[styles.footer, { marginTop: compact ? spacing.lg : spacing.xl }]}>
-            <PressableScale
-              onPress={handleRestore}
-              accessibilityRole="button"
-              onHoverIn={() => setHighlightedFooterAction("restore")}
-              onHoverOut={() => setHighlightedFooterAction(null)}
-              onFocus={() => setHighlightedFooterAction("restore")}
-              onBlur={() => setHighlightedFooterAction(null)}
-              scaleTo={0.98}
-              style={[
-                styles.footerAction,
-                {
-                  backgroundColor:
-                    highlightedFooterAction === "restore"
-                      ? theme.colors.primaryBg
-                      : "transparent",
-                },
-              ]}
-            >
-              <AppIcon
-                name="refresh"
-                size={compact ? 18 : 22}
-                color={theme.colors.primaryStrong}
-              />
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                style={{ fontSize: compact ? fontSizes.sm : fontSizes.md }}
-              >
-                Restaurar compra
-              </Typography>
-            </PressableScale>
-
-            {onClose ? (
-              <>
-                <View
-                  style={[styles.footerDivider, { backgroundColor: theme.colors.border }]}
-                />
+            {footerActions.map((action, index) => (
+              <React.Fragment key={action.key}>
+                {index > 0 ? (
+                  <View
+                    style={[
+                      styles.footerDivider,
+                      { backgroundColor: theme.colors.border },
+                    ]}
+                  />
+                ) : null}
                 <PressableScale
-                  onPress={onClose}
+                  onPress={action.onPress}
                   accessibilityRole="button"
-                  onHoverIn={() => setHighlightedFooterAction("dismiss")}
+                  onHoverIn={() => setHighlightedFooterAction(action.key)}
                   onHoverOut={() => setHighlightedFooterAction(null)}
-                  onFocus={() => setHighlightedFooterAction("dismiss")}
+                  onFocus={() => setHighlightedFooterAction(action.key)}
                   onBlur={() => setHighlightedFooterAction(null)}
                   scaleTo={0.98}
                   style={[
                     styles.footerAction,
                     {
                       backgroundColor:
-                        highlightedFooterAction === "dismiss"
+                        highlightedFooterAction === action.key
                           ? theme.colors.primaryBg
                           : "transparent",
                     },
@@ -559,14 +476,18 @@ export function Paywall({
                 >
                   <Typography
                     variant="body"
-                    color={theme.colors.textSecondary}
-                    style={{ fontSize: compact ? fontSizes.sm : fontSizes.md }}
+                    color={
+                      action.key === "plans"
+                        ? theme.colors.primaryStrong
+                        : theme.colors.textSecondary
+                    }
+                    style={{ textAlign: "center" }}
                   >
-                    Agora não
+                    {action.label}
                   </Typography>
                 </PressableScale>
-              </>
-            ) : null}
+              </React.Fragment>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -586,21 +507,13 @@ export function Paywall({
             <Typography
               variant="bodyBold"
               color={theme.colors.text}
-              style={{ fontSize: fontSizes.lg }}
+              style={{ fontSize: fontSizes.xl }}
             >
-              {period === "annual"
-                ? `R$ ${formatBRL(pricing.annual)}/ano`
-                : `R$ ${formatBRL(pricing.monthly)}/mês`}
+              {`${price.perMonth}/mês`}
             </Typography>
-            {period === "annual" ? (
-              <Typography
-                variant="caption"
-                color={theme.colors.textSecondary}
-                style={{ fontSize: fontSizes.sm }}
-              >
-                equivale a R$ {formatBRL(displayedMonthlyPrice)}/mês
-              </Typography>
-            ) : null}
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              {price.charge}
+            </Typography>
           </View>
           <View style={[styles.stickyButton, !compact && styles.stickyButtonWide]}>
             <SubscribeButton
@@ -627,21 +540,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   header: {
-    minHeight: 58,
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-  },
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  brandMark: {
-    borderRadius: radii.full,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-end",
   },
   closeButton: {
     borderRadius: radii.full,
@@ -666,13 +568,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   benefitRow: {
+    minHeight: 44,
+    paddingVertical: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
-  },
-  benefitCopy: {
-    flex: 1,
-    justifyContent: "center",
-    gap: 2,
+    gap: spacing.md,
   },
   periodSwitch: {
     width: "100%",
@@ -750,9 +650,10 @@ const styles = StyleSheet.create({
   stickyPrice: {
     minHeight: 28,
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "baseline",
     justifyContent: "center",
-    gap: spacing.sm,
+    columnGap: spacing.sm,
   },
   stickyButton: {
     width: "100%",

@@ -10,7 +10,8 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
     "Catálogo completo e personalizado",
     "Até 5 fotos por produto",
     "Agenda, fiado e financeiro básico",
-    "Fornecedores: até 3 (ilimitado no Profissional)",
+    // O teto de 3 fornecedores é o mesmo do Gratuito: não é vantagem do
+    // Essencial. Fornecedores ilimitados aparecem na lista do Profissional.
     "Sem anúncios",
   ],
   professional: [
@@ -21,6 +22,48 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
     "Suporte prioritário",
   ],
 };
+
+// Benefício que responde ao recurso que abriu o checkout (posição em
+// TIER_BENEFITS; `tierBenefitsFor` mantém a mesma ordem).
+const BENEFIT_FOR_RESOURCE: Record<PaidPlan, Readonly<Record<string, number>>> = {
+  essential: {
+    clients: 0,
+    products: 0,
+    recipes: 1,
+    packaging: 1,
+    catalog: 2,
+    productPhotos: 3,
+  },
+  professional: {
+    reports: 1,
+    export: 1,
+    suppliers: 2,
+    purchases: 2,
+    recurring: 2,
+    labels: 3,
+    prioritySupport: 4,
+  },
+};
+
+/**
+ * Benefícios do plano com o que a pessoa tentou usar em primeiro lugar.
+ * Devolve a lista reordenada e se o primeiro item é o do recurso de origem.
+ */
+export function benefitsLeadingWith(
+  tier: PaidPlan,
+  benefits: readonly string[],
+  resource: string | null | undefined,
+): { readonly benefits: readonly string[]; readonly highlighted: boolean } {
+  const index = resource ? BENEFIT_FOR_RESOURCE[tier][resource] : undefined;
+  if (index === undefined || index >= benefits.length) {
+    return { benefits, highlighted: false };
+  }
+  const lead = benefits[index];
+  return {
+    benefits: [lead, ...benefits.filter((_, i) => i !== index)],
+    highlighted: true,
+  };
+}
 
 export function tierBenefitsFor(
   tier: PaidPlan,
