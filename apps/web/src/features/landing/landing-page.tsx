@@ -146,11 +146,11 @@ const plans: readonly PricingPlan[] = [
     description: "Calcule, organize e faça suas primeiras vendas.",
     features: [
       "Vendas ilimitadas",
-      `${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes`,
-      "Fiado, agenda de encomendas e financeiro",
       "Cálculo com materiais, trabalho, gastos fixos e taxas",
+      `${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes`,
+      `Agenda com ${PLAN_LIMITS.free.maxOrdersPerMonth} encomendas por mês`,
+      "Financeiro da semana atual",
       `Catálogo com até ${FREE_CATALOG_MAX_PRODUCTS} produtos publicados`,
-      "Resumo do mês e orçamentos em PDF",
       "Lembretes diários e resumo da semana",
     ],
     featured: false,
@@ -165,8 +165,9 @@ const plans: readonly PricingPlan[] = [
     features: [
       "Tudo do Gratuito",
       "Clientes, produtos, receitas, embalagens e fornecedores sem limite",
+      "Fiado com cobrança por link, agenda sem limite e financeiro completo",
       "Catálogo completo e personalizado, com até 5 fotos por produto",
-      "Relatórios completos e exportação em PDF e Excel",
+      "Relatórios completos, resumo do mês e orçamentos em PDF e Excel",
       "Compras de fornecedores e gastos que se repetem todo mês",
       "Precificação avançada, etiquetas personalizadas e kits",
       "Atendimento prioritário e sem anúncios",
@@ -185,7 +186,7 @@ export const landingFaqs = [
   },
   {
     question: "O que está incluído no Gratuito?",
-    answer: `Você pode registrar vendas sem limite, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes, anotar o fiado, organizar encomendas, gerar orçamentos em PDF e publicar até ${FREE_CATALOG_MAX_PRODUCTS} produtos no catálogo. O cálculo inclui materiais, embalagem, mão de obra, rateio por produção e taxas informadas manualmente.`,
+    answer: `Você pode registrar vendas sem limite, calcular o preço com materiais, embalagem, mão de obra, rateio por produção e taxas, cadastrar ${PLAN_LIMITS.free.maxProducts} produtos e ${PLAN_LIMITS.free.maxClients} clientes, anotar ${PLAN_LIMITS.free.maxOrdersPerMonth} encomendas por mês, ver o financeiro da semana e publicar até ${FREE_CATALOG_MAX_PRODUCTS} produtos no catálogo. Fiado, financeiro completo e PDFs ficam no Premium.`,
   },
   {
     question: "Posso testar o Premium antes de assinar?",

@@ -1,7 +1,13 @@
 import {
   ESSENTIAL_TRIAL_DAYS,
   FREE_CATALOG_MAX_PRODUCTS,
+  PLAN_PRICING,
+  SOLD_PLAN,
 } from "@lucro-caseiro/contracts";
+
+import { formatBrl } from "./plan-price";
+
+const premiumPrice = PLAN_PRICING[SOLD_PLAN];
 
 /**
  * Páginas por funcionalidade e por tipo de negócio (SEO). Cada uma responde a
@@ -53,9 +59,9 @@ const freeAnswer = `Sim. Crie a conta grátis no Android ou no navegador. Toda c
 export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
   "controle-de-fiado": {
     slug: "controle-de-fiado",
-    metaTitle: "Controle de fiado grátis no celular",
+    metaTitle: "Controle de fiado no celular",
     metaDescription:
-      "Troque o caderno de fiado pelo celular: anote quem te deve, veja o total em aberto e cobre pelo WhatsApp. Grátis e salvo na nuvem.",
+      "Troque o caderno de fiado pelo celular: anote quem te deve, veja o total em aberto e cobre pelo WhatsApp. Teste grátis por 7 dias e tudo salvo na nuvem.",
     eyebrow: "Controle de fiado",
     title: "Saiba quem te deve, sem caderno.",
     lead: "Anote a venda no fiado em segundos, veja quanto cada cliente deve e mande a cobrança pelo WhatsApp com uma mensagem pronta. Tudo fica salvo na sua conta, mesmo se o celular quebrar.",
@@ -75,8 +81,8 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     },
     benefits: [
       {
-        title: "Grátis em todos os planos",
-        text: "O fiado não tem limite de uso no plano Gratuito. Você não paga nada para organizar o que tem a receber.",
+        title: `${ESSENTIAL_TRIAL_DAYS} dias para testar sem cartão`,
+        text: "O fiado faz parte do Premium. Toda conta nova ganha os dias de teste com tudo liberado, e o que você já anotou continua salvo para dar baixa mesmo depois.",
       },
       {
         title: "Cobrança com Pix pronto",
@@ -94,9 +100,8 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     ],
     faqs: [
       {
-        question: "O controle de fiado é grátis mesmo?",
-        answer:
-          "Sim. O fiado está incluído no plano Gratuito, sem limite de vendas registradas.",
+        question: "O controle de fiado é grátis?",
+        answer: `O fiado faz parte do Premium (${formatBrl(premiumPrice.monthly)} por mês ou ${formatBrl(premiumPrice.annual)} por ano). Toda conta nova testa ${ESSENTIAL_TRIAL_DAYS} dias grátis, sem cartão. Se não assinar, o que já estava pendente continua visível e você pode dar baixa quando receber.`,
       },
       {
         question: "Perco o fiado se trocar de celular?",
