@@ -42,6 +42,21 @@ Regras de comportamento:
 - A liberacao de 2026-10-18 (PDFs e catalogo com 10 no Gratuito, proposta de LUCAS) foi
   revista por esta decisao.
 
+## Decisao 2026-11-20: Premium a R$ 69,90
+
+Substitui o preco da decisao de 2026-11-15 (abaixo). O plano continua um so.
+
+| Plano         |            Preco | Papel                                        |
+| ------------- | ---------------: | -------------------------------------------- |
+| Gratis        |             R$ 0 | Degustacao com limites claros.               |
+| Premium       | R$ 69,90 por mes | Tudo liberado, sem limites e sem anuncios.   |
+| Premium anual |   R$ 629 por ano | Sai R$ 52,42 por mes; economia de R$ 209,80. |
+
+- Motivo: o app novo (Flutter) subiu bastante o padrao; o anual mantem o desconto de 25%.
+- Vale tambem para quem ja assina: o Google Play avisa cada assinante do aumento, e quem nao
+  aceitar e cancelado na proxima cobranca. No Stripe, as assinaturas passam para o preco novo.
+- No codigo: `CommercialPlans` (pacote `lucro_brands`, repo lucro-caseiro-claude).
+
 ## Decisao 2026-11-15: um plano pago so (Premium)
 
 Substitui o modelo de dois planos pagos descrito abaixo, que fica como historico.
