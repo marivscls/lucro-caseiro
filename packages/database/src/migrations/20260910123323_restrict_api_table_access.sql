@@ -38,6 +38,7 @@ BEGIN
     'materials',
     'orders',
     'packaging',
+    'premium_trial_claims',
     'pricing_calculations',
     'pricing_preferences',
     'product_components',

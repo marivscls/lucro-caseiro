@@ -1,5 +1,5 @@
 import { ValidationField } from "@lucro-caseiro/ui";
-import { ESSENTIAL_TRIAL_DAYS } from "@lucro-caseiro/contracts";
+import { PREMIUM_TRIAL_DAYS } from "@lucro-caseiro/contracts";
 import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import {
   Button,
@@ -199,8 +199,8 @@ export default function RegisterScreen() {
             color={theme.colors.textSecondary}
             style={{ textAlign: "center" }}
           >
-            Leva menos de um minuto, e é grátis. Você ganha {ESSENTIAL_TRIAL_DAYS} dias do
-            Premium para testar, sem cartão.
+            Leva menos de um minuto, e é grátis. Depois, se quiser, você testa o Premium
+            por {PREMIUM_TRIAL_DAYS} dias.
           </Typography>
         </View>
 

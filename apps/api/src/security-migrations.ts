@@ -26,6 +26,7 @@ export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/20261114100000_analytics_drop_stale_event_whitelist.sql",
   "../../../packages/database/src/migrations/20261115100000_catalog_product_orders.sql",
   "../../../packages/database/src/migrations/20261115110000_order_recurrence.sql",
+  "../../../packages/database/src/migrations/20261120100000_trial_with_card.sql",
 ] as const;
 
 export function getSecurityMigrationPaths(baseUrl = import.meta.url): string[] {

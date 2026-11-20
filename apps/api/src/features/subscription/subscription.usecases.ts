@@ -6,7 +6,7 @@ import type {
   UserProfile,
 } from "@lucro-caseiro/contracts";
 
-import { isActiveTrial } from "@lucro-caseiro/contracts";
+import { isActiveFreePeriod, isActiveTrial } from "@lucro-caseiro/contracts";
 
 import {
   ForbiddenError,
@@ -23,6 +23,7 @@ import type {
   AndroidPurchaseData,
   ISubscriptionRepo,
   ISubscriptionStatusProvider,
+  PlanWriteOptions,
   ProfessionalTrialCampaignNotifier,
   SubscriptionLifecycleEvent,
   SubscriptionLifecycleNotifier,
@@ -118,23 +119,62 @@ export class SubscriptionUseCases {
     return resolvePlan(profile.plan, profile.planExpiresAt);
   }
 
+  /**
+   * Grava um plano confirmado pela loja. `options.isTrial` = teste de 7 dias com
+   * cartão (a loja cobra no fim); `options.provider` = loja que cobra.
+   */
   async activatePlan(
     userId: string,
     plan: PlanType,
     expiresAt: Date | null,
+    options: PlanWriteOptions = {},
   ): Promise<UserProfile> {
     const previous = await this.repo.getProfile(userId);
-    const updated = await this.repo.updatePlan(userId, plan, expiresAt);
+    const updated = await this.repo.updatePlan(userId, plan, expiresAt, options);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
     }
-    // Teste grátis não é assinatura: sair do teste para um plano pago conta
-    // como Free→pago (subscription_completed + e-mail de ativação).
+    const activePlan = resolvePlan(updated.plan, updated.planExpiresAt);
+
+    if (options.isTrial && options.provider && isPaidPlan(activePlan)) {
+      // Um teste por e-mail. A loja já aceitou o cartão: mesmo se o e-mail já
+      // tiver usado o teste (ex.: a Play ofereceu por conta Google), o plano vale.
+      await this.repo
+        .claimPremiumTrial(userId, updated.email, options.provider)
+        .catch((error: unknown) => {
+          console.error("premium_trial_claim_failed", {
+            userId,
+            error: errorMessage(error),
+          });
+        });
+      const alreadyOnTrial =
+        previous !== null &&
+        previous.planIsTrial &&
+        isActiveTrial(previous.plan, previous.planExpiresAt, previous.planIsTrial) &&
+        previous.planProvider === options.provider;
+      if (!alreadyOnTrial) {
+        await this.recordLifecycleAnalytics(userId, "trial_started");
+        await this.sendOpsAlert(
+          `Novo teste com cartao (${options.provider === "stripe" ? "Stripe" : "Google Play"}): ${planLabel(activePlan)}. Conta ${userId}. Cobra em ${updated.planExpiresAt ?? "sem data"}.`,
+        );
+        await this.sendLifecycleNotification({
+          kind: "trial_started",
+          userId,
+          email: updated.email,
+          plan: activePlan,
+          expiresAt: updated.planExpiresAt,
+          deduplicationKey: `trial:${options.provider}`,
+        });
+      }
+      return updated;
+    }
+
+    // Teste (com ou sem cartão) ainda não é assinatura paga: sair dele para a
+    // primeira cobrança conta como Free→pago (subscription_completed + e-mail).
     const previousPlan =
       previous && !this.isTrial(previous)
         ? resolvePlan(previous.plan, previous.planExpiresAt)
         : "free";
-    const activePlan = resolvePlan(updated.plan, updated.planExpiresAt);
 
     if (previous && previousPlan === "free" && isPaidPlan(activePlan)) {
       await this.recordLifecycleAnalytics(userId, "subscription_completed");
@@ -175,18 +215,22 @@ export class SubscriptionUseCases {
 
   async deactivatePlan(userId: string): Promise<UserProfile> {
     const previous = await this.repo.getProfile(userId);
-    // Cancelamento/expiração de uma compra (Stripe/Play) nunca derruba o teste
-    // grátis em andamento: ele termina sozinho pela data.
-    if (previous && this.isTrial(previous)) return previous;
+    // Cancelamento/expiração de uma compra (Stripe/Play) nunca derruba um
+    // período grátis sem cartão (prêmio de indicação ou teste antigo): ele
+    // termina sozinho pela data. O teste com cartão é uma assinatura e acaba.
+    if (previous && this.isFreePeriod(previous)) return previous;
     const updated = await this.repo.updatePlan(userId, "free", null);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
     }
     if (previous && resolvePlan(previous.plan, previous.planExpiresAt) !== "free") {
-      await this.recordLifecycleAnalytics(userId, "subscription_cancelled");
       const previousPlan = resolvePlan(previous.plan, previous.planExpiresAt);
+      const endedTrial = this.isTrial(previous);
+      await this.recordLifecycleAnalytics(userId, "subscription_cancelled");
       await this.sendOpsAlert(
-        `Assinatura encerrada: ${planLabel(previousPlan)}. Conta ${userId}.`,
+        endedTrial
+          ? `Teste com cartao encerrado sem cobranca: ${planLabel(previousPlan)}. Conta ${userId}.`
+          : `Assinatura encerrada: ${planLabel(previousPlan)}. Conta ${userId}.`,
       );
       if (isPaidPlan(previousPlan)) {
         await this.sendLifecycleNotification({
@@ -242,7 +286,7 @@ export class SubscriptionUseCases {
     if (state.plan === "free") {
       const current = await this.getProfile(userId);
       const alreadyPaid =
-        !this.isTrial(current) &&
+        !this.isFreePeriod(current) &&
         isPaidPlan(resolvePlan(current.plan, current.planExpiresAt));
       // Quem já tem plano pago (ex.: Stripe) não perdeu nada: sem alerta.
       if (alreadyPaid) return current;
@@ -277,7 +321,10 @@ export class SubscriptionUseCases {
         );
       }
 
-      return this.activatePlan(userId, state.plan, state.expiresAt);
+      return this.activatePlan(userId, state.plan, state.expiresAt, {
+        isTrial: state.inTrial === true,
+        provider: "google_play",
+      });
     }
 
     return this.getProfile(userId);
@@ -305,8 +352,19 @@ export class SubscriptionUseCases {
     await this.alertOps(message, dedupeKey ? { dedupeKey } : undefined);
   }
 
+  /** Em qualquer período de teste (com ou sem cartão): ainda não pagou. */
   private isTrial(profile: UserProfile): boolean {
     return isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial);
+  }
+
+  /** Período grátis sem cartão (indicação ou teste antigo do cadastro). */
+  private isFreePeriod(profile: UserProfile): boolean {
+    return isActiveFreePeriod(
+      profile.plan,
+      profile.planExpiresAt,
+      profile.planIsTrial,
+      profile.planProvider,
+    );
   }
 
   private async sendLifecycleNotification(

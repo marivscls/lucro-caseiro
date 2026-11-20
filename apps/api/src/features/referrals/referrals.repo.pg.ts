@@ -104,6 +104,7 @@ export class ReferralsRepoPg implements IReferralsRepo {
             plan: users.plan,
             planExpiresAt: users.planExpiresAt,
             planIsTrial: users.planIsTrial,
+            planProvider: users.planProvider,
           })
           .from(users)
           .where(eq(users.id, id))
@@ -117,6 +118,7 @@ export class ReferralsRepoPg implements IReferralsRepo {
             plan: next.plan as PlanColumn,
             planExpiresAt: next.planExpiresAt,
             planIsTrial: next.planIsTrial,
+            planProvider: null,
           })
           .where(eq(users.id, id));
       }

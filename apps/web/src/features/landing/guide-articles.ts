@@ -45,7 +45,8 @@ export function parseGuideArticle(raw: unknown, fileSlug: string): GuideArticle 
   const slug = text(v.slug, 3, 80);
   const title = text(v.title, 10, 120);
   const description = text(v.description, 50, 200);
-  if (!slug || slug !== fileSlug || !validSlug(slug) || !title || !description) return null;
+  if (!slug || slug !== fileSlug || !validSlug(slug) || !title || !description)
+    return null;
   const sections = Array.isArray(v.sections)
     ? v.sections.flatMap((s) => {
         const item = s as Record<string, unknown>;
@@ -92,7 +93,9 @@ export function loadGuideArticles(dir: string | null = GUIDES_DIR): GuideArticle
       try {
         const article = parseGuideArticle(
           // eslint-disable-next-line security/detect-non-literal-fs-filename -- arquivo listado da própria pasta de guias
-          JSON.parse(readFileSync(/*turbopackIgnore: true*/ path.join(dir, file), "utf8")),
+          JSON.parse(
+            readFileSync(/*turbopackIgnore: true*/ path.join(dir, file), "utf8"),
+          ),
           slug,
         );
         return article ? [article] : [];

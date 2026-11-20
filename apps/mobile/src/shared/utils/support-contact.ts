@@ -155,9 +155,13 @@ export function openSupportEmail(brandName: string, question = ""): void {
 
 type SupportProfile = Pick<UserProfile, "plan" | "planExpiresAt"> & {
   planIsTrial?: boolean;
+  planProvider?: UserProfile["planProvider"];
 };
 
-/** WhatsApp do suporte é benefício de quem paga (plano pago ativo, fora do teste). */
+/**
+ * WhatsApp do suporte é benefício de quem assina (plano pago ativo, inclusive no
+ * teste com cartão). Período grátis sem cartão não tem.
+ */
 export function hasWhatsAppSupport(profile?: SupportProfile | null): boolean {
   if (!profile) return false;
   const paid = isPaidPlan(resolveActivePlan(profile.plan, profile.planExpiresAt));

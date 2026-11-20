@@ -1,7 +1,12 @@
-import { ESSENTIAL_TRIAL_DAYS, trialDaysLeft } from "@lucro-caseiro/contracts";
+import { PREMIUM_TRIAL_DAYS, trialDaysLeft } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { isProfileOnTrial, trialEndLabel, trialNotice } from "./trial";
+import {
+  isProfileOnCardTrial,
+  isProfileOnTrial,
+  trialEndLabel,
+  trialNotice,
+} from "./trial";
 
 const NOW = new Date(2026, 8, 24, 10, 0, 0);
 
@@ -11,11 +16,48 @@ function atDays(days: number, hour = 10): string {
 
 describe("essential trial helpers", () => {
   it("counts calendar days until the trial ends", () => {
-    expect(trialDaysLeft(atDays(ESSENTIAL_TRIAL_DAYS), NOW)).toBe(7);
+    expect(trialDaysLeft(atDays(PREMIUM_TRIAL_DAYS), NOW)).toBe(7);
     expect(trialDaysLeft(atDays(0, 22), NOW)).toBe(0);
     expect(trialDaysLeft(atDays(1, 1), NOW)).toBe(1);
     expect(trialDaysLeft(atDays(-1), NOW)).toBeNull();
     expect(trialDaysLeft(null, NOW)).toBeNull();
+  });
+
+  it("tells a card trial apart from a no-card free period", () => {
+    const cardTrial = {
+      plan: "professional" as const,
+      planExpiresAt: atDays(5),
+      planIsTrial: true,
+      planProvider: "stripe" as const,
+    };
+    expect(isProfileOnCardTrial(cardTrial, NOW)).toBe(true);
+    // O teste com cartão é uma assinatura: não conta como "Gratuito para compra".
+    expect(isProfileOnTrial(cardTrial, NOW)).toBe(false);
+    expect(
+      isProfileOnCardTrial(
+        { plan: "essential", planExpiresAt: atDays(5), planIsTrial: true },
+        NOW,
+      ),
+    ).toBe(false);
+  });
+
+  it("tells when a card trial charges and how not to pay", () => {
+    const notice = trialNotice(
+      {
+        plan: "professional",
+        planExpiresAt: new Date(2026, 8, 29, 10, 0, 0).toISOString(),
+        planIsTrial: true,
+        planProvider: "google_play",
+      },
+      NOW,
+    );
+    expect(notice).toMatchObject({
+      title: "Seu teste do Premium termina em 5 dias",
+      ended: false,
+    });
+    expect(notice?.message).toContain("29 de setembro");
+    expect(notice?.message).toContain("Cancelar assinatura");
+    expect(notice?.message).toContain("não paga nada");
   });
 
   it("labels the end of the trial in simple words", () => {

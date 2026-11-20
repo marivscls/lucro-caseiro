@@ -37,6 +37,14 @@ export function buildSubscriptionLifecycleEmail(event: SubscriptionEmailEvent): 
   const { theme } = resolveBrand("lucro-caseiro");
 
   const copy = {
+    trial_started: {
+      subject: `Seu teste de 7 dias do ${planName} come\u00e7ou`,
+      eyebrow: "TESTE DE 7 DIAS",
+      title: `Seu teste do ${planName} come\u00e7ou`,
+      body: renewalDate
+        ? `Os recursos do ${planName} j\u00e1 est\u00e3o liberados. A primeira cobran\u00e7a acontece em ${renewalDate}, no cart\u00e3o ou na conta Google que voc\u00ea usou. Se n\u00e3o quiser continuar, cancele antes dessa data e voc\u00ea n\u00e3o paga nada.`
+        : `Os recursos do ${planName} j\u00e1 est\u00e3o liberados. A primeira cobran\u00e7a acontece no fim dos 7 dias, no cart\u00e3o ou na conta Google que voc\u00ea usou. Se n\u00e3o quiser continuar, cancele antes e voc\u00ea n\u00e3o paga nada.`,
+    },
     activated: {
       subject: `Seu plano ${planName} est\u00e1 ativo \u2705`,
       eyebrow: "ASSINATURA ATIVA",
@@ -63,14 +71,20 @@ export function buildSubscriptionLifecycleEmail(event: SubscriptionEmailEvent): 
     },
   }[event.kind];
 
-  const dateLine =
-    renewalDate && event.kind !== "cancelled"
-      ? `Pr\u00f3xima renova\u00e7\u00e3o ou validade: ${renewalDate}.`
-      : null;
-  const managementLine =
-    event.kind === "payment_failed" || event.kind === "cancelled"
-      ? "O gerenciamento da assinatura deve ser feito pela mesma loja ou plataforma usada na contrata\u00e7\u00e3o."
-      : "Voc\u00ea pode acompanhar seu plano pelo aplicativo.";
+  let dateLine: string | null = null;
+  if (renewalDate && event.kind === "trial_started") {
+    dateLine = `Primeira cobran\u00e7a: ${renewalDate}.`;
+  } else if (renewalDate && event.kind !== "cancelled") {
+    dateLine = `Pr\u00f3xima renova\u00e7\u00e3o ou validade: ${renewalDate}.`;
+  }
+  let managementLine = "Voc\u00ea pode acompanhar seu plano pelo aplicativo.";
+  if (event.kind === "trial_started") {
+    managementLine =
+      "Para cancelar: no app, abra Configura\u00e7\u00f5es e toque em Cancelar assinatura.";
+  } else if (event.kind === "payment_failed" || event.kind === "cancelled") {
+    managementLine =
+      "O gerenciamento da assinatura deve ser feito pela mesma loja ou plataforma usada na contrata\u00e7\u00e3o.";
+  }
 
   const text = [
     "Oi!",

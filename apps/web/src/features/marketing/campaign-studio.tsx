@@ -326,8 +326,8 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
         <p className="eyebrow">Tráfego pago</p>
         <h2>Oferta → Anúncios → Aprovar</h2>
         <p>
-          Diga para quem é e o que está oferecendo. A IA devolve ângulos e roteiros de ads.
-          Pesquisa longa e carrossel ficam em opções avançadas.
+          Diga para quem é e o que está oferecendo. A IA devolve ângulos e roteiros de
+          ads. Pesquisa longa e carrossel ficam em opções avançadas.
         </p>
       </div>
 
@@ -1009,69 +1009,73 @@ function PlanEditor({
       <details className="span-2 plan-section">
         <summary>Canais, metas e próxima ação</summary>
         <div className="plan-section-grid">
-      <label className="span-2">
-        Canais
-        <input
-          value={plan.channels.join(", ")}
-          onChange={(event) => patch({ channels: splitList(event.target.value) })}
-        />
-      </label>
-      <label className="span-2">
-        Necessidades criativas
-        <textarea
-          rows={3}
-          value={plan.creativeNeeds.join("\n")}
-          onChange={(event) => patch({ creativeNeeds: splitLines(event.target.value) })}
-        />
-      </label>
-      <label className="span-2">
-        Automação
-        <textarea
-          rows={3}
-          value={plan.automation ?? ""}
-          onChange={(event) => patch({ automation: event.target.value })}
-        />
-      </label>
-      <div className="span-2 message-editor">
-        <strong>Mensagem por canal</strong>
-        {plan.channels.map((channel) => (
-          <label key={channel}>
-            {channel}
+          <label className="span-2">
+            Canais
+            <input
+              value={plan.channels.join(", ")}
+              onChange={(event) => patch({ channels: splitList(event.target.value) })}
+            />
+          </label>
+          <label className="span-2">
+            Necessidades criativas
             <textarea
-              rows={2}
-              value={plan.messages[channel] ?? ""}
+              rows={3}
+              value={plan.creativeNeeds.join("\n")}
               onChange={(event) =>
-                patch({ messages: { ...plan.messages, [channel]: event.target.value } })
+                patch({ creativeNeeds: splitLines(event.target.value) })
               }
             />
           </label>
-        ))}
-      </div>
-      <div className="span-2 kpi-editor">
-        <strong>KPIs</strong>
-        {plan.kpis.map((kpi, index) => (
-          <div key={`${index}-${kpi.label}`}>
-            <input
-              aria-label={`KPI ${index + 1}`}
-              value={kpi.label}
-              onChange={(event) => updateKpi(index, "label", event.target.value)}
+          <label className="span-2">
+            Automação
+            <textarea
+              rows={3}
+              value={plan.automation ?? ""}
+              onChange={(event) => patch({ automation: event.target.value })}
             />
-            <input
-              aria-label={`Meta ${index + 1}`}
-              value={kpi.target}
-              onChange={(event) => updateKpi(index, "target", event.target.value)}
-            />
+          </label>
+          <div className="span-2 message-editor">
+            <strong>Mensagem por canal</strong>
+            {plan.channels.map((channel) => (
+              <label key={channel}>
+                {channel}
+                <textarea
+                  rows={2}
+                  value={plan.messages[channel] ?? ""}
+                  onChange={(event) =>
+                    patch({
+                      messages: { ...plan.messages, [channel]: event.target.value },
+                    })
+                  }
+                />
+              </label>
+            ))}
           </div>
-        ))}
-      </div>
-      <label className="span-2">
-        Próxima melhor ação
-        <textarea
-          rows={3}
-          value={plan.nextBestAction ?? ""}
-          onChange={(event) => patch({ nextBestAction: event.target.value })}
-        />
-      </label>
+          <div className="span-2 kpi-editor">
+            <strong>KPIs</strong>
+            {plan.kpis.map((kpi, index) => (
+              <div key={`${index}-${kpi.label}`}>
+                <input
+                  aria-label={`KPI ${index + 1}`}
+                  value={kpi.label}
+                  onChange={(event) => updateKpi(index, "label", event.target.value)}
+                />
+                <input
+                  aria-label={`Meta ${index + 1}`}
+                  value={kpi.target}
+                  onChange={(event) => updateKpi(index, "target", event.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+          <label className="span-2">
+            Próxima melhor ação
+            <textarea
+              rows={3}
+              value={plan.nextBestAction ?? ""}
+              onChange={(event) => patch({ nextBestAction: event.target.value })}
+            />
+          </label>
         </div>
       </details>
     </fieldset>

@@ -1,9 +1,11 @@
-import type { Purchase } from "react-native-iap";
+import type { ProductSubscription, Purchase } from "react-native-iap";
 import { describe, expect, it } from "vitest";
 
 import {
   ALL_PRODUCT_IDS,
+  hasFreeTrialOffer,
   isPurchaseActivated,
+  pickOfferToken,
   isSyncablePaidPurchase,
   productIdFor,
   purchaseErrorResult,
@@ -147,6 +149,19 @@ describe("isPurchaseActivated", () => {
     );
   });
 
+  it("counts the Google Play card trial as an activated purchase", () => {
+    const profile = {
+      plan: "professional",
+      planExpiresAt: "2026-11-21T12:00:00.000Z",
+      planIsTrial: true,
+      planProvider: "google_play" as const,
+    };
+
+    expect(isPurchaseActivated(profile, "lucrocaseiro_professional_monthly", now)).toBe(
+      true,
+    );
+  });
+
   it("does not count the free Essencial trial as an activated purchase", () => {
     const profile = { plan: "essential", planExpiresAt: nextMonth, planIsTrial: true };
 
@@ -179,5 +194,40 @@ describe("isPurchaseActivated", () => {
     const profile = { plan: "professional", planExpiresAt: null, planIsTrial: false };
 
     expect(isPurchaseActivated(profile, "lucrocaseiro_premium_monthly", now)).toBe(true);
+  });
+});
+
+describe("Google Play offers", () => {
+  function subscriptionWith(offers: object[]): ProductSubscription {
+    return {
+      id: "lucrocaseiro_professional_monthly",
+      platform: "android",
+      subscriptionOffers: offers,
+    } as unknown as ProductSubscription;
+  }
+  const base = {
+    id: "monthly",
+    offerTokenAndroid: "token-base",
+    pricingPhasesAndroid: { pricingPhaseList: [{ priceAmountMicros: "69900000" }] },
+  };
+  const trial = {
+    id: "teste-7-dias",
+    offerTokenAndroid: "token-trial",
+    pricingPhasesAndroid: {
+      pricingPhaseList: [{ priceAmountMicros: "0" }, { priceAmountMicros: "69900000" }],
+    },
+  };
+
+  it("buys the trial offer only when the person chose the trial", () => {
+    const subscription = subscriptionWith([trial, base]);
+    expect(pickOfferToken(subscription, true)).toBe("token-trial");
+    // Sem escolher o teste: nunca cai na oferta de teste, mesmo se vier primeiro.
+    expect(pickOfferToken(subscription, false)).toBe("token-base");
+  });
+
+  it("knows when Google Play offers the trial to this Google account", () => {
+    expect(hasFreeTrialOffer(subscriptionWith([base, trial]))).toBe(true);
+    expect(hasFreeTrialOffer(subscriptionWith([base]))).toBe(false);
+    expect(hasFreeTrialOffer(undefined)).toBe(false);
   });
 });

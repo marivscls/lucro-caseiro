@@ -49,10 +49,50 @@ export async function createStripeCheckout(
   token: string,
   tier: PaidPlan,
   period: BillingPeriod,
+  withTrial = false,
 ): Promise<{ url: string }> {
   return apiClient<{ url: string }>(`/api/v1/payments/stripe/checkout`, {
     method: "POST",
-    body: { tier, period },
+    body: { tier, period, withTrial },
     token,
   });
+}
+
+/** Assinatura no cartão (Stripe) da conta, para a tela de cancelamento. */
+export interface StripeSubscriptionSummary {
+  status: "trialing" | "active" | "past_due";
+  trialEndsAt: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  amountCents: number | null;
+  interval: "month" | "year" | null;
+}
+
+export async function fetchStripeSubscription(
+  token: string,
+): Promise<StripeSubscriptionSummary | null> {
+  const { subscription } = await apiClient<{
+    subscription: StripeSubscriptionSummary | null;
+  }>(`/api/v1/payments/stripe/subscription`, { token });
+  return subscription;
+}
+
+export async function cancelStripeSubscription(
+  token: string,
+): Promise<StripeSubscriptionSummary> {
+  const { subscription } = await apiClient<{ subscription: StripeSubscriptionSummary }>(
+    `/api/v1/payments/stripe/cancel`,
+    { method: "POST", token },
+  );
+  return subscription;
+}
+
+export async function resumeStripeSubscription(
+  token: string,
+): Promise<StripeSubscriptionSummary> {
+  const { subscription } = await apiClient<{ subscription: StripeSubscriptionSummary }>(
+    `/api/v1/payments/stripe/resume`,
+    { method: "POST", token },
+  );
+  return subscription;
 }

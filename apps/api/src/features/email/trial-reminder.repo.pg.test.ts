@@ -36,7 +36,7 @@ describe("Essential trial reminder queue in PostgreSQL", () => {
       );
       CREATE TABLE public.users (
         id uuid PRIMARY KEY, name text NOT NULL, plan text NOT NULL,
-        plan_is_trial boolean NOT NULL, plan_expires_at timestamptz,
+        plan_is_trial boolean NOT NULL, plan_provider text, plan_expires_at timestamptz,
         is_active boolean NOT NULL DEFAULT true
       );
       CREATE TABLE public.app_memberships (

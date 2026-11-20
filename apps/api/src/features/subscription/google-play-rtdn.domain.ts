@@ -1,5 +1,5 @@
 import type { PaidPlan } from "@lucro-caseiro/contracts";
-import { isActiveTrial, normalizePlan } from "@lucro-caseiro/contracts";
+import { isActiveFreePeriod, normalizePlan } from "@lucro-caseiro/contracts";
 
 import { resolvePlan } from "./subscription.domain";
 import type { GooglePlaySubscriptionSnapshot } from "./subscription.types";
@@ -99,7 +99,7 @@ export type PlayPlanIgnoreReason =
   | "unknown_plan_source";
 
 export type PlayPlanDecision =
-  | { action: "activate"; plan: PaidPlan; expiresAt: Date | null }
+  | { action: "activate"; plan: PaidPlan; expiresAt: Date | null; inTrial: boolean }
   | { action: "deactivate" }
   | { action: "ignore"; reason: PlayPlanIgnoreReason };
 
@@ -111,6 +111,7 @@ export interface PlayPlanDecisionInput {
     plan: string;
     planExpiresAt: string | null;
     planIsTrial?: boolean;
+    planProvider?: "stripe" | "google_play" | null;
   } | null;
 }
 
@@ -135,12 +136,15 @@ export function decidePlayPlanChange({
     ? new Date(currentProfile.planExpiresAt)
     : null;
   const playExpiry = snapshot.expiresAt;
-  // Teste grátis não é plano de outro canal: compra ativa sempre substitui, e
-  // uma compra inativa nunca encerra o teste (ele termina sozinho pela data).
-  const onTrial = isActiveTrial(
+  // Período grátis sem cartão (indicação/teste antigo) não é plano de outro
+  // canal: compra ativa sempre substitui, e uma compra inativa nunca o encerra
+  // (ele termina sozinho pela data). O teste com cartão da Play segue as regras
+  // de uma assinatura normal.
+  const onTrial = isActiveFreePeriod(
     currentProfile.plan,
     currentProfile.planExpiresAt,
     currentProfile.planIsTrial,
+    currentProfile.planProvider,
   );
 
   if (snapshot.active) {
@@ -153,7 +157,12 @@ export function decidePlayPlanChange({
         return { action: "ignore", reason: "current_plan_outlasts_play" };
       }
     }
-    return { action: "activate", plan: snapshot.plan, expiresAt: playExpiry };
+    return {
+      action: "activate",
+      plan: snapshot.plan,
+      expiresAt: playExpiry,
+      inTrial: snapshot.inTrial,
+    };
   }
 
   if (normalizePlan(currentProfile.plan) === "free") {

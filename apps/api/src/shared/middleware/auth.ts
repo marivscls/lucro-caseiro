@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { newAccountTrialPlan } from "@lucro-caseiro/contracts";
+import { newAccountPlan } from "@lucro-caseiro/contracts";
 import { users } from "@lucro-caseiro/database/schema";
 
 import type { NextFunction, Request, Response } from "express";
@@ -43,8 +43,8 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
         id: user.id,
         email: user.email ?? "",
         name: user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Usuário",
-        // Mesmo teste do Premium que o trigger concede; só vale se inserir.
-        ...newAccountTrialPlan(),
+        // Gratuito, como no trigger; só vale se inserir.
+        ...newAccountPlan(),
       })
       .onConflictDoNothing();
   } catch {

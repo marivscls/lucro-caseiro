@@ -531,7 +531,12 @@ app.use("/c/:slug/service-bookings", publicWriteLimit);
 app.use("/api/v1/public/retail/catalog-orders", publicWriteLimit);
 app.use(["/api/v1/analytics/open", "/api/v1/analytics/events"], analyticsWriteLimit);
 app.use(
-  ["/api/v1/payments/stripe/checkout", "/api/v1/subscription/sync-plan"],
+  [
+    "/api/v1/payments/stripe/checkout",
+    "/api/v1/payments/stripe/cancel",
+    "/api/v1/payments/stripe/resume",
+    "/api/v1/subscription/sync-plan",
+  ],
   billingLimit,
 );
 app.use("/api/v1/marketing/ai", expensiveLimit);

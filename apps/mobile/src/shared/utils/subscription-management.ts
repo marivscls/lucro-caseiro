@@ -1,7 +1,5 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
-import { Linking, Platform } from "react-native";
-
-import { showAlert } from "../components/alert-store";
+import { Platform } from "react-native";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
@@ -31,17 +29,4 @@ export function subscriptionManagementTarget(
     providerLabel: "suporte do Lucro Caseiro",
     url: `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`,
   };
-}
-
-export async function openSubscriptionManagement(): Promise<void> {
-  const target = subscriptionManagementTarget();
-  try {
-    await Linking.openURL(target.url);
-  } catch {
-    showAlert({
-      title: "Cancelar assinatura",
-      message:
-        "Não foi possível abrir o cancelamento. Entre em contato pelo e-mail contato@orionseven.com.br.",
-    });
-  }
 }

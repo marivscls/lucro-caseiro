@@ -28,3 +28,16 @@ export const subscriptionPurchaseClaims = pgTable(
     index("subscription_purchase_claims_user_idx").on(table.userId),
   ],
 ).enableRLS();
+
+/**
+ * Teste de 7 dias com cartão: uma vez por e-mail. Guarda só o SHA-256 do e-mail
+ * normalizado (minúsculas, sem espaços), para que excluir a conta e criar outra
+ * com o mesmo e-mail não dê um teste novo. Não referencia `users`: sobrevive à
+ * exclusão da conta.
+ */
+export const premiumTrialClaims = pgTable("premium_trial_claims", {
+  emailHash: text("email_hash").primaryKey(),
+  userId: uuid("user_id").notNull(),
+  provider: text("provider").notNull(),
+  claimedAt: timestamp("claimed_at", { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();

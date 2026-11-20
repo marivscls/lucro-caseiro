@@ -1,5 +1,5 @@
 import {
-  ESSENTIAL_TRIAL_DAYS,
+  PREMIUM_TRIAL_DAYS,
   FREE_CATALOG_MAX_PRODUCTS,
   PLAN_PRICING,
   SOLD_PLAN,
@@ -54,7 +54,7 @@ export const SOLUTION_LABELS: Record<SolutionSlug, string> = {
   "relatorio-mensal-mei": "Relatório mensal do MEI",
 };
 
-const freeAnswer = `Sim. Crie a conta grátis no Android ou no navegador. Toda conta nova ainda ganha ${ESSENTIAL_TRIAL_DAYS} dias do Premium, sem cartão.`;
+const freeAnswer = `Sim. Crie a conta grátis no Android ou no navegador. Se quiser, teste o Premium por ${PREMIUM_TRIAL_DAYS} dias: você só paga no fim, se não cancelar.`;
 
 export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
   "controle-de-fiado": {
@@ -81,8 +81,8 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     },
     benefits: [
       {
-        title: `${ESSENTIAL_TRIAL_DAYS} dias para testar sem cartão`,
-        text: "O fiado faz parte do Premium. Toda conta nova ganha os dias de teste com tudo liberado, e o que você já anotou continua salvo para dar baixa mesmo depois.",
+        title: `${PREMIUM_TRIAL_DAYS} dias para testar o Premium`,
+        text: "O fiado faz parte do Premium. No teste de 7 dias fica tudo liberado (você só paga no fim, se não cancelar), e o que você já anotou continua salvo para dar baixa mesmo depois.",
       },
       {
         title: "Cobrança com Pix pronto",
@@ -101,7 +101,7 @@ export const SOLUTIONS: Record<SolutionSlug, SolutionContent> = {
     faqs: [
       {
         question: "O controle de fiado é grátis?",
-        answer: `O fiado faz parte do Premium (${formatBrl(premiumPrice.monthly)} por mês ou ${formatBrl(premiumPrice.annual)} por ano). Toda conta nova testa ${ESSENTIAL_TRIAL_DAYS} dias grátis, sem cartão. Se não assinar, o que já estava pendente continua visível e você pode dar baixa quando receber.`,
+        answer: `O fiado faz parte do Premium (${formatBrl(premiumPrice.monthly)} por mês ou ${formatBrl(premiumPrice.annual)} por ano). Dá para testar ${PREMIUM_TRIAL_DAYS} dias grátis e cancelar antes da cobrança. Se não assinar, o que já estava pendente continua visível e você pode dar baixa quando receber.`,
       },
       {
         question: "Perco o fiado se trocar de celular?",

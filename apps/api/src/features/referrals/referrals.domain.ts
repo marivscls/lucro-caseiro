@@ -69,7 +69,8 @@ export function canClaim(account: ReferralAccount, now: Date): boolean {
 
 /**
  * Prêmio da indicação: +30 dias do Premium. Quem já paga uma assinatura não
- * muda nada (a loja cuida da cobrança). Quem está no grátis ou em teste ganha
+ * muda nada (a loja cuida da cobrança), nem quem está no teste com cartão. Quem
+ * está no grátis ou num período grátis sem cartão ganha
  * os dias somados ao que ainda tinha. Grava "essential" (mesmo valor do teste
  * grátis, que hoje vale o Premium inteiro); teste em "professional" continua
  * "professional".
@@ -85,6 +86,9 @@ export function rewardPlan(
     now,
   );
   if (active !== "free" && !current.planIsTrial) return null;
+  // Teste com cartão é uma assinatura: a loja cobra no fim, então o prêmio não
+  // mexe nele (somar dias ali seria sobrescrito pela loja).
+  if (active !== "free" && current.planProvider) return null;
   const base =
     active !== "free" && current.planExpiresAt && current.planExpiresAt > now
       ? current.planExpiresAt

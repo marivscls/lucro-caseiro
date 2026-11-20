@@ -215,6 +215,7 @@ export function PlansDesktop({
   usage,
   onCancel,
   skip,
+  continueLabel = "Continuar para pagamento",
 }: Readonly<{
   cards: readonly PlanCardData[];
   selectedPlan: PaidPlan;
@@ -230,6 +231,8 @@ export function PlansDesktop({
   onCancel: (() => void) | null;
   /** Saída das boas-vindas ("Continuar no plano Gratuito"), junto do pagamento. */
   skip: Readonly<{ label: string; onPress: () => void }> | null;
+  /** Rótulo do botão de pagamento (ex.: "Começar 7 dias grátis"). */
+  continueLabel?: string;
 }>) {
   const { theme } = useTheme();
   const selected = cards.find((card) => card.plan === selectedPlan);
@@ -248,13 +251,11 @@ export function PlansDesktop({
             <Typography variant="desktopBody">{chargeHint}</Typography>
           </View>
           <Button
-            title={checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"}
+            title={checkoutLoading ? "Abrindo pagamento..." : continueLabel}
             size="lg"
             // Em 1024 px a lateral é estreita: o texto quebra em vez de cortar.
             loading={checkoutLoading}
-            accessibilityLabel={
-              checkoutLoading ? "Abrindo pagamento..." : "Continuar para pagamento"
-            }
+            accessibilityLabel={checkoutLoading ? "Abrindo pagamento..." : continueLabel}
             accessibilityState={{ busy: checkoutLoading, disabled: checkoutLoading }}
             onPress={onContinue}
             style={{ width: "100%", minHeight: 48 }}

@@ -20,6 +20,15 @@ function makeEvent(kind: SubscriptionEmailKind): SubscriptionEmailEvent {
 }
 
 describe("buildSubscriptionLifecycleEmail", () => {
+  it("tells when the trial charges and how to cancel before it", () => {
+    const content = buildSubscriptionLifecycleEmail(makeEvent("trial_started"));
+
+    expect(content.subject).toBe("Seu teste de 7 dias do Premium come\u00e7ou");
+    expect(content.text).toContain("6 de setembro de 2026");
+    expect(content.text).toContain("cancele antes dessa data e voc\u00ea n\u00e3o paga nada");
+    expect(content.text).toContain("Cancelar assinatura");
+  });
+
   it.each([
     ["activated", "Seu plano Premium est\u00e1 ativo"],
     ["renewed", "Seu plano Premium foi renovado"],

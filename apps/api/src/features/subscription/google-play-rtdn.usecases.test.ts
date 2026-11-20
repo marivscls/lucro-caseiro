@@ -31,6 +31,8 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     plan: "professional",
     planExpiresAt: inDays(1).toISOString(),
     planIsTrial: false,
+    planProvider: null,
+    trialAvailable: true,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -44,6 +46,7 @@ function makeSnapshot(
     active: true,
     expiresAt: inDays(31),
     purchaseOwnerId: USER_ID,
+    inTrial: false,
     ...overrides,
   };
 }
@@ -102,9 +105,12 @@ describe("GooglePlayNotificationsUseCases.handleSubscriptionNotification", () =>
       "google-play",
       hashPurchaseToken(TOKEN),
     );
-    expect(plans.activatePlan).toHaveBeenCalledWith(USER_ID, "professional", expiresAt);
+    expect(plans.activatePlan).toHaveBeenCalledWith(USER_ID, "professional", expiresAt, {
+      isTrial: false,
+      provider: "google_play",
+    });
     expect(outcome).toEqual({
-      decision: { action: "activate", plan: "professional", expiresAt },
+      decision: { action: "activate", plan: "professional", expiresAt, inTrial: false },
       userId: USER_ID,
     });
   });

@@ -62,6 +62,7 @@ export const ANALYTICS_ACTION_NAMES = [
   "subscription_started",
   "subscription_completed",
   "subscription_cancelled",
+  "trial_started",
   "business_profile_completed",
   "business_profile_skipped",
   "plan_chosen",

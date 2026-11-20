@@ -149,10 +149,10 @@ function AppContent() {
 
   // Comemora quando o plano vira pago (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app pagante.
-  // O teste grátis conta como "free": assinar o Essencial durante o teste
-  // (plano continua "essential", só sai do teste) também comemora.
+  // O período grátis sem cartão conta como "free": assinar durante ele também
+  // comemora. O teste com cartão já é assinatura: comemora quando começa.
   const prevPlan = useRef<string | undefined>(undefined);
-  const planKey = profile?.planIsTrial ? "free" : profile?.plan;
+  const planKey = profile?.planIsTrial && !profile.planProvider ? "free" : profile?.plan;
   useEffect(() => {
     const plan = planKey;
     if (!plan) return;
@@ -443,6 +443,15 @@ function AppContent() {
             options={{
               headerShown: !showDesktopShell,
               title: "Planos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="cancel-plan"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Cancelar assinatura",
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.text,
             }}

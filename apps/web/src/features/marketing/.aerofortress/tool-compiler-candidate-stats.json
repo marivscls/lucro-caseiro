@@ -41,9 +41,7 @@
         "kind": "calls"
       },
       "structural_key": "run:harness:explore",
-      "unique_tools": [
-        "explore"
-      ]
+      "unique_tools": ["explore"]
     },
     "run:harness:query": {
       "first_seen_ts": "2026-08-10T17:58:18.803609500+00:00",
@@ -80,9 +78,7 @@
         "kind": "calls"
       },
       "structural_key": "run:harness:query",
-      "unique_tools": [
-        "query"
-      ]
+      "unique_tools": ["query"]
     },
     "run:harness:scars": {
       "first_seen_ts": "2026-08-12T03:32:52.386048200+00:00",
@@ -122,9 +118,7 @@
         "kind": "calls"
       },
       "structural_key": "run:harness:scars",
-      "unique_tools": [
-        "scars"
-      ]
+      "unique_tools": ["scars"]
     }
   },
   "updated_ts": "2026-08-15T23:27:28.963190100+00:00",

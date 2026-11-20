@@ -4,7 +4,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 
-import { ESSENTIAL_TRIAL_DAYS } from "@lucro-caseiro/contracts";
+import { PREMIUM_TRIAL_DAYS } from "@lucro-caseiro/contracts";
 
 import { StartCta } from "./hero-actions";
 import landingStyles from "./landing-page.module.css";
@@ -87,7 +87,7 @@ export async function SolutionPage({ slug }: { readonly slug: SolutionSlug }) {
             />
             <p className={styles.note}>
               <Check aria-hidden="true" size={18} />
-              Grátis para começar, com {ESSENTIAL_TRIAL_DAYS} dias do Premium sem cartão
+              Grátis para começar, com {PREMIUM_TRIAL_DAYS} dias do Premium para testar
             </p>
           </div>
           <aside className={styles.example} aria-label="Exemplo ilustrativo">

@@ -58,7 +58,12 @@ describe("POST /webhooks/google-play", () => {
       options.handle ??
         (() =>
           Promise.resolve<PlayNotificationOutcome>({
-            decision: { action: "activate", plan: "professional", expiresAt: null },
+            decision: {
+              action: "activate",
+              plan: "professional",
+              expiresAt: null,
+              inTrial: false,
+            },
             userId: "user-1",
           })),
     );

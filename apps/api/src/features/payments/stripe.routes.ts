@@ -15,7 +15,11 @@ export function createStripeCheckoutRouter(useCases: StripeUseCases): Router {
   router.post("/checkout", async (req, res, next) => {
     try {
       const userId = getUserId(req);
-      const { tier, period } = req.body as { tier?: string; period?: string };
+      const { tier, period, withTrial } = req.body as {
+        tier?: string;
+        period?: string;
+        withTrial?: unknown;
+      };
 
       if (tier !== "essential" && tier !== "professional") {
         res.status(400).json({ error: "INVALID_PLAN" });
@@ -30,8 +34,37 @@ export function createStripeCheckoutRouter(useCases: StripeUseCases): Router {
         userId,
         tier: tier as PaidPlan,
         period: period as BillingPeriod,
+        withTrial: withTrial === true,
       });
       res.json({ url });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Tela de cancelamento: assinatura no cartão desta conta (ou null).
+  router.get("/subscription", async (req, res, next) => {
+    try {
+      const subscription = await useCases.getSubscriptionSummary(getUserId(req));
+      res.json({ subscription });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/cancel", async (req, res, next) => {
+    try {
+      const subscription = await useCases.cancelSubscription(getUserId(req));
+      res.json({ subscription });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/resume", async (req, res, next) => {
+    try {
+      const subscription = await useCases.resumeSubscription(getUserId(req));
+      res.json({ subscription });
     } catch (err) {
       next(err);
     }

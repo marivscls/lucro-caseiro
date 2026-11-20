@@ -1,6 +1,12 @@
-import type { PaidPlan, PlanType, UserProfile } from "@lucro-caseiro/contracts";
+import type {
+  PaidPlan,
+  PlanProvider,
+  PlanType,
+  UserProfile,
+} from "@lucro-caseiro/contracts";
 
 export type SubscriptionLifecycleKind =
+  | "trial_started"
   | "activated"
   | "renewed"
   | "payment_failed"
@@ -39,11 +45,18 @@ export interface ProfessionalTrialCampaignEmailClaim {
 export interface ISubscriptionRepo {
   getProfile(userId: string): Promise<UserProfile | null>;
   upsertProfile(userId: string, data: UpsertProfileData): Promise<UserProfile>;
+  /** Grava o plano vindo de compra/loja. Sem `options` = plano pago normal (sem teste, sem loja). */
   updatePlan(
     userId: string,
     plan: PlanType,
     expiresAt: Date | null,
+    options?: PlanWriteOptions,
   ): Promise<UserProfile | null>;
+  /**
+   * Marca que este e-mail já usou o teste de 7 dias com cartão. Idempotente:
+   * true se gravou agora ou já era desta conta; false se outra conta já usou.
+   */
+  claimPremiumTrial(userId: string, email: string, provider: PlanProvider): Promise<boolean>;
   getResourceCounts(userId: string): Promise<ResourceCounts>;
   claimPurchaseToken(
     userId: string,
@@ -64,6 +77,13 @@ export interface ISubscriptionRepo {
     messageId: string,
   ): Promise<void>;
   releaseProfessionalTrialCampaignEmail(userId: string, error: string): Promise<void>;
+}
+
+export interface PlanWriteOptions {
+  /** Período de teste (ainda sem cobrança). */
+  isTrial?: boolean;
+  /** Loja que cobra o plano; `null`/ausente = sem cobrança registrada. */
+  provider?: PlanProvider | null;
 }
 
 export interface UpsertProfileData {
@@ -95,6 +115,8 @@ export interface ProviderPlanState {
   plan: PlanType;
   expiresAt: Date | null;
   purchaseOwnerId: string | null;
+  /** A assinatura está no período de teste grátis da loja (ainda não cobrou). */
+  inTrial?: boolean;
 }
 
 export interface ISubscriptionStatusProvider {
@@ -109,6 +131,8 @@ export interface GooglePlaySubscriptionSnapshot {
   active: boolean;
   expiresAt: Date | null;
   purchaseOwnerId: string | null;
+  /** O período atual é a fase de teste grátis da oferta (offerPhase.freeTrial). */
+  inTrial: boolean;
 }
 
 export interface IGooglePlaySubscriptionLookup {
@@ -120,6 +144,11 @@ export interface IGooglePlaySubscriptionLookup {
 
 /** Escrita de plano usada pelas notificacoes da Play (implementada por SubscriptionUseCases). */
 export interface IPlanStateWriter {
-  activatePlan(userId: string, plan: PlanType, expiresAt: Date | null): Promise<unknown>;
+  activatePlan(
+    userId: string,
+    plan: PlanType,
+    expiresAt: Date | null,
+    options?: PlanWriteOptions,
+  ): Promise<unknown>;
   deactivatePlan(userId: string): Promise<unknown>;
 }

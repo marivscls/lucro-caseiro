@@ -13,8 +13,12 @@ export const ASSISTANT_MAX_PRICE_SHARE = 0.1;
  */
 export const ASSISTANT_WORST_COST_PER_USE = 0.02;
 
-/** Plano Gratuito: usos para testar, uma vez só (não renova todo mês). */
-export const ASSISTANT_FREE_TRIAL_USES = 10;
+/**
+ * Plano Gratuito: nenhum uso (2026-11-20). A IA custa por uso e contas novas são
+ * de graça; no Gratuito o assistente só convida para o Premium ou o teste com
+ * cartão.
+ */
+export const ASSISTANT_FREE_TRIAL_USES = 0;
 
 /**
  * Usos por mês que cabem na fração do plano. Usa o mês do plano anual (o mais
@@ -27,7 +31,7 @@ function limitForPlan(plan: PaidPlan): number {
   );
 }
 
-/** Usos do assistente em cada plano: por mês nos pagos; no Gratuito, o teste (total). */
+/** Usos do assistente em cada plano: por mês nos pagos; nenhum no Gratuito. */
 export const ASSISTANT_MONTHLY_LIMITS = {
   free: ASSISTANT_FREE_TRIAL_USES,
   essential: limitForPlan("essential"),

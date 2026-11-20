@@ -164,25 +164,24 @@ export function hasActiveFeature(
 }
 
 // ---------------------------------------------------------------------------
-// Teste grátis: toda conta NOVA ganha o Premium por 7 dias, sem cartão.
-// Persistido como plan='essential' (o trigger do banco grava esse valor, que hoje
-// vale o mesmo que o Premium) + plan_expires_at=criação+7d + plan_is_trial; ao
-// expirar, resolveActivePlan já devolve "free" (nada a desligar).
+// Teste grátis (2026-11-20): toda conta NOVA começa no Gratuito. O teste de 7
+// dias do Premium só começa quando a pessoa escolhe e coloca o cartão (Stripe
+// com trial_period_days ou oferta de teste da Google Play); no fim do teste a
+// loja cobra, a menos que a pessoa cancele antes. Uma vez por conta.
+// O teste aparece no perfil como plano pago + plan_is_trial + plan_provider.
+// plan_is_trial sem plan_provider é um período grátis sem cartão (teste antigo
+// do cadastro ou prêmio de indicação), que termina sozinho pela data.
 // ---------------------------------------------------------------------------
 
-export const ESSENTIAL_TRIAL_DAYS = 7;
+export const PREMIUM_TRIAL_DAYS = 7;
 
-/** Estado de plano gravado ao criar uma conta nova (teste do Premium). */
-export function newAccountTrialPlan(now: Date = new Date()): {
-  plan: "essential";
-  planExpiresAt: Date;
-  planIsTrial: true;
+/** Estado de plano gravado ao criar uma conta nova: sempre o Gratuito. */
+export function newAccountPlan(): {
+  plan: "free";
+  planExpiresAt: null;
+  planIsTrial: false;
 } {
-  return {
-    plan: "essential",
-    planExpiresAt: new Date(now.getTime() + ESSENTIAL_TRIAL_DAYS * 24 * 60 * 60 * 1000),
-    planIsTrial: true,
-  };
+  return { plan: "free", planExpiresAt: null, planIsTrial: false };
 }
 
 /**
@@ -201,7 +200,7 @@ export function trialDaysLeft(
   return Math.round((startOfDay(end) - startOfDay(now)) / (24 * 60 * 60 * 1000));
 }
 
-/** Teste do Premium ainda valendo (plano pago em teste e não expirado). */
+/** Período de teste do Premium ainda valendo (com ou sem cartão). */
 export function isActiveTrial(
   plan: string,
   expiresAt: string | null,
@@ -209,6 +208,34 @@ export function isActiveTrial(
   now: Date = new Date(),
 ): boolean {
   return planIsTrial === true && resolveActivePlan(plan, expiresAt, now) !== "free";
+}
+
+/** Loja que cobra o plano atual. `null` = sem cobrança (Gratuito ou período grátis sem cartão). */
+export type PlanProvider = "stripe" | "google_play";
+
+/**
+ * Período grátis SEM cartão ainda valendo (teste antigo do cadastro ou prêmio de
+ * indicação): não há assinatura, acaba sozinho e volta para o Gratuito.
+ */
+export function isActiveFreePeriod(
+  plan: string,
+  expiresAt: string | null,
+  planIsTrial: boolean | undefined,
+  planProvider: PlanProvider | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  return !planProvider && isActiveTrial(plan, expiresAt, planIsTrial, now);
+}
+
+/** Teste COM cartão ainda valendo: a loja cobra no fim, a menos que a pessoa cancele. */
+export function isActiveCardTrial(
+  plan: string,
+  expiresAt: string | null,
+  planIsTrial: boolean | undefined,
+  planProvider: PlanProvider | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  return !!planProvider && isActiveTrial(plan, expiresAt, planIsTrial, now);
 }
 
 export function isPaidPlan(plan: PlanType): plan is PaidPlan {

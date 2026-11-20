@@ -1,4 +1,4 @@
-import { ASSISTANT_FREE_TRIAL_USES } from "@lucro-caseiro/contracts";
+import { ASSISTANT_MONTHLY_LIMITS } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import { LimitExceededError, ValidationError } from "../../shared/errors";
@@ -49,7 +49,7 @@ function business(overrides: Partial<IAssistantBusiness> = {}): IAssistantBusine
     listProducts: () =>
       Promise.resolve([{ id: P1, name: "Marmita de frango", price: 18 }]),
     listClients: () => Promise.resolve([{ id: C1, name: "Célia Santos" }]),
-    activePlan: () => Promise.resolve("free"),
+    activePlan: () => Promise.resolve("professional"),
     ...overrides,
   };
 }
@@ -64,7 +64,7 @@ describe("AssistantUseCases.draftSale", () => {
       clientName: "Célia Santos",
       paymentMethod: "credit",
       items: [{ productId: P1, name: "Marmita de frango", quantity: 3, unitPrice: 18 }],
-      usage: { used: 1, limit: ASSISTANT_FREE_TRIAL_USES, trial: true },
+      usage: { used: 1, limit: ASSISTANT_MONTHLY_LIMITS.professional, trial: false },
     });
   });
 
@@ -82,7 +82,7 @@ describe("AssistantUseCases.draftSale", () => {
     expect(draft.clientId).toBeNull();
   });
 
-  it("bloqueia quando os usos de teste do Gratuito acabaram, sem gastar a IA", async () => {
+  it("no Gratuito não há usos: convida para o Premium sem gastar a IA", async () => {
     let called = false;
     const sut = new AssistantUseCases(
       {
@@ -92,23 +92,17 @@ describe("AssistantUseCases.draftSale", () => {
           return Promise.reject(new Error("não deveria chamar"));
         },
       },
-      usage(ASSISTANT_FREE_TRIAL_USES),
-      business(),
+      usage(),
+      business({ activePlan: () => Promise.resolve("free") }),
       () => NOW,
     );
-    await expect(sut.draftSale("u", { text: "vendi um bolo" })).rejects.toBeInstanceOf(
-      LimitExceededError,
-    );
+    const attempt = sut.draftSale("u", { text: "vendi um bolo" });
+    await expect(attempt).rejects.toBeInstanceOf(LimitExceededError);
+    await expect(attempt).rejects.toThrow("teste de 7 dias");
     expect(called).toBe(false);
   });
 
-  it("conta o Gratuito no teste e os planos pagos no mês", async () => {
-    const free = usage();
-    await new AssistantUseCases(ai(), free, business(), () => NOW).draftSale("u", {
-      text: "vendi 3 marmitas",
-    });
-    expect(new Set(free.keys)).toEqual(new Set(["trial"]));
-
+  it("conta os planos pagos no mês", async () => {
     const paid = usage();
     const draft = await new AssistantUseCases(
       ai(),

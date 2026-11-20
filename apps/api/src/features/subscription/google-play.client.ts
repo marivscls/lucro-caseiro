@@ -36,6 +36,13 @@ interface GooglePlaySubscriptionPurchase {
       basePlanId?: string;
       offerId?: string;
     };
+    /** Fase atual da oferta; `freeTrial` presente = teste grátis em andamento. */
+    offerPhase?: {
+      freeTrial?: object;
+      basePrice?: object;
+      introductoryPrice?: object;
+      prorationPeriod?: object;
+    };
   }>;
 }
 
@@ -88,6 +95,16 @@ function resolveLineItemPlan(
     if (plan) return plan;
   }
   return null;
+}
+
+/** O line item mais recente (maior expiração) está na fase de teste grátis. */
+function isInFreeTrial(purchase: GooglePlaySubscriptionPurchase): boolean {
+  const items = purchase.lineItems ?? [];
+  let latest: (typeof items)[number] | null = null;
+  for (const item of items) {
+    if (!latest || (item.expiryTime ?? "") > (latest.expiryTime ?? "")) latest = item;
+  }
+  return Boolean(latest?.offerPhase?.freeTrial);
 }
 
 function isPermanentLookupFailure(error: unknown): boolean {
@@ -150,6 +167,7 @@ export class GooglePlayClient
       expiresAt,
       purchaseOwnerId:
         subscription.externalAccountIdentifiers?.obfuscatedExternalAccountId ?? null,
+      inTrial: isInFreeTrial(subscription),
     };
   }
 
@@ -175,6 +193,7 @@ export class GooglePlayClient
       plan: snapshot.plan,
       expiresAt: snapshot.expiresAt,
       purchaseOwnerId: snapshot.purchaseOwnerId,
+      inTrial: snapshot.inTrial,
     };
   }
 }

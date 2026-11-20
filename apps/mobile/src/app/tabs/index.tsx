@@ -94,7 +94,11 @@ import { lapsedLookbackStart } from "../../features/home/lapsed-clients";
 import { useOrders } from "../../features/orders/hooks";
 import { useBusinessCopy } from "../../features/subscription/business-copy";
 import { TrialChecklist } from "../../features/discovery/components/trial-checklist";
-import { isProfileOnTrial, trialEndLabel } from "../../features/subscription/trial";
+import {
+  isProfileOnCardTrial,
+  isProfileOnTrial,
+  trialEndLabel,
+} from "../../features/subscription/trial";
 
 function formattedDate(date: Date, desktop: boolean): string {
   const text = capitalize(
@@ -193,7 +197,8 @@ export default function HomeScreen() {
   const ordersQuery = useOrders(undefined, hasScheduling);
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
-  const onTrial = isProfileOnTrial(profile);
+  // Qualquer teste (com ou sem cartão): mostra o que está liberado e quando acaba.
+  const onTrial = isProfileOnTrial(profile) || isProfileOnCardTrial(profile);
   const showPaywall = usePaywall((state) => state.show);
 
   const goalQuery = useProlaboreStatus();
