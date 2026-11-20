@@ -47,9 +47,9 @@ export default function TermsPage() {
           <p>
             O plano Gratuito possui limites informados no aplicativo. O Premium, plano
             pago, remove esses limites e inclui recursos avançados de apresentação,
-            controle e exportação. Contas novas podem testar o Premium por um período
-            gratuito informado no aplicativo, sem cartão e sem cobrança automática ao
-            final do teste.
+            controle e exportação. É possível testar o Premium uma vez por um período
+            gratuito informado no aplicativo. O teste pede um meio de pagamento e, se não
+            for cancelado antes do fim, a assinatura começa e é cobrada automaticamente.
           </p>
           <ul>
             <li>Preço, período e benefícios são apresentados antes da contratação.</li>

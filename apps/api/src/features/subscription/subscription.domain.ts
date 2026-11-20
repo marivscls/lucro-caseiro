@@ -98,3 +98,11 @@ export function getLimitMessage(resourceType: ResourceType): string {
 export function hashPurchaseToken(purchaseToken: string): string {
   return createHash("sha256").update(purchaseToken).digest("hex");
 }
+
+/**
+ * Hash do e-mail para o "um teste com cartão por e-mail". Mesma normalização da
+ * migration 20261120100000 (lower + trim), para o histórico gravado nela casar.
+ */
+export function trialEmailHash(email: string): string {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
+}

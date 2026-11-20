@@ -14,6 +14,12 @@ export const UserProfileDto = z.object({
   // true enquanto o plano atual veio do teste grátis (sem pagamento). Default
   // false para respostas de APIs antigas que ainda não mandam o campo.
   planIsTrial: z.boolean().default(false),
+  // Loja que cobra o plano (stripe | google_play). null = sem cobrança. Com
+  // planIsTrial = true, distingue o teste com cartão (cobra no fim) do período
+  // grátis sem cartão.
+  planProvider: z.enum(["stripe", "google_play"]).nullable().default(null),
+  // A conta ainda pode começar o teste de 7 dias com cartão (uma vez por conta).
+  trialAvailable: z.boolean().default(false),
   createdAt: z.string().datetime(),
 });
 

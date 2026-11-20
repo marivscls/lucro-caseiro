@@ -1,11 +1,11 @@
 import type { BillingPeriod, PaidPlan, StoreProductId } from "@lucro-caseiro/contracts";
 import {
-  isActiveTrial,
+  isActiveFreePeriod,
   planFromProductId,
   resolveActivePlan,
   STORE_PRODUCT_IDS,
 } from "@lucro-caseiro/contracts";
-import type { Purchase } from "react-native-iap";
+import type { ProductSubscription, Purchase, SubscriptionOffer } from "react-native-iap";
 
 // Product ids aceitos pelo backend (4 novos SKUs + os legados do Premium).
 export type AcceptedProductId =
@@ -85,13 +85,15 @@ type ActivationProfile = {
   plan: string;
   planExpiresAt: string | null;
   planIsTrial?: boolean;
+  planProvider?: "stripe" | "google_play" | null;
 };
 
 const PLAN_RANK: Record<PaidPlan, number> = { essential: 1, professional: 2 };
 
 /**
  * A compra só conta como liberada quando o perfil devolvido pelo servidor já
- * está num plano pago (não o teste grátis) igual ou acima do que foi comprado.
+ * está num plano pago igual ou acima do que foi comprado. O teste com cartão da
+ * loja conta (é uma assinatura); um período grátis sem cartão não conta.
  * Enquanto o Google deixa o pagamento "pendente", o servidor devolve o plano
  * anterior; nesse caso a compra não é confirmada e a pessoa é avisada.
  */
@@ -102,7 +104,15 @@ export function isPurchaseActivated(
 ): boolean {
   const purchased = planFromProductId(productId);
   if (!purchased) return false;
-  if (isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial, now)) {
+  if (
+    isActiveFreePeriod(
+      profile.plan,
+      profile.planExpiresAt,
+      profile.planIsTrial,
+      profile.planProvider,
+      now,
+    )
+  ) {
     return false;
   }
   const active = resolveActivePlan(profile.plan, profile.planExpiresAt, now);
@@ -117,4 +127,42 @@ export function purchaseErrorResult(error: unknown): Exclude<PurchaseResult, "su
   const code =
     error && typeof error === "object" && "code" in error ? String(error.code) : "";
   return /cancel/i.test(code) ? "cancel" : "failure";
+}
+
+function offersOf(subscription: ProductSubscription): SubscriptionOffer[] {
+  if (subscription.platform !== "android") return [];
+  return subscription.subscriptionOffers ?? [];
+}
+
+/** Oferta com uma fase grátis (o teste de 7 dias configurado no Play Console). */
+export function isFreeTrialOffer(offer: SubscriptionOffer): boolean {
+  if (offer.paymentMode === "free-trial") return true;
+  const phases = offer.pricingPhasesAndroid?.pricingPhaseList ?? [];
+  return phases.some((phase) => Number(phase.priceAmountMicros) === 0);
+}
+
+/**
+ * A Google Play só lista a oferta de teste para quem ainda pode usá-la (por
+ * conta Google), então a presença dela já é a elegibilidade da loja.
+ */
+export function hasFreeTrialOffer(
+  subscription: ProductSubscription | undefined,
+): boolean {
+  if (!subscription) return false;
+  return offersOf(subscription).some(
+    (offer) => isFreeTrialOffer(offer) && Boolean(offer.offerTokenAndroid),
+  );
+}
+
+/**
+ * Token da oferta a comprar: com teste, a oferta de teste grátis; sem teste, o
+ * plano base (sem fase grátis), para ninguém cair num teste sem ter escolhido.
+ */
+export function pickOfferToken(
+  subscription: ProductSubscription,
+  withTrial: boolean,
+): string | null {
+  const offers = offersOf(subscription).filter((offer) => offer.offerTokenAndroid);
+  const match = offers.find((offer) => isFreeTrialOffer(offer) === withTrial);
+  return match?.offerTokenAndroid ?? null;
 }

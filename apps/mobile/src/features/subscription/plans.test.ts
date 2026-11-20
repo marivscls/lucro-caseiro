@@ -17,6 +17,13 @@ const state = vi.hoisted(() => ({
   restore: vi.fn(),
   stripeLoading: false,
   subscriptionLoading: false,
+  trialAvailable: false,
+  playTrial: true,
+  push: vi.fn(),
+}));
+vi.mock("expo-router", () => ({
+  Stack: { Screen: () => null },
+  useRouter: () => ({ push: state.push, replace: state.push }),
 }));
 vi.mock("@lucro-caseiro/ui", async (importOriginal) => ({
   ...(await importOriginal<Record<string, unknown>>()),
@@ -46,6 +53,7 @@ vi.mock("./use-subscription", () => ({
   useSubscription: () => ({
     subscribe: state.subscribe,
     restore: state.restore,
+    canStartTrial: () => state.playTrial,
     loading: state.subscriptionLoading,
   }),
 }));
@@ -57,6 +65,8 @@ vi.mock("./hooks", () => ({
           plan: state.plan,
           planExpiresAt: state.trialExpiresAt,
           planIsTrial: state.trialExpiresAt !== null,
+          planProvider: null,
+          trialAvailable: state.trialAvailable,
         },
     isLoading: state.profileLoading,
   }),
@@ -88,6 +98,8 @@ beforeEach(() => {
   state.platform = "web";
   state.stripeLoading = false;
   state.subscriptionLoading = false;
+  state.trialAvailable = false;
+  state.playTrial = true;
 });
 
 describe("plans loading", () => {
@@ -160,11 +172,15 @@ describe("single-page checkout", () => {
       expect(screen.getByText("R$ 37,42")).toBeTruthy();
       expect(screen.getByText("R$ 449,00 cobrados uma vez por ano.")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-      expect(payment).toHaveBeenLastCalledWith("professional", "annual");
+      expect(payment).toHaveBeenLastCalledWith("professional", "annual", {
+        withTrial: false,
+      });
       fireEvent.click(screen.getByRole("button", { name: "Mensal" }));
       expect(screen.getByText("R$ 49,90 cobrados a cada mês.")).toBeTruthy();
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-      expect(payment).toHaveBeenLastCalledWith("professional", "monthly");
+      expect(payment).toHaveBeenLastCalledWith("professional", "monthly", {
+        withTrial: false,
+      });
       expect(payment).toHaveBeenCalledTimes(2);
       expect(state.showPaywall).not.toHaveBeenCalled();
       expect(
@@ -199,7 +215,9 @@ describe("single-page checkout", () => {
     expect(screen.queryByText("Plano ativo")).toBeNull();
     expect(screen.queryByRole("button", { name: "Cancelar assinatura" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
-    expect(state.checkout).toHaveBeenLastCalledWith("professional", "annual");
+    expect(state.checkout).toHaveBeenLastCalledWith("professional", "annual", {
+      withTrial: false,
+    });
   });
 
   it.each(["web", "android"])(
@@ -221,9 +239,55 @@ describe("single-page checkout", () => {
       fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
       expect(
         platform === "android" ? state.subscribe : state.checkout,
-      ).toHaveBeenCalledWith("professional", "annual");
+      ).toHaveBeenCalledWith("professional", "annual", { withTrial: false });
     },
   );
+});
+
+describe("7-day trial with card", () => {
+  it.each(["web", "android"])(
+    "offers the trial once, with the charge date and how not to pay, on %s",
+    (platform) => {
+      state.profileLoading = false;
+      state.platform = platform;
+      state.trialAvailable = true;
+      render(React.createElement(PlansScreen));
+      expect(
+        screen.getByText(/^Hoje: R\$ 0,00\. Em .+: R\$ 449,00 por ano\.$/),
+      ).toBeTruthy();
+      expect(
+        screen.getByText(/^Cancele antes de .+ e você não paga nada\.$/),
+      ).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Começar 7 dias grátis" }));
+      const payment = platform === "android" ? state.subscribe : state.checkout;
+      expect(payment).toHaveBeenLastCalledWith("professional", "annual", {
+        withTrial: true,
+      });
+    },
+  );
+
+  it("falls back to the normal checkout when Google Play has no trial offer", () => {
+    state.profileLoading = false;
+    state.platform = "android";
+    state.trialAvailable = true;
+    state.playTrial = false;
+    render(React.createElement(PlansScreen));
+    expect(screen.queryByRole("button", { name: "Começar 7 dias grátis" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Continuar para pagamento" }));
+    expect(state.subscribe).toHaveBeenLastCalledWith("professional", "annual", {
+      withTrial: false,
+    });
+  });
+
+  it("welcomes a new account with the trial or the free plan", () => {
+    state.profileLoading = false;
+    state.trialAvailable = true;
+    const onContinue = vi.fn();
+    render(React.createElement(PlansView, { welcome: { onContinue } }));
+    expect(screen.getByText("Teste o Premium por 7 dias")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Continuar no plano Gratuito" }));
+    expect(onContinue).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("welcome plans after signup", () => {

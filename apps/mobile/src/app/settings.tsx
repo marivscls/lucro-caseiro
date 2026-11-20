@@ -38,7 +38,12 @@ import {
   businessCopyFor,
 } from "../features/subscription/business-copy";
 import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
-import { isProfileOnTrial, trialEndLabel } from "../features/subscription/trial";
+import {
+  isProfileOnCardTrial,
+  isProfileOnTrial,
+  trialChargeDate,
+  trialEndLabel,
+} from "../features/subscription/trial";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { showAlert } from "../shared/components/alert-store";
@@ -68,10 +73,7 @@ import { ApiError } from "../shared/utils/api-client";
 import { alertError } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadProfilePhoto } from "../shared/utils/upload-image";
-import {
-  openSubscriptionManagement,
-  subscriptionManagementTarget,
-} from "../shared/utils/subscription-management";
+import { subscriptionManagementTarget } from "../shared/utils/subscription-management";
 import { DesktopTag } from "../shared/layout/desktop-kit";
 
 const PRIVACY_POLICY_URL = "https://lucrocaseiro.com.br/landing/privacidade";
@@ -288,9 +290,10 @@ export default function SettingsScreen() {
   const experienceCopy = businessCopyFor(businessType);
   const avatarUrl = profile?.avatarUrl ?? null;
   const currentPlan = activePlan(profile);
-  // Teste grátis do Premium: usa os recursos, mas não há assinatura para
-  // cancelar nem gerenciar.
+  // Período grátis sem cartão: usa os recursos, mas não há assinatura para
+  // cancelar nem gerenciar. O teste com cartão é assinatura (pode cancelar).
   const onTrial = isProfileOnTrial(profile);
+  const onCardTrial = isProfileOnCardTrial(profile);
   const hasPaidPlan = currentPlan !== "free" && !onTrial;
   const canUsePremiumNotifications =
     !!profile &&
@@ -458,8 +461,8 @@ export default function SettingsScreen() {
       buttons: [
         { text: "Voltar", style: "cancel" },
         {
-          text: target.actionLabel,
-          onPress: () => void openSubscriptionManagement(),
+          text: "Cancelar assinatura",
+          onPress: () => router.push("/cancel-plan"),
         },
         {
           text: "Já cancelei",
@@ -539,18 +542,32 @@ export default function SettingsScreen() {
       );
     }
 
-    // Assinante (qualquer nível pago é o Premium, com tudo liberado): só gerencia.
+    // Assinante (qualquer nível pago é o Premium, com tudo liberado, inclusive no
+    // teste com cartão): gerencia ou cancela.
     return (
-      <Button
-        title="Gerenciar assinatura"
-        variant="outline"
-        size="md"
-        icon={
-          <AppIcon name="settings-outline" size={19} color={theme.colors.primaryStrong} />
-        }
-        onPress={() => router.push("/plans")}
-        style={planButtonStyle}
-      />
+      <View style={actionRowStyle}>
+        <Button
+          title="Gerenciar assinatura"
+          variant="outline"
+          size="md"
+          icon={
+            <AppIcon
+              name="settings-outline"
+              size={19}
+              color={theme.colors.primaryStrong}
+            />
+          }
+          onPress={() => router.push("/plans")}
+          style={planButtonStyle}
+        />
+        <Button
+          title={onCardTrial ? "Cancelar teste" : "Cancelar assinatura"}
+          variant="text"
+          size="md"
+          onPress={() => router.push("/cancel-plan")}
+          style={planButtonStyle}
+        />
+      </View>
     );
   }
 
@@ -669,6 +686,9 @@ export default function SettingsScreen() {
   if (onTrial) {
     planTitle = `${PLAN_LABELS[currentPlan]} (teste grátis)`;
     planDescription = `Seu teste termina ${trialEndLabel(profile?.planExpiresAt ?? null)}. Depois, a conta volta para o Gratuito.`;
+  } else if (onCardTrial && profile?.planExpiresAt) {
+    planTitle = `${PLAN_LABELS[currentPlan]} (teste de 7 dias)`;
+    planDescription = `A primeira cobrança é em ${trialChargeDate(profile.planExpiresAt)}. Cancele antes e você não paga nada.`;
   } else if (hasPaidPlan) {
     planTitle = PLAN_LABELS[currentPlan];
     planDescription = `Seus recursos ${brandName} em um só lugar.`;

@@ -27,8 +27,11 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   plan: planTypeEnum("plan").notNull().default("free"),
   planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
-  // true enquanto o plano veio do teste grátis do Essencial (sem pagamento).
+  // true enquanto o plano está num período de teste (ainda sem cobrança).
   planIsTrial: boolean("plan_is_trial").notNull().default(false),
+  // Loja que cobra o plano: 'stripe' | 'google_play'; null = sem cobrança
+  // (Gratuito ou período grátis sem cartão, como prêmio de indicação).
+  planProvider: text("plan_provider"),
   isActive: boolean("is_active").notNull().default(true),
   // Pix de quem vende: vai pronto (com valor) na cobrança, no recibo e no orçamento.
   pixKeyType: text("pix_key_type"),

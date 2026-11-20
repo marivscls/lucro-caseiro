@@ -1,5 +1,5 @@
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
-import { PLAN_PRICING } from "@lucro-caseiro/contracts";
+import { PLAN_PRICING, PREMIUM_TRIAL_DAYS } from "@lucro-caseiro/contracts";
 
 /** "R$ 1.234,50" — mesmo formato em Planos e no checkout. */
 export function formatMoney(value: number): string {
@@ -42,4 +42,33 @@ export function planPriceDisplay(
 export function annualSavings(plan: PaidPlan): number {
   const pricing = PLAN_PRICING[plan];
   return pricing.monthly * 12 - pricing.annual;
+}
+
+export interface TrialChargeLines {
+  /** "Hoje: R$ 0,00. Em 27 de novembro: R$ 69,90 por mês." */
+  readonly line: string;
+  /** Como não pagar nada. */
+  readonly hint: string;
+}
+
+/**
+ * O que acontece no teste com cartão, por extenso: hoje não cobra; no fim dos
+ * 7 dias cobra o período escolhido. Sem letra miúda (lição da avaliação de 1
+ * estrela: a pessoa precisa saber que está num teste e quando paga).
+ */
+export function trialChargeLines(
+  plan: PaidPlan,
+  period: BillingPeriod,
+  now: Date = new Date(),
+): TrialChargeLines {
+  const chargeDay = new Date(now.getTime() + PREMIUM_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const date = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long" }).format(
+    chargeDay,
+  );
+  const amount = formatMoney(PLAN_PRICING[plan][period]);
+  const per = period === "annual" ? "por ano" : "por mês";
+  return {
+    line: `Hoje: R$ 0,00. Em ${date}: ${amount} ${per}.`,
+    hint: `Cancele antes de ${date} e você não paga nada.`,
+  };
 }

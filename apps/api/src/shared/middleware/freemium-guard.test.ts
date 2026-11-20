@@ -28,6 +28,8 @@ function makeProfile(plan: PlanType): UserProfile {
     plan,
     planExpiresAt: null,
     planIsTrial: false,
+    planProvider: null,
+    trialAvailable: true,
     createdAt: new Date().toISOString(),
   };
 }

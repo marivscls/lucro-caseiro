@@ -1,5 +1,5 @@
 import {
-  ESSENTIAL_TRIAL_DAYS,
+  PREMIUM_TRIAL_DAYS,
   FREE_CATALOG_MAX_PRODUCTS,
   PLAN_LABELS,
   PLAN_LIMITS,
@@ -107,7 +107,7 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
       steps: [
         `${PLAN_LABELS.free}: sem mensalidade, com vendas ilimitadas, cálculo de preço, até ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos, ${PLAN_LIMITS.free.maxOrdersPerMonth} encomendas novas por mês na agenda, catálogo com ${FREE_CATALOG_MAX_PRODUCTS} produtos e o Financeiro da semana atual.`,
         `${PLAN_LABELS[SOLD_PLAN]}: ${planPrice(SOLD_PLAN)}. Tudo liberado: fiado com cobrança por link e Pix, agenda sem limite, Financeiro de qualquer mês, clientes e produtos ilimitados, catálogo completo e personalizado, relatórios completos, resumo do mês e orçamentos em PDF, compras e suporte prioritário.`,
-        `Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do ${PLAN_LABELS[SOLD_PLAN]} para testar, sem cartão. Depois, volta sozinha para o ${PLAN_LABELS.free} se você não assinar.`,
+        `Toda conta começa no ${PLAN_LABELS.free}. Para testar o ${PLAN_LABELS[SOLD_PLAN]}, você pode fazer o teste de ${PREMIUM_TRIAL_DAYS} dias: coloca o cartão e só paga no fim do teste. Cancele antes, em Configurações, e não paga nada.`,
         `Quem já assinava o Essencial ou o Profissional passa a ter tudo do ${PLAN_LABELS[SOLD_PLAN]}, pagando o mesmo valor que contratou.`,
         "Toque em Ver planos para conferir os recursos e o valor antes de assinar.",
       ],

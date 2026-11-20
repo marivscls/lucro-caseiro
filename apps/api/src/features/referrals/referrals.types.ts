@@ -12,6 +12,8 @@ export interface PlanState {
   plan: string;
   planExpiresAt: Date | null;
   planIsTrial: boolean;
+  /** Loja que cobra o plano (teste com cartão incluso); ausente/null = sem cobrança. */
+  planProvider?: string | null;
 }
 
 export interface IReferralsRepo {

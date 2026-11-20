@@ -20,7 +20,10 @@ export default function TodayPage() {
     onSuccess: () => void client.invalidateQueries(),
   });
   const resources = query.data?.resources ?? [];
-  const actions = buildTodayActions(resources, new Date(), query.data?.videoJobs).slice(0, 8);
+  const actions = buildTodayActions(resources, new Date(), query.data?.videoJobs).slice(
+    0,
+    8,
+  );
   const hasData = resources.length > 0;
   let queue: React.ReactNode = (
     <div className="today-clear">
@@ -90,8 +93,8 @@ export default function TodayPage() {
               <p className="eyebrow">Selenita</p>
               <h2>Peça anúncios ou o que otimizar no tráfego.</h2>
               <p>
-                A Selenita monta campanha e roteiro. Você confirma. Sem preencher a Central
-                inteira.
+                A Selenita monta campanha e roteiro. Você confirma. Sem preencher a
+                Central inteira.
               </p>
               <Link className="button light" href="/ai">
                 Conversar com a Selenita <ArrowRight size={17} />

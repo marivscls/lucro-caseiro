@@ -153,8 +153,8 @@ export default function AiPage() {
                 </div>
                 <h2>O que vamos anunciar hoje?</h2>
                 <p>
-                  Campanha, roteiro de ad ou diagnóstico de tráfego. Sem preencher a Central
-                  inteira.
+                  Campanha, roteiro de ad ou diagnóstico de tráfego. Sem preencher a
+                  Central inteira.
                 </p>
                 <div className="starter-grid">
                   {starters.map((starter) => (
@@ -385,26 +385,6 @@ function Message({ message }: { message: AiMessage }) {
               {actionOptions
                 .filter((option) => primaryActionTargets.has(option.target))
                 .map(({ target, label, description, icon: Icon }) => (
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={actionTarget === target}
-                  className={actionTarget === target ? "active" : ""}
-                  key={target}
-                  onClick={() => setActionTarget(target)}
-                >
-                  <Icon size={18} />
-                  <span>
-                    <strong>{label}</strong>
-                    <small>{description}</small>
-                  </span>
-                </button>
-              ))}
-              <details className="selenita-more-actions">
-                <summary>Outras ações</summary>
-                {actionOptions
-                  .filter((option) => !primaryActionTargets.has(option.target))
-                  .map(({ target, label, description, icon: Icon }) => (
                   <button
                     type="button"
                     role="radio"
@@ -420,6 +400,26 @@ function Message({ message }: { message: AiMessage }) {
                     </span>
                   </button>
                 ))}
+              <details className="selenita-more-actions">
+                <summary>Outras ações</summary>
+                {actionOptions
+                  .filter((option) => !primaryActionTargets.has(option.target))
+                  .map(({ target, label, description, icon: Icon }) => (
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={actionTarget === target}
+                      className={actionTarget === target ? "active" : ""}
+                      key={target}
+                      onClick={() => setActionTarget(target)}
+                    >
+                      <Icon size={18} />
+                      <span>
+                        <strong>{label}</strong>
+                        <small>{description}</small>
+                      </span>
+                    </button>
+                  ))}
               </details>
             </div>
             <label>

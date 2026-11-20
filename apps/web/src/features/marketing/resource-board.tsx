@@ -68,7 +68,8 @@ const labels: Record<
   campaign: {
     eyebrow: "Tráfego pago",
     title: "Campanhas e ads",
-    description: "Oferta, ângulos, roteiros e peças para TikTok e Meta. Sem preencher a Central inteira.",
+    description:
+      "Oferta, ângulos, roteiros e peças para TikTok e Meta. Sem preencher a Central inteira.",
     singular: "campanha",
   },
   performance: {

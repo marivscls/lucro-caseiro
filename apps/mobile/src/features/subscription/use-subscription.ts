@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState, Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import type {
-  ProductSubscription,
-  ProductSubscriptionAndroid,
-  Purchase,
-} from "react-native-iap";
+import type { ProductSubscription, Purchase } from "react-native-iap";
 
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
@@ -19,7 +15,9 @@ import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import {
   ALL_PRODUCT_IDS,
+  hasFreeTrialOffer,
   isPurchaseActivated,
+  pickOfferToken,
   isSyncablePaidPurchase,
   productIdFor,
   purchaseErrorResult,
@@ -106,18 +104,6 @@ const iapModule = loadIapModule();
 const useSafeIAP = iapModule?.useIAP ?? (() => unavailableIap());
 const fetchAvailablePurchases =
   iapModule?.getAvailablePurchases ?? (() => Promise.resolve([] as Purchase[]));
-
-function isAndroidSubscription(
-  subscription: ProductSubscription,
-): subscription is ProductSubscriptionAndroid {
-  return subscription.platform === "android";
-}
-
-function getOfferToken(subscription: ProductSubscription): string | null {
-  if (!isAndroidSubscription(subscription)) return null;
-
-  return subscription.subscriptionOffers?.[0]?.offerTokenAndroid ?? null;
-}
 
 function getPurchaseToken(purchase: Purchase): string | null {
   if ("purchaseToken" in purchase) {
@@ -300,8 +286,22 @@ export function useSubscription() {
     return () => subscription.remove();
   }, [token, syncPaidPurchases]);
 
+  /** A Play oferece o teste de 7 dias para este plano e esta conta Google. */
+  const canStartTrial = useCallback(
+    (tier: PaidPlan, period: BillingPeriod) =>
+      Platform.OS === "android" &&
+      hasFreeTrialOffer(
+        subscriptions.find((item) => item.id === productIdFor(tier, period)),
+      ),
+    [subscriptions],
+  );
+
   const subscribe = useCallback(
-    async (tier: PaidPlan, period: BillingPeriod) => {
+    async (
+      tier: PaidPlan,
+      period: BillingPeriod,
+      options: { withTrial?: boolean } = {},
+    ) => {
       if (Platform.OS !== "android") {
         showAlert({
           title: "Em breve",
@@ -317,7 +317,9 @@ export function useSubscription() {
 
       const productId = productIdFor(tier, period);
       const subscription = subscriptions.find((item) => item.id === productId);
-      const offerToken = subscription ? getOfferToken(subscription) : null;
+      const offerToken = subscription
+        ? pickOfferToken(subscription, options.withTrial === true)
+        : null;
 
       if (!connected || !subscription || !offerToken) {
         showAlert({
@@ -413,5 +415,5 @@ export function useSubscription() {
     }
   }, [getAvailablePurchases, queryClient, syncPaidPurchases, token]);
 
-  return { subscribe, restore, loading };
+  return { subscribe, restore, canStartTrial, loading };
 }

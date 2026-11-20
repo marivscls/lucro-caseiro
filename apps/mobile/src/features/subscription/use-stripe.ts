@@ -47,13 +47,24 @@ function reportStripePurchase(
   });
 }
 
+/** O backend recusou o teste (409): esta conta/e-mail já usou os 7 dias. */
+function isTrialAlreadyUsed(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const status = (error as { status?: unknown }).status;
+  return status === 409;
+}
+
 export function useStripeCheckout() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const checkout = useCallback(
-    async (tier: PaidPlan, period: BillingPeriod) => {
+    async (
+      tier: PaidPlan,
+      period: BillingPeriod,
+      options: { withTrial?: boolean } = {},
+    ) => {
       if (!token) {
         alertError("Faça login antes de assinar.");
         return;
@@ -61,7 +72,12 @@ export function useStripeCheckout() {
 
       setLoading(true);
       try {
-        const { url } = await createStripeCheckout(token, tier, period);
+        const { url } = await createStripeCheckout(
+          token,
+          tier,
+          period,
+          options.withTrial === true,
+        );
         await WebBrowser.openBrowserAsync(url);
         void trackAnalyticsAction("subscription_started", token);
         await queryClient.invalidateQueries({ queryKey: ["subscription"] });
@@ -69,8 +85,17 @@ export function useStripeCheckout() {
         void pollForPremium(token, queryClient).then((premium) =>
           reportStripePurchase(token, premium ? "success" : "cancel", tier, period),
         );
-      } catch {
+      } catch (error) {
         reportStripePurchase(token, "failure", tier, period);
+        if (options.withTrial && isTrialAlreadyUsed(error)) {
+          await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+          showAlert({
+            title: "Teste grátis já usado",
+            message:
+              "Esta conta já usou os 7 dias grátis. Você pode assinar o Premium direto na tela de planos.",
+          });
+          return;
+        }
         showAlert({
           title: "Erro",
           message: "Não foi possível abrir o checkout da Stripe. Tente novamente.",

@@ -1,21 +1,26 @@
 import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
 import type { BillingPeriod, PaidPlan, PlanType } from "@lucro-caseiro/contracts";
 import {
-  ESSENTIAL_TRIAL_DAYS,
+  PREMIUM_TRIAL_DAYS,
   PLAN_LABELS,
   SOLD_PLAN,
   isPaidPlan,
   normalizePlan,
 } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../../../shared/components/app-icon";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../hooks";
 import { tierBenefitsFor } from "../plan-benefits";
-import { annualSavings, formatMoney, planPriceDisplay } from "../plan-pricing";
+import {
+  annualSavings,
+  formatMoney,
+  planPriceDisplay,
+  trialChargeLines,
+} from "../plan-pricing";
 import { isProfileOnTrial, trialNotice } from "../trial";
 import { businessCopyFor } from "../business-copy";
 import { ScreenHeader } from "../../../shared/components/screen-header";
@@ -37,7 +42,6 @@ import {
   desktopWidths,
   pageGutter,
 } from "../../../shared/layout/desktop-density";
-import { openSubscriptionManagement } from "../../../shared/utils/subscription-management";
 
 /** Dias até `expiresAt` (negativo se já passou). */
 function daysUntil(expiresAt: string): number {
@@ -112,7 +116,14 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
   const benefits = tierBenefitsFor(SOLD_PLAN, experienceCopy);
   const { data: limits, isLoading: limitsLoading } = useLimits();
   const { checkout, loading: stripeLoading } = useStripeCheckout();
-  const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
+  const {
+    subscribe,
+    restore,
+    canStartTrial,
+    loading: subscriptionLoading,
+  } = useSubscription();
+  const router = useRouter();
+  const openCancel = () => router.push("/cancel-plan");
   const checkoutLoading = stripeLoading || subscriptionLoading;
   const [period, setPeriod] = useState<BillingPeriod>("annual");
   // Abre no anual: a pessoa paga o ano de uma vez e o valor por mês fica menor.
@@ -123,6 +134,16 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
   const selectedPlan = SOLD_PLAN;
   const isUpgrade = !isPaidPlan(current);
   const displayPeriod = isUpgrade ? period : "monthly";
+  // Teste de 7 dias com cartão: uma vez por conta (decide o backend) e, no
+  // Android, só quando a Google Play oferece o teste para esta conta Google.
+  const trialOffered =
+    isUpgrade &&
+    profile?.trialAvailable === true &&
+    (Platform.OS === "android" ? canStartTrial(selectedPlan, period) : true);
+  const trialLines = trialOffered ? trialChargeLines(selectedPlan, period) : null;
+  const continueLabel = trialOffered
+    ? `Começar ${PREMIUM_TRIAL_DAYS} dias grátis`
+    : "Continuar para pagamento";
 
   function continueToPayment() {
     if (checkoutLoading || !isUpgrade) return;
@@ -131,11 +152,12 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
       period,
       current,
       provider: Platform.OS === "android" ? "google_play" : "stripe",
+      trial: trialOffered,
     });
     if (Platform.OS === "android") {
-      void subscribe(selectedPlan, period);
+      void subscribe(selectedPlan, period, { withTrial: trialOffered });
     } else {
-      void checkout(selectedPlan, period);
+      void checkout(selectedPlan, period, { withTrial: trialOffered });
     }
   }
   const rawPlan = profile ? normalizePlan(profile.plan) : "free";
@@ -190,7 +212,11 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
       : "Consulte os benefícios e gerencie seu plano.";
   if (welcome && onTrial) {
     heading = "Seu teste grátis começou";
-    subheading = `Você tem ${ESSENTIAL_TRIAL_DAYS} dias do ${premium} liberados, sem cartão. Assine agora ou continue testando: nada é cobrado sozinho.`;
+    subheading = `Você tem ${PREMIUM_TRIAL_DAYS} dias do ${premium} liberados, sem cartão. Assine agora ou continue testando: nada é cobrado sozinho.`;
+  } else if (welcome && trialOffered) {
+    heading = `Teste o ${premium} por ${PREMIUM_TRIAL_DAYS} dias`;
+    subheading =
+      "Tudo liberado já. Você coloca o cartão agora e só paga no fim do teste. Cancele antes e não paga nada. Ou continue no Gratuito.";
   } else if (welcome && current === "free") {
     heading = `Conheça o ${premium}`;
     subheading =
@@ -343,16 +369,13 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
             isUpgrade={isUpgrade}
             period={period}
             onPeriodChange={setPeriod}
-            chargeLine={chargeLine(selectedPlan, period)}
-            chargeHint={chargeHint(selectedPlan, period)}
+            chargeLine={trialLines?.line ?? chargeLine(selectedPlan, period)}
+            chargeHint={trialLines?.hint ?? chargeHint(selectedPlan, period)}
+            continueLabel={continueLabel}
             checkoutLoading={checkoutLoading}
             onContinue={continueToPayment}
             usage={showUsage ? usageItems : null}
-            onCancel={
-              current === "free" || welcome
-                ? null
-                : () => void openSubscriptionManagement()
-            }
+            onCancel={current === "free" || welcome ? null : openCancel}
             skip={
               welcome
                 ? {
@@ -411,27 +434,21 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                 {isUpgrade && (
                   <View style={{ gap: spacing.xs }} accessibilityLiveRegion="polite">
                     <Typography variant="bodyBold">
-                      {chargeLine(selectedPlan, period)}
+                      {trialLines?.line ?? chargeLine(selectedPlan, period)}
                     </Typography>
                     <Typography variant="body" color={theme.colors.textSecondary}>
-                      {chargeHint(selectedPlan, period)}
+                      {trialLines?.hint ?? chargeHint(selectedPlan, period)}
                     </Typography>
                   </View>
                 )}
 
                 {isUpgrade ? (
                   <Button
-                    title={
-                      checkoutLoading
-                        ? "Abrindo pagamento..."
-                        : "Continuar para pagamento"
-                    }
+                    title={checkoutLoading ? "Abrindo pagamento..." : continueLabel}
                     size="lg"
                     loading={checkoutLoading}
                     accessibilityLabel={
-                      checkoutLoading
-                        ? "Abrindo pagamento..."
-                        : "Continuar para pagamento"
+                      checkoutLoading ? "Abrindo pagamento..." : continueLabel
                     }
                     accessibilityState={{
                       busy: checkoutLoading,
@@ -572,7 +589,7 @@ export function PlansView({ welcome }: Readonly<{ welcome?: PlansWelcome }>) {
                 title="Cancelar assinatura"
                 variant="outline"
                 size="lg"
-                onPress={() => void openSubscriptionManagement()}
+                onPress={openCancel}
                 style={desktopAction(isDesktop, 240)}
               />
             )}

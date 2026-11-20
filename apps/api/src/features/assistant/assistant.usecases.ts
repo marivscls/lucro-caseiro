@@ -43,11 +43,14 @@ export class AssistantUseCases {
     const limit = assistantLimit(plan);
     const trial = plan === "free";
     if (used >= limit) {
-      throw new LimitExceededError(
-        trial
-          ? `Você já usou os ${limit} testes do assistente no plano Gratuito. No Premium ele vem com usos todo mês.`
-          : `Você chegou a ${limit} usos do assistente este mês. O contador volta a zero no dia 1º.`,
-      );
+      let message = `Você chegou a ${limit} usos do assistente este mês. O contador volta a zero no dia 1º.`;
+      if (trial && limit === 0) {
+        message =
+          "O assistente faz parte do Premium. Comece o teste de 7 dias ou assine para usar.";
+      } else if (trial) {
+        message = `Você já usou os ${limit} testes do assistente no plano Gratuito. No Premium ele vem com usos todo mês.`;
+      }
+      throw new LimitExceededError(message);
     }
     const result = await run();
     const count = await this.usage.increment(userId, key);

@@ -96,7 +96,8 @@ const hubs: Record<
   library: {
     eyebrow: "Contexto da marca",
     title: "Biblioteca",
-    description: "O essencial para a Selenita escrever ads certos. Cadastros finos ficam em Mais.",
+    description:
+      "O essencial para a Selenita escrever ads certos. Cadastros finos ficam em Mais.",
     items: [
       {
         href: "/documents",
@@ -174,7 +175,10 @@ function AreaHub({ eyebrow, title, description, items }: (typeof hubs)[string]) 
       {more.length > 0 && (
         <details className="area-hub-more">
           <summary>Mais ferramentas ({more.length})</summary>
-          <section className="area-hub-grid" aria-label={`Ferramentas avançadas de ${title}`}>
+          <section
+            className="area-hub-grid"
+            aria-label={`Ferramentas avançadas de ${title}`}
+          >
             {more.map((item) => (
               <HubCard key={item.href} {...item} />
             ))}

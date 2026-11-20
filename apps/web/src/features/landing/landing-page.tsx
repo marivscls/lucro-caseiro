@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
-  ESSENTIAL_TRIAL_DAYS,
+  PREMIUM_TRIAL_DAYS,
   FREE_CATALOG_MAX_PRODUCTS,
   PLAN_LABELS,
   PLAN_LIMITS,
@@ -134,7 +134,7 @@ const audiences: readonly {
   },
 ];
 
-const trialDays = ESSENTIAL_TRIAL_DAYS;
+const trialDays = PREMIUM_TRIAL_DAYS;
 const premiumName = PLAN_LABELS[SOLD_PLAN];
 const premiumPrice = PLAN_PRICING[SOLD_PLAN];
 
@@ -190,7 +190,7 @@ export const landingFaqs = [
   },
   {
     question: "Posso testar o Premium antes de assinar?",
-    answer: `Sim. Toda conta nova ganha ${ESSENTIAL_TRIAL_DAYS} dias do Premium grátis, com tudo liberado e sem cartão. É só criar a sua conta e usar.`,
+    answer: `Sim. No app, você pode testar o Premium por ${PREMIUM_TRIAL_DAYS} dias com tudo liberado. Você coloca o cartão e só paga no fim do teste.`,
   },
   {
     question: "Quanto custa o Premium?",
@@ -198,7 +198,7 @@ export const landingFaqs = [
   },
   {
     question: "Tem alguma cobrança quando o teste acabar?",
-    answer: `Não. O teste não pede cartão, então nada é cobrado. No fim dos ${ESSENTIAL_TRIAL_DAYS} dias a conta volta sozinha para o Gratuito e seus dados continuam salvos. Só paga quem escolher assinar.`,
+    answer: `Só se você não cancelar. No fim dos ${PREMIUM_TRIAL_DAYS} dias começa a cobrança do Premium. Para não pagar nada, cancele antes no app, em Configurações > Cancelar teste. Seus dados continuam salvos no Gratuito.`,
   },
   {
     question: "Posso cancelar quando quiser?",
@@ -293,8 +293,7 @@ export function LandingPage() {
                 beside={
                   <p className={styles.heroNote}>
                     <Check aria-hidden="true" size={18} />
-                    Grátis para sempre, e {trialDays} dias do {premiumName} para testar,
-                    sem cartão
+                    Grátis para sempre, e {trialDays} dias do {premiumName} para testar
                   </p>
                 }
                 trailing={
@@ -467,9 +466,9 @@ export function LandingPage() {
           </p>
           <PricingPlans plans={plans} />
           <p className={styles.pricingNote}>
-            Toda conta nova ganha {trialDays} dias do {premiumName}, sem cartão. Nada é
-            cobrado no fim do teste: a conta volta para o Gratuito, com seus dados
-            salvos. Se quiser assinar, é no app.
+            Toda conta começa no Gratuito. No app, você pode testar o {premiumName} por
+            {trialDays} dias: coloca o cartão e só paga no fim do teste. Cancele antes e
+            não paga nada.
           </p>
         </section>
 
@@ -562,8 +561,8 @@ export function LandingPage() {
             </h2>
             <p>
               Calcule seu primeiro preço ou registre uma venda no app. Use no navegador ou
-              no Android, com {trialDays} dias do {premiumName} sem cartão. Depois,
-              continue no Gratuito ou assine o {premiumName}.
+              no Android. Continue no Gratuito ou teste o {premiumName} por {trialDays}
+              dias.
             </p>
           </div>
           <StartCta

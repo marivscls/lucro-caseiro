@@ -11,6 +11,7 @@ import { SubscriptionUseCases } from "./subscription.usecases";
 import type {
   ISubscriptionRepo,
   ISubscriptionStatusProvider,
+  PlanWriteOptions,
   ProfessionalTrialCampaignNotifier,
   ResourceCounts,
   SubscriptionLifecycleNotifier,
@@ -35,6 +36,8 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     plan: "free",
     planExpiresAt: null,
     planIsTrial: false,
+    planProvider: null,
+    trialAvailable: true,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -58,10 +61,21 @@ function makeRepo(overrides: Partial<ISubscriptionRepo> = {}): ISubscriptionRepo
     getProfile: () => Promise.resolve(makeProfile()),
     upsertProfile: (_userId: string, data: UpsertProfileData) =>
       Promise.resolve(makeProfile({ name: data.name })),
-    updatePlan: (_userId: string, plan: PlanType, expiresAt: Date | null) =>
+    updatePlan: (
+      _userId: string,
+      plan: PlanType,
+      expiresAt: Date | null,
+      options?: PlanWriteOptions,
+    ) =>
       Promise.resolve(
-        makeProfile({ plan, planExpiresAt: expiresAt?.toISOString() ?? null }),
+        makeProfile({
+          plan,
+          planExpiresAt: expiresAt?.toISOString() ?? null,
+          planIsTrial: options?.isTrial ?? false,
+          planProvider: options?.provider ?? null,
+        }),
       ),
+    claimPremiumTrial: () => Promise.resolve(true),
     getResourceCounts: () => Promise.resolve(makeCounts()),
     claimPurchaseToken: () => Promise.resolve(true),
     hasPurchaseClaim: () => Promise.resolve(true),
@@ -414,6 +428,118 @@ describe("SubscriptionUseCases", () => {
       );
     });
 
+    it("starts a card trial: claims the email, records trial_started and sends the trial email once", async () => {
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const alertOps = vi.fn(() => Promise.resolve());
+      const claimPremiumTrial = vi.fn(() => Promise.resolve(true));
+      const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const { sut } = makeSut(
+        { claimPremiumTrial },
+        undefined,
+        recordLifecycleEvent,
+        notifyLifecycle,
+        undefined,
+        alertOps,
+      );
+
+      const result = await sut.activatePlan(USER_ID, "professional", trialEnd, {
+        isTrial: true,
+        provider: "stripe",
+      });
+
+      expect(result.planIsTrial).toBe(true);
+      expect(result.planProvider).toBe("stripe");
+      expect(claimPremiumTrial).toHaveBeenCalledWith(USER_ID, "maria@email.com", "stripe");
+      expect(recordLifecycleEvent).toHaveBeenCalledWith(USER_ID, "trial_started");
+      expect(recordLifecycleEvent).not.toHaveBeenCalledWith(
+        USER_ID,
+        "subscription_completed",
+      );
+      expect(notifyLifecycle).toHaveBeenCalledTimes(1);
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: "trial_started",
+          expiresAt: trialEnd.toISOString(),
+        }),
+      );
+      expect(alertOps).toHaveBeenCalledWith(
+        expect.stringContaining("Novo teste com cartao"),
+        undefined,
+      );
+    });
+
+    it("does not repeat the trial email when the store resends the same trial", async () => {
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const trialEnd = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
+      const onCardTrial = makeProfile({
+        plan: "professional",
+        planExpiresAt: trialEnd.toISOString(),
+        planIsTrial: true,
+        planProvider: "stripe",
+      });
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(onCardTrial) },
+        undefined,
+        undefined,
+        notifyLifecycle,
+      );
+
+      await sut.activatePlan(USER_ID, "professional", trialEnd, {
+        isTrial: true,
+        provider: "stripe",
+      });
+
+      expect(notifyLifecycle).not.toHaveBeenCalled();
+    });
+
+    it("counts the first charge after a card trial as a new subscription", async () => {
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const onCardTrial = makeProfile({
+        plan: "professional",
+        planExpiresAt: new Date(Date.now() + 60 * 1000).toISOString(),
+        planIsTrial: true,
+        planProvider: "google_play",
+      });
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(onCardTrial) },
+        undefined,
+        recordLifecycleEvent,
+        notifyLifecycle,
+      );
+
+      const result = await sut.activatePlan(
+        USER_ID,
+        "professional",
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        { provider: "google_play" },
+      );
+
+      expect(result.planIsTrial).toBe(false);
+      expect(recordLifecycleEvent).toHaveBeenCalledWith(
+        USER_ID,
+        "subscription_completed",
+      );
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "activated" }),
+      );
+    });
+
+    it("keeps the plan even if the email already used a trial (the store took the card)", async () => {
+      const { sut } = makeSut({ claimPremiumTrial: () => Promise.resolve(false) });
+
+      const result = await sut.activatePlan(
+        USER_ID,
+        "professional",
+        new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        { isTrial: true, provider: "google_play" },
+      );
+
+      expect(result.plan).toBe("professional");
+      expect(result.planIsTrial).toBe(true);
+    });
+
     it("treats buying a plan during the Essential trial as free→paid", async () => {
       const recordLifecycleEvent = vi.fn(() => Promise.resolve());
       const notifyLifecycle = vi.fn(() => Promise.resolve());
@@ -494,7 +620,38 @@ describe("SubscriptionUseCases", () => {
       );
     });
 
-    it("never ends an active Essential trial", async () => {
+    it("ends a card trial canceled in the store, without charging", async () => {
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const alertOps = vi.fn(() => Promise.resolve());
+      const onCardTrial = makeProfile({
+        plan: "professional",
+        planExpiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        planIsTrial: true,
+        planProvider: "stripe",
+      });
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(onCardTrial) },
+        undefined,
+        undefined,
+        notifyLifecycle,
+        undefined,
+        alertOps,
+      );
+
+      const result = await sut.deactivatePlan(USER_ID);
+
+      expect(result.plan).toBe("free");
+      expect(result.planProvider).toBeNull();
+      expect(alertOps).toHaveBeenCalledWith(
+        expect.stringContaining("Teste com cartao encerrado sem cobranca"),
+        undefined,
+      );
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "cancelled" }),
+      );
+    });
+
+    it("never ends an active free period without card (old trial or referral reward)", async () => {
       const recordLifecycleEvent = vi.fn(() => Promise.resolve());
       const notifyLifecycle = vi.fn(() => Promise.resolve());
       const updatePlan = vi.fn(() => Promise.resolve(makeProfile()));
@@ -553,6 +710,27 @@ describe("SubscriptionUseCases", () => {
       const { sut } = makeSut({}, makeStatusProvider());
       const result = await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
       expect(result.plan).toBe("professional");
+    });
+
+    it("records a Google Play free-trial purchase as a card trial", async () => {
+      const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const { sut } = makeSut(
+        {},
+        makeStatusProvider({
+          getPlanState: () =>
+            Promise.resolve({
+              plan: "professional",
+              expiresAt: trialEnd,
+              purchaseOwnerId: USER_ID,
+              inTrial: true,
+            }),
+        }),
+      );
+
+      const result = await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
+
+      expect(result.planIsTrial).toBe(true);
+      expect(result.planProvider).toBe("google_play");
     });
 
     it("activates essential when the provider reports essential", async () => {

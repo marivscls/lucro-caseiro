@@ -48,7 +48,10 @@ export class GooglePlayNotificationsUseCases {
 
     try {
       if (userId && decision.action === "activate") {
-        await this.plans.activatePlan(userId, decision.plan, decision.expiresAt);
+        await this.plans.activatePlan(userId, decision.plan, decision.expiresAt, {
+          isTrial: decision.inTrial,
+          provider: "google_play",
+        });
       } else if (userId && decision.action === "deactivate") {
         await this.plans.deactivatePlan(userId);
       }

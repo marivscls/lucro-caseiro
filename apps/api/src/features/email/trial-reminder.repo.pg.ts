@@ -31,7 +31,7 @@ export class TrialReminderRepoPg implements ITrialReminderRepo {
           END AS stage
         FROM public.users u
         JOIN auth.users a ON a.id = u.id
-        WHERE u.plan = 'essential' AND u.plan_is_trial = true
+        WHERE u.plan = 'essential' AND u.plan_is_trial = true AND u.plan_provider IS NULL
           AND u.plan_expires_at > now() - interval '7 days'
           AND u.plan_expires_at <= now() + interval '3 days'
           AND u.is_active = true AND a.email_confirmed_at IS NOT NULL
@@ -81,7 +81,7 @@ export class TrialReminderRepoPg implements ITrialReminderRepo {
         AND NOT EXISTS (
           SELECT 1 FROM public.users u JOIN auth.users a ON a.id = u.id
           WHERE u.id = j.user_id AND u.is_active = true
-            AND u.plan = 'essential' AND u.plan_is_trial = true
+            AND u.plan = 'essential' AND u.plan_is_trial = true AND u.plan_provider IS NULL
             AND u.plan_expires_at = j.trial_expires_at
             AND a.email_confirmed_at IS NOT NULL AND a.deleted_at IS NULL
             AND (a.banned_until IS NULL OR a.banned_until <= now())

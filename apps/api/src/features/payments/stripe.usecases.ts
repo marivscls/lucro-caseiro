@@ -1,14 +1,18 @@
 import type Stripe from "stripe";
 
-import { SOLD_PLAN } from "@lucro-caseiro/contracts";
+import { PREMIUM_TRIAL_DAYS, SOLD_PLAN } from "@lucro-caseiro/contracts";
+
+import { ConflictError, NotFoundError } from "../../shared/errors";
 
 import type { SubscriptionUseCases } from "../subscription/subscription.usecases";
-import type { CheckoutUrlInput } from "./payments.types";
+import type { CheckoutUrlInput, StripeSubscriptionSummary } from "./payments.types";
 import {
   deriveStripePremiumStateChange,
   getStripeSubscriptionUserId,
+  pickManagedSubscription,
   resolveStripePlanTier,
   selectStripePriceId,
+  summarizeStripeSubscription,
   type StripePrices,
 } from "./stripe.domain";
 
@@ -32,9 +36,23 @@ export class StripeUseCases {
    * professional) por compatibilidade, mas o checkout sempre vende o `SOLD_PLAN`
    * (Premium). O preço essential antigo do Stripe nunca é vendido de novo.
    */
-  async createCheckoutUrl({ userId, period }: CheckoutUrlInput): Promise<string> {
+  async createCheckoutUrl({
+    userId,
+    period,
+    withTrial = false,
+  }: CheckoutUrlInput): Promise<string> {
     if (!this.stripe) {
       throw new Error("Stripe não configurado");
+    }
+
+    // Um teste por e-mail: o backend decide, nunca o app.
+    if (withTrial) {
+      const profile = await this.subscription.getProfile(userId);
+      if (!profile.trialAvailable) {
+        throw new ConflictError(
+          "Esta conta já usou o teste grátis. Você pode assinar o Premium direto.",
+        );
+      }
     }
 
     const tier = SOLD_PLAN;
@@ -44,7 +62,7 @@ export class StripeUseCases {
       throw new Error("Preço Stripe não configurado");
     }
 
-    const metadata = { userId, tier, period };
+    const metadata = { userId, tier, period, trial: withTrial ? "1" : "0" };
     const session = await this.stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
@@ -52,8 +70,16 @@ export class StripeUseCases {
       success_url: this.cfg.successUrl,
       cancel_url: this.cfg.cancelUrl,
       allow_promotion_codes: true,
+      // Teste só com cartão: o Checkout pede o cartão mesmo sem cobrar agora.
+      payment_method_collection: "always",
       metadata,
-      subscription_data: { metadata },
+      subscription_data: withTrial
+        ? {
+            metadata,
+            trial_period_days: PREMIUM_TRIAL_DAYS,
+            trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+          }
+        : { metadata },
     });
 
     if (!session.url) {
@@ -61,6 +87,52 @@ export class StripeUseCases {
     }
 
     return session.url;
+  }
+
+  /** Assinatura Stripe que ainda cobra/está valendo para a conta, ou `null`. */
+  async getSubscriptionSummary(userId: string): Promise<StripeSubscriptionSummary | null> {
+    const subscription = await this.findManagedSubscription(userId);
+    return subscription ? summarizeStripeSubscription(subscription) : null;
+  }
+
+  /**
+   * Cancela sem cobrar de novo: a assinatura (ou o teste) vale até o fim do
+   * período atual e não renova. No teste, nada é cobrado.
+   */
+  async cancelSubscription(userId: string): Promise<StripeSubscriptionSummary> {
+    return this.setCancelAtPeriodEnd(userId, true);
+  }
+
+  /** Desfaz o cancelamento enquanto o período ainda vale. */
+  async resumeSubscription(userId: string): Promise<StripeSubscriptionSummary> {
+    return this.setCancelAtPeriodEnd(userId, false);
+  }
+
+  private async setCancelAtPeriodEnd(
+    userId: string,
+    cancelAtPeriodEnd: boolean,
+  ): Promise<StripeSubscriptionSummary> {
+    if (!this.stripe) throw new Error("Stripe não configurado");
+    const subscription = await this.findManagedSubscription(userId);
+    if (!subscription) {
+      throw new NotFoundError("Nenhuma assinatura no cartão encontrada nesta conta.");
+    }
+    const updated = await this.stripe.subscriptions.update(subscription.id, {
+      cancel_at_period_end: cancelAtPeriodEnd,
+    });
+    return summarizeStripeSubscription(updated);
+  }
+
+  private async findManagedSubscription(
+    userId: string,
+  ): Promise<Stripe.Subscription | null> {
+    if (!this.stripe) throw new Error("Stripe não configurado");
+    // userId vem do JWT (uuid); a assinatura guarda o mesmo id na metadata.
+    const result = await this.stripe.subscriptions.search({
+      query: `metadata['userId']:'${userId}'`,
+      limit: 20,
+    });
+    return pickManagedSubscription(result.data);
   }
 
   async handleEvent(event: Stripe.Event): Promise<void> {
@@ -116,7 +188,10 @@ export class StripeUseCases {
       // Sem tier inferível (ex.: assinatura legada) → professional (o Premium vendido).
       const tier =
         resolveStripePlanTier(stripeSubscription, this.cfg.prices) ?? "professional";
-      await this.subscription.activatePlan(userId, tier, change.expiresAt);
+      await this.subscription.activatePlan(userId, tier, change.expiresAt, {
+        isTrial: stripeSubscription.status === "trialing",
+        provider: "stripe",
+      });
     } else if (change.action === "deactivate") {
       await this.subscription.deactivatePlan(userId);
     }

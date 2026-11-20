@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import type Stripe from "stripe";
 
+import { ConflictError, NotFoundError } from "../../shared/errors";
 import type { SubscriptionUseCases } from "../subscription/subscription.usecases";
 import type { StripePrices } from "./stripe.domain";
 import { StripeUseCases } from "./stripe.usecases";
 
 const USER_ID = "user-1";
+const ACTIVE_STRIPE = { isTrial: false, provider: "stripe" };
 
 const PRICES: StripePrices = {
   essential: { monthly: "price_ess_monthly", annual: "price_ess_annual" },
@@ -28,26 +30,49 @@ function makeSubscription(
 }
 
 function makeSut(
-  opts: { subscription?: Stripe.Subscription; prices?: StripePrices } = {},
+  opts: {
+    subscription?: Stripe.Subscription;
+    prices?: StripePrices;
+    trialAvailable?: boolean;
+    found?: Stripe.Subscription[];
+  } = {},
 ) {
   const stripeSubscription = opts.subscription ?? makeSubscription();
   const createSession = vi
     .fn()
     .mockResolvedValue({ url: "https://checkout.stripe.com/session" });
   const retrieveSubscription = vi.fn().mockResolvedValue(stripeSubscription);
+  const searchSubscriptions = vi
+    .fn()
+    .mockResolvedValue({ data: opts.found ?? [stripeSubscription] });
+  const updateSubscription = vi.fn((id: string, params: { cancel_at_period_end: boolean }) =>
+    Promise.resolve({
+      ...stripeSubscription,
+      id,
+      cancel_at_period_end: params.cancel_at_period_end,
+    }),
+  );
 
   const stripe = {
     checkout: { sessions: { create: createSession } },
-    subscriptions: { retrieve: retrieveSubscription },
+    subscriptions: {
+      retrieve: retrieveSubscription,
+      search: searchSubscriptions,
+      update: updateSubscription,
+    },
   } as unknown as Pick<Stripe, "checkout" | "subscriptions">;
 
   const activatePlan = vi.fn().mockResolvedValue(undefined);
   const deactivatePlan = vi.fn().mockResolvedValue(undefined);
   const notifyPaymentFailed = vi.fn().mockResolvedValue(undefined);
+  const getProfile = vi
+    .fn()
+    .mockResolvedValue({ trialAvailable: opts.trialAvailable ?? true });
   const subscription = {
     activatePlan,
     deactivatePlan,
     notifyPaymentFailed,
+    getProfile,
   } as unknown as SubscriptionUseCases;
 
   const sut = new StripeUseCases(stripe, subscription, {
@@ -63,6 +88,8 @@ function makeSut(
     activatePlan,
     deactivatePlan,
     notifyPaymentFailed,
+    searchSubscriptions,
+    updateSubscription,
   };
 }
 
@@ -82,12 +109,53 @@ describe("StripeUseCases.createCheckoutUrl", () => {
         mode: "subscription",
         line_items: [{ price: "price_pro_monthly", quantity: 1 }],
         client_reference_id: USER_ID,
-        metadata: { userId: USER_ID, tier: "professional", period: "monthly" },
+        payment_method_collection: "always",
+        metadata: { userId: USER_ID, tier: "professional", period: "monthly", trial: "0" },
         subscription_data: {
-          metadata: { userId: USER_ID, tier: "professional", period: "monthly" },
+          metadata: {
+            userId: USER_ID,
+            tier: "professional",
+            period: "monthly",
+            trial: "0",
+          },
         },
       }),
     );
+  });
+
+  it("starts the 7-day trial with a card when the account still has it", async () => {
+    const { sut, createSession } = makeSut();
+
+    await sut.createCheckoutUrl({
+      userId: USER_ID,
+      tier: "professional",
+      period: "annual",
+      withTrial: true,
+    });
+
+    expect(createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payment_method_collection: "always",
+        subscription_data: expect.objectContaining({
+          trial_period_days: 7,
+          trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+        }),
+      }),
+    );
+  });
+
+  it("refuses a second trial for the same account", async () => {
+    const { sut, createSession } = makeSut({ trialAvailable: false });
+
+    await expect(
+      sut.createCheckoutUrl({
+        userId: USER_ID,
+        tier: "professional",
+        period: "monthly",
+        withTrial: true,
+      }),
+    ).rejects.toThrow(ConflictError);
+    expect(createSession).not.toHaveBeenCalled();
   });
 
   it("never falls back to the essential price when the professional one is missing", async () => {
@@ -156,7 +224,12 @@ describe("StripeUseCases.handleEvent", () => {
       data: { object: makeSubscription({ status: "unpaid" }) },
     } as Stripe.Event);
     expect(deactivatePlan).not.toHaveBeenCalled();
-    expect(activatePlan).toHaveBeenCalledWith(USER_ID, "professional", expect.any(Date));
+    expect(activatePlan).toHaveBeenCalledWith(
+      USER_ID,
+      "professional",
+      expect.any(Date),
+      ACTIVE_STRIPE,
+    );
   });
 
   it("keeps the current tier and expiry instead of an old subscription revision", async () => {
@@ -173,6 +246,7 @@ describe("StripeUseCases.handleEvent", () => {
       USER_ID,
       "professional",
       new Date("2027-01-01T00:00:00.000Z"),
+      ACTIVE_STRIPE,
     );
   });
 
@@ -237,6 +311,7 @@ describe("StripeUseCases.handleEvent", () => {
       USER_ID,
       "professional",
       new Date("2027-01-01T00:00:00.000Z"),
+      ACTIVE_STRIPE,
     );
   });
 
@@ -258,6 +333,7 @@ describe("StripeUseCases.handleEvent", () => {
       USER_ID,
       "essential",
       new Date("2027-01-01T00:00:00.000Z"),
+      ACTIVE_STRIPE,
     );
   });
 
@@ -280,6 +356,7 @@ describe("StripeUseCases.handleEvent", () => {
       USER_ID,
       "professional",
       new Date("2027-01-01T00:00:00.000Z"),
+      ACTIVE_STRIPE,
     );
   });
 
@@ -321,5 +398,91 @@ describe("StripeUseCases.handleEvent", () => {
 
     expect(activatePlan).not.toHaveBeenCalled();
     expect(deactivatePlan).not.toHaveBeenCalled();
+  });
+});
+
+describe("StripeUseCases trial and cancellation", () => {
+  it("records a trialing subscription as a card trial", async () => {
+    const { sut, activatePlan } = makeSut({
+      subscription: makeSubscription({ status: "trialing" }),
+    });
+
+    await sut.handleEvent({
+      id: "evt_trial",
+      type: "customer.subscription.created",
+      data: { object: { id: "sub_123" } },
+    } as unknown as Stripe.Event);
+
+    expect(activatePlan).toHaveBeenCalledWith(USER_ID, "professional", expect.any(Date), {
+      isTrial: true,
+      provider: "stripe",
+    });
+  });
+
+  it("summarizes the account subscription for the cancel screen", async () => {
+    const trialEnd = 1_800_000_000;
+    const { sut, searchSubscriptions } = makeSut({
+      found: [
+        makeSubscription({ id: "sub_old", status: "canceled", created: 1 }),
+        makeSubscription({
+          id: "sub_trial",
+          status: "trialing",
+          created: 2,
+          trial_end: trialEnd,
+          cancel_at_period_end: false,
+          items: {
+            data: [
+              {
+                current_period_end: trialEnd,
+                price: { unit_amount: 6990, recurring: { interval: "month" } },
+              },
+            ],
+          } as unknown as Stripe.Subscription["items"],
+        }),
+      ],
+    });
+
+    const summary = await sut.getSubscriptionSummary(USER_ID);
+
+    expect(searchSubscriptions).toHaveBeenCalledWith(
+      expect.objectContaining({ query: `metadata['userId']:'${USER_ID}'` }),
+    );
+    expect(summary).toEqual({
+      status: "trialing",
+      trialEndsAt: new Date(trialEnd * 1000).toISOString(),
+      currentPeriodEnd: new Date(trialEnd * 1000).toISOString(),
+      cancelAtPeriodEnd: false,
+      amountCents: 6990,
+      interval: "month",
+    });
+  });
+
+  it("cancels at the end of the period so the trial never charges", async () => {
+    const { sut, updateSubscription } = makeSut({
+      found: [makeSubscription({ id: "sub_trial", status: "trialing", created: 2 })],
+    });
+
+    const summary = await sut.cancelSubscription(USER_ID);
+
+    expect(updateSubscription).toHaveBeenCalledWith("sub_trial", {
+      cancel_at_period_end: true,
+    });
+    expect(summary.cancelAtPeriodEnd).toBe(true);
+  });
+
+  it("resumes a canceled subscription while it is still valid", async () => {
+    const { sut, updateSubscription } = makeSut();
+
+    await sut.resumeSubscription(USER_ID);
+
+    expect(updateSubscription).toHaveBeenCalledWith("sub_123", {
+      cancel_at_period_end: false,
+    });
+  });
+
+  it("says there is nothing to cancel when the account has no card subscription", async () => {
+    const { sut } = makeSut({ found: [] });
+
+    await expect(sut.cancelSubscription(USER_ID)).rejects.toThrow(NotFoundError);
   });
 });

@@ -1,9 +1,10 @@
-import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
-import { newAccountTrialPlan, normalizePlan } from "@lucro-caseiro/contracts";
+import type { PlanProvider, PlanType, UserProfile } from "@lucro-caseiro/contracts";
+import { newAccountPlan, normalizePlan } from "@lucro-caseiro/contracts";
 import {
   clients,
   orders,
   packaging,
+  premiumTrialClaims,
   professionalTrialCampaignGrants,
   products,
   recipes,
@@ -14,12 +15,18 @@ import {
 } from "@lucro-caseiro/database/schema";
 import { and, count, eq, gt, gte, isNull, lt, or, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
+import { trialEmailHash } from "./subscription.domain";
 import type {
   ISubscriptionRepo,
+  PlanWriteOptions,
   ProfessionalTrialCampaignEmailClaim,
   ResourceCounts,
   UpsertProfileData,
 } from "./subscription.types";
+
+function toPlanProvider(value: string | null): PlanProvider | null {
+  return value === "stripe" || value === "google_play" ? value : null;
+}
 
 export class SubscriptionRepoPg implements ISubscriptionRepo {
   constructor(private db: AppDatabase) {}
@@ -27,7 +34,36 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
   async getProfile(userId: string): Promise<UserProfile | null> {
     const [row] = await this.db.select().from(users).where(eq(users.id, userId));
 
-    return row ? this.toProfile(row) : null;
+    return row ? await this.toProfile(row) : null;
+  }
+
+  async claimPremiumTrial(
+    userId: string,
+    email: string,
+    provider: PlanProvider,
+  ): Promise<boolean> {
+    const emailHash = trialEmailHash(email);
+    const [claimed] = await this.db
+      .insert(premiumTrialClaims)
+      .values({ emailHash, userId, provider })
+      .onConflictDoNothing({ target: premiumTrialClaims.emailHash })
+      .returning({ userId: premiumTrialClaims.userId });
+    if (claimed) return true;
+
+    const [existing] = await this.db
+      .select({ userId: premiumTrialClaims.userId })
+      .from(premiumTrialClaims)
+      .where(eq(premiumTrialClaims.emailHash, emailHash));
+    return existing?.userId === userId;
+  }
+
+  private async hasUsedTrial(email: string): Promise<boolean> {
+    if (!email.trim()) return true;
+    const [row] = await this.db
+      .select({ userId: premiumTrialClaims.userId })
+      .from(premiumTrialClaims)
+      .where(eq(premiumTrialClaims.emailHash, trialEmailHash(email)));
+    return Boolean(row);
   }
 
   async upsertProfile(userId: string, data: UpsertProfileData): Promise<UserProfile> {
@@ -47,9 +83,9 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
           | "other"
           | undefined,
         avatarUrl: data.avatarUrl ?? null,
-        // Conta nova nasce no teste do Premium. Só no INSERT: o onConflict
-        // abaixo nunca mexe no plano de quem já existe.
-        ...newAccountTrialPlan(),
+        // Conta nova nasce no Gratuito. Só no INSERT: o onConflict abaixo
+        // nunca mexe no plano de quem já existe.
+        ...newAccountPlan(),
       })
       .onConflictDoUpdate({
         target: users.id,
@@ -69,22 +105,29 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       })
       .returning();
 
-    return this.toProfile(row!);
+    return await this.toProfile(row!);
   }
 
   async updatePlan(
     userId: string,
     plan: PlanType,
     expiresAt: Date | null,
+    options: PlanWriteOptions = {},
   ): Promise<UserProfile | null> {
     const [row] = await this.db
       .update(users)
-      // Toda escrita de plano vinda de compra/provedor encerra o teste.
-      .set({ plan, planExpiresAt: expiresAt, planIsTrial: false })
+      // Toda escrita de plano vinda de compra/loja substitui o estado anterior
+      // (inclusive um período grátis sem cartão).
+      .set({
+        plan,
+        planExpiresAt: expiresAt,
+        planIsTrial: options.isTrial ?? false,
+        planProvider: options.provider ?? null,
+      })
       .where(eq(users.id, userId))
       .returning();
 
-    return row ? this.toProfile(row) : null;
+    return row ? await this.toProfile(row) : null;
   }
 
   async claimPurchaseToken(
@@ -275,7 +318,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
     };
   }
 
-  private toProfile(row: typeof users.$inferSelect): UserProfile {
+  private async toProfile(row: typeof users.$inferSelect): Promise<UserProfile> {
     return {
       id: row.id,
       email: row.email,
@@ -287,6 +330,8 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       plan: normalizePlan(row.plan),
       planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
       planIsTrial: row.planIsTrial,
+      planProvider: toPlanProvider(row.planProvider),
+      trialAvailable: !(await this.hasUsedTrial(row.email)),
       createdAt: row.createdAt.toISOString(),
     };
   }

@@ -9,12 +9,11 @@ import {
   SITE_URL,
   SOCIAL_LINKS,
 } from "@/features/landing/site-constants";
-import { ESSENTIAL_TRIAL_DAYS, PLAN_PRICING, SOLD_PLAN } from "@lucro-caseiro/contracts";
+import { PREMIUM_TRIAL_DAYS, PLAN_PRICING, SOLD_PLAN } from "@lucro-caseiro/contracts";
 
 export const metadata: Metadata = publicMetadata({
   title: "App de precificação e vendas",
-  description:
-    `Calcule custos, inclua seu trabalho e saiba quanto sobra de cada venda. Organize vendas, fiado e catálogo. Grátis, com ${ESSENTIAL_TRIAL_DAYS} dias do Premium para testar.`,
+  description: `Calcule custos, inclua seu trabalho e saiba quanto sobra de cada venda. Organize vendas, fiado e catálogo. Grátis, com ${PREMIUM_TRIAL_DAYS} dias do Premium para testar.`,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",

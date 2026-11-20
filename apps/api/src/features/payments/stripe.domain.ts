@@ -1,6 +1,8 @@
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 import type Stripe from "stripe";
 
+import type { StripeSubscriptionSummary } from "./payments.types";
+
 export type StripePrices = Record<PaidPlan, Record<BillingPeriod, string>>;
 
 export interface PremiumStateChange {
@@ -66,4 +68,41 @@ export function deriveStripePremiumStateChange(
   }
 
   return { action: "ignore", expiresAt: null };
+}
+
+const MANAGED_STATUSES = ["trialing", "active", "past_due"] as const;
+type ManagedStatus = (typeof MANAGED_STATUSES)[number];
+
+function isManagedStatus(status: string): status is ManagedStatus {
+  return (MANAGED_STATUSES as readonly string[]).includes(status);
+}
+
+/** Entre as assinaturas da conta, a que ainda vale (a mais recente). */
+export function pickManagedSubscription(
+  subscriptions: Stripe.Subscription[],
+): Stripe.Subscription | null {
+  const managed = subscriptions
+    .filter((subscription) => isManagedStatus(subscription.status))
+    .sort((a, b) => b.created - a.created);
+  return managed[0] ?? null;
+}
+
+function toIso(seconds: number | null | undefined): string | null {
+  return seconds ? new Date(seconds * 1000).toISOString() : null;
+}
+
+export function summarizeStripeSubscription(
+  subscription: Stripe.Subscription,
+): StripeSubscriptionSummary {
+  const item = subscription.items.data[0];
+  const status = isManagedStatus(subscription.status) ? subscription.status : "active";
+  const interval = item?.price?.recurring?.interval;
+  return {
+    status,
+    trialEndsAt: subscription.status === "trialing" ? toIso(subscription.trial_end) : null,
+    currentPeriodEnd: toIso(item?.current_period_end),
+    cancelAtPeriodEnd: subscription.cancel_at_period_end || Boolean(subscription.cancel_at),
+    amountCents: item?.price?.unit_amount ?? null,
+    interval: interval === "month" || interval === "year" ? interval : null,
+  };
 }

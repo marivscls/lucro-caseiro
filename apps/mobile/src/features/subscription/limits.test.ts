@@ -20,6 +20,8 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     plan: "free",
     planExpiresAt: null,
     planIsTrial: false,
+    planProvider: null,
+    trialAvailable: true,
     createdAt: new Date().toISOString(),
     ...overrides,
   };

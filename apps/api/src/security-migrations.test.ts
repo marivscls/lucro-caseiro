@@ -29,6 +29,7 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/20261114100000_analytics_drop_stale_event_whitelist.sql",
       "../../../packages/database/src/migrations/20261115100000_catalog_product_orders.sql",
       "../../../packages/database/src/migrations/20261115110000_order_recurrence.sql",
+      "../../../packages/database/src/migrations/20261120100000_trial_with_card.sql",
     ]);
   });
   it("installs supplier management fields before startup", () => {
@@ -89,6 +90,30 @@ describe("security migrations", () => {
       securityMigrationFiles.indexOf(
         "../../../packages/database/src/migrations/062_disable_professional_trial_signup.sql",
       ),
+    );
+  });
+
+  it("starts new signups on Free after the old automatic trial, keeping one card trial per email", () => {
+    const oldTrialFile =
+      "../../../packages/database/src/migrations/20260924100000_essential_trial_signup.sql";
+    const file = "../../../packages/database/src/migrations/20261120100000_trial_with_card.sql";
+    const migrationPath = getSecurityMigrationPaths().find((path) =>
+      path.endsWith("20261120100000_trial_with_card.sql"),
+    );
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const migration = readFileSync(migrationPath!, "utf8");
+
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS plan_provider text");
+    expect(migration).toContain("CREATE TABLE public.premium_trial_claims");
+    expect(migration).toContain(
+      "REVOKE ALL PRIVILEGES ON TABLE public.premium_trial_claims FROM PUBLIC, anon, authenticated",
+    );
+    // O trigger novo nao grava plano, data nem teste: o default da tabela e o Gratuito.
+    const trigger = migration.slice(migration.indexOf("CREATE OR REPLACE FUNCTION"));
+    expect(trigger).toContain("INSERT INTO public.users (id, email, name, business_name)");
+    expect(trigger).not.toMatch(/plan/);
+    expect(securityMigrationFiles.indexOf(file)).toBeGreaterThan(
+      securityMigrationFiles.indexOf(oldTrialFile),
     );
   });
 

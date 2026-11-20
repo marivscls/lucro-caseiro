@@ -27,7 +27,7 @@ describe("help assistant", () => {
   it("offers a single paid plan with a Premium trial", () => {
     const answer = answerHelpQuestion("quais planos temos disponiveis?", "food");
     expect(answer.text).toContain("dois planos");
-    expect(answer.steps.join(" ")).toContain("7 dias do Premium");
+    expect(answer.steps.join(" ")).toContain("teste de 7 dias: coloca o cartão");
   });
   it("keeps plan failures and cancellation ahead of the plan comparison", () => {
     expect(answerHelpQuestion("Não consigo assinar o plano", "food").kind).toBe(

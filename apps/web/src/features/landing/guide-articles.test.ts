@@ -13,8 +13,14 @@ const article = (overrides: Record<string, unknown> = {}) => ({
   keyword: "custo da embalagem",
   publishedAt: "2026-09-29",
   sections: [
-    { heading: "Liste tudo", body: "Caixa, etiqueta, fita e sacola entram na conta.\n\nSome cada item." },
-    { heading: "Divida por unidade", body: "Divida o pacote pelo número de unidades que ele rende." },
+    {
+      heading: "Liste tudo",
+      body: "Caixa, etiqueta, fita e sacola entram na conta.\n\nSome cada item.",
+    },
+    {
+      heading: "Divida por unidade",
+      body: "Divida o pacote pelo número de unidades que ele rende.",
+    },
   ],
   faq: [{ question: "A sacola entra?", answer: "Entra, se vai junto com o produto." }],
   ...overrides,
@@ -51,9 +57,14 @@ describe("guias gerados pela Ametista", () => {
   it("recusa endereço diferente do arquivo, endereço inválido, data inválida ou poucas seções", () => {
     expect(parseGuideArticle(article(), "outro-endereco")).toBeNull();
     expect(parseGuideArticle(article({ slug: "Com Espaco" }), "Com Espaco")).toBeNull();
-    expect(parseGuideArticle(article({ publishedAt: "ontem" }), "custo-da-embalagem")).toBeNull();
     expect(
-      parseGuideArticle(article({ sections: [article().sections[0]] }), "custo-da-embalagem"),
+      parseGuideArticle(article({ publishedAt: "ontem" }), "custo-da-embalagem"),
+    ).toBeNull();
+    expect(
+      parseGuideArticle(
+        article({ sections: [article().sections[0]] }),
+        "custo-da-embalagem",
+      ),
     ).toBeNull();
   });
 
@@ -61,8 +72,13 @@ describe("guias gerados pela Ametista", () => {
     // Arrange
     const folder = makeDir({
       "custo-da-embalagem.json": article(),
-      "preco-da-marmita.json": article({ slug: "preco-da-marmita", publishedAt: "2026-10-06" }),
-      "como-calcular-preco-de-venda.json": article({ slug: "como-calcular-preco-de-venda" }),
+      "preco-da-marmita.json": article({
+        slug: "preco-da-marmita",
+        publishedAt: "2026-10-06",
+      }),
+      "como-calcular-preco-de-venda.json": article({
+        slug: "como-calcular-preco-de-venda",
+      }),
       "quebrado.json": "{ não é json",
       "README.md": "texto",
     });

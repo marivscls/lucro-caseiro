@@ -32,6 +32,7 @@ function makeSnapshot(
     active: true,
     expiresAt: inDays(30),
     purchaseOwnerId: "user-1",
+    inTrial: false,
     ...overrides,
   };
 }
@@ -146,7 +147,12 @@ describe("decidePlayPlanChange", () => {
     const decision = decidePlayPlanChange(input);
 
     // Assert
-    expect(decision).toEqual({ action: "activate", plan: "professional", expiresAt });
+    expect(decision).toEqual({
+      action: "activate",
+      plan: "professional",
+      expiresAt,
+      inTrial: false,
+    });
   });
 
   it("activates the Play plan for an account that is currently free", () => {
@@ -226,7 +232,34 @@ describe("decidePlayPlanChange", () => {
     expect(decision).toEqual({ action: "ignore", reason: "current_plan_outlasts_play" });
   });
 
-  it("never ends an Essential trial when a Play purchase is inactive", () => {
+  it("carries the Play free-trial flag into the activation", () => {
+    const input = makeInput({
+      snapshot: makeSnapshot({ active: true, expiresAt: inDays(7), inTrial: true }),
+      currentProfile: { plan: "free", planExpiresAt: null },
+    });
+
+    expect(decidePlayPlanChange(input)).toMatchObject({
+      action: "activate",
+      inTrial: true,
+    });
+  });
+
+  it("ends a Play card trial that was canceled and expired", () => {
+    const trialEnd = inDays(-0.01);
+    const input = makeInput({
+      snapshot: makeSnapshot({ active: false, expiresAt: trialEnd, inTrial: true }),
+      currentProfile: {
+        plan: "professional",
+        planExpiresAt: trialEnd.toISOString(),
+        planIsTrial: true,
+        planProvider: "google_play",
+      },
+    });
+
+    expect(decidePlayPlanChange(input)).toEqual({ action: "deactivate" });
+  });
+
+  it("never ends a no-card free period when a Play purchase is inactive", () => {
     // Arrange
     const input = makeInput({
       snapshot: makeSnapshot({ active: false, expiresAt: inDays(30) }),

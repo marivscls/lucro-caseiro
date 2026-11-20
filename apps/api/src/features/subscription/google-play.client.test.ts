@@ -208,7 +208,37 @@ describe("GooglePlayClient", () => {
         active: false,
         expiresAt: new Date(expiry),
         purchaseOwnerId: "user-1",
+        inTrial: false,
       });
+    });
+
+    it("marks the snapshot as a free trial when the current offer phase is freeTrial", async () => {
+      // Arrange
+      const expiry = new Date(Date.now() + 7 * 86400000).toISOString();
+      request.mockResolvedValue({
+        data: {
+          subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+          externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
+          lineItems: [
+            {
+              productId: "lucrocaseiro_professional_monthly",
+              expiryTime: expiry,
+              offerDetails: { basePlanId: "monthly", offerId: "teste-7-dias" },
+              offerPhase: { freeTrial: {} },
+            },
+          ],
+        },
+      });
+      const client = new GooglePlayClient(
+        "br.com.orionseven.lucrocaseiro",
+        serviceAccount,
+      );
+
+      // Act
+      const result = await client.getSubscription("token-1");
+
+      // Assert
+      expect(result).toMatchObject({ plan: "professional", active: true, inTrial: true });
     });
 
     it("returns null when Google says the token does not exist", async () => {

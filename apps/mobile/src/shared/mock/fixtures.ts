@@ -73,6 +73,8 @@ export function buildProfile(account: DemoAccount): UserProfile {
     plan: "free",
     planExpiresAt: null,
     planIsTrial: false,
+    planProvider: null,
+    trialAvailable: true,
     createdAt: account.createdAt,
   };
 }

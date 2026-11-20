@@ -1,18 +1,55 @@
 import type { UserProfile } from "@lucro-caseiro/contracts";
-import { isActiveTrial, trialDaysLeft } from "@lucro-caseiro/contracts";
+import {
+  isActiveCardTrial,
+  isActiveFreePeriod,
+  trialDaysLeft,
+} from "@lucro-caseiro/contracts";
 
 type TrialProfile = Pick<UserProfile, "plan" | "planExpiresAt"> & {
-  // Opcional: API antiga não manda o campo (tratado como "não é teste").
+  // Opcionais: API antiga não manda os campos (tratado como "não é teste").
   planIsTrial?: boolean;
+  planProvider?: UserProfile["planProvider"];
+  trialAvailable?: boolean;
 };
 
-/** Conta nova usando o teste grátis do Premium (ainda dentro dos 7 dias). */
+/**
+ * Período grátis SEM cartão ainda valendo (teste antigo do cadastro ou prêmio
+ * de indicação). Não é assinatura: para compra a pessoa conta como Gratuito.
+ */
 export function isProfileOnTrial(
   profile?: TrialProfile | null,
   now: Date = new Date(),
 ): boolean {
   if (!profile) return false;
-  return isActiveTrial(profile.plan, profile.planExpiresAt, profile.planIsTrial, now);
+  return isActiveFreePeriod(
+    profile.plan,
+    profile.planExpiresAt,
+    profile.planIsTrial,
+    profile.planProvider,
+    now,
+  );
+}
+
+/** Teste de 7 dias COM cartão ainda valendo: a loja cobra no fim se não cancelar. */
+export function isProfileOnCardTrial(
+  profile?: TrialProfile | null,
+  now: Date = new Date(),
+): boolean {
+  if (!profile) return false;
+  return isActiveCardTrial(
+    profile.plan,
+    profile.planExpiresAt,
+    profile.planIsTrial,
+    profile.planProvider,
+    now,
+  );
+}
+
+/** Data por extenso, ex.: "27 de novembro". */
+export function trialChargeDate(expiresAt: string): string {
+  return new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long" }).format(
+    new Date(expiresAt),
+  );
 }
 
 /** "hoje", "amanhã" ou "em N dias" até o fim do teste. */
@@ -33,15 +70,26 @@ export interface TrialNotice {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Aviso do teste grátis para a tela de planos. Durante o teste diz quando termina;
- * depois, por até 30 dias, lembra que a conta voltou para o Gratuito.
- * `null` quando a conta não veio do teste.
+ * Aviso do teste para a tela de planos. No teste com cartão diz quando cobra e
+ * como cancelar. No período grátis sem cartão diz quando termina e, por até 30
+ * dias depois, lembra que a conta voltou para o Gratuito.
+ * `null` quando a conta não está num teste.
  */
 export function trialNotice(
   profile?: TrialProfile | null,
   now: Date = new Date(),
 ): TrialNotice | null {
   if (!profile?.planIsTrial || !profile.planExpiresAt) return null;
+
+  // Teste com cartão: deixar claro quando cobra e como não pagar.
+  if (profile.planProvider) {
+    if (!isProfileOnCardTrial(profile, now)) return null;
+    return {
+      title: `Seu teste do Premium termina ${trialEndLabel(profile.planExpiresAt, now)}`,
+      message: `A primeira cobrança acontece em ${trialChargeDate(profile.planExpiresAt)}. Se não quiser continuar, toque em Cancelar assinatura antes disso e você não paga nada.`,
+      ended: false,
+    };
+  }
 
   if (isProfileOnTrial(profile, now)) {
     return {

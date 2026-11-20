@@ -60,6 +60,20 @@ describe("claimRefusal", () => {
 });
 
 describe("rewardPlan", () => {
+  it("não mexe no teste com cartão (a loja cobra no fim)", () => {
+    expect(
+      rewardPlan(
+        {
+          plan: "professional",
+          planExpiresAt: new Date(NOW.getTime() + 5 * 24 * 60 * 60 * 1000),
+          planIsTrial: true,
+          planProvider: "stripe",
+        },
+        NOW,
+      ),
+    ).toBeNull();
+  });
+
   it("dá 30 dias de Premium para quem está no grátis", () => {
     expect(
       rewardPlan({ plan: "free", planExpiresAt: null, planIsTrial: false }, NOW),
